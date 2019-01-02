@@ -1,12 +1,12 @@
 ---
 title: "R Notebook"
 output:
-  pdf_document: default
+  md_document:
+    variant: markdown_github
   html_notebook: default
   html_document:
     df_print: paged
-  md_document:
-    variant: markdown_github
+  pdf_document: default
 ---
 
 ```{r, echo=FALSE}
