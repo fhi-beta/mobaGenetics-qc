@@ -1,0 +1,80 @@
+---
+title: "temp"
+author: "Øyvind Helgeland"
+date: "May 3, 2018"
+output:
+  html_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, warning=FALSE, error=FALSE,message=FALSE, echo=FALSE}
+library(xtable)
+library(knitr)
+load("/home/oyvind/harvest/media/local-disk2/jjuod/qcrot1/both/rep/inferped_data.RData")
+# input original .fam file. numbers of parents
+in_dad_nonf = length(unique(fam_orig$V2[!fam_orig$V3 %in% c(fam_orig$V2,0)]))
+in_mom_nonf = length(unique(fam_orig$V2[!fam_orig$V4 %in% c(fam_orig$V2,0)])) 
+in_dad_foun = length(unique(fam_orig$V3[fam_orig$V3 %in% fam_orig$V2]))
+in_mom_foun = length(unique(fam_orig$V4[fam_orig$V4 %in% fam_orig$V2])) 
+### auto-nonreviewed (not found in predefined lists) part of fam file
+# declared
+fam_sub = fam[unique(which(!fam$V2 %in% c(del$V1,upd$IID))),]
+post_decl_POall = sum(fam_sub$V3!=0)+sum(fam_sub$V4!=0)
+post_decl_POpat = sum(fam_sub$V3!=0)
+post_decl_POmat = sum(fam_sub$V4!=0)
+# genetic
+ix = unique(which(fam$V2 %in% c(del$V1,upd$IID)))
+ids = unique(c(fam$V2[ix],fam$V3[ix],fam$V4[ix]))
+sub = full[which((!full$IID1 %in% ids)&(!full$IID2 %in% ids)),]
+post_infr_POall = sum(sub$Z1>z1_thr)
+post_infr_TW = sum(sub$PI_HAT>tw_thr)
+# sex. auto-reviewed (found in predefined lists) part of fam file
+ix = unique(which(fam$V2 %in% c(del$V1,upd$IID)))
+yx_confl_1 = sum((sex$YCOUNT[ix]>y_thr)&(sex$F[ix]<f_thr)) # Y disagrees with X
+di_confl_1 = sum(sex$PEDSEX[ix] != fam$V5[ix]) # orig.declrd no match with inferred
+# sex. auto-nonreviewed (not found in predefined lists) part of fam file
+ix = unique(which(!fam$V2 %in% c(del$V1,upd$IID)))
+yx_confl_2 = sum((sex$YCOUNT[ix]>y_thr)&(sex$F[ix]<f_thr)) # Y disagrees with X
+di_confl_2 = sum(sex$PEDSEX[ix] != fam$V5[ix]) # orig.declrd no match with inferred
+# sex. all fam
+#yx_confl_all = sum((sex$YCOUNT>y_thr)&(sex$F<f_thr))
+#di_confl_all = sum(sex$PEDSEX != fam$V5)
+```
+### Predefined (static) input files
+- *A* - *"/media/local-disk2/helgeland/rotterdam1/inferred-pedigree/permanent_bad-sample-IIDs.txt"*
+- *B* - *"/media/local-disk2/helgeland/rotterdam1/inferred-pedigree/permanent_reconstruct-fam.txt"*
+The input file *A* with pre-solved problematic pedigrees contained **`r length(unique(upd$FID))`** resolved families with **`r length(unique(upd$IID))`** index individuals. The input file *B* with pre-identified problematic samples (often accidental duplicates of other samples) contained **`r nrow(del)`** individual IDs.
+### Upstream (dynamic) input files
+Genetic files with **`r nrow(fam_orig)`** individuals reached this module. The original .fam file listed **`r in_dad_foun`** fathers (V3 column) and **`r in_mom_foun`** mothers (V4 column) who had genotypes (i.e., were listed in V2 column); also **`r in_dad_nonf`** fathers and **`r in_mom_nonf`** mothers without genotypes. The final .fam file will have them reset as missing (respective numbers **`r sum(!fam$V3 %in% c(fam$V2,0))`** and **`r sum(!fam$V4 %in% c(fam$V2,0))`**).
+### Thresholds and procedures for relationship and sex inference
+The thresholds used to identify paren-offspring relationship were $Z1>$ `r z1_thr`; twin or dublicated samples - $PI\_HAT\ge$ `r tw_thr`; full-siblings relationship - $Z1\ge$ `r fs_thr[3]`, $Z1\le$ `r fs_thr[4]`, $PI\_HAT\ge$ `r fs_thr[1]`, $PI\_HAT\le$ `r fs_thr[2]`. The Y chromosome genotype count threshold used to separate males from females was $YC>$ `r round(y_thr,0)`. The X chromosome $F$ threshold used to separate females from males was $F<$ `r round(f_thr,3)`. Genetic sex was inferred based on both criteria. When criteria disagreed (**`r sum((sex$YCOUNT>y_thr)&(sex$F<f_thr))`** cases), samples were flagged as not suitable for analyses *(phenotypeOK=FALSE)* and genetic sex was infered from the X chromosome data.
+### Modifications to .fam file  
+Being found in the input file *B*, **`r sum(fam$V2 %in% upd$IID)`** samples in the .fam file got assigned their true family IDs, genetic parents and genetic sex. These samples are suitable for analyses and are not flagged as problematic. Being found in the input file *A*, **`r sum(fam$V2 %in% del$V1)`** samples in the .fam file got assigned dummy family IDs (e.g. "prblm001"), got founder's status (i.e., parental IDs were set to "0") and their declared sex was set to their genetic sex. They were flagged as not suitable for future analyses *(phenotypeOK=FALSE)*. In sex inference for all these updated samples, there were **`r yx_confl_1`** cases where Y-chromosome and X-chromosome data did not agree (likely Klinefelter). The declared and inferred sex did not match in **`r di_confl_1`** samples.
+The remaining .fam file contained **`r post_decl_POall`** declared parent-offspring relationships (**`r post_decl_POpat`** paternal, **`r post_decl_POmat`** maternal). Genetic inferrence of the same data detected **`r post_infr_POall`** parent-offspring relationships and **`r post_infr_TW`** pairs of dublicated (twin) samples. If there is a difference between declared and inferred numbers, the auto-generated .pdf report should be manually inspected to detect new sample-identity problems. In sex inference for all these samples, there were **`r yx_confl_2`** cases where Y-chromosome and X-chromosome data did not agree (likely Klinefelter), and **`r di_confl_2`** cases where declared and inferred sex did not agree. These samples were flagged as not suitable for analyses *(phenotypeOK=FALSE)*.
+### Summary
+In total, the number of samples flagged as not suitable for analyses *(phenotypeOK=FALSE)* is **`r sum(flg$phenoOK==FALSE)`**. We do not trust the identity of these samples. The remaining **`r sum(flg$phenoOK==TRUE)`** samples were flagged as OK *(phenotypeOK=TRUE)*.
+The updated .fam file contained **`r sum(fam$V3!=0)+sum(fam$V4!=0)`** declared parent-offspring relationships (**`r sum(fam$V3!=0)`** paternal, **`r sum(fam$V4!=0)`** maternal). The genetic (Xchr) sex was assigned to all the samples. 
+### Problematic genotyping arrays
+The samples from the input file *A* where enriched in these genotyping arrays:
+```{r results='asis', warning=FALSE, error=FALSE,message=FALSE,echo=FALSE}
+tbl = table(unlist(lapply(del$V1,function(x) unlist(strsplit(x,"_"))[1])))
+lbt = data.frame(chip=names(tbl),prob_count=as.integer(tbl),stringsAsFactors = F)
+lbt = lbt[order(lbt$prob_count,decreasing = T),]
+xtbl = xtable(head(lbt))
+print(xtbl,comment=FALSE,floating = T,include.rownames=FALSE)
+```
+(the table is trimmed)
+The samples from the input file *B* where enriched in these genotyping arrays:
+```{r results='asis', warning=FALSE, error=FALSE,message=FALSE,echo=FALSE}
+tbl = table(unlist(lapply(upd$IID,function(x) unlist(strsplit(x,"_"))[1])))
+lbt = data.frame(chip=names(tbl),prob_count=as.integer(tbl),stringsAsFactors = F)
+lbt = lbt[order(lbt$prob_count,decreasing = T),]
+xtbl = xtable(head(lbt))
+print(xtbl,comment=FALSE,floating = T,include.rownames=FALSE)
+```
+(the table is trimmed)
+

@@ -1,0 +1,3 @@
+KeyError in line 15 of /home/oyvindhe/qc-rotterdam1/snakefiles/pre-qc-checks.snake:
+'raw-bedset-stem'
+  File "/home/oyvindhe/qc-rotterdam1/snakefiles/pre-qc-checks.snake", line 15, in <module>

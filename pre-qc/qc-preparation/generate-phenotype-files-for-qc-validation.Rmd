@@ -1,0 +1,30 @@
+---
+title: "generate-phenofile-for-qc-test"
+author: "Øyvind Helgeland"
+date: "May 2, 2018"
+# output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(RSQLite)
+```
+
+
+```{r}
+# Load phenotypes 
+dbfile = '/home/oyvind/harvest/media/local-disk2/helgeland/v10-extracted/leangth_weight_bmi'
+
+con = dbConnect(RSQLite::SQLite(), dbname=dbfile)
+dbListTables(con)
+res1 <- dbGetQuery(con,'select * from Z_ALL')
+
+load(dbfile)
+
+parents <- read.table('/home/oyvind/harvest/media/local-disk2/helgeland/v10-extracted/parents', header = T, stringsAsFactors = F)
+
+```
+

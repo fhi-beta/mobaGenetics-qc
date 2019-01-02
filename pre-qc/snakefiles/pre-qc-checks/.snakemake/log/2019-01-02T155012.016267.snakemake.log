@@ -1,0 +1,64 @@
+Building DAG of jobs...
+Using shell: /bin/bash
+Provided cores: 1
+Rules claiming more threads will be scaled down.
+Job counts:
+	count	jobs
+	1	all
+	1	crude_cleaning
+	1	generate_raw_stats
+	3
+
+rule generate_raw_stats:
+    input: /mnt/archive/ROTTERDAM2/data/GSA2017_246_025_ReRun/PLINK_131218_1047/GSA2017_246_025_ReRun.bed, /mnt/archive/ROTTERDAM2/data/GSA2017_246_025_ReRun/PLINK_131218_1047/GSA2017_246_025_ReRun.fam, /mnt/archive/ROTTERDAM2/data/GSA2017_246_025_ReRun/PLINK_131218_1047/GSA2017_246_025_ReRun.bim
+    output: /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/raw-missing.lmiss, /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/raw-hwe.hwe, /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/raw-missing.imiss, /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/raw-het.het, /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/raw-frq.frq
+    jobid: 1
+
+
+        # Het.rate
+        plink             --bfile /mnt/archive/ROTTERDAM2/data/GSA2017_246_025_ReRun/PLINK_131218_1047/GSA2017_246_025_ReRun             --het             --out /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/raw-het
+
+        # HWE
+        plink             --bfile /mnt/archive/ROTTERDAM2/data/GSA2017_246_025_ReRun/PLINK_131218_1047/GSA2017_246_025_ReRun             --hardy             --out /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/raw-hwe
+
+        # Freq
+        plink             --bfile /mnt/archive/ROTTERDAM2/data/GSA2017_246_025_ReRun/PLINK_131218_1047/GSA2017_246_025_ReRun             --freq             --out /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/raw-frq
+
+        # Missingness
+        plink             --bfile /mnt/archive/ROTTERDAM2/data/GSA2017_246_025_ReRun/PLINK_131218_1047/GSA2017_246_025_ReRun             --missing             --out /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/raw-missing
+
+        
+Finished job 1.
+1 of 3 steps (33%) done
+
+rule crude_cleaning:
+    input: /mnt/archive/ROTTERDAM2/data/GSA2017_246_025_ReRun/PLINK_131218_1047/GSA2017_246_025_ReRun.bed, /mnt/archive/ROTTERDAM2/data/GSA2017_246_025_ReRun/PLINK_131218_1047/GSA2017_246_025_ReRun.bim, /mnt/archive/ROTTERDAM2/data/GSA2017_246_025_ReRun/PLINK_131218_1047/GSA2017_246_025_ReRun.fam
+    output: /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/clean-missing.lmiss, /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/clean-hwe.hwe, /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/clean-missing.imiss, /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/clean-het.het, /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/clean-frq.frq
+    jobid: 2
+
+
+        # Very crude cleaning
+        plink             --bfile /mnt/archive/ROTTERDAM2/data/GSA2017_246_025_ReRun/PLINK_131218_1047/GSA2017_246_025_ReRun             --mind 0.02             --geno 0.02             --make-bed             --out /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/tmp/crude-clean
+
+        # Het.rate
+        plink             --bfile /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/tmp/crude-clean             --het             --out /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/clean-het
+
+        # HWE
+        plink             --bfile /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/tmp/crude-clean             --hardy             --out /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/clean-hwe
+        
+        # Freq
+        plink             --bfile /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/tmp/crude-clean             --freq             --out /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/clean-frq
+           
+        # Missingness
+        plink             --bfile /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/tmp/crude-clean             --missing             --out /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/clean-missing
+        
+Finished job 2.
+2 of 3 steps (67%) done
+
+localrule all:
+    input: /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/raw-het.het, /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/clean-het.het
+    jobid: 0
+
+Finished job 0.
+3 of 3 steps (100%) done
+Complete log: /mnt/archive/ROTTERDAM2/qc/qc-rotterdam2/pre-qc/snakefiles/pre-qc-checks/.snakemake/log/2019-01-02T155012.016267.snakemake.log

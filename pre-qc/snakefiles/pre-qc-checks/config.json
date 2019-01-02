@@ -1,0 +1,5 @@
+{
+    "output_base": "/mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/pre-qc-rotterdam2-output/",
+    "tmp_path": "/mnt/archive/ROTTERDAM2/qc/qc-rotterdam2-out/tmp/",
+    "raw_bedset_stem": "/mnt/archive/ROTTERDAM2/data/GSA2017_246_025_ReRun/PLINK_131218_1047/GSA2017_246_025_ReRun"
+}

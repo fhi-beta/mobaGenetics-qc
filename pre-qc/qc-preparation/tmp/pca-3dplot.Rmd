@@ -1,0 +1,156 @@
+---
+title: "snptable-plot-removal"
+author: "Øyvind Helgeland"
+date: "May 1, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+```
+
+
+```{r}
+snptable <- read.table('/home/oyvind/harvest/media/local-disk2/helgeland/rotterdam1/qc/snp_table_rotterdam1.csv', 
+                       header = T, stringsAsFactors = F, sep=',', as.is = T, comment.char = '|')
+
+names(snptable) <- gsub(pattern = '\\.', '_', names(snptable))
+
+conc <- read.table('/home/oyvind/harvest/media/local-disk2/helgeland/rotterdam1/qc/concentrations_r_friendly.tab.csv', header = T, stringsAsFactors = F, sep='\t')
+
+raw.lmiss <- read.table('/home/oyvind/harvest/media/local-disk2/helgeland/pre-qc-rotterdam1-pipeout/raw-missing.lmiss', header = T, stringsAsFactors = F)
+raw.imiss <- read.table('/home/oyvind/harvest/media/local-disk2/helgeland/pre-qc-rotterdam1-pipeout/raw-missing.imiss', header = T, stringsAsFactors = F)
+raw.frq <- read.table('/home/oyvind/harvest/media/local-disk2/helgeland/pre-qc-rotterdam1-pipeout/raw-frq.frq', header = T, stringsAsFactors = F)
+
+clean.lmiss <- read.table('/home/oyvind/harvest/media/local-disk2/helgeland/pre-qc-rotterdam1-pipeout/clean-missing.lmiss', header = T, stringsAsFactors = F)
+clean.imiss <- read.table('/home/oyvind/harvest/media/local-disk2/helgeland/pre-qc-rotterdam1-pipeout/clean-missing.imiss', header = T, stringsAsFactors = F)
+clean.frq <- read.table('/home/oyvind/harvest/media/local-disk2/helgeland/pre-qc-rotterdam1-pipeout/clean-frq.frq', header = T, stringsAsFactors = F)
+```
+
+```{r}
+# merge files
+snptable.clean.lmiss <- merge(snptable, clean.lmiss, by.x='Name',by.y='SNP')
+
+ggplot(snptable.clean.lmiss) + geom_point(aes(GSAMD_24v1_0_20011747_A4_bpm_AA_T_Dev, F_MISS))
+
+plot3d(snptable.clean.lmiss$GSAMD_24v1_0_20011747_A4_bpm_Cluster_Sep, snptable.clean.lmiss$F_MISS, snptable.clean.lmiss$GSAMD_24v1_0_20011747_A4_bpm_AA_T_Dev)
+``` 
+
+
+```{r}
+ggplot() + geom_histogram(aes(snptable$GSAMD_24v1_0_20011747_A4_bpm_Cluster_Sep), binwidth = 0.01) + geom_vline(xintercept = 0.4, col='red') + ggtitle("cluster sep")
+
+ggplot() + geom_histogram(aes(snptable$GSAMD_24v1_0_20011747_A4_bpm_AA_T_Dev), binwidth = 0.001) + geom_vline(xintercept = 0.025, col='red') + ggtitle("AA theta dev")
+
+ggplot(snptable) + 
+  ggtitle("Clustersep vs. AA Theta Dev") +
+  geom_point(aes(GSAMD_24v1_0_20011747_A4_bpm_Cluster_Sep, GSAMD_24v1_0_20011747_A4_bpm_AA_T_Dev)) +
+  geom_vline(xintercept = 0.4, col='red') +
+  geom_hline(yintercept = 0.025, col='red')
+
+
+```
+
+```{r}
+#' @param new.device a logical value. If TRUE, creates a new device
+#' @param bg the background color of the device
+#' @param width the width of the device
+rgl_init <- function(new.device = FALSE, bg = "white", width = 640) { 
+  if( new.device | rgl.cur() == 0 ) {
+    rgl.open()
+    par3d(windowRect = 50 + c( 0, 0, width, width ) )
+    rgl.bg(color = bg )
+  }
+  rgl.clear(type = c("shapes", "bboxdeco"))
+  rgl.viewpoint(theta = 15, phi = 20, zoom = 0.7)
+}
+
+# x, y, z : numeric vectors corresponding to
+#  the coordinates of points
+# axis.col : axis colors
+# xlab, ylab, zlab: axis labels
+# show.plane : add axis planes
+# show.bbox : add the bounding box decoration
+# bbox.col: the bounding box colors. The first color is the
+# the background color; the second color is the color of tick marks
+rgl_add_axes <- function(x, y, z, axis.col = "grey",
+                xlab = "", ylab="", zlab="", show.plane = TRUE, 
+                show.bbox = FALSE, bbox.col = c("#333377","black"))
+  { 
+  
+  lim <- function(x){c(-max(abs(x)), max(abs(x))) * 1.1}
+  # Add axes
+  xlim <- lim(x); ylim <- lim(y); zlim <- lim(z)
+  rgl.lines(xlim, c(0, 0), c(0, 0), color = axis.col)
+  rgl.lines(c(0, 0), ylim, c(0, 0), color = axis.col)
+  rgl.lines(c(0, 0), c(0, 0), zlim, color = axis.col)
+  
+   # Add a point at the end of each axes to specify the direction
+   axes <- rbind(c(xlim[2], 0, 0), c(0, ylim[2], 0), 
+                 c(0, 0, zlim[2]))
+   rgl.points(axes, color = axis.col, size = 3)
+  
+  # Add axis labels
+  rgl.texts(axes, text = c(xlab, ylab, zlab), color = axis.col,
+             adj = c(0.5, -0.8), size = 2)
+  
+  # Add plane
+  if(show.plane) 
+    xlim <- xlim/1.1; zlim <- zlim /1.1
+    rgl.quads( x = rep(xlim, each = 2), y = c(0, 0, 0, 0),
+             z = c(zlim[1], zlim[2], zlim[2], zlim[1]))
+  
+  # Add bounding box decoration
+  if(show.bbox){
+    rgl.bbox(color=c(bbox.col[1],bbox.col[2]), alpha = 0.5, 
+          emission=bbox.col[1], specular=bbox.col[1], shininess=5, 
+          xlen = 3, ylen = 3, zlen = 3) 
+  }
+}
+```
+
+
+```{r}
+
+library(dplyr)
+library(tidyr)
+library(rgl)
+rel <- read.table('/home/oyvind/harvest/media/local-disk2/helgeland/refdata/hapmap/relationships_w_pops_121708.txt', header = T, stringsAsFactors = F) %>% select(IID,population)
+
+pca.founders.proj <- read.table('/home/oyvind/harvest/media/local-disk2/jjuod/qcrot1/pca_rot1_f_proj.evec', header = F, stringsAsFactors = F, skip=1) %>%
+  separate(col = V1, into = c('FID','IID'), sep=':')
+
+pca.founders.fast <- read.table('/home/oyvind/harvest/media/local-disk2/jjuod/qcrot1/pca_rot1_f_fast.evec', header = F, stringsAsFactors = F, skip=1) %>%
+  separate(col = V1, into = c('FID','IID'), sep=':')
+
+# PCA on all moba samples using projections in the Rot1 QC
+pca.both.proj <- read.table('/home/oyvind/harvest/media/local-disk2/jjuod/qcrot1/both/pca/superclean_core_with_hapmap.pca.evec', header = F, stringsAsFactors = F, skip=1) %>% separate(col = V1, into = c('FID','IID'), sep=':')
+
+m <- merge(pca.founders.proj, rel, by='IID', all.x=T)
+m[is.na(m$population),]$population <- 'MOBA'
+
+rgl_init()
+plot3d(m$V2, m$V3, m$V4)
+rgl.planes(0.00, 0.00, 0.03, 0, alpha=0.2, color = "#D95F02")
+rgl.planes(0.5, 0.5, 0.5, 0, alpha=0.2, color = "#D95F02")
+
+plotit <- function(pcadf, reldf){
+  tmp <- merge(pcadf, reldf, by='IID', all.x=T)
+  tmp[is.na(tmp$population),]$population <- 'MOBA'
+  plot3d(tmp$V2, tmp$V3, tmp$V4, col=as.integer(as.factor(tmp$population)))
+  #text3d(tmp$V2, tmp$V3, tmp$V4, texts = tmp$population)
+  #rgl.spheres(0.016, 0.036, 0.05, r = 0.2, color = "yellow") 
+}
+
+palette(rainbow(12))
+
+plotit(pca.founders.proj,rel)
+plotit(pca.founders.fast,rel)
+plotit(pca.both.proj, rel)
+
+browseURL(paste("file://", writeWebGL(dir=file.path("/home/oyvind/harvest/media/local-disk2/helgeland/qc-rotterdam1/qc-pipeline/report/"), width=700), sep=""))
+```

@@ -1,0 +1,110 @@
+# Config files containing hard coded variables
+configfile: "config.json"
+
+# Runtime variables
+include: "variables.py"
+
+# Catch all rule
+rule all:
+    input:
+        config['output_base'] + 'raw-het.het',
+        config['output_base'] + 'clean-het.het'
+
+# Generate statistics on raw dataset before any filtering
+rule generate_raw_stats:
+    input:
+        bed=config['raw_bedset_stem'] + '.bed',
+        bim=config['raw_bedset_stem'] + '.bim',
+        fam=config['raw_bedset_stem'] + '.fam'
+    output:
+        het=config['output_base'] + 'raw-het.het',
+        hwe=config['output_base'] + 'raw-hwe.hwe',
+        frq=config['output_base'] + 'raw-frq.frq',
+        lmiss=config['output_base'] + 'raw-missing.lmiss',
+        imiss=config['output_base'] + 'raw-missing.imiss',
+    params:
+        stem=config['raw_bedset_stem'],
+        het=config['output_base'] + 'raw-het',                                                                                                                                                           
+        hwe=config['output_base'] + 'raw-hwe',
+        frq=config['output_base'] + 'raw-frq',
+        miss=config['output_base'] + 'raw-missing'
+
+    shell:
+        """
+        # Het.rate
+        plink \
+            --bfile {params.stem} \
+            --het \
+            --out {params.het}
+
+        # HWE
+        plink \
+            --bfile {params.stem} \
+            --hardy \
+            --out {params.hwe}
+
+        # Freq
+        plink \
+            --bfile {params.stem} \
+            --freq \
+            --out {params.frq}
+
+        # Missingness
+        plink \
+            --bfile {params.stem} \
+            --missing \
+            --out {params.miss}
+
+        """
+
+# Run a very crude cleaning and output overall stats
+rule crude_cleaning:
+    input:
+        in_bedset=expand(config['raw_bedset_stem'] + '{ext}', ext = ['.bed','.bim','.fam'])
+    output:
+        het=config['output_base'] + 'clean-het.het',
+        hwe=config['output_base'] + 'clean-hwe.hwe',
+        frq=config['output_base'] + 'clean-frq.frq',
+        lmiss=config['output_base'] + 'clean-missing.lmiss',
+        imiss=config['output_base'] + 'clean-missing.imiss',
+    params:
+        clean_stem=config['tmp_path'] + 'crude-clean',
+        stem=config['raw_bedset_stem'],
+        het=config['output_base'] + 'clean-het',
+        hwe=config['output_base'] + 'clean-hwe',
+        frq=config['output_base'] + 'clean-frq',
+        miss=config['output_base'] + 'clean-missing'
+    shell:
+        """
+        # Very crude cleaning
+        plink \
+            --bfile {params.stem} \
+            --mind 0.02 \
+            --geno 0.02 \
+            --make-bed \
+            --out {params.clean_stem}
+
+        # Het.rate
+        plink \
+            --bfile {params.clean_stem} \
+            --het \
+            --out {params.het}
+
+        # HWE
+        plink \
+            --bfile {params.clean_stem} \
+            --hardy \
+            --out {params.hwe}
+        
+        # Freq
+        plink \
+            --bfile {params.clean_stem} \
+            --freq \
+            --out {params.frq}
+           
+        # Missingness
+        plink \
+            --bfile {params.clean_stem} \
+            --missing \
+            --out {params.miss}
+        """

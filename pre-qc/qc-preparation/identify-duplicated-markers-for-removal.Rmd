@@ -1,0 +1,42 @@
+---
+title: "duplicate_marker_removal_prep.R"
+author: "Øyvind Helgeland"
+date: "April 29, 2018"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(ggplot2)
+```
+
+```{r}
+# read raw bim file
+bim.raw <- read.table('/home/oyvind/hunt-cloud/mnt/archive/ROTTERDAM1/data/plink/PLINK_260318_0459/bedset/GSA2016_MOBA_025.bim', header = F, stringsAsFactors = F)
+names(bim.raw) <- c('CHR','SNP','CM','BP','A1','A2')
+
+# remove chr 0 markers (they will be removed in pipe anyway)
+bim <- bim.raw %>% filter(CHR != 0)
+
+# add unique identifier per chr, pos and alleles
+bim$identity <- paste(bim$CHR, bim$BP,bim$A1, bim$A2, sep = '_')
+
+# extract all duplicated markers by identity
+bimsub <- subset(bim, identity %in% bim[duplicated(bim$identity),]$identity)
+
+# identify duplicated markers
+duplicated.snps <- bimsub[duplicated(bimsub$identity),]$SNP
+
+# write duplicate marker removal list to file
+write.csv(duplicated.snps, file = '/home/oyvind/hunt-cloud/mnt/archive/ROTTERDAM1/qc/duplicated-marker-removal-list.txt', row.names = F, quote = F)
+
+# TEMP
+#bimsub.lmiss.p <- bimsub.lmiss %>% group_by(identity) %>% mutate(nid=1:n()) %>% arrange(identity)
+#bimsub.lmiss.p[,c("identity", "nid", "F_MISS")] %>% spread(nid, F_MISS) %>%
+#  ggplot(aes(x=`1`, y=`2`)) + geom_point() + geom_abline(slope=1, intercept=0, col="red")
+
+```
+
