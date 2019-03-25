@@ -1,0 +1,858 @@
+---
+title: "qc-rotterdam1-report"
+author: "Øyvind Helgeland"
+date: "May 2, 2018"
+header-includes:
+   - \usepackage{multicol}
+output:
+  html_document: default
+  pdf_document: default
+  md_document:
+    variant: markdown_github  
+---
+
+<style>
+.column-left{
+  float: left;
+  width: 50%;
+}
+.column-right{
+  float: right;
+  width: 50%;
+}
+</style>
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = FALSE)
+```
+
+```{r, echo=F}
+library(knitr)
+library(kableExtra)
+```
+
+
+```{r, echo=F}
+# General settings
+basepath='/home/oyvind/harvest/media/local-disk2/jjuod/qcrot1/'
+mod1 = file.path(basepath, 'mod1-data-preparation/rep/')
+mod2 = file.path(basepath, 'both/rep/')
+mod2.founder = file.path(basepath, 'founders/rep/')
+mod2.offspring = file.path(basepath, 'offspring/rep/')
+mod3.founder = file.path(basepath, 'founders/rep/')
+mod3.offspring = file.path(basepath, 'offspring/rep/')
+mod4.founder = file.path(basepath, 'founders/rep/')
+mod4.offspring = file.path(basepath, 'offspring/rep/')
+mod5 = file.path(basepath, 'mod3-shaping-preparation/rep/')
+
+# Plot paths
+
+```
+
+
+## **Module 0 - Data conversion**
+***
+Data conversion from GenomeStudio to PLINK format was carried out prior to data delivery.
+
+
+## **Module 1 - Data preparation**
+***
+
+```{r, echo=F}
+mod1.var1 <- read.table(file.path(mod1, 'storedvars_update.txt'), header = F, stringsAsFactors = T, sep = ':')
+mod1.var1 <- setNames(as.list(mod1.var1$V3), mod1.var1$V1)
+
+mod1.var2 <- read.table(file.path(mod1, 'storedvars_clustering.txt'), header = F, stringsAsFactors = T, sep = ':')
+mod1.var2 <- setNames(as.list(mod1.var2$V3), mod1.var2$V1)
+
+mod1.var3 <- read.table(file.path(mod1, 'storedvars_markerfix.txt'), header = F, stringsAsFactors = T, sep = ':')
+mod1.var3 <- setNames(as.list(mod1.var3$V3), mod1.var3$V1)
+
+mod1.var4 <- read.table(file.path(mod1, 'storedvars_duplicates.txt'), header = F, stringsAsFactors = T, sep = ':')
+mod1.var4 <- setNames(as.list(mod1.var4$V3), mod1.var4$V1)
+```
+
+Module 1 prepared data for QC procedures. In the exported data from GenomeStudio, samples were coded using project specific retrieval IDs and non-informative family IDs. Also, no sex information was available. 
+
+Information about declared sample sex and pedigree structure provided by MoBa were used to update the dataset.
+
+Markers with poor cluster separation, low 10% GC score and high AA theta deviation were removed. Clustering metrics were provided by the SNP table exported from GenomeStudio.
+
+The array contains some duplicated/triplicated markers. Duplicates/triplicates were removed to avoid potential problems downstream.
+
+Illumina provides a conversion list for converting marker IDs used on the array to rsIDs. In the provided list some markers are named '.'. To avoid duplicate/non-informative IDs, the original chip ID was used in situations were no rsID was available.
+
+Illumina technical markers (assigned to chromosome 0) were excluded and markers with poor clustering were eliminated using metrics available from the variant table exported from GenomeStudio. Problematic markers reported by other consortia were subsequently excluded.
+
+NOTE: All markers in the PAR region was correctly assigned to chr 24, no update necessary.  
+NOTE: The lab in Rotterdam removed 7710 markers showing poor performance prior to delivery (markers not included in the dataset)
+
+**Updating sample IDs:**  
+`r paste("Samples in:", mod1.var1$NIND_TOUPDATEID)`  
+`r paste("Samples updated:", mod1.var1$NIND_TOUPDATEID - mod1.var1$NIND_NOTUPDATEDID)`  
+`r paste("Samples not updated:", mod1.var1$NIND_NOTUPDATEDID)`
+
+**Updating parental information:**  
+`r paste("Samples in:", mod1.var1$NIND_NOTUPDATEDPAR +(mod1.var1$NIND_TOUPDATEPAR - mod1.var1$NIND_NOTUPDATEDPAR))`  
+`r paste("Samples assigned one or more parents:", mod1.var1$NIND_TOUPDATEPAR - mod1.var1$NIND_NOTUPDATEDPAR)`  
+`r paste("Samples not updated:", mod1.var1$NIND_NOTUPDATEDPAR)`  
+
+**Updating sex:**  
+`r paste("Samples in:", mod1.var1$NIND_TOUPDATESEX)`    
+`r paste("Samples where sex was updated:", mod1.var1$NIND_TOUPDATESEX - mod1.var1$NIND_NOTUPDATEDSEX)`  
+`r paste("Samples not updated for sex:", mod1.var1$NIND_NOTUPDATEDSEX)`
+
+**Remove markers by cluster separation < 0.4:**  
+`r paste("Markers in:", mod1.var2$NSNP_CLUSTERSEP_LOST + mod1.var2$NSNP_AFTER_CLUSTERSEP)`  
+`r paste("Markers removed:", mod1.var2$NSNP_CLUSTERSEP_LOST)`  
+`r paste("Markers remaining:", mod1.var2$NSNP_AFTER_CLUSTERSEP)`
+
+**Remove markers by 10% GC score:**  
+`r paste("Markers in:", mod1.var2$NSNP_GC_LOST + mod1.var2$NSNP_AFTER_GC)`  
+`r paste("Markers removed:", mod1.var2$NSNP_GC_LOST)`  
+`r paste("Markers remaining:", mod1.var2$NSNP_AFTER_GC)`
+
+**Remove markerst by AA theta dev:**  
+`r paste("Markers in:", mod1.var2$NSNP_AATHETADEV_LOST + mod1.var2$NSNP_AFTER_AATHETADEV)`  
+`r paste("Markers removed:", mod1.var2$NSNP_AATHETADEV_LOST)`  
+`r paste("Markers remaining:", mod1.var2$NSNP_AFTER_AATHETADEV)`
+
+**Remove duplicated markers:**  
+`r paste("Markers in:", mod1.var2$NSNP_AFTER_AATHETADEV)`  
+`r paste("Markers removed:", mod1.var4$NSNP_DUPLICATEMARKERS_LOST)`  
+`r paste("Markers remaining:", mod1.var2$NSNP_AFTER_AATHETADEV - mod1.var4$NSNP_DUPLICATEMARKERS_LOST)`
+
+**Update SNPs to rsID:**  
+`r paste("Markers in:", mod1.var3$NSNP_BEFORE_RSID_UPDATE)`  
+`r paste("Markers updated:", mod1.var3$NSNP_BEFORE_RSID_UPDATE - mod1.var3$NSNP_RSID_UPDATE_LOST)`  
+`r paste("Markers not updated:", mod1.var3$NSNP_RSID_UPDATE_LOST)`
+
+**Removed technical markers (chr0):**  
+`r paste("Markers in:", mod1.var3$NSNP_BEFORE_RSID_UPDATE)`  
+`r paste("Markers removed:", mod1.var3$NSNP_CHR0_LOST)`  
+`r paste("Markers remaining:", mod1.var3$NSNP_BEFORE_RSID_UPDATE - mod1.var3$NSNP_CHR0_LOST)`
+
+
+## **Module 2 - Identify core samples and infere pedigree**
+
+***
+```{r, warning=FALSE, error=FALSE,message=FALSE, echo=FALSE}
+library(xtable)
+library(knitr)
+load("/home/oyvind/harvest/media/local-disk2/jjuod/qcrot1/both/rep/inferped_data.RData")
+# input original .fam file. numbers of parents
+in_dad_nonf = length(unique(fam_orig$V2[!fam_orig$V3 %in% c(fam_orig$V2,0)]))
+in_mom_nonf = length(unique(fam_orig$V2[!fam_orig$V4 %in% c(fam_orig$V2,0)])) 
+in_dad_foun = length(unique(fam_orig$V3[fam_orig$V3 %in% fam_orig$V2]))
+in_mom_foun = length(unique(fam_orig$V4[fam_orig$V4 %in% fam_orig$V2])) 
+### auto-nonreviewed (not found in predefined lists) part of fam file
+# declared
+fam_sub = fam[unique(which(!fam$V2 %in% c(del$V1,upd$IID))),]
+post_decl_POall = sum(fam_sub$V3!=0)+sum(fam_sub$V4!=0)
+post_decl_POpat = sum(fam_sub$V3!=0)
+post_decl_POmat = sum(fam_sub$V4!=0)
+# genetic
+ix = unique(which(fam$V2 %in% c(del$V1,upd$IID)))
+ids = unique(c(fam$V2[ix],fam$V3[ix],fam$V4[ix]))
+sub = full[which((!full$IID1 %in% ids)&(!full$IID2 %in% ids)),]
+post_infr_POall = sum(sub$Z1>z1_thr)
+post_infr_TW = sum(sub$PI_HAT>tw_thr)
+# sex. auto-reviewed (found in predefined lists) part of fam file
+ix = unique(which(fam$V2 %in% c(del$V1,upd$IID)))
+yx_confl_1 = sum((sex$YCOUNT[ix]>y_thr)&(sex$F[ix]<f_thr)) # Y disagrees with X
+di_confl_1 = sum(sex$PEDSEX[ix] != fam$V5[ix]) # orig.declrd no match with inferred
+# sex. auto-nonreviewed (not found in predefined lists) part of fam file
+ix = unique(which(!fam$V2 %in% c(del$V1,upd$IID)))
+yx_confl_2 = sum((sex$YCOUNT[ix]>y_thr)&(sex$F[ix]<f_thr)) # Y disagrees with X
+di_confl_2 = sum(sex$PEDSEX[ix] != fam$V5[ix]) # orig.declrd no match with inferred
+# sex. all fam
+yx_confl_all = sum((sex$YCOUNT>y_thr)&(sex$F<f_thr))
+di_confl_all = sum(sex$PEDSEX != fam$V5)
+```
+
+Module 2 carries out temporary cleaning before checking sex of all samples in the dataset. IBD estimation is performed in order to correct any pedigree inconsistencies. A corrected .fam file containing corrected pedigree structure is used for the remainder of the QC. In an attempt not to lose any samples of good quality, all samples (with genotype missingness < 5%) are sent to phasing and imputation. However, samples that could not be reliably identified in the pedigree are flagged in the flaglist.
+
+To identify an ethniccally homogenous set of samples before module 3, PCA is performed for the HapMap samples and the MoBa samples are projected onto the plot before manually selecting an ethinically homogeneous dataset for use in marker cleaning. Note that using projections will include some ethnic HapMap samples in the selection plots compared to running PCA on the complete merged dataset of MoBa samples with HapMap.
+
+The dataset is then split into founders and offspring and samples with excess relatedness are removed.
+
+### Detailed description of steps carried out in sample/pedigree/sex inference
+#### Predefined (static) input files
+
+- *A* - *"permanent_bad-sample-IIDs.txt"*
+- *B* - *"permanent_reconstruct-fam.txt"*
+
+The input file *A* with pre-solved problematic pedigrees contained **`r length(unique(upd$FID))`** resolved families with **`r length(unique(upd$IID))`** index individuals. The input file *B* with pre-identified problematic samples (often accidental duplicates of other samples) contained **`r nrow(del)`** individual IDs.
+
+¤### Upstream (dynamic) input files
+Genetic files with **`r nrow(fam_orig)`** individuals reached this module. The original .fam file listed **`r in_dad_foun`** fathers (V3 column) and **`r in_mom_foun`** mothers (V4 column) who had genotypes (i.e., were listed in V2 column); also **`r in_dad_nonf`** fathers and **`r in_mom_nonf`** mothers without genotypes. The final .fam file will have them reset as missing (respective numbers **`r sum(!fam$V3 %in% c(fam$V2,0))`** and **`r sum(!fam$V4 %in% c(fam$V2,0))`**).
+
+#### Thresholds and procedures for relationship and sex inference
+The thresholds used to identify paren-offspring relationship were $Z1>$ `r z1_thr`; twin or dublicated samples - $PI\_HAT\ge$ `r tw_thr`; full-siblings relationship - $Z1\ge$ `r fs_thr[3]`, $Z1\le$ `r fs_thr[4]`, $PI\_HAT\ge$ `r fs_thr[1]`, $PI\_HAT\le$ `r fs_thr[2]`. The Y chromosome genotype count threshold used to separate males from females was $YC>$ `r round(y_thr,0)`. The X chromosome $F$ threshold used to separate females from males was $F<$ `r round(f_thr,3)`. Genetic sex was inferred based on both criteria. When criteria disagreed (**`r sum((sex$YCOUNT>y_thr)&(sex$F<f_thr))`** cases), samples were flagged as not suitable for analyses *(phenotypeOK=FALSE)* and genetic sex was infered from the X chromosome data.
+
+#### Modifications to .fam file
+Being found in the input file *B*, **`r sum(fam$V2 %in% upd$IID)`** samples in the .fam file got assigned their true family IDs, genetic parents and genetic sex. These samples are suitable for analyses and are not flagged as problematic. Being found in the input file *A*, **`r sum(fam$V2 %in% del$V1)`** samples in the .fam file got assigned dummy family IDs (e.g. "prblm001"), got founder's status (i.e., parental IDs were set to "0") and their declared sex was set to their genetic sex. They were flagged as not suitable for future analyses *(phenotypeOK=FALSE)*. In sex inference for all these updated samples, there were **`r yx_confl_1`** cases where Y-chromosome and X-chromosome data did not agree (likely Klinefelter). The declared and inferred sex did not match in **`r di_confl_1`** samples.
+
+The remaining .fam file contained **`r post_decl_POall`** declared parent-offspring relationships (**`r post_decl_POpat`** paternal, **`r post_decl_POmat`** maternal). Genetic inferrence of the same data detected **`r post_infr_POall`** parent-offspring relationships and **`r post_infr_TW`** pairs of dublicated (twin) samples. If there is a difference between declared and inferred numbers, the auto-generated .pdf report should be manually inspected to detect new sample-identity problems. In sex inference for all these samples, there were **`r yx_confl_2`** cases where Y-chromosome and X-chromosome data did not agree (likely Klinefelter), and **`r di_confl_2`** cases where declared and inferred sex did not agree. These samples were flagged as not suitable for analyses *(phenotypeOK=FALSE)*.
+
+#### Summary
+In total, the number of samples flagged as not suitable for analyses *(phenotypeOK=FALSE)* is **`r sum(flg$phenoOK==FALSE)`**. We do not trust the identity of these samples. The remaining **`r sum(flg$phenoOK==TRUE)`** samples were flagged as OK *(phenotypeOK=TRUE)*.
+
+The updated .fam file contained **`r sum(fam$V3!=0)+sum(fam$V4!=0)`** declared parent-offspring relationships (**`r sum(fam$V3!=0)`** paternal, **`r sum(fam$V4!=0)`** maternal). The genetic (Xchr) sex was assigned to all the samples. 
+
+
+```{r, echo=F}
+mod2.var1 <- read.table(file.path(mod2, 'storedvars_superclean.txt'), header = F, stringsAsFactors = T, sep = ':')
+mod2.var1 <- setNames(as.list(mod2.var1$V3), mod2.var1$V1)
+
+mod2.var2 <- read.table(file.path(mod2, 'storedvars_pca.txt'), header = F, stringsAsFactors = T, sep = ':')
+mod2.var2 <- setNames(as.list(mod2.var2$V3), mod2.var2$V1)
+
+mod2.var3 <- read.table(file.path(mod2, 'storedvars_split.txt'), header = F, stringsAsFactors = T, sep = ':')
+mod2.var3 <- setNames(as.list(mod2.var3$V3), mod2.var3$V1)
+
+mod2.var4.founders <- read.table(file.path(mod2.founder, 'storedvars_ibd.txt'), header = F, stringsAsFactors = T, sep = ':')
+mod2.var4.founders <- setNames(as.list(mod2.var4.founders$V3), mod2.var4.founders$V1)
+
+mod2.var4.offspring <- read.table(file.path(mod2.offspring, 'storedvars_ibd.txt'), header = F, stringsAsFactors = T, sep = ':')
+mod2.var4.offspring <- setNames(as.list(mod2.var4.offspring$V3), mod2.var4.offspring$V1)
+
+```
+
+**Markers and samples in**  
+`r paste("Markers in start:", mod2.var1$NSNP_SUPERCLEAN_IN)`  
+`r paste("Samples in start:", mod2.var1$NIND_SUPERCLEAN_IN)`
+
+**Temporary removal of markers with MAF < 10%**  
+`r paste("Markers in:", mod2.var1$NSNP_SUPERCLEAN_AFTERP1 + (mod2.var1$NSNP_SUPERCLEAN_IN - mod2.var1$NSNP_SUPERCLEAN_AFTERP1))`  
+`r paste("Markers removed:", mod2.var1$NSNP_SUPERCLEAN_IN - mod2.var1$NSNP_SUPERCLEAN_AFTERP1)`  
+`r paste("Markers remaining:", mod2.var1$NSNP_SUPERCLEAN_AFTERP1)`
+
+**Permanent removal of samples with missingness > 5%**  
+`r paste("Samples in:", mod2.var1$NIND_MIND0.05_LOST + mod2.var1$NIND_AFTER_MIND0.05)`  
+`r paste("Samples removed:", mod2.var1$NIND_MIND0.05_LOST)`  
+`r paste("Samples remaining", mod2.var1$NIND_AFTER_MIND0.05)`
+
+```{r}
+mod2.superclean.plots <- file.path(basepath, 'both/rep/plots_superclean/')
+include_graphics(path = file.path(mod2.superclean.plots, "_IDENTIFY_imiss.png"))
+```
+
+**Temporary removal of markers with missingness > 2%**  
+`r paste("Markers removed:", (mod2.var1$NSNP_SUPERCLEAN_AFTERP1- mod2.var1$NSNP_SUPERCLEAN_AFTERGENO) + mod2.var1$NSNP_SUPERCLEAN_AFTERGENO)`  
+`r paste("Markers removed:", mod2.var1$NSNP_SUPERCLEAN_AFTERP1- mod2.var1$NSNP_SUPERCLEAN_AFTERGENO)`  
+`r paste("Markers remaining:", mod2.var1$NSNP_SUPERCLEAN_AFTERGENO)`
+
+```{r}
+include_graphics(path = file.path(mod2.superclean.plots, "_IDENTIFY_lmiss.png"))
+```
+
+**Temporary removal of non-autosomal markers**  
+`r paste("Markers in:", mod2.var1$NSNP_SUPERCLEAN_AFTERGENO)`
+
+`r paste("Markers removed:", mod2.var1$NSNP_SUPERCLEAN_AFTERGENO - mod2.var1$NSNP_SUPERCLEAN_AUTOSOMAL)`  
+`r paste("Markers remaining:", mod2.var1$NSNP_SUPERCLEAN_AUTOSOMAL)`
+
+**Temporary removal of markers with HWE p < 1e-4**  
+`r paste("Markers in:", mod2.var1$NSNP_SUPERCLEAN_AUTOSOMAL)`  
+`r paste("Markers removed:", mod2.var1$NSNP_SUPERCLEAN_AUTOSOMAL - mod2.var1$NSNP_SUPERCLEAN_AFTERHWE)`  
+`r paste("Markers remaining:", mod2.var1$NSNP_SUPERCLEAN_AFTERHWE)`
+
+```{r}
+include_graphics(path = file.path(mod2.superclean.plots, "_IDENTIFY_hwe.png"))
+```
+
+
+**Temporary removal of strand ambiguous markers**  
+`r paste("Markers removed:", mod2.var1$NSNP_SUPERCLEAN_AFTERHWE)`  
+`r paste("Markers removed:", mod2.var1$NSNP_SUPERCLEAN_AFTERHWE - mod2.var1$NSNP_STRAND_nonambiguous)`  
+`r paste("Markers remaining:", mod2.var1$NSNP_STRAND_nonambiguous)`
+
+**Temporary remove markers in high LD**  
+`r paste("Markers in:", mod2.var1$NSNP_STRAND_nonambiguous)`  
+`r paste("Markers removed:", mod2.var1$NSNP_STRAND_nonambiguous - mod2.var1$NSNP_AFTER_HIGHLD)`  
+`r paste("Markers remaining:", mod2.var1$NSNP_AFTER_HIGHLD)`
+
+**Prune set of markers using --indep-pairwise 200 100 0.1**  
+`r paste("Markers in:", mod2.var1$NSNP_AFTER_PRUNE + (mod2.var1$NSNP_AFTER_HIGHLD - mod2.var1$NSNP_AFTER_PRUNE))`  
+`r paste("Markers removed:", mod2.var1$NSNP_AFTER_HIGHLD - mod2.var1$NSNP_AFTER_PRUNE)`  
+`r paste("Markers remaining:", mod2.var1$NSNP_AFTER_PRUNE)`
+
+**Removal of pedigree inconsistent samples**  
+`r paste("Samples in:", mod2.var2$NIND_PCA_IN)`  
+`r paste("Samples for removal:", mod2.var2$NIND_TOREMOVE_INFERPED)`  
+`r paste("Samples removed:", mod2.var2$NIND_INFERPED_LOST)`  
+`r paste("Samples remaining:", mod2.var2$NIND_AFTER_INFERPED)`
+
+**PCA after merge with HapMap**  
+`r paste("Markers after HapMap merge (used for PCA):", mod2.var2$NSNP_MERGEDFORPCA)`
+
+**Sample selection post PCA**  
+`r paste("Samples in: ", mod2.var2$SELECTED_TOKEEP_PCA + (mod2.var2$NIND_PCA_LOST - mod2.var2$NIND_INFERPED_LOST))`  
+`r paste("Samples removed after PCA:", mod2.var2$NIND_PCA_LOST - mod2.var2$NIND_INFERPED_LOST)`  
+`r paste("Samples remaining after PCA:", mod2.var2$NIND_AFTER_PCA)`
+
+```{r}
+mod2.pca.plots <- file.path(basepath, 'both/rep/plots_pca/')
+include_graphics(path = file.path(mod2.pca.plots, "pca_pruning_general.png"))
+include_graphics(path = file.path(mod2.pca.plots, "pca_pruning_zoomed.png"))
+
+```
+
+**Split dataset into founders and offspring**  
+`r paste("Samples in:", mod2.var3$NIND_REMAIN_FOUNDERS + mod2.var3$NIND_REMAIN_OFFSPRING)`  
+`r paste("Founders:", mod2.var3$NIND_REMAIN_FOUNDERS)`  
+`r paste("Offspring:", mod2.var3$NIND_REMAIN_OFFSPRING)`
+
+
+<div class="column-left">
+## Founders
+
+**IBD estimation**  
+`r paste("Samples in:", mod2.var4.founders$NIND_IBD_IN)`  
+`r paste("Markers in:", mod2.var4.founders$NSNP_IBD_IN)`
+
+**Remove samples with excess accumulated PIHAT:**   
+`r paste("Samples in:", mod2.var4.founders$NIND_IBD_IN)`  
+`r paste("Samples for removal:", mod2.var4.founders$NIND_TOREMOVE_PIHAT_ACCUM)`  
+`r paste("Samples removed:", mod2.var4.founders$NIND_PIHAT_ACCUM_LOST)`  
+`r paste("Samples remaining:", mod2.var4.founders$NIND_IBD_IN - mod2.var4.founders$NIND_PIHAT_ACCUM_LOST)`  
+
+**Remove one in a pair of samples with PIHAT > 0.1:**  
+`r paste("Samples in:", mod2.var4.founders$NIND_AFTER_PIHAT_ACCUM)`  
+`r paste("Samples for removal:", mod2.var4.founders$NIND_TOREMOVE_PIHAT_THR)`  
+`r paste("Samples removed:", mod2.var4.founders$NIND_PIHAT_THR_LOST)`  
+`r paste("Samples remaining:", mod2.var4.founders$NIND_AFTER_PIHAT_THR)`
+</div>
+
+
+<div class="column-right">
+## Offspring
+
+**IBD estimation**  
+`r paste("Samples in:", mod2.var4.offspring$NIND_IBD_IN)`  
+`r paste("Markers in:", mod2.var4.offspring$NSNP_IBD_IN)`
+
+**Remove samples with excess accumulated PIHAT:**   
+`r paste("Samples in:", mod2.var4.offspring$NIND_IBD_IN)`  
+`r paste("Samples for removal:", mod2.var4.offspring$NIND_TOREMOVE_PIHAT_ACCUM)`  
+`r paste("Samples removed:", mod2.var4.offspring$NIND_PIHAT_ACCUM_LOST)`  
+`r paste("Samples remaining:", mod2.var4.offspring$NIND_IBD_IN - mod2.var4.offspring$NIND_PIHAT_ACCUM_LOST)`  
+
+**Remove one in a pair of samples with PIHAT > 0.1:**  
+`r paste("Samples in:", mod2.var4.offspring$NIND_AFTER_PIHAT_ACCUM)`  
+`r paste("Samples for removal:", mod2.var4.offspring$NIND_TOREMOVE_PIHAT_THR)`  
+`r paste("Samples removed:", mod2.var4.offspring$NIND_PIHAT_THR_LOST)`  
+`r paste("Samples remaining:", mod2.var4.offspring$NIND_AFTER_PIHAT_THR)`
+
+</div>
+
+## **Module 3 - Identify good markers**
+
+***
+
+Module 3 use the ethnically homogenous subset of samples in order to identify markers of good quality (for founders and offspring separately). Markers are removed iteratively with increasing strictening of exlucsions thresholds to ensure the highest quality markers and samples remain in successice steps. Note that MT and Y markers are not cleaned.
+
+```{r, echo=F}
+mod3.var1.founders <- read.table(file.path(mod3.founder, 'storedvars_clean.txt'), header = F, stringsAsFactors = T, sep = ':')
+mod3.var1.founders <- setNames(as.list(mod3.var1.founders$V3), mod3.var1.founders$V1)
+
+mod3.var2.founders <- read.table(file.path(mod3.founder, 'storedvars_cleansex.txt'), header = F, stringsAsFactors = T, sep = ':')
+mod3.var2.founders <- setNames(as.list(mod3.var2.founders$V3), mod3.var2.founders$V1)
+
+mod3.var1.offspring <- read.table(file.path(mod3.offspring, 'storedvars_clean.txt'), header = F, stringsAsFactors = T, sep = ':')
+mod3.var1.offspring <- setNames(as.list(mod3.var1.offspring$V3), mod3.var1.offspring$V1)
+
+mod3.var2.offspring <- read.table(file.path(mod3.offspring, 'storedvars_cleansex.txt'), header = F, stringsAsFactors = T, sep = ':')
+mod3.var2.offspring <- setNames(as.list(mod3.var2.offspring$V3), mod3.var2.offspring$V1)
+
+```
+
+<div class="column-left">
+## Founders
+
+**Number of markers and samples at start of cleaning:**  
+`r paste("Samples in start:", mod3.var1.founders$NIND_INTO_CLEAN)`  
+`r paste("Markers in start:", mod3.var1.founders$NSNP_INTO_CLEAN)`
+
+**Remove markers with missingness > 10%:**  
+`r paste("Markers in:", mod3.var1.founders$NSNP_GENO0.10_LOST + mod3.var1.founders$NSNP_AFTER_GENO0.10)`  
+`r paste("Markers removed:", mod3.var1.founders$NSNP_GENO0.10_LOST)`  
+`r paste("Markers remaining:", mod3.var1.founders$NSNP_AFTER_GENO0.10)`
+
+```{r}
+mod3.founders.plots.clean <- file.path(basepath, 'founders/rep/plots_clean/')
+include_graphics(path = file.path(mod3.founders.plots.clean, "_CLEANGENO1_lmiss.png"))
+```
+
+**Remove individuals with missingsness > 5%:**  
+`r paste("Samples in:", mod3.var1.founders$NIND_MIND0.05_LOST + mod3.var1.founders$NIND_AFTER_MIND0.05)`  
+`r paste("Samples removed:", mod3.var1.founders$NIND_MIND0.05_LOST)`  
+`r paste("Samples remaining:", mod3.var1.founders$NIND_AFTER_MIND0.05)`
+
+```{r}
+include_graphics(path = file.path(mod3.founders.plots.clean, "_CLEANMIND1_imiss.png"))
+```
+
+**Remove markers with missingness > 5%:**  
+`r paste("Markers in:", mod3.var1.founders$NSNP_GENO0.05_LOST + mod3.var1.founders$NSNP_AFTER_GENO0.05)`  
+`r paste("Markers removed:", mod3.var1.founders$NSNP_GENO0.05_LOST)`  
+`r paste("Markers remaining:", mod3.var1.founders$NSNP_AFTER_GENO0.05)`
+
+```{r}
+include_graphics(path = file.path(mod3.founders.plots.clean, "_CLEANGENO2_lmiss.png"))
+```
+
+
+**Remove individuals with missingess > 3%:**  
+`r paste("Samples in:", mod3.var1.founders$NIND_MIND0.03_LOST + mod3.var1.founders$NIND_AFTER_MIND0.03)`  
+`r paste("Samples removed:", mod3.var1.founders$NIND_MIND0.03_LOST)`  
+`r paste("Samples remaining:", mod3.var1.founders$NIND_AFTER_MIND0.03)`
+
+```{r}
+include_graphics(path = file.path(mod3.founders.plots.clean, "_CLEANMIND2_imiss.png"))
+```
+
+
+**Remove markers with missingness > 2%:**  
+`r paste("Markers in:", mod3.var1.founders$NSNP_GENO0.02_LOST + mod3.var1.founders$NSNP_AFTER_GENO0.02)`  
+`r paste("Markers removed:", mod3.var1.founders$NSNP_GENO0.02_LOST)`  
+`r paste("Markers remaining:", mod3.var1.founders$NSNP_AFTER_GENO0.02)`
+
+```{r}
+include_graphics(path = file.path(mod3.founders.plots.clean, "_CLEANGENO3_lmiss.png"))
+```
+
+**Remove individuals with missingness > 2%:**  
+`r paste("Samples in:", mod3.var1.founders$NIND_MIND0.02_LOST + mod3.var1.founders$NIND_AFTER_MIND0.02)`  
+`r paste("Samples removed:", mod3.var1.founders$NIND_MIND0.02_LOST)`  
+`r paste("Samples remaining:", mod3.var1.founders$NIND_AFTER_MIND0.02)`
+
+```{r}
+include_graphics(path = file.path(mod3.founders.plots.clean, "_CLEANMIND3_imiss.png"))
+```
+
+**Remove autosomal markers with HWE p < 1e-7:**  
+`r paste("Markers in:", mod3.var1.founders$NSNP_HWE_AUTOSOMAL0.0000001_LOST + mod3.var1.founders$NSNP_AFTER_HWE_AUTOSOMAL0.0000001)`  
+`r paste("Markers removed:", mod3.var1.founders$NSNP_HWE_AUTOSOMAL0.0000001_LOST)`  
+`r paste("Markers remaining:", mod3.var1.founders$NSNP_AFTER_HWE_AUTOSOMAL0.0000001)`
+
+```{r}
+include_graphics(path = file.path(mod3.founders.plots.clean, "_CLEANHWE1_hwe.png"))
+```
+
+**Remove samples with HET excess > 4SD using common autosomal markers (MAF > 0.01)**  
+`r paste("Samples in:", mod3.var1.founders$NIND_HET4_LOST + mod3.var1.founders$NIND_AFTER_HET4)`  
+`r paste("Samples removed:", mod3.var1.founders$NIND_HET4_LOST)`  
+`r paste("Samples remaining:", mod3.var1.founders$NIND_AFTER_HET4)`
+
+```{r}
+include_graphics(path = file.path(mod3.founders.plots.clean, "_CLEANHET1_het.png"))
+```
+
+**Remove autosomal markers with HWE p < 1e-6**  
+`r paste("Markers in:", mod3.var1.founders$NSNP_HWE_AUTOSOMAL0.000001_LOST + mod3.var1.founders$NSNP_AFTER_HWE_AUTOSOMAL0.000001)`  
+`r paste("Markers removed:", mod3.var1.founders$NSNP_HWE_AUTOSOMAL0.000001_LOST)`  
+`r paste("Markers remaining:", mod3.var1.founders$NSNP_AFTER_HWE_AUTOSOMAL0.000001)`
+
+```{r}
+include_graphics(path = file.path(mod3.founders.plots.clean, "_CLEANHWE2_hwe.png"))
+```
+
+**Remove samples with HET excess > 4SD using rare autosomal markers (MAF > 0.01)**  
+`r paste("Samples in:", mod3.var1.founders$NIND_HET_RARE4_LOST + mod3.var1.founders$NIND_AFTER_HET_RARE4)`  
+`r paste("Samples removed:", mod3.var1.founders$NIND_HET_RARE4_LOST)`  
+`r paste("Samples remaining:", mod3.var1.founders$NIND_AFTER_HET_RARE4)`
+
+```{r}
+include_graphics(path = file.path(mod3.founders.plots.clean, "_CLEANHET1_het_rare.png"))
+```
+
+**Remove markers with missingness > 2%:**  
+`r paste("Markers in:", mod3.var1.founders$NSNP_GENO0.020_LOST + mod3.var1.founders$NSNP_AFTER_GENO0.020)`  
+`r paste("Markers removed:", mod3.var1.founders$NSNP_GENO0.020_LOST)`  
+`r paste("Markers remaining:", mod3.var1.founders$NSNP_AFTER_GENO0.020)`
+
+**Temporarily remove samples failing sex check (F: 0.2, 0.8):**  
+`r paste("Samples in:", mod3.var2.founders$NIND_INTO_SEXCLEAN)`  
+`r paste("Samples for removal:", mod3.var2.founders$NIND_TOREMOVE_SEXCHECK)`  
+`r paste("Samples removed:", mod3.var2.founders$NIND_SEXCHECK_LOST)`  
+`r paste("Samples out:", mod3.var2.founders$NIND_AFTER_SEXCHECK)`  
+
+```{r}
+mod3.founders.plots.cleansex <- file.path(basepath, 'founders/rep/plots_cleansex/')
+include_graphics(path = file.path(mod3.founders.plots.cleansex, "_fstat.png"))
+```
+
+**Markers into sex clean:**  
+`r paste("X markers in:", mod3.var2.founders$INTO_SEXCLEAN_X)`  
+`r paste("Y markers in:", mod3.var2.founders$INTO_SEXCLEAN_Y)`  
+`r paste("PAR markers in:", mod3.var2.founders$INTO_SEXCLEAN_PAR)`  
+`r paste("MT markers in:", mod3.var2.founders$INTO_SEXCLEAN_MT)`  
+
+**Remove chrX and PAR markers with HWE p < 1e-6 (only female):**  
+`r paste("Markers (X + PAR) in:", mod3.var2.founders$INTO_SEXCLEAN_X + mod3.var2.founders$INTO_SEXCLEAN_PAR)`  
+`r paste("Markers removed:", mod3.var2.founders$NSNP_sex_marker_removal_LOST)`  
+`r paste("Markers remaining:", (mod3.var2.founders$INTO_SEXCLEAN_X + mod3.var2.founders$INTO_SEXCLEAN_PAR) - mod3.var2.founders$NSNP_sex_marker_removal_LOST)`  
+
+```{r}
+include_graphics(path = file.path(mod3.founders.plots.cleansex, "hwe_x_chr.png"))
+```
+
+
+**Remove chrX marker if any male has at least one heterozygote genotype:**  
+`r paste("Markers removed:", mod3.var2.founders$NSNP_male_x_het_LOST)`  
+`r paste("Markers remaining", mod3.var2.founders$NSNP_AFTER_male_x_het)`  
+
+**Markers after sex clean:**  
+`r paste("Autosomes markers out:", mod3.var2.founders$NSNP_AFTER_male_x_het - ((mod3.var2.founders$AFTER_SEXCLEAN_X + mod3.var2.founders$AFTER_SEXCLEAN_Y + mod3.var2.founders$AFTER_SEXCLEAN_PAR + mod3.var2.founders$AFTER_SEXCLEAN_MT)))`  
+`r paste("X markers out:", mod3.var2.founders$AFTER_SEXCLEAN_X)`  
+`r paste("Y markers out:", mod3.var2.founders$AFTER_SEXCLEAN_Y)`  
+`r paste("PAR markers out:", mod3.var2.founders$AFTER_SEXCLEAN_PAR)`  
+`r paste("MT markers out:", mod3.var2.founders$AFTER_SEXCLEAN_MT)`  
+`r paste("TOTAL:", mod3.var2.founders$NSNP_AFTER_male_x_het - (mod3.var2.founders$AFTER_SEXCLEAN_X + mod3.var2.founders$AFTER_SEXCLEAN_Y + mod3.var2.founders$AFTER_SEXCLEAN_PAR + mod3.var2.founders$AFTER_SEXCLEAN_MT) + mod3.var2.founders$AFTER_SEXCLEAN_X + mod3.var2.founders$AFTER_SEXCLEAN_Y + mod3.var2.founders$AFTER_SEXCLEAN_PAR + mod3.var2.founders$AFTER_SEXCLEAN_MT)`  
+</div>
+
+<div class="column-right">
+## Offspring
+
+**Number of markers and samples at start of cleaning:**  
+`r paste("Samples in start:", mod3.var1.offspring$NIND_INTO_CLEAN)`  
+`r paste("Markers in start:", mod3.var1.offspring$NSNP_INTO_CLEAN)`
+
+**Remove markers with missingness > 10%:**  
+`r paste("Markers in:", mod3.var1.offspring$NSNP_GENO0.10_LOST + mod3.var1.offspring$NSNP_AFTER_GENO0.10)`  
+`r paste("Markers removed:", mod3.var1.offspring$NSNP_GENO0.10_LOST)`  
+`r paste("Markers remaining:", mod3.var1.offspring$NSNP_AFTER_GENO0.10)`
+
+```{r}
+mod3.offspring.plots.clean <- file.path(basepath, 'offspring/rep/plots_clean/')
+include_graphics(path = file.path(mod3.offspring.plots.clean, "_CLEANGENO1_lmiss.png"))
+```
+
+**Remove individuals with missingsness > 5%:**  
+`r paste("Samples in:", mod3.var1.offspring$NIND_MIND0.05_LOST + mod3.var1.offspring$NIND_AFTER_MIND0.05)`  
+`r paste("Samples removed:", mod3.var1.offspring$NIND_MIND0.05_LOST)`  
+`r paste("Samples remaining:", mod3.var1.offspring$NIND_AFTER_MIND0.05)`
+
+```{r}
+include_graphics(path = file.path(mod3.offspring.plots.clean, "_CLEANMIND1_imiss.png"))
+```
+
+**Remove markers with missingness > 5%:**  
+`r paste("Markers in:", mod3.var1.offspring$NSNP_GENO0.05_LOST + mod3.var1.offspring$NSNP_AFTER_GENO0.05)`  
+`r paste("Markers removed:", mod3.var1.offspring$NSNP_GENO0.05_LOST)`  
+`r paste("Markers remaining:", mod3.var1.offspring$NSNP_AFTER_GENO0.05)`
+
+```{r}
+include_graphics(path = file.path(mod3.offspring.plots.clean, "_CLEANGENO2_lmiss.png"))
+```
+
+
+**Remove individuals with missingess > 3%:**  
+`r paste("Samples in:", mod3.var1.offspring$NIND_MIND0.03_LOST + mod3.var1.offspring$NIND_AFTER_MIND0.03)`  
+`r paste("Samples removed:", mod3.var1.offspring$NIND_MIND0.03_LOST)`  
+`r paste("Samples remaining:", mod3.var1.offspring$NIND_AFTER_MIND0.03)`
+
+```{r}
+include_graphics(path = file.path(mod3.offspring.plots.clean, "_CLEANMIND2_imiss.png"))
+```
+
+
+**Remove markers with missingness > 2%:**  
+`r paste("Markers in:", mod3.var1.offspring$NSNP_GENO0.02_LOST + mod3.var1.offspring$NSNP_AFTER_GENO0.02)`  
+`r paste("Markers removed:", mod3.var1.offspring$NSNP_GENO0.02_LOST)`  
+`r paste("Markers remaining:", mod3.var1.offspring$NSNP_AFTER_GENO0.02)`
+
+```{r}
+include_graphics(path = file.path(mod3.offspring.plots.clean, "_CLEANGENO3_lmiss.png"))
+```
+
+**Remove individuals with missingness > 2%:**  
+`r paste("Samples in:", mod3.var1.offspring$NIND_MIND0.02_LOST + mod3.var1.offspring$NIND_AFTER_MIND0.02)`  
+`r paste("Samples removed:", mod3.var1.offspring$NIND_MIND0.02_LOST)`  
+`r paste("Samples remaining:", mod3.var1.offspring$NIND_AFTER_MIND0.02)`
+
+```{r}
+include_graphics(path = file.path(mod3.offspring.plots.clean, "_CLEANMIND3_imiss.png"))
+```
+
+**Remove autosomal markers with HWE p < 1e-7:**  
+`r paste("Markers in:", mod3.var1.offspring$NSNP_HWE_AUTOSOMAL0.0000001_LOST + mod3.var1.offspring$NSNP_AFTER_HWE_AUTOSOMAL0.0000001)`  
+`r paste("Markers removed:", mod3.var1.offspring$NSNP_HWE_AUTOSOMAL0.0000001_LOST)`  
+`r paste("Markers remaining:", mod3.var1.offspring$NSNP_AFTER_HWE_AUTOSOMAL0.0000001)`
+
+```{r}
+include_graphics(path = file.path(mod3.offspring.plots.clean, "_CLEANHWE1_hwe.png"))
+```
+
+**Remove samples with HET excess > 4SD using common autosomal markers (MAF > 0.01)**  
+`r paste("Samples in:", mod3.var1.offspring$NIND_HET4_LOST + mod3.var1.offspring$NIND_AFTER_HET4)`  
+`r paste("Samples removed:", mod3.var1.offspring$NIND_HET4_LOST)`  
+`r paste("Samples remaining:", mod3.var1.offspring$NIND_AFTER_HET4)`
+
+```{r}
+include_graphics(path = file.path(mod3.offspring.plots.clean, "_CLEANHET1_het.png"))
+```
+
+**Remove autosomal markers with HWE p < 1e-6**  
+`r paste("Markers in:", mod3.var1.offspring$NSNP_HWE_AUTOSOMAL0.000001_LOST + mod3.var1.offspring$NSNP_AFTER_HWE_AUTOSOMAL0.000001)`  
+`r paste("Markers removed:", mod3.var1.offspring$NSNP_HWE_AUTOSOMAL0.000001_LOST)`  
+`r paste("Markers remaining:", mod3.var1.offspring$NSNP_AFTER_HWE_AUTOSOMAL0.000001)`
+
+```{r}
+include_graphics(path = file.path(mod3.offspring.plots.clean, "_CLEANHWE2_hwe.png"))
+```
+
+**Remove samples with HET excess > 4SD using rare autosomal markers (MAF > 0.01)**  
+`r paste("Samples in:", mod3.var1.offspring$NIND_HET_RARE4_LOST + mod3.var1.offspring$NIND_AFTER_HET_RARE4)`  
+`r paste("Samples removed:", mod3.var1.offspring$NIND_HET_RARE4_LOST)`  
+`r paste("Samples remaining:", mod3.var1.offspring$NIND_AFTER_HET_RARE4)`
+
+```{r}
+include_graphics(path = file.path(mod3.offspring.plots.clean, "_CLEANHET1_het_rare.png"))
+```
+
+**Remove markers with missingness > 2%:**  
+`r paste("Markers in:", mod3.var1.offspring$NSNP_GENO0.020_LOST + mod3.var1.offspring$NSNP_AFTER_GENO0.020)`  
+`r paste("Markers removed:", mod3.var1.offspring$NSNP_GENO0.020_LOST)`  
+`r paste("Markers remaining:", mod3.var1.offspring$NSNP_AFTER_GENO0.020)`
+
+**Temporarily remove samples failing sex check (F: 0.2, 0.8):**  
+`r paste("Samples in:", mod3.var2.offspring$NIND_INTO_SEXCLEAN)`  
+`r paste("Samples for removal:", mod3.var2.offspring$NIND_TOREMOVE_SEXCHECK)`  
+`r paste("Samples removed:", mod3.var2.offspring$NIND_SEXCHECK_LOST)`  
+`r paste("Samples out:", mod3.var2.offspring$NIND_AFTER_SEXCHECK)`  
+
+```{r}
+mod3.offspring.plots.cleansex <- file.path(basepath, 'offspring/rep/plots_cleansex/')
+include_graphics(path = file.path(mod3.offspring.plots.cleansex, "_fstat.png"))
+```
+
+**Markers into sex clean:**  
+`r paste("X markers in:", mod3.var2.offspring$INTO_SEXCLEAN_X)`  
+`r paste("Y markers in:", mod3.var2.offspring$INTO_SEXCLEAN_Y)`  
+`r paste("PAR markers in:", mod3.var2.offspring$INTO_SEXCLEAN_PAR)`  
+`r paste("MT markers in:", mod3.var2.offspring$INTO_SEXCLEAN_MT)`  
+
+**Remove chrX and PAR markers with HWE p < 1e-6 (only female):**  
+`r paste("Markers (X + PAR) in:", mod3.var2.offspring$INTO_SEXCLEAN_X + mod3.var2.offspring$INTO_SEXCLEAN_PAR)`  
+`r paste("Markers removed:", mod3.var2.offspring$NSNP_sex_marker_removal_LOST)`  
+`r paste("Markers remaining:", (mod3.var2.offspring$INTO_SEXCLEAN_X + mod3.var2.offspring$INTO_SEXCLEAN_PAR) - mod3.var2.offspring$NSNP_sex_marker_removal_LOST)`  
+
+```{r}
+include_graphics(path = file.path(mod3.offspring.plots.cleansex, "hwe_x_chr.png"))
+```
+
+**Remove chrX marker if any male has at least one heterozygote genotype:**  
+`r paste("Markers removed:", mod3.var2.offspring$NSNP_male_x_het_LOST)`  
+`r paste("Markers remaining", mod3.var2.offspring$NSNP_AFTER_male_x_het)`  
+
+**Markers after sex clean:**  
+`r paste("Autosomes markers out:", mod3.var2.offspring$NSNP_AFTER_male_x_het - ((mod3.var2.offspring$AFTER_SEXCLEAN_X + mod3.var2.offspring$AFTER_SEXCLEAN_Y + mod3.var2.offspring$AFTER_SEXCLEAN_PAR + mod3.var2.offspring$AFTER_SEXCLEAN_MT)))`  
+`r paste("X markers out:", mod3.var2.offspring$AFTER_SEXCLEAN_X)`  
+`r paste("Y markers out:", mod3.var2.offspring$AFTER_SEXCLEAN_Y)`  
+`r paste("PAR markers out:", mod3.var2.offspring$AFTER_SEXCLEAN_PAR)`  
+`r paste("MT markers out:", mod3.var2.offspring$AFTER_SEXCLEAN_MT)`  
+`r paste("TOTAL:", mod3.var2.offspring$NSNP_AFTER_male_x_het - (mod3.var2.offspring$AFTER_SEXCLEAN_X + mod3.var2.offspring$AFTER_SEXCLEAN_Y + mod3.var2.offspring$AFTER_SEXCLEAN_PAR + mod3.var2.offspring$AFTER_SEXCLEAN_MT) + mod3.var2.offspring$AFTER_SEXCLEAN_X + mod3.var2.offspring$AFTER_SEXCLEAN_Y + mod3.var2.offspring$AFTER_SEXCLEAN_PAR + mod3.var2.offspring$AFTER_SEXCLEAN_MT)`   
+</div>
+
+## **Module 4 - Individuals for analyses**
+
+***
+
+Module 4 performs three steps 1) generate a list of samples for use in LMM analyses that are able to account for relatedness. 2) generate a list of unrelated samples by performing samples with excess relatedness and 3) calculates PCA covariates for the unrelated core to use in downstrem analyses
+
+```{r, echo=F}
+mod4.var1.founders <- read.table(file.path(mod4.founder, 'storedvars_verify.txt'), header = F, stringsAsFactors = T, sep = ':')
+mod4.var1.founders <- setNames(as.list(mod4.var1.founders$V3), mod4.var1.founders$V1)
+
+mod4.var1.offspring <- read.table(file.path(mod4.offspring, 'storedvars_verify.txt'), header = F, stringsAsFactors = T, sep = ':')
+mod4.var1.offspring <- setNames(as.list(mod4.var1.offspring$V3), mod4.var1.offspring$V1)
+
+```
+
+<div class="column-left">
+### Founders
+
+**Markers and samples at beginning of module:**  
+`r paste("Markers start:", mod3.var2.founders$NSNP_AFTER_male_x_het - (mod3.var2.founders$AFTER_SEXCLEAN_X + mod3.var2.founders$AFTER_SEXCLEAN_Y + mod3.var2.founders$AFTER_SEXCLEAN_PAR + mod3.var2.founders$AFTER_SEXCLEAN_MT) + mod3.var2.founders$AFTER_SEXCLEAN_X + mod3.var2.founders$AFTER_SEXCLEAN_Y + mod3.var2.founders$AFTER_SEXCLEAN_PAR + mod3.var2.founders$AFTER_SEXCLEAN_MT)`   
+`r paste("Samples start:", mod4.var1.founders$NIND_START_VERIFY)`  
+
+**Remove markers not surviving QC in both parents and offspring:**  
+`r paste("Markers in:", mod3.var2.founders$NSNP_AFTER_male_x_het - (mod3.var2.founders$AFTER_SEXCLEAN_X + mod3.var2.founders$AFTER_SEXCLEAN_Y + mod3.var2.founders$AFTER_SEXCLEAN_PAR + mod3.var2.founders$AFTER_SEXCLEAN_MT) + mod3.var2.founders$AFTER_SEXCLEAN_X + mod3.var2.founders$AFTER_SEXCLEAN_Y + mod3.var2.founders$AFTER_SEXCLEAN_PAR + mod3.var2.founders$AFTER_SEXCLEAN_MT)`  
+`r paste("Markers removed:", (mod3.var2.founders$NSNP_AFTER_male_x_het - (mod3.var2.founders$AFTER_SEXCLEAN_X + mod3.var2.founders$AFTER_SEXCLEAN_Y + mod3.var2.founders$AFTER_SEXCLEAN_PAR + mod3.var2.founders$AFTER_SEXCLEAN_MT) + mod3.var2.founders$AFTER_SEXCLEAN_X + mod3.var2.founders$AFTER_SEXCLEAN_Y + mod3.var2.founders$AFTER_SEXCLEAN_PAR + mod3.var2.founders$AFTER_SEXCLEAN_MT) - mod4.var1.founders$NSNP_AFTER_shared_pass)`  
+`r paste("Markers remaining:", mod4.var1.founders$NSNP_AFTER_shared_pass)`  
+
+**Remove samples with missingness rate > 2%:**  
+`r paste("Samples in:", mod4.var1.founders$NIND_MIND0.02_LOST + mod4.var1.founders$NIND_AFTER_MIND0.02)`  
+`r paste("Samples removed:", mod4.var1.founders$NIND_MIND0.02_LOST)`  
+`r paste("Samples remaining:", mod4.var1.founders$NIND_AFTER_MIND0.02)`  
+
+**Remove samples with HET excess > 4SD using common autosomal markers (MAF > 0.01):**  
+`r paste("Samples in:", mod4.var1.founders$NIND_HET4_LOST + mod4.var1.founders$NIND_AFTER_HET4)`  
+`r paste("Samples removed:", mod4.var1.founders$NIND_HET4_LOST)`  
+`r paste("Samples remaining:", mod4.var1.founders$NIND_AFTER_HET4)`  
+
+**Remove samples with HET excess > 4SD using rare autosomal markers (MAF < 0.01):**  
+`r paste("Samples in:", mod4.var1.founders$NIND_HET_RARE4_LOST + mod4.var1.founders$NIND_AFTER_HET_RARE4)`  
+`r paste("Samples removed:", mod4.var1.founders$NIND_HET_RARE4_LOST)`  
+`r paste("Samples remaining:", mod4.var1.founders$NIND_AFTER_HET_RARE4)`  
+
+**Remove samples with excess accumulated PIHAT:**  
+`r paste("Samples in: removed", mod4.var1.founders$NIND_PIHAT_ACCUM_LOST + mod4.var1.founders$NIND_AFTER_PIHAT_ACCUM)`  
+`r paste("Samples removed:", mod4.var1.founders$NIND_PIHAT_ACCUM_LOST)`  
+`r paste("Samples remaining:", mod4.var1.founders$NIND_AFTER_PIHAT_ACCUM)`  
+
+**Remove one in a pair of samples with PI_HAT > 0.1:**  
+`r paste("Samples in:", mod4.var1.founders$NIND_PIHAT_THR_LOST + mod4.var1.founders$NIND_AFTER_PIHAT_THR)`  
+`r paste("Samples removed:", mod4.var1.founders$NIND_PIHAT_THR_LOST)`  
+`r paste("Samples remaining:", mod4.var1.founders$NIND_AFTER_PIHAT_THR)`  
+
+**PCA plot for unrelated core founders**
+```{r}
+mod4.founders.core.pca <- file.path(basepath, 'founders/pca/')
+include_graphics(path = file.path(mod4.founders.core.pca, "final_core_clean.png"))
+```
+
+</div>
+
+<div class="column-right">
+### Offspring
+
+**Markers and samples at beginning of module:**  
+`r paste("Markers start:", mod3.var2.offspring$NSNP_AFTER_male_x_het - (mod3.var2.offspring$AFTER_SEXCLEAN_X + mod3.var2.offspring$AFTER_SEXCLEAN_Y + mod3.var2.offspring$AFTER_SEXCLEAN_PAR + mod3.var2.offspring$AFTER_SEXCLEAN_MT) + mod3.var2.offspring$AFTER_SEXCLEAN_X + mod3.var2.offspring$AFTER_SEXCLEAN_Y + mod3.var2.offspring$AFTER_SEXCLEAN_PAR + mod3.var2.offspring$AFTER_SEXCLEAN_MT)`   
+`r paste("Samples start:", mod4.var1.offspring$NIND_START_VERIFY)`  
+
+**Remove markers not surviving QC in both parents and offspring:**  
+`r paste("Markers in:", mod3.var2.offspring$NSNP_AFTER_male_x_het - (mod3.var2.offspring$AFTER_SEXCLEAN_X + mod3.var2.offspring$AFTER_SEXCLEAN_Y + mod3.var2.offspring$AFTER_SEXCLEAN_PAR + mod3.var2.offspring$AFTER_SEXCLEAN_MT) + mod3.var2.offspring$AFTER_SEXCLEAN_X + mod3.var2.offspring$AFTER_SEXCLEAN_Y + mod3.var2.offspring$AFTER_SEXCLEAN_PAR + mod3.var2.offspring$AFTER_SEXCLEAN_MT)`  
+`r paste("Markers removed:", (mod3.var2.offspring$NSNP_AFTER_male_x_het - (mod3.var2.offspring$AFTER_SEXCLEAN_X + mod3.var2.offspring$AFTER_SEXCLEAN_Y + mod3.var2.offspring$AFTER_SEXCLEAN_PAR + mod3.var2.offspring$AFTER_SEXCLEAN_MT) + mod3.var2.offspring$AFTER_SEXCLEAN_X + mod3.var2.offspring$AFTER_SEXCLEAN_Y + mod3.var2.offspring$AFTER_SEXCLEAN_PAR + mod3.var2.offspring$AFTER_SEXCLEAN_MT) - mod4.var1.offspring$NSNP_AFTER_shared_pass)`  
+`r paste("Markers remaining:", mod4.var1.offspring$NSNP_AFTER_shared_pass)`  
+
+**Remove samples with missingness rate > 2%:**  
+`r paste("Samples in:", mod4.var1.offspring$NIND_MIND0.02_LOST + mod4.var1.offspring$NIND_AFTER_MIND0.02)`  
+`r paste("Samples removed:", mod4.var1.offspring$NIND_MIND0.02_LOST)`  
+`r paste("Samples remaining:", mod4.var1.offspring$NIND_AFTER_MIND0.02)`  
+
+**Remove samples with HET excess > 4SD using common autosomal markers (MAF > 0.01):**  
+`r paste("Samples in:", mod4.var1.offspring$NIND_HET4_LOST + mod4.var1.offspring$NIND_AFTER_HET4)`  
+`r paste("Samples removed:", mod4.var1.offspring$NIND_HET4_LOST)`  
+`r paste("Samples remaining:", mod4.var1.offspring$NIND_AFTER_HET4)`  
+
+**Remove samples with HET excess > 4SD using rare autosomal markers (MAF < 0.01):**  
+`r paste("Samples in:", mod4.var1.offspring$NIND_HET_RARE4_LOST + mod4.var1.offspring$NIND_AFTER_HET_RARE4)`  
+`r paste("Samples removed:", mod4.var1.offspring$NIND_HET_RARE4_LOST)`  
+`r paste("Samples remaining:", mod4.var1.offspring$NIND_AFTER_HET_RARE4)`  
+
+**Remove samples with excess accumulated PIHAT:**  
+`r paste("Samples in: removed", mod4.var1.offspring$NIND_PIHAT_ACCUM_LOST + mod4.var1.offspring$NIND_AFTER_PIHAT_ACCUM)`  
+`r paste("Samples removed:", mod4.var1.offspring$NIND_PIHAT_ACCUM_LOST)`  
+`r paste("Samples remaining:", mod4.var1.offspring$NIND_AFTER_PIHAT_ACCUM)`  
+
+**Remove one in a pair of samples with PI_HAT > 0.1:**  
+`r paste("Samples in:", mod4.var1.offspring$NIND_PIHAT_THR_LOST + mod4.var1.offspring$NIND_AFTER_PIHAT_THR)`  
+`r paste("Samples removed:", mod4.var1.offspring$NIND_PIHAT_THR_LOST)`  
+`r paste("Samples remaining:", mod4.var1.offspring$NIND_AFTER_PIHAT_THR)`  
+
+**PCA plot for unrelated core offspring**
+```{r}
+mod4.offspring.core.pca <- file.path(basepath, 'offspring/pca/')
+include_graphics(path = file.path(mod4.offspring.core.pca, "final_core_clean.png"))
+```
+
+</div>
+
+
+## **Module 5 - Preparation for pre-phasing and imputation**
+
+***
+
+Module 5 prepares the cleaned data for pre-phasing and imputation. All samples from module 2 enters this module, but only the cleaned markers identified in module 3. To prepare for phasing and later imputation using HRC reference some preparation steps are needed.  
+1) markers above chr 23/X are removed  
+2) mendelian errors are set to missing (using available trios and duos).  
+3) the dataset is checked using Will Rayners preparation tool (http://www.well.ox.ac.uk/~wrayner/tools/)  
+4) dataset is split by chromosome.  
+
+Pre-phasing is performed using Shapeit2 v.837 (http://mathgen.stats.ox.ac.uk/genetics_software/shapeit/shapeit.html)   
+Imputation is performed by Sanger Imputation Server (https://imputation.sanger.ac.uk/)
+
+```{r,echo=F}
+mod5.var1 <- read.table(file.path(mod5, 'storedvars_me.txt'), header = F, stringsAsFactors = T, sep = ':')
+mod5.var1 <- setNames(as.list(mod5.var1$V3), mod5.var1$V1)
+
+mod5.var2 <- read.table(file.path(mod5, 'storedvars_hrccheck.txt'), header = F, stringsAsFactors = T, sep = ':')
+mod5.var2 <- setNames(as.list(mod5.var2$V3), mod5.var2$V1)
+
+```
+
+**Samples and markers into module:**  
+`r paste("Samples in:", mod5.var1$NIND_INTO_shared_and_chr23)`  
+`r paste("Markers in:", mod5.var1$NSNP_INTO_shared_and_chr23)`  
+
+**Remove markers not passing QC for both offspring and founders:**  
+`r paste("Markers in:", mod5.var1$NSNP_INTO_shared_and_chr23)`  
+`r paste("Markers shared:", mod5.var1$NSNPS_shared)`  
+`r paste("Markers removed:", mod5.var1$NSNP_INTO_shared_and_chr23 - mod5.var1$NSNPS_shared)`  
+`r paste("Markers remaining:", mod5.var1$NSNP_INTO_shared_and_chr23 - (mod5.var1$NSNP_INTO_shared_and_chr23 - mod5.var1$NSNPS_shared))`
+
+**Remove markers above chr 23:**  
+`r paste("Markers in:", mod5.var1$NSNPS_shared)`  
+`r paste("Markers removed:", mod5.var1$NSNP_shared_and_chr23_LOST -(mod5.var1$NSNP_INTO_shared_and_chr23 - mod5.var1$NSNPS_shared) )`  
+`r paste("Markers remaining:", -(mod5.var1$NSNP_shared_and_chr23_LOST - (mod5.var1$NSNP_INTO_shared_and_chr23)))`
+
+**Set mendelian errors to missing:**  
+`r paste("Mendelian errors zeroed:", mod5.var1$MES_MASKED)`  
+
+**HRC harmonizing:**  
+`r paste("Markers in:", mod5.var2$NSNP_START)`  
+`r paste("Marker chromosomes changed:", mod5.var2$HRC_TOCHANGECHR)`  
+`r paste("Marker positions changed:", mod5.var2$HRC_TOUPDATEPOS)`  
+`r paste("Marker strand flips:", mod5.var2$HRC_TOFLIPSTR)`  
+`r paste("Marker allele flips:", mod5.var2$HRC_TOFLIPAL)`  
+`r paste("Markers excluded (not in HRC):", mod5.var2$NSNP_WR_EXCLUSIONS_LOST)`  
+`r paste("Markers after exclusion:", mod5.var2$NSNP_AFTER_WR)`  
+
+**Number of markers per chromosome sent to pre-phasing and imputation:**  
+```{r,echo=F, results='asis'}
+out = data.frame(Chromosome=1:23, N=0)
+for(chr in seq(1,23,1)){
+  v <- read.table(file.path(mod5, paste0('storedvars_splitchr',chr,'.txt')), header = F, stringsAsFactors = T, sep = ':')
+  v <- setNames(as.list(v$V3), v$V1)
+  out$Chromosome[chr] = ifelse(chr==23,'X',chr)
+  out$N[chr] = v[[1]]
+}
+kable(out, 'html') %>% kable_styling(full_width = F, position = "left") %>% column_spec(2, width = "20em")
+```
+
+## **Results**
+
+***
+
+The resulting output files are:
+1) Imputed dataset (vcfs)
+2) Non-imputed dataset (PLINK bed/bim/fam fileset)
+3) Exclusion lists for markers and samples (where markers and samples got excluded)
+4) Flag list for all samples in the dataset
+
+Since several markers are excluded before pre-phasing and imputation a non-imputed dataset (2) containing all Qc'ed markers (prior to exclusion) is provided together along with the imputed dataset (1). Note that both datasets contain all samples with call rate >95% (see flowchart) but only markers of high quality. In order to subset the resulting datasets before analysis, researchers are expected to use the provided flag list (3). Information about where a marker/sample got removed/flagged is provided in the exlusions lists (4).
+
+Flaglist:
+**superclean__MIND0.05 - verify__PIHAT_THR**: specifies what step in pipeline sample failed (F)
+
+**phenoOK:** detecting mismatches between the declared and inferred pedigrees, also between the declared and genetic sex, allowed us to flag some samples as having a potential “sample-identity problem”. The phenotypic information of such samples should not be trusted in genetic association analyses (see phenotypesOK flag in the sample_flag_list.txt).
+
+**genotypesOK:** TRUE for all samples with ok genotypes, ie. all samples in the resulting datasets.
+
+**coreLMM:** TRUE For all samples included after manual selection merged with HapMap, ie. all samples minus ethnic outliers.
+
+**coreUnrelated**: TRUE for all samples in coreLMM minus related samples, ie. all samples minus ethnic outliers and related samples
+
+**ROLE**: Role of the sample in a triad (declared relationships)
+
+
+
+
+
+
+
+

@@ -1,0 +1,37 @@
+# Config files containing hard coded variables
+#configfile: "snakefiles/config.json"
+configfile: os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'snakefiles/config.json'))
+
+# Runtime variables
+include: "variables.py"
+
+# rule all
+rule all:
+    input:
+        vcf_out='/media/local-disk2/helgeland/tmp/allchrs.vcf.gz',                                                                                                                                           
+        vcf_out_ref='/media/local-disk2/helgeland/tmp/allchrs_ref.vcf.gz'
+
+# Rule updates the refernce before sending to Sanger Imputation Server.
+# Note: Perhaps this could be moved to the pre-phasing prep module
+rule prepare_phased_for_imputation:
+    input:
+        vcfs=expand('/media/local-disk2/helgeland/rotterdam1/post-qc-phased/output/rot1-chr{chr}/rot1chr{chr}.phased.vcf.gz', chr=chromx),
+        chr_rename='/media/local-disk2/jjuod/qc-rotterdam1/renamer.txt',
+        g1k_fasta='/media/local-disk2/helgeland/refdata/1000G/human_g1k_v37.fasta'
+    output:
+        vcf_out='/media/local-disk2/helgeland/tmp/allchrs.vcf.gz',
+        vcf_out_ref='/media/local-disk2/helgeland/tmp/allchrs_ref.vcf.gz'
+    shell:
+        """
+        # Merge all phased vcfs to one file
+        bcftools concat -Ou {input.vcfs} | bcftools annotate -Ov --rename-chrs {input.chr_rename} | bgzip -c > {output.vcf_out}
+        
+        # Index vcf
+        bcftools index {output.vcf_out}
+
+        # Normalize set according to G1K reference.
+        # check-ref s : Note that s can swap alleles and will update genotypes (GT) and AC counts
+        # -f specifies G1K reference fasta
+        # Oz : outputs compressed VCF
+        bcftools norm --check-ref s -f {input.g1k_fasta} {output.vcf_out} -Oz -o  {output.vcf_out_ref}
+        """

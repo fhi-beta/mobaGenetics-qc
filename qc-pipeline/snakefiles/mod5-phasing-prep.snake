@@ -1,0 +1,221 @@
+rule merge_foundersoffspring:
+	input:
+		markers = expand(base + '{role}/tmp/' + 'clean_markers.bim', role=ROLES) # FINAL markerlists
+	output:
+		markers = base + 'both/tmp/' + 'shared_markers.txt'
+	shell:
+		"""
+		set -e
+		libdir={libdir}
+		plinklocal={plinklocal}
+
+		source {libdir}/functions.sh
+
+		PIPELINELOG={runlog}
+
+		log "Getting marker overlap in founders and offspring"
+
+		# Identify markers in common in all moba12 subsets
+		# Function to identify markers present in both input bim files
+		# Args:
+		# 1. Input bim 1
+		# 2. Input bim 2
+		# 3. Output list of markers in both bims
+		get_markers_in_both_bims \
+		    {input.markers[0]} \
+		    {input.markers[1]} \
+		    {output.markers}
+		"""
+
+# Get cleaned markers
+# Set any mendelian errors obtained from trios (and duos) to missing    
+# Remove markers above chr 23 as these are eliglible for imputation
+rule set_mendelian_errors_missing:
+	input: 
+		in_bedset = base + 'both/tmp/' + 'inferped_all.bed',
+		markerlist = base + 'both/tmp/' + 'shared_markers.txt'
+	output:
+		out_bedset = expand(base + 'mod5-shaping-preparation/tmp/me-errors-set-missing' + '{ext}', ext=['.bed','.bim','.fam']),
+		out_genotyped = base + 'genotyped.bed',
+		stvars = base + 'mod5-shaping-preparation/rep/' + 'storedvars_me.txt',
+		exclsnps = base + 'mod5-shaping-preparation/rep/' + 'exclusions_me_snp.txt'
+	params:
+		outdir = base + 'mod5-shaping-preparation/tmp/',
+		in_bedset = base + 'both/tmp/inferped_all',
+		out_bedset = base + 'mod5-shaping-preparation/tmp/me-errors-set-missing',
+		out_genotyped = base + 'genotyped'
+	shell:
+		"""
+		set -e
+		libdir={libdir}
+		plinklocal={plinklocal}
+
+		source {libdir}/functions.sh
+
+		PIPELINELOG={runlog}
+		STOREDVARS={output.stvars}
+		EXCLUSIONSS={output.exclsnps}
+
+		# remove markers above chr 23
+		log "----- MODULE 3 START -----"
+		log "----EXTRACT QC-ed DATASET----"
+		$plinklocal \
+			--bfile {params.in_bedset} \
+			--extract {input.markerlist} \
+			--make-bed \
+			--out {params.out_genotyped}
+		report_ninds {params.in_bedset} "INTO_shared_and_chr23"
+		report_nsnps {params.in_bedset} "INTO_shared_and_chr23"
+		store "NSNPS_shared" `wc -l {input.markerlist}`
+		report_lostsnps {params.in_bedset} {params.out_genotyped} "shared"
+
+		log "----SHAPING PREPARATION----"
+		$plinklocal \
+			--bfile {params.out_genotyped} \
+			--chr 1-23 \
+			--make-bed \
+			--out {params.outdir}/chr1-23only
+		report_lostsnps {params.out_genotyped} {params.outdir}/chr1-23only "shared_and_chr23"
+		report_nsnps {params.outdir}/chr1-23only "AFTER_shared_and_chr23"
+
+		log "Set Mendelian errors to missing"
+		$plinklocal \
+			--bfile {params.outdir}/chr1-23only \
+			--set-me-missing \
+			--mendel-duos \
+			--make-bed \
+			--out {params.out_bedset}
+		store "MES_MASKED" `awk '$0~/errors addressed/{{print $2}}' {params.out_bedset}.log`
+		"""
+
+rule hrc_verification_check:
+	input:
+		in_bedset=expand(base + 'mod5-shaping-preparation/tmp/me-errors-set-missing' + '{ext}', ext=['.bed','.bim','.fam']),
+		hrc_sites=config['hrc_sites']
+	output:
+		out_bedset=expand(base + 'mod5-shaping-preparation/tmp/hrc-update-complete' + '{ext}', ext=['.bed','.bim','.fam']),
+		exclsnps=base + 'mod5-shaping-preparation/rep/' + 'exclusions_hrccheck_snp.txt',
+		stvars=base + 'mod5-shaping-preparation/rep/' + 'storedvars_hrccheck.txt'
+	params:
+		in_bedset=base + 'mod5-shaping-preparation/tmp/me-errors-set-missing',
+		out_bedset=base + 'mod5-shaping-preparation/tmp/hrc-update-complete',
+		out_freq=base + 'mod5-shaping-preparation/tmp/freq-for-hrc-check',
+		out_path=base + 'mod5-shaping-preparation/tmp/',
+	        hrc_check_tool=os.path.join(libdir, 'HRC-1000G-check-bim.pl')
+	message: "Running Will Rayner HRC preparation and updating bedset"
+	shell:
+		"""
+		set -e
+		libdir={libdir}
+		plinklocal={plinklocal}
+
+		source {libdir}/functions.sh
+		source {libdir}/plink_wrapper_functions.sh
+
+		PIPELINELOG={runlog}
+		STOREDVARS={output.stvars}
+		EXCLUSIONSS={output.exclsnps}
+		log "HRC VERIFICATION CHECK"
+
+		# generate required frequency file for HRC check perl script
+		$plinklocal \
+			--bfile {params.in_bedset} \
+			--freq \
+			--out {params.out_freq}
+
+		# change into output path for HRC check tool to dump files in correct folder
+		cd {params.out_path}
+		
+		# run HRC checks
+		perl {libdir}/HRC-1000G-check-bim.pl \
+			-b {params.in_bedset}.bim \
+			-f {params.out_freq}.frq \
+			-r {input.hrc_sites} \
+			-h
+		
+		log "HRC VERIFICATION UPDATE"
+
+		# Update bedset with HRC verification lists
+		bedbase=`basename {params.in_bedset}`
+
+		# exclude markers
+		report_nsnps ${{bedbase}} "START"
+		plink_exclude_markers \
+			{params.in_bedset} \
+			{params.out_path}/Exclude-${{bedbase}}-HRC.txt \
+			{params.out_path}/TEMP1 \
+			"WR_EXCLUSIONS"
+
+		# update chromosome
+		$plinklocal \
+			--bfile {params.out_path}/TEMP1 \
+			--update-chr {params.out_path}/Chromosome-${{bedbase}}-HRC.txt \
+			--make-bed \
+			--out {params.out_path}/TEMP2
+		store "HRC_TOCHANGECHR" `wc -l {params.out_path}/Chromosome-${{bedbase}}-HRC.txt`
+
+		# update map
+		$plinklocal \
+			--bfile {params.out_path}/TEMP2 \
+			--update-map {params.out_path}/Position-${{bedbase}}-HRC.txt \
+			--make-bed \
+			--out {params.out_path}/TEMP3 
+		store "HRC_TOUPDATEPOS" `wc -l {params.out_path}/Position-${{bedbase}}-HRC.txt`
+		
+		# update strand / flip strand
+		$plinklocal \
+			--bfile {params.out_path}/TEMP3 \
+			--flip {params.out_path}/Strand-Flip-${{bedbase}}-HRC.txt \
+			--make-bed \
+			--out {params.out_path}/TEMP4
+		store "HRC_TOFLIPSTR" `wc -l {params.out_path}/Strand-Flip-${{bedbase}}-HRC.txt`
+
+		# update reference-allele
+		$plinklocal \
+			--bfile {params.out_path}/TEMP4 \
+			--reference-allele {params.out_path}/Force-Allele1-${{bedbase}}-HRC.txt \
+			--make-bed \
+			--out {params.out_bedset}
+		store "HRC_TOFLIPAL" `wc -l {params.out_path}/Force-Allele1-${{bedbase}}-HRC.txt`
+
+		# Logging for final report
+		report_nsnps {params.out_bedset} "AFTER_WR"
+		"""
+
+# split dataset by chromosome before phasing
+rule split_by_chr:
+	input:
+		in_bedset=expand(base + 'mod5-shaping-preparation/tmp/hrc-update-complete' + '{ext}', ext=['.bed','.bim','.fam'])
+	output:
+		out_bedset=expand(base + 'mod5-shaping-preparation/tmp/hrc-update-complete-{{chr}}' + '{ext}', ext=['.bed','.bim','.fam']),
+		stvars=base + 'mod5-shaping-preparation/rep/' + 'storedvars_splitchr{chr}.txt'
+	params:
+		in_bedset=base + 'mod5-shaping-preparation/tmp/hrc-update-complete',
+		out_bedset=base + 'mod5-shaping-preparation/tmp/hrc-update-complete-{chr}'
+	threads: 23
+	message: "Splitting HRC verified dataset by chromosome: chromosome {wildcards.chr}/23"
+	log:
+		out=base + 'mod5-shaping-preparation/rep/split_by_chr-{chr}.out',
+		err=base + 'mod5-shaping-preparation/rep/split_by_chr-{chr}.err'
+	shell:
+		"""
+		set -e
+		libdir={libdir}
+		plinklocal={plinklocal}
+
+		source {libdir}/functions.sh
+
+		PIPELINELOG={runlog}
+		STOREDVARS={output.stvars}
+
+		log "SPLITTING BY CHROMOSOME"
+
+		$plinklocal \
+			--bfile {params.in_bedset} \
+			--chr {wildcards.chr} \
+			--make-bed \
+			--out {params.out_bedset} 2> {log.err} 1> {log.out}
+
+		# logging for final report
+		report_nsnps {params.out_bedset} TO_PHASING_CHR{wildcards.chr}
+		"""
