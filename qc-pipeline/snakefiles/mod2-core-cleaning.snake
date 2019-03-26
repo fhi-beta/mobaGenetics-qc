@@ -122,7 +122,7 @@ rule superclean:
 		# 5. No logging flag
 		plink_exclude_markers \
 		        {params.outdir}/superclean_no_ag_ct \
-		        "range resources/high-ld-regions-hg19" \
+		        "range ../resources/high-ld-regions-hg19" \
 		        {params.outdir}/superclean_no_ag_ct_ld \
 		        "HIGHLD" 1
 

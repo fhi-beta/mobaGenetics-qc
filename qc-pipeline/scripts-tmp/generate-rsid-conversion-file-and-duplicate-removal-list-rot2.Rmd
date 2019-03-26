@@ -1,0 +1,100 @@
+---
+title: "Rsid conversion list"
+author: "Øyvind Helgeland"
+date: "March 25, 2019"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r}
+library(dplyr)
+library(tidyr)
+```
+
+```{r}
+# Load bim file
+bim <- read.table('/home/oyvind/hunt-cloud/mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/plink/GSA2017_246_025_ReRun.bim', 
+                  header = F, 
+                  stringsAsFactors = F)
+names(bim) <- c('CHR','SNP','cM','BP','A1','A2')
+
+# Load Illumina rsID conversion file (for original GSA-24v1)
+illumina.rsid <- read.table('/home/oyvind/hunt-cloud/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/snplist/v1/GSA-Illumina-24v1/GSA-24v1-0_C1_b150_rsids.txt', header = T, stringsAsFactors = F)
+
+# Load missingess rate on raw data
+lmiss <- read.table('/home/oyvind/hunt-cloud/mnt/archive/helgeland/tmp/rot2qc-tmp/rot2-raw-missing.lmiss', header = T, stringsAsFactors = F)
+
+```
+
+```{r}
+# Merge bim with Illumina conversion table
+bim.illu <- merge(bim, illumina.rsid, by.x = 'SNP', by.y = 'Name', all.x = T)
+
+# Merge with missingness rate
+bim.illu.lmiss <- merge(bim.illu, lmiss, by='SNP')
+```
+
+```{r}
+# Add a unique identifier
+bim.illu.lmiss$uniqID <- paste0(bim.illu.lmiss$CHR.x,':',bim.illu.lmiss$BP,'_',bim.illu.lmiss$A1,'_',bim.illu.lmiss$A2)
+
+# Exclude control snps before identifying duplicates to remove
+bim.illu.lmiss.nocontrol <- subset(bim.illu.lmiss, CHR.x != 0)
+
+# Count number of duplicated snps
+#sum(duplicated(bim.illu.lmiss.nocontrol$uniqID))
+
+# Get list of SNP names to remove (the duplicate with highest missingness)
+remsnp <- bim.illu.lmiss.nocontrol %>% 
+  arrange(F_MISS) %>% 
+  filter(duplicated(.[["uniqID"]])) %>% 
+  select(SNP)
+```
+
+```{r}
+# Check that no duplicates remain
+test<- subset(bim.illu.lmiss.nocontrol, !SNP %in% remsnp$SNP)
+sum(duplicated(test$SNP))
+sum(duplicated(test$uniqID))
+```
+
+```{r}
+# Remove the duplicated snps
+bim.illu.lmiss.nodups <- subset(bim.illu.lmiss, !SNP %in% remsnp$SNP)
+
+# Count number of markers
+nrow(bim.illu.lmiss.nodups)
+```
+
+```{r}
+# Use Illumina RsID if not NA, else use original
+bim.illu.lmiss.nodups$newID <- ifelse(is.na(bim.illu.lmiss.nodups$RsID), bim.illu.lmiss.nodups$SNP, bim.illu.lmiss.nodups$RsID)
+```
+
+```{r}
+# Output conversion table
+rsid.recode.table <- bim.illu.lmiss.nodups %>% select(SNP, newID)
+```
+
+```{r}
+# Write rsID recode table to file
+write.table(x = rsid.recode.table, 
+            file = '/home/oyvind/hunt-cloud/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-rsid.txt', 
+            col.names = F, 
+            row.names = F, 
+            sep = ' ',
+            quote = F)
+
+# Write list of duplicates to remove to file
+write.table(x = remsnp$SNP, 
+            file = '/home/oyvind/hunt-cloud/mnt/archive/ROTTERDAM2/qc/duplicated-marker-removal-list.txt', 
+            col.names = F, 
+            row.names = F, 
+            sep = ' ',
+            quote = F)
+
+
+```

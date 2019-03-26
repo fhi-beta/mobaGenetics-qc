@@ -99,7 +99,7 @@ rule remove_markers_snptable:
 	report_nsnps {params.in_bedset} "BEFORE_SNPTABLE"
 
         # identify markers for removal on cluster separation
-        awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/Cluster Sep/){{ col=i}}}}}} $col<0.4{{print $2, $col}}' {input.snptable} > {output.clustersep_removal}
+        awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/Cluster Sep/){{ col=i}}}}}} $col<0.4{{print $1, $col}}' {input.snptable} > {output.clustersep_removal}
         cut -f1 -d' ' {output.clustersep_removal} > {params.tmp_path}/plink_clustersep_removal_list
 	plink_exclude_markers \
 		{params.in_bedset} \
@@ -108,7 +108,7 @@ rule remove_markers_snptable:
 		"CLUSTERSEP"
 
         # identify markers for removal on 10% GC score
-        awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/10% GC/){{ col=i}}}}}} $col<0.3{{print $2, $col}}' {input.snptable} > {output.tenpercent_gc_removal}
+        awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/10% GC/){{ col=i}}}}}} $col<0.3{{print $1, $col}}' {input.snptable} > {output.tenpercent_gc_removal}
         cut -f1 -d' ' {output.tenpercent_gc_removal} > {params.tmp_path}/plink_tenpercent_gc_removal_list
 	plink_exclude_markers \
 		{params.tmp_path}/snptable_clustersep \
@@ -117,7 +117,7 @@ rule remove_markers_snptable:
 		"GC"
         
         # identify markers for removal on AA theta dev
-        awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/AA T Dev/){{ col=i}}}}}} $col>0.04{{print $2, $col}}' {input.snptable} > {output.aa_theta_dev_removal}
+        awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/AA T Dev/){{ col=i}}}}}} $col>0.04{{print $1, $col}}' {input.snptable} > {output.aa_theta_dev_removal}
         cut -f1 -d' ' {output.aa_theta_dev_removal} > {params.tmp_path}/aa_theta_dev_removal_list
 	plink_exclude_markers \
 		{params.tmp_path}/snptable_gc \
