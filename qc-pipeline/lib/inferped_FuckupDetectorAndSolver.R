@@ -1,57 +1,75 @@
 ### MAJOR-FUCKUP DETECTOR
-### created for MoBa-Rotterdam1 QC
-### date: 20180427-0501
+### created for MoBa-Rotterdam2 QC
+### date: 20190326-0330
 ### Jonas B.
-#setwd("~/Dropbox/GIT/MOBA_ROTTERDAM_1/ROTTERDAM")
+#local: setwd("/Users/jb/Biostuff/ROTTERDAM2/")
 
+library(dplyr)
 
 ####
 #### arguments
 ####
 
 args = commandArgs(trailingOnly=TRUE)
+
 # variable inputs
-fam_file = args[1] # fam_file = "~/Biostuff/mount_hunt/rotterdam1/out_fam_version_8.fam"
-ibd_file = args[2] # ibd_file = "~/Biostuff/mount_hunt/rotterdam1/out_ibd_simple_version_8.txt"
-sex_file = args[3] # sex_file = "~/Biostuff/mount_hunt/rotterdam1/out_sex_version_8.sexcheck"
+fam_file = args[1] # ".fam"
+ibd_file = args[2] # ".genome"
+sex_file = args[3] # ".sex"
 # static (permanent) inputs
-del_file = args[4] # "/media/local-disk2/helgeland/rotterdam1/inferred-pedigree/permanent_bad-sample-IIDs.txt"
-# del_file ="~/Dropbox/GIT/MOBA_ROTTERDAM_1/ROTTERDAM/permanent_bad-sample-IIDs.txt"
-rmp_file = args[5] # rmp_file = "~/Dropbox/GIT/MOBA_ROTTERDAM_1/ROTTERDAM/permanent_reconstruct-fam.txt"
+del_file = args[4] # sample names to be ignored, one per line
+rmp_file = args[5] # a-priori reconstruction file with columns FID IID PID MID SEX
 # outputs
-rep_fileRdat = args[6] # fckpclusters_20180430.RData (!) file with objects for Rmarkdown. # rep_fileRdat= "~/Biostuff/MOBA_GENO_ROT1/family_clusters/data_fuckupclusters_20180430.RData"
-upd_fam_file = args[7] # updated fam file # upd_fam_file = "~/Dropbox/GIT/MOBA_ROTTERDAM_1/ROTTERDAM/updated_fam_file_deleteme.txt"
-flg_fam_file = args[8] # file with flags for individuals # flg_fam_file = "~/Dropbox/GIT/MOBA_ROTTERDAM_1/ROTTERDAM/flag_file_deleteme.txt"
+rep_fileRdat = args[6] # fckpclusters_20190xxx.RData 
+upd_fam_file = args[7]
+flg_fam_file = args[8]
+
+### LOCAL ALTERNATIVE FOR DEBUGGING
+# variable inputs
+# fam_file = "fam.fam"
+# ibd_file = "ibd.txt"
+# sex_file = "sex.sex"
+# # static (permanent) inputs
+# del_file ="definitely_bad_samples.txt"
+# rmp_file = "reconstructions.txt"
+# # outputs
+# rep_fileRdat = "experimental_fckpclusters_20190326_4.RData"
+# upd_fam_file = "deleteme_updated_fam_file.txt"
+# flg_fam_file = "deleteme_flag_file.txt"
 
 
 ####
 #### load the files
 ####
 
-library(dplyr)
-
-fam = read.table(fam_file,h=F,stringsAsFactors = F)
-#fam = read.table("~/Biostuff/mount_hunt/rotterdam1/out_fam_version_8.fam",h=F,stringsAsFactors = F)
+fam = read.table(fam_file,h=F,stringsAsFactors = F) # head(fam); dim(fam)
 if (any(!c("V1","V2","V3","V4","V5")  %in% colnames(fam))) warning("the needed fam-file columns do not exist!")
 fam_orig = fam # save to RData for problemsolving if needed
+
 
 # this could be unflagged
 # CONS: in some cases detection of bad sample (a pair of undeclared relatedness) will be impossible
 fam$V3[which(!fam$V3 %in% fam$V2)] = 0
 fam$V4[which(!fam$V4 %in% fam$V2)] = 0
 
-full = read.table(ibd_file,h=T,stringsAsFactors = F)
-#full = read.table("~/Biostuff/mount_hunt/rotterdam1/out_ibd_simple_version_8.txt",h=T,stringsAsFactors = F)
+
+
+
+full = read.table(ibd_file,h=T,stringsAsFactors = F)# head(full)
 if (any(!c("IID1","IID2","Z1","PI_HAT")  %in% colnames(full))) warning("the needed IBD-file columns do not exist!")
 full = full[,c("IID1","IID2","Z1","PI_HAT")]
 
 sex = read.table(sex_file,h=T,stringsAsFactors = F)
-#sex = read.table("~/Biostuff/mount_hunt/rotterdam1/out_sex_version_8.sexcheck",h=T,stringsAsFactors = F)
 if (any(!c("FID","IID","PEDSEX","SNPSEX","STATUS","F","YCOUNT")  %in% colnames(sex))) warning("the needed sex-file columns do not exist!")
 if (any(sex$IID!=fam$V2)) warning("the '.sexcheck' file IDs do not match '.fam' file IDs!")
 
 # samples with clearly wrong DNA
 del = read.table(del_file,stringsAsFactors = F)
+
+# TEMPORARY MANUAL REMOVAL OF ONE VERY BAD CHIP *****
+#chip_ids = unlist(lapply(fam$V2,function(x) unlist(strsplit(x,"_"))[1]))
+#bad_samps = fam$V2[which(chip_ids  %in% c("203060680096","203060680146"))]
+#del = data.frame(V1 = bad_samps,stringsAsFactors = F)
 
 # blueprint of how to rearrange some families (index = IID)
 upd = read.table(rmp_file,h=T,stringsAsFactors = F,sep="\t")
@@ -65,6 +83,7 @@ flg = fam[,c("V2","V5")]
 colnames(flg) = c("IID","phenoOK")
 flg$phenoOK = TRUE  # default
 # will be continuously updated further
+        
 
 ####
 #### define thresholds to determine SEX problems
@@ -94,6 +113,8 @@ problm_chips = problm_chips[order(problm_chips$Problem_Count,decreasing = T),]
 
 # update FID (aka family ID or PregID)
 rix = which(fam$V2 %in% del$V1)
+if (length(rix)>0) {
+
 new_fids = unlist(lapply(seq(length(rix)),function(x) paste("prblm",paste(rep("0",3-nchar(x)),collapse=""),x,sep="")))
 fam$V1[rix] = new_fids; rm(new_fids)
 
@@ -102,6 +123,7 @@ flg$phenoOK[rix] = FALSE
 
 # update SEX of these truly wrong samples
 fam$V5[rix] = 0 # default, for unresolved cases
+#hist(sex$YCOUNT,breaks=100,col="grey"); abline(v=y_thr,col="red")
 fam$V5[rix][which((sex$YCOUNT[rix]>y_thr)&(sex$F[rix]>f_thr))] = 1 # genetic males
 fam$V5[rix][which((sex$YCOUNT[rix]<y_thr)&(sex$F[rix]<f_thr))] = 2 # genetic females
 
@@ -109,12 +131,16 @@ fam$V5[rix][which((sex$YCOUNT[rix]<y_thr)&(sex$F[rix]<f_thr))] = 2 # genetic fem
 fam$V3[rix] = 0
 fam$V4[rix] = 0
 
+}
+
 # delete these samples from parental columns
 fam$V3[which(fam$V3 %in% del$V1)] = 0
 fam$V4[which(fam$V4 %in% del$V1)] = 0
 
+
 ### 2)   update relationships
 
+if (nrow(upd)>0) {
 for (i in 1:nrow(upd)) {
         rix = which(fam$V2==upd$IID[i])
         if (length(rix)==1) {
@@ -131,11 +157,17 @@ for (i in 1:nrow(upd)) {
         }
         rm(rix)
 }
+} # end of IF
+
+...  think about this & or |  at Fthr ...
 
 # FLAG FILE UPDATE: remaining families (after hard-coded family rearrangements)
-bad_boys_ix = which((fam$V5==1)&((sex$YCOUNT<y_thr)|(sex$F<f_thr)))  # declared males not males
-bad_girl_ix = which((fam$V5==2)&((sex$YCOUNT>y_thr)|(sex$F>f_thr)))  # declared females not females
+bad_boys_ix = which((fam$V5==1)&((sex$YCOUNT<y_thr)&(sex$F<f_thr)))  # declared males not males
+bad_girl_ix = which((fam$V5==2)&((sex$YCOUNT>y_thr)&(sex$F>f_thr)))  # declared females not females
 bad_indexes = unique(c(bad_boys_ix,bad_girl_ix))
+#plot(y=sex$YCOUNT, x=sex$F)
+#points(y=sex$YCOUNT[bad_boys_ix], x=sex$F[bad_boys_ix],pch=19,col="blue")
+#points(y=sex$YCOUNT[bad_girl_ix], x=sex$F[bad_girl_ix],pch=19,col="red")
 flg$phenoOK[bad_indexes] = FALSE
 flg$phenoOK[bad_indexes] = FALSE 
 
@@ -143,11 +175,14 @@ flg$phenoOK[bad_indexes] = FALSE
 fam$V5[bad_boys_ix] = 2
 fam$V5[bad_girl_ix] = 1
 
+
+# ...  this is problematic in fertile X0 kariotype females !!!  two instances found .. 
+# ... not good for phasing ... 
+
+
 # check whether updated sex in fam file does not conflict with parental status...
-if(any(fam$V2[which(fam$V5==2)] %in% fam$V3)) warning("genetic females detected in V3 (moms column)!")
-if(any(fam$V2[which(fam$V5==1)] %in% fam$V4)) warning("genetic females detected in V4 (dads column)!")
-
-
+if(any(fam$V2[which(fam$V5==2)] %in% fam$V3)) warning("genetic females detected in V3 (dad's column)!")
+if(any(fam$V2[which(fam$V5==1)] %in% fam$V4)) warning("genetic males detected in V4 (mom's column)!")
 
 
 ####
@@ -169,8 +204,6 @@ for (i in 1:nrow(upd)) {
         }
         rm(rix)
 }
-
-
 
 
 
@@ -261,12 +294,13 @@ gene = gene[which(full$PI_HAT>=fs_thr[1]),] # (PI_HAT low)
 
 ### combo dataset
 
-comb = rbind(decl,gene)
+comb = rbind(decl,gene)#; head(comb)
 comb$unqid = paste(comb$IID1,comb$IID2,sep="-")
 
 fun = function(type) paste(type,collapse=",")
 dtf = group_by(comb,unqid) %>% summarise(n=n(),new_type=fun(type)) %>% ungroup()
 dtf = as.data.frame(dtf)
+
 
 tmp1 = lapply(dtf[,"unqid"],function(x) unlist(strsplit(x,"-")))
 tmp11 = do.call(rbind.data.frame, tmp1)
@@ -358,10 +392,8 @@ write.table(x = fam,file = upd_fam_file,row.names = F,col.names = F,sep="\t",quo
 save(list = c("full","fam_orig","z1_thr","fs_thr","tw_thr","sex","sex_upd","fam","flg","upd","del",
               "y_thr","f_thr","problm_chips","lst_GREAT","lst_SMART","susp_types",
               "clust_szs_GREAT","clust_szs_SMART","adon","mom_ids","dad_ids","Yfemales","Ymales"),
-     file = rep_fileRdat) #"~/Biostuff/MOBA_GENO_ROT1/family_clusters/data_fuckupclusters_20180430.RData"
+     file = rep_fileRdat)
 
 # now generate report using : "report_on_clusterFuckups.Rmd"
-
-
 
 

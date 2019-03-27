@@ -1,0 +1,196 @@
+---
+title: "Rotterdam2-QC_FamClusterFuckups"
+author: "Jonas Bacelis"
+date: "3/27/2019"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Detecting complicated family clusters that need to be resolved manually
+
+### Load data:
+
+```{r, warning=FALSE, error=FALSE,message=FALSE}
+library(igraph)
+library(xtable)
+library(knitr)
+#load("~/Biostuff/ROTTERDAM2/experimental_fckpclusters_20190326_4.RData")
+#load("~/Biostuff/mount_hunt/to_julius/inferped_data.RData")
+# the must-be-present data objects:
+# "lst_GREAT","lst_SMART","clust_szs_GREAT","clust_szs_SMART",
+# "adon","mom_ids","dad_ids", "Yfemales", "Ymales".....
+```
+
+\newpage
+
+### Separation of relatedness clusters 
+
+```{r results='asis', warning=FALSE, error=FALSE,message=FALSE,fig.height=7, fig.width=7}
+plot(full$Z1,full$PI_HAT,pch=19,cex=0.5,col=rgb(0,0,0,0.3)); grid()
+#z1_thr = 0.8 # Z1 threshold for PO (parent-offspring)
+#fs_thr = c(0.35,0.65, 0.35,0.65) # PI_HAT,PI_HAT, Z1,Z1 # thresholds for full-sibs
+#tw_thr = 0.8 # thresholds for TW (twins)
+polygon(x=c(fs_thr[3:4],fs_thr[4:3],fs_thr[3]),col = NA,border = "yellow2",
+        y = c(fs_thr[1],fs_thr[1],fs_thr[2],fs_thr[2],fs_thr[1])) # FS area
+polygon(x=c(z1_thr,1.01,1.01,z1_thr,z1_thr),col = NA,border = "olivedrab3",
+        y = c(fs_thr[1],fs_thr[1],fs_thr[2],fs_thr[2],fs_thr[1])) # PO area
+polygon(x=c(-0.01,0.2,0.2,-0.01,-0.01),col = NA,border = "orange2",
+        y = c(tw_thr,tw_thr,1.01,1.01,tw_thr)) # TW area
+```
+
+\newpage
+
+### Separation of sex clusters
+
+```{r}
+xrng = range(sex$YCOUNT); yrng = range(sex$F)
+# redundand: it is imported from .RData
+#y_thr = fem_y + (mal_y-fem_y)*0.666
+#f_thr = fem_f + (mal_f-fem_f)*0.666
+```
+
+#### Before the pedigree manual check:
+```{r, echo=FALSE,fig.height=3.5, fig.width=7}
+par(mfrow=c(1,2))
+ix = which(sex$PEDSEX==1)
+plot(sex$F[ix] ~ sex$YCOUNT[ix],xlim=xrng,ylim=yrng,
+     col=rgb(1/3, 1/3, 1/3,0.3),pch=19,cex=0.7,main="males")
+grid(); abline(v=y_thr,h=f_thr,col="orange")
+ix = which(sex$PEDSEX==2)
+plot(sex$F[ix] ~ sex$YCOUNT[ix],xlim=xrng,ylim=yrng,
+     col=rgb(1/3, 1/3, 1/3,0.3),pch=19,cex=0.7,main="females")
+grid(); abline(v=y_thr,h=f_thr,col="orange")
+```
+
+#### After the pedigree manual check and corrections (no sex filters yet):
+```{r, echo=FALSE,fig.height=3.5, fig.width=7}
+par(mfrow=c(1,2))
+ix = which(sex_upd$PEDSEX==1)
+plot(sex_upd$F[ix] ~ sex_upd$YCOUNT[ix],xlim=xrng,ylim=yrng,
+     col=rgb(1/3, 1/3, 1/3,0.3),pch=19,cex=0.7,main="males")
+grid(); abline(v=y_thr,h=f_thr,col="orange")
+ix = which(sex_upd$PEDSEX==2)
+plot(sex_upd$F[ix] ~ sex_upd$YCOUNT[ix],xlim=xrng,ylim=yrng,
+     col=rgb(1/3, 1/3, 1/3,0.3),pch=19,cex=0.7,main="females")
+grid(); abline(v=y_thr,h=f_thr,col="orange")
+```
+
+\newpage
+
+
+### Summary of problematic arrays:
+
+```{r results='asis', warning=FALSE, error=FALSE,message=FALSE,fig.height=4, fig.width=6}
+susp_types = c("kid_dad","kid_dad,TW", "kid_mom","kid_mom,TW", "PO","TW")
+ids = NULL
+for (i in 1:length(lst_SMART)){
+        sub = lst_SMART[[i]]        
+        rix = which(sub$type %in% susp_types)
+        ids = c(ids, unique(as.character(as.matrix(sub[rix,c("IID1","IID2")]))))
+}
+susp_chips = unlist(lapply(ids,function(x)  unlist(strsplit(x,"_"))[1]))
+tbl = table(susp_chips)
+dtf = data.frame(chipID=names(tbl),Nprobs=as.numeric(tbl),stringsAsFactors = F)
+dtf = dtf[order(dtf$Nprobs,decreasing = T),]
+dtf$Nprobs = as.integer(dtf$Nprobs)
+barplot(table(dtf$Nprobs),xlab = "number of pedigree problems per array",
+        ylab = "number of arrays")
+xtbl = xtable(dtf[which(dtf$Nprobs>=5),])
+print(xtbl,comment=FALSE,floating = T,include.rownames=FALSE)
+```
+
+\newpage
+
+### Explanations for upcomming figures
+
+Line type = declared (pedigree) relatedness: **solid line** - parent-offspring relatedness, **dotted line** - no declared parent-offspring relatedness. 
+
+Line color = genetic (ibd) relatedness: **green** - parent-offspring, **orange** - twins or sample dublicates, **yellow** - full siblings, **grey** - no genetic relatedness.
+
+In graphs, sample IDs are abbreviated with numbers. A letter next to number denote individual's role: mother - **m**, father - **f**, child - **c**. If mother or father have different genetic sex (based on chrY gentype counts) than expected, it is marked with additional symbol **-**. Children are not marked in this way.
+
+Please inspect all figures below: manual decision should be made which samples to remove (i.e., assign a dummy Family ID) or how to rearrange the existing family members. Please ignore the family clusters that are already solved: check whether removal of individuals marked in **FID** column with prefix **prblm** (flagged as problematic) fixes the issue. All new instances of problematic individuals or families should be resolved and recorded in the permanent fam-update files:
+
+- *"/media/local-disk2/helgeland/rotterdam1/inferred-pedigree/permanent_bad-sample-IIDs.txt"*
+- *"/media/local-disk2/helgeland/rotterdam1/inferred-pedigree/permanent_reconstruct-fam.txt"*
+
+A detailed description of already discovered and corrected problems is presented in the report:
+
+- *"/media/local-disk2/helgeland/rotterdam1/inferred-pedigree/clusterFuckups_20180428.pdf"*
+
+(ideally, this file should explain the logic behind all changes encoded in the latest version of *"permanent_bad-sample-IIDs.txt"* and *"permanent_reconstruct-fam.txt"*, which includes all or most of the figures in pages below)
+
+
+\newpage
+
+### Preview all problematic clusters:
+
+```{r results='asis', warning=FALSE, error=FALSE,message=FALSE,fig.height=6, fig.width=6}
+for (lsx in order(clust_szs_SMART,decreasing = T)) {  # *************
+obj = lst_SMART[[lsx]] # one particular cluster
+
+# ASSIGN PLOTTING FEATURES TO EDGES
+## genetic relationships (IBD): line color
+obj$color = "lightgrey"  # default,  = no significant genetic relatedness
+obj$color[grep("PO",obj$type)] = "olivedrab3" # parent-offspring (greenish)
+obj$color[grep("TW",obj$type)] = "orange2" # twins or sample duplications
+obj$color[grep("FS",obj$type)] = "yellow2"  # full-sibs
+obj$color[grep("AMBG",obj$type)] = "red"  # half-sibs etc, should be none
+
+## declared relationships (pedigree): line type
+obj$lty = 3  # dotted line
+obj$lty[grep("kid",obj$type)] = 1 # single line
+
+# SIMPLIFY VERTEX NAMES: NEW SHORT INDIVIDUAL IDS
+dict = data.frame(cids=unique(c(obj$IID1,obj$IID2)),sq=NA,status="c",
+                  newids=NA,stringsAsFactors = F)
+dict$status[(dict$cids %in% dad_ids)&(dict$cids %in% Ymales  )] = "f"
+dict$status[(dict$cids %in% dad_ids)&(dict$cids %in% Yfemales)] = "f-"
+dict$status[(dict$cids %in% mom_ids)&(dict$cids %in% Yfemales)] = "m"
+dict$status[(dict$cids %in% mom_ids)&(dict$cids %in% Ymales  )] = "m-"
+dict$sq = seq(nrow(dict))
+dict$newids = paste(dict$sq,dict$status,sep="")
+dict = dict[,c("cids","newids")]
+yy = merge(obj,dict,by.x="IID1",by.y="cids",all=F)
+zz = merge(yy,dict,by.x="IID2",by.y="cids",all=F)
+obj = zz; rm(zz,yy)
+
+# CREATE GRAPH OBJECT
+el=as.matrix(obj[,c("newids.x","newids.y")]) 
+g=graph.edgelist(el,directed=FALSE)
+E(g)$color <- obj$color
+E(g)$lty = obj$lty
+V(g)$label.cex = 0.7
+V(g)$label.col = "black"
+add_shape("nil")
+
+# VISUALIZE CLUSTER
+plot(g,edge.width = 2.5,vertex.shape="nil",main=lsx)
+
+# REPORT CLUSTER CONTENTS
+DICT = merge(adon,dict,by.x="IID",by.y="cids",all=F)
+DICT = DICT[,c("newids","IID","FID")]
+colnames(DICT)[1] = "plotID"
+DICT = DICT[order(DICT$FID),]
+print(xtable(DICT),comment=FALSE,floating = T,include.rownames=FALSE)
+cat('\\pagebreak')   
+}
+```
+
+
+
+
+### Summary of cluster sizes:
+
+```{r results='asis', warning=FALSE, error=FALSE,message=FALSE,fig.height=6, fig.width=6}
+# this is a summary of detected clusters
+tbl = table(clust_szs_SMART)
+prnt = data.frame(N_edges=names(tbl),N_clusters=as.integer(tbl))
+xtbl = xtable(prnt)
+print(xtbl,comment=FALSE,floating = T,include.rownames=FALSE)
+```
+
+
