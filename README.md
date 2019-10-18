@@ -1,1 +1,1 @@
-## QC pipeline that hopefully wil be commin for all moba-stuff
+## QC pipeline that hopefully will be common for all moba-stuff
