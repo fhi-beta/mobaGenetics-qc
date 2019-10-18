@@ -12,5 +12,5 @@
     "pca_thr": "6 0.015 NA 0.0355 NA",
     "infer_recfam": "/mnt/archive/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_reconstruct-fam.txt",
     "infer_badids": "/mnt/archive/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_bad-sample-IIDs.txt",
-    "output_base": "/mnt/work/qcrot2/"
+    "output_base": "/mnt/work/gutorm/qcTest/qcrot2/"
 }
