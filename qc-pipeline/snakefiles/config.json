@@ -5,7 +5,7 @@
     "recode_sex":"/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-sex-rotterdam2.txt",
     "recode_rsid":"/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-rsid.txt",
     "snptable":"/mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/snptable/snp_table_rotterdam2.txt",
-    "duplicated_markers_list":"/mnt/archive/ROTTERDAM2/qc/duplicated-marker-removal-list.txt",
+    "duplicated_markers_list":"/mnt/work/gutorm/qcTest/qcrot2/dummyfiles/duplicated-marker-removal-list.txt",
     "hrc_sites":"/mnt/archive/helgeland/refdata/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab",
     "hapmap_stem": "/mnt/archive/helgeland/refdata/hapmap/hapmap_b36/hapmapb36",
     "hapmap_pop": "/mnt/archive/helgeland/refdata/hapmap/relationships_w_pops_121708.txt",
