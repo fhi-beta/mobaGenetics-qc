@@ -1,9 +1,10 @@
+
 {
     "raw_bed_stem" : "/mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/plink/GSA2017_246_025_ReRun",
-    "recode_ids":"/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-ids-rotterdam2.txt",
+    "recode_ids":"/mnt/work/gutorm/qcTest/qcrot2/dummyfiles/recode-ids-rotterdam2-subset.txt",
+    "recode_rsid":"/mnt/work/gutorm/qcTest/qcrot2/dummyfiles/recode-rsid-subset.txt",
     "recode_parents":"/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-parents-rotterdam2.txt",
     "recode_sex":"/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-sex-rotterdam2.txt",
-    "recode_rsid":"/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-rsid.txt",
     "snptable":"/mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/snptable/snp_table_rotterdam2.txt",
     "duplicated_markers_list":"/mnt/work/gutorm/qcTest/qcrot2/dummyfiles/duplicated-marker-removal-list.txt",
     "hrc_sites":"/mnt/archive/helgeland/refdata/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab",

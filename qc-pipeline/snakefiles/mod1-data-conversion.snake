@@ -13,7 +13,7 @@ rule update_bedset_samples:
         in_bedset=config['raw_bed_stem'],
         tmp_path=base + 'mod1-data-preparation/tmp/',
         out_bedset=base + 'mod1-data-preparation/tmp/rawbed-id-parents-sex-updated'
-    message: "Updating samples with declared relationships and sentrixIDs as unique identifiers"
+    message: "mod1 update_bedset_samples: Updating samples with declared relationships and sentrixIDs as unique identifiers"
     shell:
         """
 	set -e
