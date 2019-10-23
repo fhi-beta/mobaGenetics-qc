@@ -65,7 +65,7 @@ rule update_bedset_samples:
 	store "NIND_TOUPDATESEX" $total
 	store "NIND_NOTUPDATEDSEX" $same
         """
-
+        
 # Remove markers on snp table metrics
 rule remove_markers_snptable:
     input:
@@ -159,7 +159,7 @@ rule remove_duplicate_markers:
         log "Number of markers in duplicate marker removal list: ${{DUP_LIST_N}}"
         
         # remove markers
-        plink \
+        $plinklocal \
             --bfile {params.in_bedset} \
             --exclude {input.dup_remove_list} \
             --make-bed \

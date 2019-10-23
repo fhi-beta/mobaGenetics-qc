@@ -1,6 +1,9 @@
 # Config files containing hard coded variables
 configfile: os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'snakefiles/config.json'))
 
+#ensure bash as shell
+shell.executable("/bin/bash")
+
 # Runtime variables
 include: "variables.py"
 
