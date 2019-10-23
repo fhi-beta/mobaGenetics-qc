@@ -11,7 +11,7 @@ rule update_bedset_samples:
 	stvars=base + 'mod1-data-preparation/rep/' + 'storedvars_update.txt'
     params:
         in_bedset=config['raw_bed_stem'],
-        tmp_path=base + 'mod1-data-preparation/tmp/',
+        tmp_path=base + 'mod1-data-preparation/tmp',
         out_bedset=base + 'mod1-data-preparation/tmp/rawbed-id-parents-sex-updated'
     message: "mod1 update_bedset_samples: Updating samples with declared relationships and sentrixIDs as unique identifiers"
     shell:
@@ -81,7 +81,7 @@ rule remove_markers_snptable:
     params:
         in_bedset=base + 'mod1-data-preparation/tmp/rawbed-id-parents-sex-updated',
         out_bedset=base + 'mod1-data-preparation/tmp/snptable-markers-excluded',
-        tmp_path=base + 'mod1-data-preparation/tmp/'
+        tmp_path=base + 'mod1-data-preparation/tmp'
     message: "Remove markers by cluster metrics"
     shell:
         """
@@ -179,7 +179,7 @@ rule fix_technical_markers:
     params:
         in_bedset=base + 'mod1-data-preparation/tmp/dup-markers-removed',
         out_bedset=base + 'mod1-data-preparation/tmp/chr0-removed',
-	outdir=base + 'mod1-data-preparation/tmp/'
+	outdir=base + 'mod1-data-preparation/tmp'
     shell:
         """
 	set -e
