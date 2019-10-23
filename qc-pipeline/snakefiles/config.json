@@ -1,6 +1,6 @@
 
 {
-    "raw_bed_stem" : "/mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/plink/GSA2017_246_025_ReRun",
+    "raw_bed_stem" : "/mnt/work/gutorm/qcTest/qcrot2/dummyfiles/input/fakeinput",
     "recode_ids":"/mnt/work/gutorm/qcTest/qcrot2/dummyfiles/recode-ids-rotterdam2-subset.txt",
     "recode_rsid":"/mnt/work/gutorm/qcTest/qcrot2/dummyfiles/recode-rsid-subset.txt",
     "recode_parents":"/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-parents-rotterdam2.txt",
@@ -13,5 +13,5 @@
     "pca_thr": "6 0.015 NA 0.0355 NA",
     "infer_recfam": "/mnt/archive/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_reconstruct-fam.txt",
     "infer_badids": "/mnt/archive/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_bad-sample-IIDs.txt",
-    "output_base": "/mnt/work/gutorm/qcTest/qcrot2"
+    "output_base": "/mnt/work/gutorm/qcTest/dummyfiles/output"
 }
