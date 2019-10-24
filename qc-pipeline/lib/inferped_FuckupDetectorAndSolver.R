@@ -159,7 +159,7 @@ for (i in 1:nrow(upd)) {
 }
 } # end of IF
 
-...  think about this & or |  at Fthr ...
+# ...  think about this & or |  at Fthr ...
 
 # FLAG FILE UPDATE: remaining families (after hard-coded family rearrangements)
 bad_boys_ix = which((fam$V5==1)&((sex$YCOUNT<y_thr)&(sex$F<f_thr)))  # declared males not males
