@@ -263,7 +263,8 @@ rule pcawhapmap:
 		report_nsnps {params.ingeno} "PCA_IN"
 
 		# Extracting the inferred-bad samples from the full set
-		grep prblm {params.ingeno}.fam > {params.outdir}/inferped_toremove
+                # Note we dont want to exit if grep fails find no prblm
+		grep prblm {params.ingeno}.fam > {params.outdir}/inferped_toremove || true
 		plink_remove_samples \
 		        {params.ingeno} \
 		        {params.outdir}/inferped_toremove \
