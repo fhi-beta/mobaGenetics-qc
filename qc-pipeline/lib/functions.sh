@@ -1,3 +1,6 @@
+#!/usr/bin/env bash
+# Set -x to echo all commands
+set -x
 # EIGENSTRAT HELPER FUNCTIONS
 # 
 # Create param file for convertf
@@ -282,26 +285,54 @@ function report_plots {
 	stage=$3
 
 	# Plink to generate summaries, and R to plot
-	# Final 5 arguments are thresholds for LMISS, IMISS, HET, HWE, MAF.
+	# Final 5 R-plots arguments are thresholds for LMISS, IMISS, HET, HWE, MAF.
+	# There is a lot dirty code to ignore errors here - must be cleaned up later....
 	case $4 in 
-		L) $plinklocal --bfile $infile --missing --out $2/summary-stats
+	    L)
+		if ! $($plinklocal \
+			   --bfile $infile --missing --out $2/summary-stats
+		       ); then
+		    log "Aaargh. report_plots: plink failed in case L"
+		    return 0  #Lets fake this went ok, ignore plots etc
+		fi
 		   ${libdir}/draw-summary-plots.R \
 			$2/summary-stats \
 			$PLOTDIR \
 			$stage \
 			$5 NA NA NA NA
 		  ;;
-		I) $plinklocal --bfile $infile --missing --out $2/summary-stats
+	    I)  #Note that the plink command is identical to the one in L) ...
+		if ! $($plinklocal \
+			   --bfile $infile --missing --out $2/summary-stats
+		       ); then
+		    log "Aaargh. report_plots: plink failed in case I"
+		    return 0  #Lets fake this went ok, ignore plots etc
+		fi
 		   ${libdir}/draw-summary-plots.R \
 			$2/summary-stats \
 			$PLOTDIR \
 			$stage \
 			NA $5 NA NA NA
 		  ;;
-		H) $plinklocal --bfile $infile --autosome \
+		H)
+		    if ! $($plinklocal \
+			--bfile $infile --autosome \
 			--maf $6 --het --out $2/summary-stats
-		   $plinklocal --bfile $infile --autosome \
-			--max-maf $6 --het --out $2/summary-stats_rare
+			   ); then
+			log "Aaargh. report_plots: plink failed (no autosoma marker?)"
+			return 0  #Lets fake this went ok, ignore plots etc
+		    fi
+
+		   # Dirty hack 28.10.19 - This can fail, and until we have cleanded up the whole QC, we  accespt failure but lo
+		   if ! $($plinklocal \
+			      --bfile $infile --autosome \
+			      --max-maf $6 --het --out $2/summary-stats_rare
+			  ); then
+		       log "Aaargh. report_plots: plink failed (no autosoma1 marker?)"
+		       return 0  #Lets fake this went ok, ignore plots etc
+		   fi
+
+
 		   ${libdir}/draw-summary-plots.R \
 			$2/summary-stats \
 			$PLOTDIR \
