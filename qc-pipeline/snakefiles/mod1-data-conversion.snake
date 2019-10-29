@@ -1,70 +1,61 @@
 # Rule updates raw bedset with biobank provided pedigree information and gender
 # Sample IDs are updated to SentrixIDs
-rule update_bedset_samples:
+
+rule update_sample_id:
     input:
         in_bedset=expand(config['raw_bed_stem'] + '{ext}', ext=['.bed','.bim','.fam']),
         recode_id=config['recode_ids'],
-        recode_parents=config['recode_parents'],
-        recode_sex=config['recode_sex']
     output:
         out_bedset=expand(base + 'mod1-data-preparation/tmp/rawbed-id-parents-sex-updated' + '{ext}', ext=['.bed','.bim','.fam']),
 	stvars=base + 'mod1-data-preparation/rep/' + 'storedvars_update.txt'
     params:
         in_bedset=config['raw_bed_stem'],
         tmp_path=base + 'mod1-data-preparation/tmp',
-        out_bedset=base + 'mod1-data-preparation/tmp/rawbed-id-parents-sex-updated'
-    message: "mod1 update_bedset_samples: Updating samples with declared relationships and sentrixIDs as unique identifiers"
-    shell:
-        """
-	set -e
-	plinklocal={plinklocal}
-	
-	PIPELINELOG={runlog}
-	STOREDVARS={output.stvars}
+        out_bedset=base + 'mod1-data-preparation/tmp/rawbed-id-parents-sex-updated',
+        plink=plinklocal
+    log: 
+        base+"/newlog.txt"
+        
+    script: 
+        "../lib/update_sample_id.py"
+#        $plinklocal \
+#             --bfile {params.in_bedset} \
+#             --update-ids {input.recode_id} \
+#             --make-bed \
+#             --out {params.tmp_path}/rawbed-id-updated
+# 	same=`awk 'FNR==NR{{c=0; a[$1 " " $2]=1; next}} ($1 " " $2 in a){{ c++}} END{{print c}}' {params.in_bedset}.fam {params.tmp_path}/rawbed-id-updated.fam`
+# 	total=`wc -l {params.in_bedset}.fam`
+# 	echo "same is $same, total is $total"
+# 	store "NIND_TOUPDATEID" $total
+# 	store "NIND_NOTUPDATEDID" $same
 
-	source {libdir}/functions.sh
-	echo "" > {runlog}
-        chmod 777 {runlog} # dirty, i am ashamed...
+# 	echo "Force QUITTING"
+# 	exit 42
 
-        log "---DATA PREPARATION---" 
+#         log "UPDATE PARENTS"
+#         # update parents
+#         $plinklocal \
+#             --bfile {params.tmp_path}/rawbed-id-updated \
+#             --update-parents {input.recode_parents} \
+#             --make-bed \
+#             --out {params.tmp_path}/rawbed-id-parents-updated
+# 	same=`awk 'FNR==NR{{c=0; a[$2 " " $3 " " $4]=1; next}} ($2 " " $3 " " $4 in a){{ c++}} END{{print c}}' {params.tmp_path}/rawbed-id-updated.fam {params.tmp_path}/rawbed-id-parents-updated.fam`
+# 	total=`wc -l {params.tmp_path}/rawbed-id-updated.fam`
+# 	store "NIND_TOUPDATEPAR" $total
+# 	store "NIND_NOTUPDATEDPAR" $same
 
-        log "UPDATE SAMPLES"
-        # update sample ids
-        $plinklocal \
-            --bfile {params.in_bedset} \
-            --update-ids {input.recode_id} \
-            --make-bed \
-            --out {params.tmp_path}/rawbed-id-updated
-	same=`awk 'FNR==NR{{c=0; a[$1 " " $2]=1; next}} ($1 " " $2 in a){{ c++}} END{{print c}}' {params.in_bedset}.fam {params.tmp_path}/rawbed-id-updated.fam`
-	total=`wc -l {params.in_bedset}.fam`
-	echo "same is $same, total is $total"
-	store "NIND_TOUPDATEID" $total
-	store "NIND_NOTUPDATEDID" $same
-
-        log "UPDATE PARENTS"
-        # update parents
-        $plinklocal \
-            --bfile {params.tmp_path}/rawbed-id-updated \
-            --update-parents {input.recode_parents} \
-            --make-bed \
-            --out {params.tmp_path}/rawbed-id-parents-updated
-	same=`awk 'FNR==NR{{c=0; a[$2 " " $3 " " $4]=1; next}} ($2 " " $3 " " $4 in a){{ c++}} END{{print c}}' {params.tmp_path}/rawbed-id-updated.fam {params.tmp_path}/rawbed-id-parents-updated.fam`
-	total=`wc -l {params.tmp_path}/rawbed-id-updated.fam`
-	store "NIND_TOUPDATEPAR" $total
-	store "NIND_NOTUPDATEDPAR" $same
-
-        log "UPDATE SEX"
-        # update sex
-        $plinklocal \
-            --bfile {params.tmp_path}/rawbed-id-parents-updated \
-            --update-sex {input.recode_sex} \
-            --make-bed \
-            --out {params.out_bedset}
-	same=`awk 'FNR==NR{{c=0; a[$2 " " $5]=1; next}} ($2 " " $5 in a){{ c++}} END{{print c}}' {params.tmp_path}/rawbed-id-parents-updated.fam {params.out_bedset}.fam`
-	total=`wc -l {params.tmp_path}/rawbed-id-parents-updated.fam`
-	store "NIND_TOUPDATESEX" $total
-	store "NIND_NOTUPDATEDSEX" $same
-        """
+#         log "UPDATE SEX"
+#         # update sex
+#         $plinklocal \
+#             --bfile {params.tmp_path}/rawbed-id-parents-updated \
+#             --update-sex {input.recode_sex} \
+#             --make-bed \
+#             --out {params.out_bedset}
+# 	same=`awk 'FNR==NR{{c=0; a[$2 " " $5]=1; next}} ($2 " " $5 in a){{ c++}} END{{print c}}' {params.tmp_path}/rawbed-id-parents-updated.fam {params.out_bedset}.fam`
+# 	total=`wc -l {params.tmp_path}/rawbed-id-parents-updated.fam`
+# 	store "NIND_TOUPDATESEX" $total
+# 	store "NIND_NOTUPDATEDSEX" $same
+#         """
         
 # Remove markers on snp table metrics
 rule remove_markers_snptable:
