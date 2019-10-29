@@ -6,7 +6,7 @@ bcftools = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/
 vcftools = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/vcftools-0.1.13/vcftools'))
 plinklocal = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/plink-1.90b5.4/plink'))
 tmp_path = os.path.join(config['output_base'],'tmp')
-runlog = config['output_base'] + 'runlog.txt'
+runlog = config['output_base'] + '/runlog.txt'
 base = config['output_base']
 
 ### workflow settings ##################################
