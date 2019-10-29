@@ -1,5 +1,10 @@
 # Config files containing hard coded variables
-configfile: os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'snakefiles/config.json'))
+
+# File with smaller sample size that trigger lots of errors
+#configfile: os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'snakefiles/config.json'))
+
+# The original file, apart from output that goes to a testdirectory - and in yaml format
+configfile: "config.yaml"
 
 #ensure bash as shell
 shell.executable("/bin/bash")
