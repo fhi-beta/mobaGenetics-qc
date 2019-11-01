@@ -12,4 +12,4 @@ hapmap_pop: "/mnt/archive/helgeland/refdata/hapmap/relationships_w_pops_121708.t
 pca_thr: "6 0.015 NA 0.0355 NA"
 infer_recfam: "/mnt/archive/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_reconstruct-fam.txt"
 infer_badids: "/mnt/archive/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_bad-sample-IIDs.txt"
-output_base: "/mnt/work/gutorm/qcTest/qcrot2/fullOriginalOutput/fullOriginalOutput"
+output_base: "/mnt/work/gutorm/qcTest/qcrot2/fullNewOutput"

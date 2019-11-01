@@ -6,13 +6,17 @@ rule update_sample_id:
         in_bedset=expand(config['raw_bed_stem'] + '{ext}', ext=['.bed','.bim','.fam']),
         recode_id=config['recode_ids'],
     output:
-        out_bedset=expand(base + 'mod1-data-preparation/tmp/rawbed-id-parents-sex-updated' + '{ext}', ext=['.bed','.bim','.fam']),
+        # tmp files that will be used later for updating families and sex
+# making sure .fam is not removed - for debug
+        out_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-id-updated' + '{ext}', ext=['.bed','.bim','.famm']),
+        # stvars is were results are stored - why not put these in a global logfile?
 	stvars=base + 'mod1-data-preparation/rep/' + 'storedvars_update.txt'
     params:
         in_bedset=config['raw_bed_stem'],
-        tmp_path=base + 'mod1-data-preparation/tmp',
-        out_bedset=base + 'mod1-data-preparation/tmp/rawbed-id-parents-sex-updated',
-        plink=plinklocal
+        tmp_path=base + '/mod1-data-preparation/tmp',  # is it used?
+        out_bedset=base + '/mod1-data-preparation/tmp/rawbed-id-updated',
+        # since we did 3 transforms was  out_bedset=base + 'mod1-data-preparation/tmp/rawbed-id-parents-sex-updated', 
+        plink=plinklocal # maybe set these in an imported file when/if we dont'u use shell anymore?
     log: 
         base+"/newlog.txt"
         
