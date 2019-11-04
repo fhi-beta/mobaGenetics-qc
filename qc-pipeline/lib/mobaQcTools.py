@@ -22,7 +22,6 @@ def dictFromFile(fil,cols=[0,1]):
 
     Will print error/warning if dictionary is empty or if replicates found
     """
-    # print("**** dictFromFile "+ fil)
     # pandas is overkill here, but since we will use it anyway ...
     # Grab the relevant columns only
     df = pd.read_csv(fil, usecols=cols, delim_whitespace=True, header=None)
@@ -46,7 +45,6 @@ def checkMatch(fil,dic,cols=[0,1]):
       Returns the number of matches
       File must be a csv file with whitespace as delimiters
     """
-    #print("**** checkMatch "+ fil)
     matches = 0
     for line in open(fil): 
         allcols = line.split()
@@ -66,7 +64,6 @@ def countCsvDiff(bigfile, smallfile, cols = [0,1]):
     smallDict = dictFromFile(smallfile, cols)       
     matches = checkMatch(bigfile, smallDict, cols)
 
-    print ("Matches: " + str(matches) )
     # logging.warning('Results NOT logged to separate file ' + "Common lines: " + str(matches) + " based on " + str(len(smallDict)) + " Samples.  Columns checked  "+",".join(map(str,cols)))
     return matches
 
