@@ -1,7 +1,11 @@
 #!/usr/bin/python3
+
+# 4.11.2019 This files is probably not in use. Kept for now as the logging done here is more general,
+# but maybe not necessary
+
 import subprocess
 import logging
-import mobaQcTools as mqc  # local moba package
+
 # Logging should only by initialised once ... Fix that later
 logging.basicConfig(filename=mqc.globalLog,
                     filemode='a',
@@ -12,10 +16,6 @@ logging.info("inputfiles " +  ' '.join(snakemake.input))
 logging.info("to make output " +  ' '.join(snakemake.output))
 
 # A little hack to reduce the number of params: From snakemake.input/output we know where the 
-
-# For now - not checking result yet. Might be wrapptd later
-
-
 # Input and ouput-trunks used by plink
 inTrunk =  mqc.plinkBase(snakemake.input[0])
 outTrunk =  mqc.plinkBase(snakemake.output[0])

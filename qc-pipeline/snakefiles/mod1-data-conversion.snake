@@ -4,27 +4,31 @@ import sys
 sys.path.append('../lib')
 import mobaQcTools as mqc  # local moba package
 
-rule update_sample_id:
+
+
+rule update_sample_ids:
     input:
         in_bedset=expand(config['raw_bed_stem'] + '{ext}', ext=['.bed','.bim','.fam']),
-        recode_id=config['recode_ids']
+        recode=config['recode_ids']
     output:
-        # tmp files that will be used later for updating families and sex
-        # out_bedset should  be the first output line
+        # tmp files that will be used later for updating sex
+        # Should be the first output 
         out_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-id-updated' + '{ext}', ext=['.bed','.bim','.fam'])
-        # stvars is were results are stored - will be put in a global logfile, until then keep the comment below
-	# stvars=base + 'mod1-data-preparation/rep/' + 'storedvars_update.txt'
-    params:
-#        in_bedset=config['raw_bed_stem'],
-#        tmp_path=base + '/mod1-data-preparation/tmp',  # is it used?
-#        out_bedset=base + '/mod1-data-preparation/tmp/rawbed-id-updated',
-        # since we did 3 transforms was  out_bedset=base + 'mod1-data-preparation/tmp/rawbed-id-parents-sex-updated', 
-        plink=plinklocal # maybe set these in an imported file when/if we dont'u use shell anymore?
-    log: 
-        base+"/newlog.txt"
-        
-    script: 
-        "../lib/update_sample_id.py"
+    run:
+        mqc.log(runlog, "MODULE 1 \n")
+        mqc.log(runlog, "Updating sample ids: \n")
+        inTrunk =  mqc.plinkBase(input[0])
+        outTrunk =  mqc.plinkBase(output[0])
+
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--update-ids", input.recode,
+                "--out", outTrunk ,
+                "--make-bed"
+               ])
+
+        updated = mqc.countCsvDiff(outTrunk+".fam",inTrunk+".fam",[0,1])
+        mqc.log(runlog,f"Changed {updated} samples (NIND_NOTUPDATEDID)\n")
 
 rule update_parents:
     input:
