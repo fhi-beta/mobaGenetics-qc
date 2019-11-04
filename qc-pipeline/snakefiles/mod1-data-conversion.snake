@@ -1,7 +1,7 @@
 # Rule updates raw bedset with biobank provided pedigree information and gender
 # Sample IDs are updated to SentrixIDs
 import sys
-sys.path.append('../lib')
+sys.path.append('../lib')  # in order to find our local packages
 import mobaQcTools as mqc  # local moba package
 
 
@@ -11,14 +11,13 @@ rule update_sample_ids:
         in_bedset=expand(config['raw_bed_stem'] + '{ext}', ext=['.bed','.bim','.fam']),
         recode=config['recode_ids']
     output:
-        # tmp files that will be used later for updating sex
         # Should be the first output 
         out_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-id-updated' + '{ext}', ext=['.bed','.bim','.fam'])
     run:
-        mqc.log(runlog, "MODULE 1 \n")
-        mqc.log(runlog, "Updating sample ids to MoBaIDs: \n")
-        inTrunk =  mqc.plinkBase(input[0])
-        outTrunk =  mqc.plinkBase(output[0])
+        mqc.log(runlog, "*** Module 1 Data Conversion ***\n")
+        mqc.log(runlog, "Updating sample ids: \n")
+        inTrunk = mqc.plinkBase(input.in_bedset[0])
+        outTrunk = mqc.plinkBase(output.out_bedset[0])
 
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
@@ -35,13 +34,11 @@ rule update_parents:
         in_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-id-updated' + '{ext}', ext=['.bed','.bim','.fam']),
         recode=config['recode_parents']
     output:
-        # tmp files that will be used later for updating sex
-        # Should be the first output 
         out_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-parents-updated' + '{ext}', ext=['.bed','.bim','.fam'])
     run:
         mqc.log(runlog, "Update parents: \n")
-        inTrunk =  mqc.plinkBase(input[0])
-        outTrunk =  mqc.plinkBase(output[0])
+        inTrunk =  mqc.plinkBase(in_bedset.input[0])
+        outTrunk =  mqc.plinkBase(out_bedset.output[0])
 
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
@@ -58,13 +55,11 @@ rule update_sex:
         in_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-parents-updated' + '{ext}', ext=['.bed','.bim','.fam']),
         recode=config['recode_sex']
     output:
-        # tmp files that will be used later 
-        # Should be the first output 
         out_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-sex-updated' + '{ext}', ext=['.bed','.bim','.fam'])
     run:
         mqc.log(runlog, "Update sex: \n")
-        inTrunk =  mqc.plinkBase(input[0])
-        outTrunk =  mqc.plinkBase(output[0])
+        inTrunk =  mqc.plinkBase(in_bedset.input[0])
+        outTrunk =  mqc.plinkBase(out_bedset.output[0])
 
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
