@@ -16,7 +16,7 @@ rule update_sample_ids:
         out_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-id-updated' + '{ext}', ext=['.bed','.bim','.fam'])
     run:
         mqc.log(runlog, "MODULE 1 \n")
-        mqc.log(runlog, "Updating sample ids: \n")
+        mqc.log(runlog, "Updating sample ids to MoBaIDs: \n")
         inTrunk =  mqc.plinkBase(input[0])
         outTrunk =  mqc.plinkBase(output[0])
 
@@ -28,7 +28,7 @@ rule update_sample_ids:
                ])
 
         updated = mqc.countCsvDiff(outTrunk+".fam",inTrunk+".fam",[0,1])
-        mqc.log(runlog,f"Changed {updated} samples (NIND_NOTUPDATEDID)\n")
+        mqc.log(runlog,f"Changed {updated} samples (mobaID) (NIND_NOTUPDATEDID)\n")
 
 rule update_parents:
     input:
@@ -51,25 +51,31 @@ rule update_parents:
                ])
 
         updated = mqc.countCsvDiff(outTrunk+".fam",inTrunk+".fam",[1,2,3])
-        mqc.log(runlog,f"Changed {updated} samples (NIND_NOTUPDATEDPAR)\n")
+        mqc.log(runlog,f"Changed {updated} samples (parents) (NIND_NOTUPDATEDPAR)\n")
 
-        
-# 	store "NIND_TOUPDATEPAR" $total
-# 	store "NIND_NOTUPDATEDPAR" $same
+rule update_sex:
+    input:
+        in_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-parents-updated' + '{ext}', ext=['.bed','.bim','.fam']),
+        recode=config['recode_sex']
+    output:
+        # tmp files that will be used later 
+        # Should be the first output 
+        out_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-sex-updated' + '{ext}', ext=['.bed','.bim','.fam'])
+    run:
+        mqc.log(runlog, "Update sex: \n")
+        inTrunk =  mqc.plinkBase(input[0])
+        outTrunk =  mqc.plinkBase(output[0])
 
-#         log "UPDATE SEX"
-#         # update sex
-#         $plinklocal \
-#             --bfile {params.tmp_path}/rawbed-id-parents-updated \
-#             --update-sex {input.recode_sex} \
-#             --make-bed \
-#             --out {params.out_bedset}
-# 	same=`awk 'FNR==NR{{c=0; a[$2 " " $5]=1; next}} ($2 " " $5 in a){{ c++}} END{{print c}}' {params.tmp_path}/rawbed-id-parents-updated.fam {params.out_bedset}.fam`
-# 	total=`wc -l {params.tmp_path}/rawbed-id-parents-updated.fam`
-# 	store "NIND_TOUPDATESEX" $total
-# 	store "NIND_NOTUPDATEDSEX" $same
-#         """
-        
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--update-sex", input.recode,
+                "--out", outTrunk ,
+                "--make-bed"
+               ])
+
+        updated = mqc.countCsvDiff(outTrunk+".fam",inTrunk+".fam",[1,4])
+        mqc.log(runlog,f"Changed {updated} samples sex (NIND_NOTUPDATEDSEX)\n")
+
 # Remove markers on snp table metrics
 rule remove_markers_snptable:
     input:
