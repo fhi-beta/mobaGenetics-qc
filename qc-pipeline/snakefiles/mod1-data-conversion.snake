@@ -7,10 +7,9 @@ rule update_sample_id:
         recode_id=config['recode_ids'],
     output:
         # tmp files that will be used later for updating families and sex
-# making sure .fam is not removed - for debug
-        out_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-id-updated' + '{ext}', ext=['.bed','.bim','.famm']),
+        out_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-id-updated' + '{ext}', ext=['.bed','.bim','.fam'])
         # stvars is were results are stored - why not put these in a global logfile?
-	stvars=base + 'mod1-data-preparation/rep/' + 'storedvars_update.txt'
+	# stvars=base + 'mod1-data-preparation/rep/' + 'storedvars_update.txt'
     params:
         in_bedset=config['raw_bed_stem'],
         tmp_path=base + '/mod1-data-preparation/tmp',  # is it used?

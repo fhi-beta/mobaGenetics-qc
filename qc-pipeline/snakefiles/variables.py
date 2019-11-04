@@ -1,5 +1,5 @@
 #!/usr/bin/python3
-
+# These global variables are used in los of scripts
 ### snakemake_workflows initialization ########################################
 libdir = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'lib'))
 bcftools = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/bcftools-1.7/bcftools'))
@@ -24,9 +24,6 @@ if not os.path.exists(config['output_base']):
 if not os.path.exists(tmp_path):
     os.makedirs(tmp_path)
 
-#for p in [mod1,modx]:
-#	if not os.path.exists(p):
-#		os.makedirs(p)
 
 
 
