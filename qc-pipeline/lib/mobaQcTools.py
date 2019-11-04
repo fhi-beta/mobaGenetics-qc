@@ -1,7 +1,17 @@
 #!/usr/bin/python3
 import pandas as pd
+import re
 
 globalLog = "./morn"
+
+def plinkBase(path):
+    """
+    plink often works on a trunk and creates extra files: a becomes a.fam, a.bed, a.bid
+    This function reates this trunk, so /foo/bar/gazonk.fam becomes /foo/bar/gazonk
+    The resulting trunk is typically used as input to plink
+    Only the last '.' is removed so /foo.foo/bar/gazonk.x.fam will become /foo.foo/bar/gazonk.x
+    """
+    return  re.sub(r"\.\w*$","",path)
 
 def dictFromFile(fil,cols=[0,1]):
     """
@@ -49,19 +59,4 @@ def checkMatch(fil,dic,cols=[0,1]):
 
 
 
-# cols = [0,1,2]
-
-# # Checking common patterns before and after plinkedits. Note that this could have been done with set
-# # intersections, but we are having fun with only absorbing one of the files in memory. You should call
-# # dictFromFile with the smallest file, as check_match will just interate on the file.
-
-# orig = dictFromFile("foo.fam",cols)
-# matches = check_match("bar.fam",orig,cols)
-
-# print("Common lines: " + str(matches) + " Columns checked")
-# print(cols)
-
-
-
-# # print (dictFromFile.__doc__)
 

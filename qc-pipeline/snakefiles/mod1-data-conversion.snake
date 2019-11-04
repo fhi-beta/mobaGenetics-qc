@@ -7,13 +7,14 @@ rule update_sample_id:
         recode_id=config['recode_ids'],
     output:
         # tmp files that will be used later for updating families and sex
+        # Should be the first output 
         out_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-id-updated' + '{ext}', ext=['.bed','.bim','.fam'])
-        # stvars is were results are stored - why not put these in a global logfile?
+        # stvars is were results are stored - will be put in a global logfile, until then keep the comment below
 	# stvars=base + 'mod1-data-preparation/rep/' + 'storedvars_update.txt'
     params:
-        in_bedset=config['raw_bed_stem'],
-        tmp_path=base + '/mod1-data-preparation/tmp',  # is it used?
-        out_bedset=base + '/mod1-data-preparation/tmp/rawbed-id-updated',
+#        in_bedset=config['raw_bed_stem'],
+#        tmp_path=base + '/mod1-data-preparation/tmp',  # is it used?
+#        out_bedset=base + '/mod1-data-preparation/tmp/rawbed-id-updated',
         # since we did 3 transforms was  out_bedset=base + 'mod1-data-preparation/tmp/rawbed-id-parents-sex-updated', 
         plink=plinklocal # maybe set these in an imported file when/if we dont'u use shell anymore?
     log: 
