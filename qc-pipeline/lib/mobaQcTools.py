@@ -1,8 +1,7 @@
 #!/usr/bin/python3
 import pandas as pd
 import re
-
-globalLog = "./morn"
+import datetime
 
 def plinkBase(path):
     """
@@ -58,5 +57,24 @@ def checkMatch(fil,dic,cols=[0,1]):
     return matches
 
 
+def countCsvDiff(bigfile, smallfile, cols = [0,1]):
+    """
+    Every now and then we have two csv files that need to be compared, but only certain columns (default the two first)
+    This does exactly that, and counts the number of matches
+    Most efficient if you pass the largest file's name in bigfile
+    """
+    smallDict = dictFromFile(smallfile, cols)       
+    matches = checkMatch(bigfile, smallDict, cols)
 
+    print ("Matches: " + str(matches) )
+    # logging.warning('Results NOT logged to separate file ' + "Common lines: " + str(matches) + " based on " + str(len(smallDict)) + " Samples.  Columns checked  "+",".join(map(str,cols)))
+    return matches
+
+def log(logfile, message):
+    """
+    Placeholder until we figure out how logging really needs to be done. Appends message to logfile
+    """
+    with open(logfile,"a") as myfile:
+        myfile.write('{:%Y-%m-%d %H:%M:%S} '.format(datetime.datetime.now()) + message)
+    return
 

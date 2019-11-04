@@ -1,13 +1,16 @@
 # Rule updates raw bedset with biobank provided pedigree information and gender
 # Sample IDs are updated to SentrixIDs
+import sys
+sys.path.append('../lib')
+import mobaQcTools as mqc  # local moba package
 
 rule update_sample_id:
     input:
         in_bedset=expand(config['raw_bed_stem'] + '{ext}', ext=['.bed','.bim','.fam']),
-        recode_id=config['recode_ids'],
+        recode_id=config['recode_ids']
     output:
         # tmp files that will be used later for updating families and sex
-        # Should be the first output 
+        # out_bedset should  be the first output line
         out_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-id-updated' + '{ext}', ext=['.bed','.bim','.fam'])
         # stvars is were results are stored - will be put in a global logfile, until then keep the comment below
 	# stvars=base + 'mod1-data-preparation/rep/' + 'storedvars_update.txt'
@@ -22,29 +25,31 @@ rule update_sample_id:
         
     script: 
         "../lib/update_sample_id.py"
-#        $plinklocal \
-#             --bfile {params.in_bedset} \
-#             --update-ids {input.recode_id} \
-#             --make-bed \
-#             --out {params.tmp_path}/rawbed-id-updated
-# 	same=`awk 'FNR==NR{{c=0; a[$1 " " $2]=1; next}} ($1 " " $2 in a){{ c++}} END{{print c}}' {params.in_bedset}.fam {params.tmp_path}/rawbed-id-updated.fam`
-# 	total=`wc -l {params.in_bedset}.fam`
-# 	echo "same is $same, total is $total"
-# 	store "NIND_TOUPDATEID" $total
-# 	store "NIND_NOTUPDATEDID" $same
 
-# 	echo "Force QUITTING"
-# 	exit 42
+rule update_parents:
+    input:
+        in_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-id-updated' + '{ext}', ext=['.bed','.bim','.fam']),
+        recode=config['recode_parents']
+    output:
+        # tmp files that will be used later for updating sex
+        # Should be the first output 
+        out_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-parents-updated' + '{ext}', ext=['.bed','.bim','.fam'])
+    run:
+        mqc.log(runlog, "Update parents: \n")
+        inTrunk =  mqc.plinkBase(input[0])
+        outTrunk =  mqc.plinkBase(output[0])
 
-#         log "UPDATE PARENTS"
-#         # update parents
-#         $plinklocal \
-#             --bfile {params.tmp_path}/rawbed-id-updated \
-#             --update-parents {input.recode_parents} \
-#             --make-bed \
-#             --out {params.tmp_path}/rawbed-id-parents-updated
-# 	same=`awk 'FNR==NR{{c=0; a[$2 " " $3 " " $4]=1; next}} ($2 " " $3 " " $4 in a){{ c++}} END{{print c}}' {params.tmp_path}/rawbed-id-updated.fam {params.tmp_path}/rawbed-id-parents-updated.fam`
-# 	total=`wc -l {params.tmp_path}/rawbed-id-updated.fam`
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--update-parents", input.recode,
+                "--out", outTrunk ,
+                "--make-bed"
+               ])
+
+        updated = mqc.countCsvDiff(outTrunk+".fam",inTrunk+".fam",[1,2,3])
+        mqc.log(runlog,f"Changed {updated} samples (NIND_NOTUPDATEDPAR)\n")
+
+        
 # 	store "NIND_TOUPDATEPAR" $total
 # 	store "NIND_NOTUPDATEDPAR" $same
 
