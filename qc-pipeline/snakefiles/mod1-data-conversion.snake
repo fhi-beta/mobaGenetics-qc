@@ -11,7 +11,6 @@ rule update_sample_ids:
         in_bedset=expand(config['raw_bed_stem'] + '{ext}', ext=['.bed','.bim','.fam']),
         recode=config['recode_ids']
     output:
-        # Should be the first output 
         out_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-id-updated' + '{ext}', ext=['.bed','.bim','.fam'])
     run:
         mqc.log(runlog, "*** Module 1 Data Conversion ***\n")
@@ -31,14 +30,14 @@ rule update_sample_ids:
 
 rule update_parents:
     input:
-        in_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-id-updated' + '{ext}', ext=['.bed','.bim','.fam']),
+        in_bedset=rules.update_sample_ids.output,
         recode=config['recode_parents']
     output:
         out_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-parents-updated' + '{ext}', ext=['.bed','.bim','.fam'])
     run:
         mqc.log(runlog, "Update parents: \n")
-        inTrunk =  mqc.plinkBase(in_bedset.input[0])
-        outTrunk =  mqc.plinkBase(out_bedset.output[0])
+        inTrunk =  mqc.plinkBase(input.in_bedset[0])
+        outTrunk =  mqc.plinkBase(output.out_bedset[0])
 
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
@@ -52,14 +51,14 @@ rule update_parents:
 
 rule update_sex:
     input:
-        in_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-parents-updated' + '{ext}', ext=['.bed','.bim','.fam']),
-        recode=config['recode_sex']
+        in_bedset=rules.update_parents.output,
+        recode = config['recode_sex']
     output:
         out_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-sex-updated' + '{ext}', ext=['.bed','.bim','.fam'])
     run:
         mqc.log(runlog, "Update sex: \n")
-        inTrunk =  mqc.plinkBase(in_bedset.input[0])
-        outTrunk =  mqc.plinkBase(out_bedset.output[0])
+        inTrunk =  mqc.plinkBase(input.in_bedset[0])
+        outTrunk =  mqc.plinkBase(output.out_bedset[0])
 
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
