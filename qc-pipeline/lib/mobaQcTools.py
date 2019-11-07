@@ -42,17 +42,19 @@ def dictFromFile(fil,cols=[0,1]):
 def checkMatch(fil,dic,cols=[0,1]):
     """
       For each line in file  fil, extract columns cols and check if their concatenation exist in dictionary dic
-      Returns the number of matches
+      Returns (number of matches , number of lines checked)
       File must be a csv file with whitespace as delimiters
     """
     matches = 0
+    lines = 0
     for line in open(fil): 
+        lines += 1
         allcols = line.split()
         subsetc = [allcols[index] for index in cols]
         # concatenating so we can look up the strings in the existing dictionary
         key = "".join(map(str,subsetc))
         if (dic.get(key,0) > 0): matches += 1
-    return matches
+    return (matches,lines)
 
 
 def countCsvDiff(bigfile, smallfile, cols = [0,1]):
@@ -67,11 +69,38 @@ def countCsvDiff(bigfile, smallfile, cols = [0,1]):
     # logging.warning('Results NOT logged to separate file ' + "Common lines: " + str(matches) + " based on " + str(len(smallDict)) + " Samples.  Columns checked  "+",".join(map(str,cols)))
     return matches
 
-def log(logfile, message):
+def log(logfile, message = "Nothing logged", mode = "a" ):
     """
-    Placeholder until we figure out how logging really needs to be done. Appends message to logfile
+    Placeholder until we figure out how logging really needs to be done. Default appends message to logfile
     """
-    with open(logfile,"a") as myfile:
+    with open(logfile, mode) as myfile:
         myfile.write('{:%Y-%m-%d %H:%M:%S} '.format(datetime.datetime.now()) + message)
     return
 
+def resultLog(logfile, message = "Nothing logged", mode = "w+" ):
+    """
+    Placeholder until we figure out how results will be reporte. Default creates a new message to logfile
+    No formating is done, as contrary to log()
+    Have not tested this with threads, it will probably fail unless you reset the file and use append mode
+    """
+    with open(logfile, mode) as myfile:
+        myfile.write(message)
+    return
+
+def _make_gen(reader):
+    """
+    Used to linecount buffered and fast
+    """ 
+    b = reader(1024 * 1024)
+    while b:
+        yield b
+        b = reader(1024*1024)
+
+
+def lineCount(filename):
+    """
+    Efficient linecounting by buffered reads
+    """
+    f = open(filename, 'rb')
+    f_gen = _make_gen(f.raw.read)
+    return sum( buf.count(b'\n') for buf in f_gen )
