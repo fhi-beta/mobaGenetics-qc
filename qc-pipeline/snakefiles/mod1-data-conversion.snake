@@ -4,36 +4,37 @@ import sys
 sys.path.append('../lib')  # in order to find our local packages
 import mobaQcTools as mqc  # local moba package
 
-
-
 rule update_sample_ids:
     input:
         in_bedset=expand(config['raw_bed_stem'] + '{ext}', ext=['.bed','.bim','.fam']),
         recode=config['recode_ids']
     output:
-        out_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-id-updated' + '{ext}', ext=['.bed','.bim','.fam'])
+        out_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-id-updated' + '{ext}', ext=['.bed','.bim','.fam']),
+        results = report("sampleIdUpdated.txt",category="Module 1 Data Conversion")
     run:
         mqc.log(runlog, "*** Module 1 Data Conversion ***\n")
         mqc.log(runlog, "Updating sample ids: \n")
         inTrunk = mqc.plinkBase(input.in_bedset[0])
         outTrunk = mqc.plinkBase(output.out_bedset[0])
 
+
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
                 "--update-ids", input.recode,
                 "--out", outTrunk ,
-                "--make-bed"
-               ])
+                "--make-bed"        ])
 
-        updated = mqc.countCsvDiff(outTrunk+".fam",inTrunk+".fam",[0,1])
-        mqc.log(runlog,f"Changed {updated} samples (mobaID) (NIND_NOTUPDATEDID)\n")
+        (updated, total) = mqc.countCsvDiff(outTrunk+".fam",inTrunk+".fam",[0,1])
+        mqc.log(runlog,f"Changed {updated} samples parents (NIND_NOTUPDATEDID) out of {total} (NIND_TOUPDATEID)\n")
+        mqc.resultLog(output.results, f"Changed {updated} samples out of {total}\n")
 
 rule update_parents:
     input:
         in_bedset=rules.update_sample_ids.output,
         recode=config['recode_parents']
     output:
-        out_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-parents-updated' + '{ext}', ext=['.bed','.bim','.fam'])
+        out_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-parents-updated' + '{ext}', ext=['.bed','.bim','.fam']),
+        results = report("parentsUpdated.txt",category="Module 1 Data Conversion")
     run:
         mqc.log(runlog, "Update parents: \n")
         inTrunk =  mqc.plinkBase(input.in_bedset[0])
@@ -44,17 +45,20 @@ rule update_parents:
                 "--update-parents", input.recode,
                 "--out", outTrunk ,
                 "--make-bed"
-               ])
+        ])
 
-        updated = mqc.countCsvDiff(outTrunk+".fam",inTrunk+".fam",[1,2,3])
-        mqc.log(runlog,f"Changed {updated} samples (parents) (NIND_NOTUPDATEDPAR)\n")
+        (updated, total) = mqc.countCsvDiff(outTrunk+".fam",inTrunk+".fam",[1,2,3])
+        mqc.log(runlog,f"Changed {updated} samples parents (NIND_NOTUPDATEDPAR) out of {total} (NIND_TOUPDATEPAR)\n")
+        mqc.resultLog(output.results, f"Changed {updated} samples out of {total}\n")
 
 rule update_sex:
     input:
         in_bedset=rules.update_parents.output,
         recode = config['recode_sex']
     output:
-        out_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-sex-updated' + '{ext}', ext=['.bed','.bim','.fam'])
+        out_bedset = expand(base + '/mod1-data-preparation/tmp/rawbed-sex-updated' + '{ext}', ext=['.bed','.bim','.fam']),
+        results = report("sexUpdated.txt",category="Module 1 Data Conversion")
+        
     run:
         mqc.log(runlog, "Update sex: \n")
         inTrunk =  mqc.plinkBase(input.in_bedset[0])
@@ -65,10 +69,11 @@ rule update_sex:
                 "--update-sex", input.recode,
                 "--out", outTrunk ,
                 "--make-bed"
-               ])
-
-        updated = mqc.countCsvDiff(outTrunk+".fam",inTrunk+".fam",[1,4])
-        mqc.log(runlog,f"Changed {updated} samples sex (NIND_NOTUPDATEDSEX)\n")
+        ])
+        (updated,total) = mqc.countCsvDiff(outTrunk+".fam",inTrunk+".fam",[1,4])
+        mqc.log(runlog,f"Changed {updated} samples sex (NIND_NOTUPDATEDSEX) out of {total} (NIND_TOUPDATESEX)\n")
+        mqc.resultLog(output.results, f"Changed {updated} samples out of {total}\n")
+        
 
 # Remove markers on snp table metrics
 rule remove_markers_snptable:
@@ -219,4 +224,3 @@ rule fix_technical_markers:
 
 	report_lostsnps {params.outdir}/rsid-updated {params.out_bedset} "CHR0"
         """
-
