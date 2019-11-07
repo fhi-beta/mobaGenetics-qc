@@ -12,6 +12,9 @@ shell.executable("/bin/bash")
 # Runtime variables
 include: "variables.py"
 
+# Report (top level)
+report: "report/qc.rst"
+
 # rule all
 rule all:
     input:
