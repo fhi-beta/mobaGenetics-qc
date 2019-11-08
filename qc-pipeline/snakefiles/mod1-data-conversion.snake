@@ -9,8 +9,8 @@ rule update_sample_ids:
         in_bedset=expand(config['raw_bed_stem'] + '{ext}', ext=['.bed','.bim','.fam']),
         recode=config['recode_ids']
     output:
-        out_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-id-updated' + '{ext}', ext=['.bed','.bim','.fam']),
-        results = report("sampleIdUpdated.txt",category="Module 1 Data Conversion")
+        out_bedset=expand(str(base/'mod1-data-preparation/tmp/rawbed-id-updated') + '{ext}', ext=['.bed','.bim','.fam']),
+        results = report(resultPath/"sampleIdUpdated.txt",category="Module 1 Data Conversion")
     run:
         mqc.log(runlog, "*** Module 1 Data Conversion ***\n")
         mqc.log(runlog, "Updating sample ids: \n")
@@ -33,13 +33,12 @@ rule update_parents:
         in_bedset=rules.update_sample_ids.output,
         recode=config['recode_parents']
     output:
-        out_bedset=expand(base + '/mod1-data-preparation/tmp/rawbed-parents-updated' + '{ext}', ext=['.bed','.bim','.fam']),
-        results = report("parentsUpdated.txt",category="Module 1 Data Conversion")
+        out_bedset=expand(str(base/'mod1-data-preparation/tmp/rawbed-parents-updated') + '{ext}', ext=['.bed','.bim','.fam']),
+        results = report(resultPath/"parentsUpdated.txt",category="Module 1 Data Conversion")
     run:
         mqc.log(runlog, "Update parents: \n")
         inTrunk =  mqc.plinkBase(input.in_bedset[0])
         outTrunk =  mqc.plinkBase(output.out_bedset[0])
-
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
                 "--update-parents", input.recode,
@@ -56,8 +55,8 @@ rule update_sex:
         in_bedset=rules.update_parents.output,
         recode = config['recode_sex']
     output:
-        out_bedset = expand(base + '/mod1-data-preparation/tmp/rawbed-sex-updated' + '{ext}', ext=['.bed','.bim','.fam']),
-        results = report("sexUpdated.txt",category="Module 1 Data Conversion")
+        out_bedset = expand(str(base/'mod1-data-preparation/tmp/rawbed-sex-updated') + '{ext}', ext=['.bed','.bim','.fam']),
+        results = report(resultPath/"sexUpdated.txt",category="Module 1 Data Conversion")
         
     run:
         mqc.log(runlog, "Update sex: \n")
@@ -76,151 +75,151 @@ rule update_sex:
         
 
 # Remove markers on snp table metrics
-rule remove_markers_snptable:
-    input:
-        in_bedset=expand(base + 'mod1-data-preparation/tmp/rawbed-id-parents-sex-updated' + '{ext}', ext=['.bed','.bim','.fam']),
-        snptable=config['snptable']
-    output:
-        out_bedset=expand(base + 'mod1-data-preparation/tmp/snptable-markers-excluded' + '{ext}', ext=['.bed','.bim','.fam']),
-        clustersep_removal=base + 'mod1-data-preparation/tmp/clustersep-removal.txt',
-        tenpercent_gc_removal=base + 'mod1-data-preparation/tmp/tenpercent-gc-removal.txt',
-        aa_theta_dev_removal=base + 'mod1-data-preparation/tmp/aa-theta-dev-removal.txt',
-	excl_snps=base + 'mod1-data-preparation/rep/' + 'exclusions_clustering_snp.txt',
-	stvars=base + 'mod1-data-preparation/rep/' + 'storedvars_clustering.txt'
-    params:
-        in_bedset=base + 'mod1-data-preparation/tmp/rawbed-id-parents-sex-updated',
-        out_bedset=base + 'mod1-data-preparation/tmp/snptable-markers-excluded',
-        tmp_path=base + 'mod1-data-preparation/tmp'
-    message: "mod1 Remove markers by cluster metrics" 
-    shell:
-        """
-	set -e
-	plinklocal={plinklocal}
+# rule remove_markers_snptable:
+#     input:
+#         in_bedset=expand(base + 'mod1-data-preparation/tmp/rawbed-id-parents-sex-updated' + '{ext}', ext=['.bed','.bim','.fam']),
+#         snptable=config['snptable']
+#     output:
+#         out_bedset=expand(base + 'mod1-data-preparation/tmp/snptable-markers-excluded' + '{ext}', ext=['.bed','.bim','.fam']),
+#         clustersep_removal=base + 'mod1-data-preparation/tmp/clustersep-removal.txt',
+#         tenpercent_gc_removal=base + 'mod1-data-preparation/tmp/tenpercent-gc-removal.txt',
+#         aa_theta_dev_removal=base + 'mod1-data-preparation/tmp/aa-theta-dev-removal.txt',
+# 	excl_snps=base + 'mod1-data-preparation/rep/' + 'exclusions_clustering_snp.txt',
+# 	stvars=base + 'mod1-data-preparation/rep/' + 'storedvars_clustering.txt'
+#     params:
+#         in_bedset=base + 'mod1-data-preparation/tmp/rawbed-id-parents-sex-updated',
+#         out_bedset=base + 'mod1-data-preparation/tmp/snptable-markers-excluded',
+#         tmp_path=base + 'mod1-data-preparation/tmp'
+#     message: "mod1 Remove markers by cluster metrics" 
+#     shell:
+#         """
+# 	set -e
+# 	plinklocal={plinklocal}
 
-	PIPELINELOG={runlog}
-	STOREDVARS={output.stvars}
-	EXCLUSIONSS={output.excl_snps}
+# 	PIPELINELOG={runlog}
+# 	STOREDVARS={output.stvars}
+# 	EXCLUSIONSS={output.excl_snps}
 
-	source {libdir}/functions.sh
-	source {libdir}/plink_wrapper_functions.sh
+# 	source {libdir}/functions.sh
+# 	source {libdir}/plink_wrapper_functions.sh
 
-        log "REMOVE MARKERS SNPTABLE"
-	report_nsnps {params.in_bedset} "BEFORE_SNPTABLE"
+#         log "REMOVE MARKERS SNPTABLE"
+# 	report_nsnps {params.in_bedset} "BEFORE_SNPTABLE"
 
-        # identify markers for removal on cluster separation
-        awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/Cluster Sep/){{ col=i}}}}}} $col<0.4{{print $1, $col}}' {input.snptable} > {output.clustersep_removal}
-        cut -f1 -d' ' {output.clustersep_removal} > {params.tmp_path}/plink_clustersep_removal_list
-	plink_exclude_markers \
-		{params.in_bedset} \
-		{params.tmp_path}/plink_clustersep_removal_list \
-		{params.tmp_path}/snptable_clustersep \
-		"CLUSTERSEP"
+#         # identify markers for removal on cluster separation
+#         awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/Cluster Sep/){{ col=i}}}}}} $col<0.4{{print $1, $col}}' {input.snptable} > {output.clustersep_removal}
+#         cut -f1 -d' ' {output.clustersep_removal} > {params.tmp_path}/plink_clustersep_removal_list
+# 	plink_exclude_markers \
+# 		{params.in_bedset} \
+# 		{params.tmp_path}/plink_clustersep_removal_list \
+# 		{params.tmp_path}/snptable_clustersep \
+# 		"CLUSTERSEP"
 
-        # identify markers for removal on 10% GC score
-        awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/10% GC/){{ col=i}}}}}} $col<0.3{{print $1, $col}}' {input.snptable} > {output.tenpercent_gc_removal}
-        cut -f1 -d' ' {output.tenpercent_gc_removal} > {params.tmp_path}/plink_tenpercent_gc_removal_list
-	plink_exclude_markers \
-		{params.tmp_path}/snptable_clustersep \
-		{params.tmp_path}/plink_tenpercent_gc_removal_list \
-		{params.tmp_path}/snptable_gc \
-		"GC"
+#         # identify markers for removal on 10% GC score
+#         awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/10% GC/){{ col=i}}}}}} $col<0.3{{print $1, $col}}' {input.snptable} > {output.tenpercent_gc_removal}
+#         cut -f1 -d' ' {output.tenpercent_gc_removal} > {params.tmp_path}/plink_tenpercent_gc_removal_list
+# 	plink_exclude_markers \
+# 		{params.tmp_path}/snptable_clustersep \
+# 		{params.tmp_path}/plink_tenpercent_gc_removal_list \
+# 		{params.tmp_path}/snptable_gc \
+# 		"GC"
         
-        # identify markers for removal on AA theta dev
-        awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/AA T Dev/){{ col=i}}}}}} $col>0.04{{print $1, $col}}' {input.snptable} > {output.aa_theta_dev_removal}
-        cut -f1 -d' ' {output.aa_theta_dev_removal} > {params.tmp_path}/aa_theta_dev_removal_list
-	plink_exclude_markers \
-		{params.tmp_path}/snptable_gc \
-		{params.tmp_path}/aa_theta_dev_removal_list \
-		{params.out_bedset} \
-		"AATHETADEV"
-        """
+#         # identify markers for removal on AA theta dev
+#         awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/AA T Dev/){{ col=i}}}}}} $col>0.04{{print $1, $col}}' {input.snptable} > {output.aa_theta_dev_removal}
+#         cut -f1 -d' ' {output.aa_theta_dev_removal} > {params.tmp_path}/aa_theta_dev_removal_list
+# 	plink_exclude_markers \
+# 		{params.tmp_path}/snptable_gc \
+# 		{params.tmp_path}/aa_theta_dev_removal_list \
+# 		{params.out_bedset} \
+# 		"AATHETADEV"
+#         """
 
-# Remove duplicated/triplicated markers from dataset
-# NB: removal list uses naming scheme from original bim file and has to be executed before
-# conversion to rsID
-rule remove_duplicate_markers:
-    input:
-        in_bedset=expand(base + 'mod1-data-preparation/tmp/snptable-markers-excluded' + '{ext}', ext=['.bed','.bim','.fam']),
-        dup_remove_list=config['duplicated_markers_list']
-    output:
-        out_bedset=expand(base + 'mod1-data-preparation/tmp/dup-markers-removed' + '{ext}', ext=['.bed','.bim','.fam']),
-	excl_snps=base + 'mod1-data-preparation/rep/' + 'exclusions_duplicates_snp.txt',
-	stvars=base + 'mod1-data-preparation/rep/' + 'storedvars_duplicates.txt'
-    params:
-        in_bedset=base + 'mod1-data-preparation/tmp/snptable-markers-excluded',
-        out_bedset=base + 'mod1-data-preparation/tmp/dup-markers-removed',
-        runlog=runlog
-    message: "mod1 Remove duplicated/triplicated markers from dataset"
-    shell:
-        """
-	set -e
-	plinklocal={plinklocal}
+# # Remove duplicated/triplicated markers from dataset
+# # NB: removal list uses naming scheme from original bim file and has to be executed before
+# # conversion to rsID
+# rule remove_duplicate_markers:
+#     input:
+#         in_bedset=expand(base + 'mod1-data-preparation/tmp/snptable-markers-excluded' + '{ext}', ext=['.bed','.bim','.fam']),
+#         dup_remove_list=config['duplicated_markers_list']
+#     output:
+#         out_bedset=expand(base + 'mod1-data-preparation/tmp/dup-markers-removed' + '{ext}', ext=['.bed','.bim','.fam']),
+# 	excl_snps=base + 'mod1-data-preparation/rep/' + 'exclusions_duplicates_snp.txt',
+# 	stvars=base + 'mod1-data-preparation/rep/' + 'storedvars_duplicates.txt'
+#     params:
+#         in_bedset=base + 'mod1-data-preparation/tmp/snptable-markers-excluded',
+#         out_bedset=base + 'mod1-data-preparation/tmp/dup-markers-removed',
+#         runlog=runlog
+#     message: "mod1 Remove duplicated/triplicated markers from dataset"
+#     shell:
+#         """
+# 	set -e
+# 	plinklocal={plinklocal}
 
-	PIPELINELOG={runlog}
-	STOREDVARS={output.stvars}
-	EXCLUSIONSS={output.excl_snps}
+# 	PIPELINELOG={runlog}
+# 	STOREDVARS={output.stvars}
+# 	EXCLUSIONSS={output.excl_snps}
 
-	source {libdir}/functions.sh
+# 	source {libdir}/functions.sh
 
-        log "REMOVE DUPLICATE MARKERS"
+#         log "REMOVE DUPLICATE MARKERS"
         
-        # identify duplicate markers for removal
-        DUP_LIST_N=`wc -l {input.dup_remove_list}`
-        log "Number of markers in duplicate marker removal list: ${{DUP_LIST_N}}"
+#         # identify duplicate markers for removal
+#         DUP_LIST_N=`wc -l {input.dup_remove_list}`
+#         log "Number of markers in duplicate marker removal list: ${{DUP_LIST_N}}"
         
-        # remove markers
-        $plinklocal \
-            --bfile {params.in_bedset} \
-            --exclude {input.dup_remove_list} \
-            --make-bed \
-            --out {params.out_bedset} 
+#         # remove markers
+#         $plinklocal \
+#             --bfile {params.in_bedset} \
+#             --exclude {input.dup_remove_list} \
+#             --make-bed \
+#             --out {params.out_bedset} 
 
-	report_lostsnps {params.in_bedset} {params.out_bedset} "DUPLICATEMARKERS"
-        """
+# 	report_lostsnps {params.in_bedset} {params.out_bedset} "DUPLICATEMARKERS"
+#         """
 
-rule fix_technical_markers:
-    input:
-        in_bedset=expand(base + 'mod1-data-preparation/tmp/dup-markers-removed' + '{ext}', ext=['.bed','.bim','.fam']),
-        recode_rsid=config['recode_rsid']
-    output:
-        out_bedset=expand(base + 'mod1-data-preparation/tmp/chr0-removed' + '{ext}', ext=['.bed','.bim','.fam']),
-	excl_snps=base + 'mod1-data-preparation/rep/' + 'exclusions_markerfix_snp.txt',
-	stvars=base + 'mod1-data-preparation/rep/' + 'storedvars_markerfix.txt'
-    params:
-        in_bedset=base + 'mod1-data-preparation/tmp/dup-markers-removed',
-        out_bedset=base + 'mod1-data-preparation/tmp/chr0-removed',
-	outdir=base + 'mod1-data-preparation/tmp'
-    message: "mod1 fix_technical_markers"
-    shell:
-        """
-	set -e
-	plinklocal={plinklocal}
+# rule fix_technical_markers:
+#     input:
+#         in_bedset=expand(base + 'mod1-data-preparation/tmp/dup-markers-removed' + '{ext}', ext=['.bed','.bim','.fam']),
+#         recode_rsid=config['recode_rsid']
+#     output:
+#         out_bedset=expand(base + 'mod1-data-preparation/tmp/chr0-removed' + '{ext}', ext=['.bed','.bim','.fam']),
+# 	excl_snps=base + 'mod1-data-preparation/rep/' + 'exclusions_markerfix_snp.txt',
+# 	stvars=base + 'mod1-data-preparation/rep/' + 'storedvars_markerfix.txt'
+#     params:
+#         in_bedset=base + 'mod1-data-preparation/tmp/dup-markers-removed',
+#         out_bedset=base + 'mod1-data-preparation/tmp/chr0-removed',
+# 	outdir=base + 'mod1-data-preparation/tmp'
+#     message: "mod1 fix_technical_markers"
+#     shell:
+#         """
+# 	set -e
+# 	plinklocal={plinklocal}
 
-	PIPELINELOG={runlog}
-	STOREDVARS={output.stvars}
-	EXCLUSIONSS={output.excl_snps}
+# 	PIPELINELOG={runlog}
+# 	STOREDVARS={output.stvars}
+# 	EXCLUSIONSS={output.excl_snps}
 
-	source {libdir}/functions.sh
+# 	source {libdir}/functions.sh
 
-	report_nsnps {params.in_bedset} "BEFORE_RSID_UPDATE"
+# 	report_nsnps {params.in_bedset} "BEFORE_RSID_UPDATE"
 	
-	# Updates marker info to Illumina provided rsID conversion file
-        log "UPDATE RSIDs"
-        $plinklocal \
-            --bfile {params.in_bedset} \
-            --update-name {input.recode_rsid} \
-            --make-bed \
-            --out {params.outdir}/rsid-updated
+# 	# Updates marker info to Illumina provided rsID conversion file
+#         log "UPDATE RSIDs"
+#         $plinklocal \
+#             --bfile {params.in_bedset} \
+#             --update-name {input.recode_rsid} \
+#             --make-bed \
+#             --out {params.outdir}/rsid-updated
 	
-	report_lostsnps {params.in_bedset} {params.outdir}/rsid-updated "RSID_UPDATE"
+# 	report_lostsnps {params.in_bedset} {params.outdir}/rsid-updated "RSID_UPDATE"
 
-	# Remove technical (chr 0) markers
-        log "REMOVE TECHNICAL MARKERS (CHR 0)"
-        $plinklocal \
-            --bfile {params.outdir}/rsid-updated \
-            --not-chr 0 \
-            --make-bed \
-            --out {params.out_bedset}
+# 	# Remove technical (chr 0) markers
+#         log "REMOVE TECHNICAL MARKERS (CHR 0)"
+#         $plinklocal \
+#             --bfile {params.outdir}/rsid-updated \
+#             --not-chr 0 \
+#             --make-bed \
+#             --out {params.out_bedset}
 
-	report_lostsnps {params.outdir}/rsid-updated {params.out_bedset} "CHR0"
-        """
+# 	report_lostsnps {params.outdir}/rsid-updated {params.out_bedset} "CHR0"
+#         """
