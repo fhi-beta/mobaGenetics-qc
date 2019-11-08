@@ -12,6 +12,41 @@ def plinkBase(path):
     """
     return  re.sub(r"\.\w*$","",path)
 
+def extractSampleList(innFile, sampleFile, subsetFile = "/dev/null", 
+                      colName = "none", condition = "<", treshold = 0, cols = (1), ):
+    """
+    A typical preprocessor to utilities like plink. Efficient in the sense that it 
+    is not reading the (huge) files into memory.
+    Takes a csv file innFile (first line with headers) and produces 
+    * a sample list on sampleFile (one columun)
+    * a subset file with at set of numbered columns as well as colName (see below)
+    
+    Only columns were the column colName matches the condition of treshhold will be written
+    Returns (number of sample extracted, total samples)
+    Restrictions: 
+    * Only the first column will be written to sampleFile
+    * Assumes tab separated file and only one match forthe regExp colName
+    * Does not use pats
+    """ 
+    matches = 0
+    lines = 0
+    for line in open(innFile): 
+        lines += 1
+        allcols = line.split("\t")
+        if lines == 1 :   #dirty&stupid
+            print (allcols)
+            regex = re.compile(colName)
+            indx = [i for i, item in enumerate(allcols) if re.search(regex, item)]
+            print(f"{colName} is column {indx}")
+        else:
+            if float(allcols[indx[0]]) < treshold: 
+                print(f"Found {allcols[indx[0]]} in line {lines}")
+                matches += 1
+    return (matches,lines)
+
+    
+
+    
 def dictFromFile(fil,cols=[0,1]):
     """
     Creates a dictionary from the concatenation of the values in the columns found in fil.
