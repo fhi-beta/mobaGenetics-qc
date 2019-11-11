@@ -12,37 +12,74 @@ def plinkBase(path):
     """
     return  re.sub(r"\.\w*$","",path)
 
+
+def lt(a,b):
+    return a < b
+def eq(a,b):
+    return a==b
+def gt(a,b):
+    return a > b
+def unknownComp(a,b):
+    print ("Unknown compare operation")
+    return 
+
+
+
+# used to map symbols to actual comparision functions defined previously
+compOperands = {
+    "<": lt,
+    "=": eq,
+    ">": gt
+}
+
+
 def extractSampleList(innFile, sampleFile, subsetFile = "/dev/null", 
-                      colName = "none", condition = "<", treshold = 0, cols = (1), ):
+                      colName = "none", sep = '\t', condition = "<", treshold = 0, cols = {1}, ):
     """
     A typical preprocessor to utilities like plink. Efficient in the sense that it 
     is not reading the (huge) files into memory.
-    Takes a csv file innFile (first line with headers) and produces 
-    * a sample list on sampleFile (one columun)
-    * a subset file with at set of numbered columns as well as colName (see below)
+    Takes a csv file innFile (first line with headers, seperator is paramneter "sep") and produces 
+    * a sample list on sampleFile (one columun, for now hardcoded to column 0)
+    * a subset file with at set of numbered columns (cols) that also contains colName (see below)
     
     Only columns were the column colName matches the condition of treshhold will be written
     Returns (number of sample extracted, total samples)
     Restrictions: 
-    * Only the first column will be written to sampleFile
-    * Assumes tab separated file and only one match forthe regExp colName
-    * Does not use pats
+    * Assuming the first column in innFile is samplenumber - Only the first column will be written to sampleFile
+    * Assumes only one match for the regExp colName
+    * Columns are ordered in the same way as the innFile : {0,1} is identical to {1,0,0,1}
+    * Outputfiles use the same separator as used for innFile
     """ 
-    matches = 0
-    lines = 0
-    for line in open(innFile): 
-        lines += 1
-        allcols = line.split("\t")
-        if lines == 1 :   #dirty&stupid
-            print (allcols)
-            regex = re.compile(colName)
-            indx = [i for i, item in enumerate(allcols) if re.search(regex, item)]
-            print(f"{colName} is column {indx}")
-        else:
-            if float(allcols[indx[0]]) < treshold: 
-                print(f"Found {allcols[indx[0]]} in line {lines}")
+    with open(innFile) as fp:
+        
+        # Identifying header column 
+        line = fp.readline()
+        allcols = line.split(sep)
+        regex = re.compile(colName)
+        indx = [i for i, item in enumerate(allcols) if re.search(regex, item)]
+        # print(f"{colName} is column {indx}")
+        matches = 0
+        compare = compOperands.get(condition, unknownComp)
+        if compare == unknownComp :
+            print (f"Cannot compare using: '{condition}'")
+            return
+        # These lines are data, indx[0] is the index  of the column we found interesting
+        sample = open(sampleFile,"w+")
+        subset = open(subsetFile,"w+")
+        for line in enumerate(fp):
+            allcols = line[1].split(sep)
+            if compare(float(allcols[indx[0]]) , treshold): 
+                # File with only sample number
+                sample.write(allcols[0] + "\n")
+                # File with more columns, and always include the treshold column
+                # subsetc is a relevant subset of the columns 
+                subsetc = [allcols[index] for index in cols]                
+                subset.write(sep.join(map(str,subsetc)) + sep + allcols[indx[0]] + "\n" )
                 matches += 1
-    return (matches,lines)
+    totalLines = line[0] + 1 # enumerates from 0, and we read a line manually
+    sample.close()
+    subset.close()
+    return (matches,totalLines)
 
     
 
@@ -71,7 +108,7 @@ def dictFromFile(fil,cols=[0,1]):
             max = countDict[i]
             sample = i
     if len(countDict) == 0 : print("ERROR: 0 sized dictionary after reading ",fil)
-    if max>1 : print("WARNING: sample " + str(sample) + " found " + str(max) + "times. Mignt not be the only nonunique")
+    if max>1 : print("WARNING: sample " + str(sample) + " found " + str(max) + "times. Might not be the only nonunique")
     return countDict
 
 def checkMatch(fil,dic,cols=[0,1]):
