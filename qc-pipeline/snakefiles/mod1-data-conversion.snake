@@ -24,9 +24,9 @@ rule update_sample_ids:
                 "--out", outTrunk ,
                 "--make-bed"        ])
 
-        (updated, total) = mqc.countCsvDiff(outTrunk+".fam",inTrunk+".fam",[0,1])
-        mqc.log(runlog,f"Changed {updated} samples parents (NIND_NOTUPDATEDID) out of {total} (NIND_TOUPDATEID)\n")
-        mqc.resultLog(output.results, f"Changed {updated} samples out of {total}\n")
+        (kept, total) = mqc.countCsvDiff(outTrunk+".fam",inTrunk+".fam",[0,1])
+        mqc.log(runlog,f"Unchanged {kept} samples parents (NIND_NOTUPDATEDID) out of {total} (NIND_TOUPDATEID)\n")
+        mqc.resultLog(output.results, f"Unchanged {kept} samples out of {total}\n")
 
 rule update_parents:
     input:
@@ -46,9 +46,9 @@ rule update_parents:
                 "--make-bed"
         ])
 
-        (updated, total) = mqc.countCsvDiff(outTrunk+".fam",inTrunk+".fam",[1,2,3])
-        mqc.log(runlog,f"Changed {updated} samples parents (NIND_NOTUPDATEDPAR) out of {total} (NIND_TOUPDATEPAR)\n")
-        mqc.resultLog(output.results, f"Changed {updated} samples out of {total}\n")
+        (kept, total) = mqc.countCsvDiff(outTrunk+".fam",inTrunk+".fam",[1,2,3])
+        mqc.log(runlog,f"Unchanged {kept} samples parents (NIND_NOTUPDATEDPAR) out of {total} (NIND_TOUPDATEPAR)\n")
+        mqc.resultLog(output.results, f"Unchanged {kept} samples out of {total}\n")
 
 rule update_sex:
     input:
@@ -69,9 +69,9 @@ rule update_sex:
                 "--out", outTrunk ,
                 "--make-bed"
         ])
-        (updated,total) = mqc.countCsvDiff(outTrunk+".fam",inTrunk+".fam",[1,4])
-        mqc.log(runlog,f"Changed {updated} samples sex (NIND_NOTUPDATEDSEX) out of {total} (NIND_TOUPDATESEX)\n")
-        mqc.resultLog(output.results, f"Changed {updated} samples out of {total}\n")
+        (kept,total) = mqc.countCsvDiff(outTrunk+".fam",inTrunk+".fam",[1,4])
+        mqc.log(runlog,f"Unchanged {kept} samples sex (NIND_NOTUPDATEDSEX) out of {total} (NIND_TOUPDATESEX)\n")
+        mqc.resultLog(output.results, f"Unchanged {kept} samples out of {total}\n")
         
 
 # Remove markers on snp table metrics
@@ -81,68 +81,75 @@ rule remove_markers_snptable:
         snptable=config['snptable']
     output:
         out_bedset=expand(str(base/'mod1-data-preparation/tmp/snptable-markers-excluded') + '{ext}', ext=['.bed','.bim','.fam']),
+        results = report(resultPath/"snptable_removal.txt",category="Module 1 Data Conversion"),
+        # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
         clustersep_removal= base / 'mod1-data-preparation/tmp/clustersep-removal.txt',
-        tenpercent_gc_removal= base / 'mod1-data-preparation/tmp/tenpercent-gc-removal.txt',
-        aa_theta_dev_removal=base / 'mod1-data-preparation/tmp/aa-theta-dev-removal.txt',
-	excl_snps=base / 'mod1-data-preparation/rep/' / 'exclusions_clustering_snp.txt',
-	stvars=base / 'mod1-data-preparation/rep/' / 'storedvars_clustering.txt'
-    # params:
-    #     in_bedset=base / 'mod1-data-preparation/tmp/rawbed-id-parents-sex-updated',
-    #     out_bedset=base / 'mod1-data-preparation/tmp/snptable-markers-excluded',
-    #     tmp_path=base / 'mod1-data-preparation/tmp'
+        clustersep_removal_samples = base / 'mod1-data-preparation/tmp/clustersep-removal.samples.txt',
+
+        # tenpercent_gc_removal= base / 'mod1-data-preparation/tmp/tenpercent-gc-removal.txt',
+        # aa_theta_dev_removal=base / 'mod1-data-preparation/tmp/aa-theta-dev-removal.txt',
+	# excl_snps=base / 'mod1-data-preparation/rep/' / 'exclusions_clustering_snp.txt',
+	# stvars=base / 'mod1-data-preparation/rep/' / 'storedvars_clustering.txt'
     message: "mod1 Remove markers by cluster metrics" 
     run:
-        mqc.log(runlog, "Remove snp table metrics\n")
+        mqc.log(runlog, "Remove snp table metrics (CLUSTERSEP)\n")
         inTrunk =  mqc.plinkBase(input.in_bedset[0])
         outTrunk =  mqc.plinkBase(output.out_bedset[0])
 
-        # subprocess.run([plinklocal,
-        #         "--bfile",inTrunk,
-        #         "--update-sex", input.recode,
-        #         "--out", outTrunk ,
-        #         "--make-bed"
-        # ])
-
-        
-
-    """
-
-
-	STOREDVARS={output.stvars}
-	EXCLUSIONSS={output.excl_snps}
-
-	source {libdir}/functions.sh
-	source {libdir}/plink_wrapper_functions.sh
-
-	report_nsnps {params.in_bedset} "BEFORE_SNPTABLE"
-
+        treshold = float(config['cluster_sep_thr'])
         # identify markers for removal on cluster separation
-        awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/Cluster Sep/){{ col=i}}}}}} $col<0.4{{print $1, $col}}' {input.snptable} > {output.clustersep_removal}
-        cut -f1 -d' ' {output.clustersep_removal} > {params.tmp_path}/plink_clustersep_removal_list
-	plink_exclude_markers \
-		{params.in_bedset} \
-		{params.tmp_path}/plink_clustersep_removal_list \
-		{params.tmp_path}/snptable_clustersep \
-		"CLUSTERSEP"
+        (removed,total) = mqc.extractSampleList(input.snptable, output.clustersep_removal_samples, output.clustersep_removal, 
+                                                colName="Cluster Sep$", condition = "<", treshold = treshold, 
+                  cols = {0} )
 
-        # identify markers for removal on 10% GC score
-        awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/10% GC/){{ col=i}}}}}} $col<0.3{{print $1, $col}}' {input.snptable} > {output.tenpercent_gc_removal}
-        cut -f1 -d' ' {output.tenpercent_gc_removal} > {params.tmp_path}/plink_tenpercent_gc_removal_list
-	plink_exclude_markers \
-		{params.tmp_path}/snptable_clustersep \
-		{params.tmp_path}/plink_tenpercent_gc_removal_list \
-		{params.tmp_path}/snptable_gc \
-		"GC"
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                        "--exclude", output.clustersep_removal_samples,
+                "--out", outTrunk ,
+                "--make-bed"
+        ])
+
+        mqc.log(runlog, f"Removed {removed} samples (NSNP_CLUSTERSEP_LOST) out of {total} (BEFORE_SNPTABLE). Treshhold {treshold}\n")
+        mqc.resultLog(output.results, f"Removed {removed} samples out of {total}. Treshhold {treshold}\n")
+
+
+
+
+	# STOREDVARS={output.stvars}
+	# EXCLUSIONSS={output.excl_snps}
+
+	# source {libdir}/functions.sh
+	# source {libdir}/plink_wrapper_functions.sh
+
+	# report_nsnps {params.in_bedset} "BEFORE_SNPTABLE"
+
+        # # identify markers for removal on cluster separation
+        # awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/Cluster Sep/){{ col=i}}}}}} $col<0.4{print $1, $col}}' {input.snptable} > {output.clustersep_removal}
+        # cut -f1 -d' ' {output.clustersep_removal} > {params.tmp_path}/plink_clustersep_removal_list
+	# plink_exclude_markers \
+	# 	{params.in_bedset} \
+	# 	{params.tmp_path}/plink_clustersep_removal_list \
+	# 	{params.tmp_path}/snptable_clustersep \
+	# 	"CLUSTERSEP"
+
+        # # identify markers for removal on 10% GC score
+        # awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/10% GC/){{ col=i}}}}}} $col<0.3{{print $1, $col}}' {input.snptable} > {output.tenpercent_gc_removal}
+        # cut -f1 -d' ' {output.tenpercent_gc_removal} > {params.tmp_path}/plink_tenpercent_gc_removal_list
+	# plink_exclude_markers \
+	# 	{params.tmp_path}/snptable_clustersep \
+	# 	{params.tmp_path}/plink_tenpercent_gc_removal_list \
+	# 	{params.tmp_path}/snptable_gc \
+	# 	"GC"
         
-        # identify markers for removal on AA theta dev
-        awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/AA T Dev/){{ col=i}}}}}} $col>0.04{{print $1, $col}}' {input.snptable} > {output.aa_theta_dev_removal}
-        cut -f1 -d' ' {output.aa_theta_dev_removal} > {params.tmp_path}/aa_theta_dev_removal_list
-	plink_exclude_markers \
-		{params.tmp_path}/snptable_gc \
-		{params.tmp_path}/aa_theta_dev_removal_list \
-		{params.out_bedset} \
-		"AATHETADEV"
-        """
+        # # identify markers for removal on AA theta dev
+        # awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/AA T Dev/){{ col=i}}}}}} $col>0.04{{print $1, $col}}' {input.snptable} > {output.aa_theta_dev_removal}
+        # cut -f1 -d' ' {output.aa_theta_dev_removal} > {params.tmp_path}/aa_theta_dev_removal_list
+	# plink_exclude_markers \
+	# 	{params.tmp_path}/snptable_gc \
+	# 	{params.tmp_path}/aa_theta_dev_removal_list \
+	# 	{params.out_bedset} \
+	# 	"AATHETADEV"
+
 
 # Remove duplicated/triplicated markers from dataset
 # NB: removal list uses naming scheme from original bim file and has to be executed before
