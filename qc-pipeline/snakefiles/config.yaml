@@ -9,6 +9,7 @@ recode_rsid: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-
 snptable: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/snptable/snp_table_rotterdam2.txt"
 cluster_sep_thr: "0.4"
 10%GC_score_thr: "0.3"
+aa_theta_dev_thr: "0.04"
 duplicated_markers_list: "/mnt/work/gutorm/qcTest/qcrot2/dummyfiles/duplicated-marker-removal-list.txt"
 hrc_sites: "/mnt/archive/helgeland/refdata/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
 hapmap_stem: "/mnt/archive/helgeland/refdata/hapmap/hapmap_b36/hapmapb36"

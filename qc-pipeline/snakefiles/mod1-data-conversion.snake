@@ -109,16 +109,6 @@ rule remove_markers_snptable:
         mqc.log(runlog, f"Removed {removed} samples (NSNP_CLUSTERSEP_LOST) out of {total} (BEFORE_SNPTABLE). Treshhold {treshold}\n")
         mqc.resultLog(output.results, f"Cluster separation: Removed {removed} samples out of {total}. Treshhold {treshold}\n")
 
-
-        # # identify markers for removal on 10% GC score
-        # awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/10% GC/){{ col=i}}}}}} $col<0.3{{print $1, $col}}' {input.snptable} > {output.tenpercent_gc_removal}
-        # cut -f1 -d' ' {output.tenpercent_gc_removal} > {params.tmp_path}/plink_tenpercent_gc_removal_list
-	# plink_exclude_markers \
-	# 	{params.tmp_path}/snptable_clustersep \
-	# 	{params.tmp_path}/plink_tenpercent_gc_removal_list \
-	# 	{params.tmp_path}/snptable_gc \
-	# 	"GC"
-        
         
 rule remove_markers_gc_score:
     input:
@@ -128,12 +118,8 @@ rule remove_markers_gc_score:
         out_bedset=expand(str(base/'mod1-data-preparation/tmp/gcscore_removal') + '{ext}', ext=['.bed','.bim','.fam']),
         results = report(resultPath/"gcscore10p_removal.txt",category="Module 1 Data Conversion"),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
-        removal= base / 'mod1-data-preparation/tmp/gc10-removal.txt',
-        removal_samples = base / 'mod1-data-preparation/tmp/gc10-removal.samples.txt',
-
-        # aa_theta_dev_removal=base / 'mod1-data-preparation/tmp/aa-theta-dev-removal.txt',
-	# excl_snps=base / 'mod1-data-preparation/rep/' / 'exclusions_clustering_snp.txt',
-	# stvars=base / 'mod1-data-preparation/rep/' / 'storedvars_clustering.txt'
+        removal= base / 'mod1-data-preparation/tmp/gc10_removal.txt',
+        removal_samples = base / 'mod1-data-preparation/tmp/gc10_removal.samples.txt',
     run:
         mqc.log(runlog, "Removing markers based on 10% GC score\n")
         inTrunk =  mqc.plinkBase(input.in_bedset[0])
@@ -157,9 +143,8 @@ rule remove_markers_gc_score:
         (kept,total) = mqc.countCsvDiff(inTrunk+".bim",outTrunk+".bim",[0,1])
         lost = total - kept
 
-        mqc.log(runlog, f"Removed {lost} samples (NSNP_GC_LOST) out of {total} (BEFORE_GC). Treshhold {treshold}\n")
+        mqc.log(runlog, f"Removed {lost} samples (NSNP_GC_LOST) out of {total} (NSNP_BEFORE_GC). Treshhold {treshold}\n")
         mqc.resultLog(output.results, f"10% GC Score: Removed {lost} samples out of {total}. Treshhold {treshold}\n")
-
 
         
 
@@ -171,6 +156,48 @@ rule remove_markers_gc_score:
 	# 	{params.tmp_path}/aa_theta_dev_removal_list \
 	# 	{params.out_bedset} \
 	# 	"AATHETADEV"
+
+
+rule remove_markers_aa_theta_dev:
+    input:
+        in_bedset = rules.remove_markers_gc_score.output.out_bedset,
+        snptable=config['snptable']
+    output:
+        out_bedset=expand(str(base/'mod1-data-preparation/tmp/aa_theta_removal') + '{ext}', ext=['.bed','.bim','.fam']),
+        results = report(resultPath/"aa_theta_removal.txt",category="Module 1 Data Conversion"),
+        # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
+        removal= base / 'mod1-data-preparation/tmp/aa_theta_removal.txt',
+        removal_samples = base / 'mod1-data-preparation/tmp/gc10_removal.samples.txt',
+
+        # aa_theta_dev_removal=base / 'mod1-data-preparation/tmp/aa-theta-dev-removal.txt',
+	# excl_snps=base / 'mod1-data-preparation/rep/' / 'exclusions_clustering_snp.txt',
+	# stvars=base / 'mod1-data-preparation/rep/' / 'storedvars_clustering.txt'
+    run:
+        mqc.log(runlog, "Removing markers based on AA theta dev\n")
+        inTrunk =  mqc.plinkBase(input.in_bedset[0])
+        outTrunk =  mqc.plinkBase(output.out_bedset[0])
+
+        treshold = float(config['aa_theta_dev_thr'])
+        # identify markers for removal 
+        (removed,total) = mqc.extractSampleList(input.snptable, 
+                output.removal_samples, output.removal, 
+                colName="AA T Dev", condition = ">", treshold = treshold, 
+                cols = {0} )
+
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--exclude", output.removal_samples,
+                "--out", outTrunk ,
+                "--make-bed"
+        ])
+
+        # Checking how many markers we lost on this step
+        (kept,total) = mqc.countCsvDiff(inTrunk+".bim",outTrunk+".bim",[0,1])
+        lost = total - kept
+
+        mqc.log(runlog, f"Removed {lost} samples (NSNP_AATHETADEV_LOST) out of {total} (NSNP_GC_LOST). Treshhold {treshold}\n")
+        mqc.resultLog(output.results, f"AA theta dev: Removed {lost} samples out of {total}. Treshhold {treshold}\n")
+
 
 
 # Remove duplicated/triplicated markers from dataset
