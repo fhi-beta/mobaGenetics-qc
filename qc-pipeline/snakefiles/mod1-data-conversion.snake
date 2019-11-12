@@ -104,7 +104,7 @@ rule remove_markers_snptable:
 
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
-                        "--exclude", output.clustersep_removal_samples,
+                "--exclude", output.clustersep_removal_samples,
                 "--out", outTrunk ,
                 "--make-bed"
         ])
@@ -112,25 +112,6 @@ rule remove_markers_snptable:
         mqc.log(runlog, f"Removed {removed} samples (NSNP_CLUSTERSEP_LOST) out of {total} (BEFORE_SNPTABLE). Treshhold {treshold}\n")
         mqc.resultLog(output.results, f"Removed {removed} samples out of {total}. Treshhold {treshold}\n")
 
-
-
-
-	# STOREDVARS={output.stvars}
-	# EXCLUSIONSS={output.excl_snps}
-
-	# source {libdir}/functions.sh
-	# source {libdir}/plink_wrapper_functions.sh
-
-	# report_nsnps {params.in_bedset} "BEFORE_SNPTABLE"
-
-        # # identify markers for removal on cluster separation
-        # awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/Cluster Sep/){{ col=i}}}}}} $col<0.4{print $1, $col}}' {input.snptable} > {output.clustersep_removal}
-        # cut -f1 -d' ' {output.clustersep_removal} > {params.tmp_path}/plink_clustersep_removal_list
-	# plink_exclude_markers \
-	# 	{params.in_bedset} \
-	# 	{params.tmp_path}/plink_clustersep_removal_list \
-	# 	{params.tmp_path}/snptable_clustersep \
-	# 	"CLUSTERSEP"
 
         # # identify markers for removal on 10% GC score
         # awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/10% GC/){{ col=i}}}}}} $col<0.3{{print $1, $col}}' {input.snptable} > {output.tenpercent_gc_removal}

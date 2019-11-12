@@ -2,6 +2,7 @@
 import pandas as pd
 import re
 import datetime
+from pathlib import Path
 
 def plinkBase(path):
     """
@@ -152,11 +153,18 @@ def log(logfile, message = "Nothing logged", mode = "a" ):
 def resultLog(logfile, message = "Nothing logged", mode = "w+" ):
     """
     Placeholder until we figure out how results will be reporte. Default creates a new message to logfile
-    No formating is done, as contrary to log()
+    No formating is done, in contrary to log()
+    Currently it logs to logfile, but also to a global file (always in append-mode) where it also shows the path of the result.
+    The (crude) idea of the global file is to make it easier to make a comple (and prettified) report. The name should be a variable somehow
     Have not tested this with threads, it will probably fail unless you reset the file and use append mode
     """
     with open(logfile, mode) as myfile:
         myfile.write(message)
+
+    # Dirty - hardcoded name here ...
+    mergedResults = Path(logfile).parent/"mergedResults.txt"
+    with open(mergedResults,"a") as myfile:
+        myfile.write( f"(ref {logfile} ) " + message)
     return
 
 def _make_gen(reader):
