@@ -10,6 +10,7 @@ snptable: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/snptable/snp_table
 cluster_sep_thr: "0.4"
 10%GC_score_thr: "0.3"
 aa_theta_dev_thr: "0.04"
+# Originally, this was /mnt/archive/ROTTERDAM2/qc/duplicated-marker-removal-list.txt but this file does not exist. The below is a workaround.
 duplicated_markers_list: "/mnt/work/gutorm/qcTest/qcrot2/dummyfiles/duplicated-marker-removal-list.txt"
 hrc_sites: "/mnt/archive/helgeland/refdata/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
 hapmap_stem: "/mnt/archive/helgeland/refdata/hapmap/hapmap_b36/hapmapb36"
