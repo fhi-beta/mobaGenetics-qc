@@ -135,6 +135,8 @@ def countCsvDiff(bigfile, smallfile, cols = [0,1]):
     Every now and then we have two csv files that need to be compared, but only certain columns (default the two first)
     This does exactly that, and counts the number of matches
     Most efficient if you pass the largest file's name in bigfile
+    Returns the (matches, number_of_lines_in_big_file - 1)
+    Note that if bigfile has a header, this is the number of datarows in the a csv file
     """
     smallDict = dictFromFile(smallfile, cols)       
     matches = checkMatch(bigfile, smallDict, cols)
