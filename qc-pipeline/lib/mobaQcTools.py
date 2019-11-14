@@ -1,8 +1,25 @@
 #!/usr/bin/python3
 import pandas as pd
+import numpy as np
+from pandas.api.types import CategoricalDtype
+from plotnine import *
+
 import re
 import datetime
 from pathlib import Path
+
+def plotHist(dataFile,resultFile,column="name of the column"):
+    """
+    Very degenerated test
+    """
+    df = pd.read_csv(dataFile, sep="\t",
+                 usecols = [column] )
+    df = df.sort_values("10% GC")
+    p = ggplot(data=df, mapping=aes(x='10% GC'))
+    hist = p + geom_histogram()
+    ggsave(plot=hist, filename=resultFile, dpi=600)
+    return
+        
 
 def plinkBase(path):
     """

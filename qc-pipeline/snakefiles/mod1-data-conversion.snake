@@ -121,11 +121,16 @@ rule remove_markers_gc_score:
     output:
         out_bedset=expand(str(base/'mod1-data-preparation/tmp/gcscore_removal') + '{ext}', ext=['.bed','.bim','.fam']),
         results = report(resultPath/"gcscore10p_removal.txt",category="Module 1 Data Conversion"),
+        plot = report(resultPath/"gcscore10p_hist.png",category="Module 1 Data Conversion"),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
         removal= base / 'mod1-data-preparation/tmp/gc10_removal.txt',
         removal_markers = base / 'mod1-data-preparation/tmp/gc10_removal.samples.txt',
     run:
         mqc.log(runlog, "Removing markers based on 10% GC score\n")
+
+        # Supersimple plot-test
+        mqc.plotHist(input.snptable, output.plot, "10% GC")
+
         inTrunk =  mqc.plinkBase(input.in_bedset[0])
         outTrunk =  mqc.plinkBase(output.out_bedset[0])
 
@@ -151,17 +156,6 @@ rule remove_markers_gc_score:
         mqc.resultLog(output.results, f"10% GC Score: Removed {lost} markers out of {total}. Treshhold {treshold}\n")
 
         
-
-        # # identify markers for removal on AA theta dev
-        # awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/AA T Dev/){{ col=i}}}}}} $col>0.04{{print $1, $col}}' {input.snptable} > {output.aa_theta_dev_removal}
-        # cut -f1 -d' ' {output.aa_theta_dev_removal} > {params.tmp_path}/aa_theta_dev_removal_list
-	# plink_exclude_markers \
-	# 	{params.tmp_path}/snptable_gc \
-	# 	{params.tmp_path}/aa_theta_dev_removal_list \
-	# 	{params.out_bedset} \
-	# 	"AATHETADEV"
-
-
 rule remove_markers_aa_theta_dev:
     input:
         in_bedset = rules.remove_markers_gc_score.output.out_bedset,
