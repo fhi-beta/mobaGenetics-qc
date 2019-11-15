@@ -146,6 +146,47 @@ def checkMatch(fil,dic,cols=[0,1]):
         if (dic.get(key,0) > 0): matches += 1
     return (matches,lines)
 
+def checkDropouts(preQc, postQc, cols=[0,1], fullList=False, indx = 1):
+    """
+      
+      For each line in file  fil, extract columns cols and check if their concatenation exist in dictionary dic
+      Returns a yaml-compatible dictionary (number of missing items , number of lines in fil)
+      If fullList is true, the full list of samples removed will be returned in the list "missing". indx is number of the column containing the sample-id
+      Fil must be a csv file with whitespace as delimiters
+    """
+
+    """
+    Experiment: A variant that produces a dropout-list in a structure suitable for export as yaml.
+    Todo> shows suggestions for improvement
+    The scenario is that a QC method/step had a dataset (file indData) and produced outData. Some items got filtered out/changed
+    This help report that
+
+    Every now and then we have two csv files that need to be compared, but only certain columns (default the two first)
+    This does exactly that, and counts the number of matches
+    Most efficient if you pass the largest file's name in bigfile
+    Returns the (matches, number_of_lines_in_big_file - 1)
+    Note that if bigfile has a header, this is the number of datarows in the a csv file
+    """
+    outDict = dictFromFile(postQc, cols)       
+    result = {
+        "in":   0,        # will count lines from the 'in' file
+        "out": len(outDict),  # comes from the out-file
+        "missing": [],    # poplulated by samples if fullList is True
+        "missingCount": 0 # Not found in dictionary, which typically is the output of this qc rule
+        }
+
+    for line in open(preQc): 
+        result["in"] += 1 
+        allcols = line.split()
+        subsetc = [allcols[index] for index in cols]
+        # concatenating so we can look up the strings with corresponding field from postQc file
+        key = "".join(map(str,subsetc))
+        if (outDict.get(key,0) == 0):
+            result["missingCount"] += 1 
+            if fullList : result["missing"].append(allcols[indx])    # this is the sample number
+
+    return result
+
 
 def countCsvDiff(bigfile, smallfile, cols = [0,1]):
     """
@@ -160,6 +201,15 @@ def countCsvDiff(bigfile, smallfile, cols = [0,1]):
 
     # logging.warning('Results NOT logged to separate file ' + "Common lines: " + str(matches) + " based on " + str(len(smallDict)) + " Samples.  Columns checked  "+",".join(map(str,cols)))
     return matches
+
+def log(logfile, message = "Nothing logged", mode = "a" ):
+    """
+    Placeholder until we figure out how logging really needs to be done. Default appends message to logfile
+    """
+    with open(logfile, mode) as myfile:
+        myfile.write('{:%Y-%m-%d %H:%M:%S} '.format(datetime.datetime.now()) + message)
+    return
+
 
 def log(logfile, message = "Nothing logged", mode = "a" ):
     """
