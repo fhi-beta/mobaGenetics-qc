@@ -121,8 +121,9 @@ rule remove_markers_gc_score:
         snptable=config['snptable']
     output:
         out_bedset=expand(str(base/'mod1-data-preparation/tmp/gcscore_removal') + '{ext}', ext=['.bed','.bim','.fam']),
-        results = report(resultPath/"gcscore10p_removal.txt",category="Module 1 Data Conversion"),
-        resultYaml = resultPath/"gcscore10p_removal.yaml",
+        # results = report(resultPath/"gcscore10p_removal.txt",category="Module 1 Data Conversion"),
+        # Note that there also will be a more complete result file under a details subdirectory
+        results = report(resultPath/"gcscore10p_removal.yaml" ,category="Module 1 Data Conversion"),
         plot = report(resultPath/"gcscore10p_hist.png",category="Module 1 Data Conversion"),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
         removal= base / 'mod1-data-preparation/tmp/gc10_removal.txt',
@@ -151,21 +152,24 @@ rule remove_markers_gc_score:
         ])
 
         # Checking how many markers we lost on this step MIght be deprecated by dropoutRutines
-        (kept,total) = mqc.countCsvDiff(inTrunk+".bim",outTrunk+".bim",[0,1])
-        lost = total - kept
-        mqc.log(runlog, f"Removed {lost} markers (NSNP_GC_LOST) out of {total} (NSNP_BEFORE_GC). Treshhold {treshold}\n")
-        mqc.resultLog(output.results, f"10% GC Score: Removed {lost} markers out of {total}. Treshhold {treshold}\n")
+        #(kept,total) = mqc.countCsvDiff(inTrunk+".bim",outTrunk+".bim",[0,1])
+        #lost = total - kept
+        # mqc.resultLog(output.results, f"10% GC Score: Removed {lost} markers out of {total}. Treshhold {treshold}\n")
 
-        dropouts = mqc.checkDropouts(inTrunk+".bim",outTrunk+".bim",cols = [0,1], fullList = False) 
+        dropouts = mqc.checkDropouts(inTrunk+".bim",outTrunk+".bim",cols = [0,1], fullList = True) 
         dropouts["QC test"] = "GC 10% score"
         dropouts["Description"] = "(Possibly Documentation/reference to the test)"
         dropouts["Threshold"] = treshold
-        dropouts["Snakemake rule"] = "remove_markers_gc_score" 
-        with open(output.resultYaml, 'w') as file:
-            r = yaml.dump(dropouts, file)
-        dropouts = mqc.checkDropouts(inTrunk+".bim",outTrunk+".bim",cols = [0,1], fullList = True) 
-        with open(output.resultYaml + "full", 'w') as file:
-            r = yaml.dump(dropouts, file)
+        dropouts["Snakemake rule"] = "remove_markers_gc_score"
+        # Writing the full output (samples included) to details directory
+        outfile = output.results + ".removedSamples"
+        with open(outfile, 'w') as file:
+            yaml.dump(dropouts, file)
+        mqc.log(runlog, f'Removed {dropouts["missingCount"]} markers(NSNP_GC_LOST) out of {dropouts["in"]} (NSNP_BEFORE_GC), leaving {dropouts["out"]} markers. Treshhold {treshold}\n')
+        # A shorter result version, without samples
+        dropouts["missing"] = []
+        with open(output.results, 'w') as file:
+            yaml.dump(dropouts, file)
 
 rule remove_markers_aa_theta_dev:
     input:

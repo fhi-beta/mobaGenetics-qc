@@ -1,4 +1,3 @@
-# Initial yaml file - should be smartened up so there are less absolute paths here (reuse basepath)
 # Used by various reporting to describe the set
 dataSet: "Rotterdam2"
 raw_bed_stem: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/plink/GSA2017_246_025_ReRun"

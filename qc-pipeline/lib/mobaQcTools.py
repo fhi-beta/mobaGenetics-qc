@@ -185,6 +185,8 @@ def checkDropouts(preQc, postQc, cols=[0,1], fullList=False, indx = 1):
             result["missingCount"] += 1 
             if fullList : result["missing"].append(allcols[indx])    # this is the sample number
 
+
+    if (result["missing"] + result["out"]) != result["in"] : print("Error: {preQc} -> {postQc}: remaining + removed samples != original number")
     return result
 
 
