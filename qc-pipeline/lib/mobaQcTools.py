@@ -8,15 +8,19 @@ import re
 import datetime
 from pathlib import Path
 
-def plotHist(dataFile,resultFile,column="name of the column"):
+def plotHist(dataFile,resultFile,data="name of the column", title = "no legend??"):
     """
-    Very degenerated test
+    Degenerated test
+    Prints out lots of warning, but see https://stackoverflow.com/questions/55805431/is-there-a-way-to-prevent-plotnine-from-printing-user-warnings-when-saving-ggplo
     """
+    import matplotlib
+    matplotlib.use('Agg')  # Because this crashes on a terminal ... need a workaround
+
     df = pd.read_csv(dataFile, sep="\t",
-                 usecols = [column] )
-    df = df.sort_values("10% GC")
-    p = ggplot(data=df, mapping=aes(x='10% GC'))
-    hist = p + geom_histogram()
+                 usecols = [data] )
+    df = df.sort_values(data)
+    p = ggplot(data=df, mapping=aes(x=data))
+    hist = p + geom_histogram(binwidth=0.01) + geom_density() + labs(title=title)
     ggsave(plot=hist, filename=resultFile, dpi=600)
     return
         

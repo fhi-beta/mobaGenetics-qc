@@ -4,6 +4,7 @@ import sys
 sys.path.append('../lib')  # in order to find our local packages
 import mobaQcTools as mqc  # local moba package
 import yaml
+from time import sleep
 
 rule update_sample_ids:
     input:
@@ -97,7 +98,7 @@ rule remove_markers_snptable:
         inTrunk =  mqc.plinkBase(input.in_bedset[0])
         outTrunk =  mqc.plinkBase(output.out_bedset[0])
 
-        treshold = float(config['cluster_sep_thr'])
+        treshold = config['cluster_sep_thr']
         # identify markers for removal on cluster separation
         (removed,total) = mqc.extractSampleList(input.snptable, 
                 output.removal_markers, output.removal, 
@@ -130,17 +131,13 @@ rule remove_markers_gc_score:
     run:
         mqc.log(runlog, "Removing markers based on 10% GC score\n")
 
-        # Supersimple plot-test
-        mqc.plotHist(input.snptable, output.plot, "10% GC")
-
         inTrunk =  mqc.plinkBase(input.in_bedset[0])
         outTrunk =  mqc.plinkBase(output.out_bedset[0])
-
-        treshold = float(config['10%GC_score_thr'])
+        treshold = config['10%_GC_score_thr']
         # identify markers for removal 
         (removed,total) = mqc.extractSampleList(input.snptable, 
                 output.removal_markers, output.removal, 
-                colName="10% GC", condition = "<", treshold = treshold, 
+                                                colName=config["10%_GC_score_col_name"], condition = "<", treshold = treshold, 
                 cols = {0} )
 
         subprocess.run([plinklocal,
@@ -164,6 +161,12 @@ rule remove_markers_gc_score:
         dropouts["missing"] = []
         with open(output.results, 'w') as file:
             yaml.dump(dropouts, file)
+        # Supersimple plot-test. Legend based on diff before/after QC test
+        percentDropped = dropouts["missingCount"] / dropouts["in"]
+        print (percentDropped)
+        mqc.plotHist(input.snptable, output.plot, config["10%_GC_score_col_name"], 
+            title = f'{dropouts["QC test"]}: {percentDropped:.1%} below treshhold {treshold} out of {dropouts["in"]}')
+
 
 rule remove_markers_aa_theta_dev:
     input:
@@ -180,7 +183,7 @@ rule remove_markers_aa_theta_dev:
         inTrunk =  mqc.plinkBase(input.in_bedset[0])
         outTrunk =  mqc.plinkBase(output.out_bedset[0])
 
-        treshold = float(config['aa_theta_dev_thr'])
+        treshold = config['aa_theta_dev_thr']
         # identify markers for removal 
         (removed,total) = mqc.extractSampleList(input.snptable, 
                 output.removal_markers, output.removal, 
