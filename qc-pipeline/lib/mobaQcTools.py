@@ -131,10 +131,12 @@ def dictFromFile(fil,cols=[0,1]):
 
 def checkMatch(fil,dic,cols=[0,1]):
     """
+    Probably Deprecated - replaced by checkDropout()
       For each line in file  fil, extract columns cols and check if their concatenation exist in dictionary dic
       Returns (number of matches , number of lines checked)
       File must be a csv file with whitespace as delimiters
     """
+    print("WARNING: Are we still using a deprecated function checkMatch?")
     matches = 0
     lines = 0
     for line in open(fil): 
@@ -148,31 +150,24 @@ def checkMatch(fil,dic,cols=[0,1]):
 
 def checkDropouts(preQc, postQc, cols=[0,1], fullList=False, indx = 1):
     """
-      
-      For each line in file  fil, extract columns cols and check if their concatenation exist in dictionary dic
-      Returns a yaml-compatible dictionary (number of missing items , number of lines in fil)
-      If fullList is true, the full list of samples removed will be returned in the list "missing". indx is number of the column containing the sample-id
-      Fil must be a csv file with whitespace as delimiters
-    """
-
-    """
-    Experiment: A variant that produces a dropout-list in a structure suitable for export as yaml.
-    Todo> shows suggestions for improvement
+    Return number of dropouts due to a QC-test as structure suited for a export as a yaml-file
     The scenario is that a QC method/step had a dataset (file indData) and produced outData. Some items got filtered out/changed
-    This help report that
+    pre/postQC are tab-serparated csv-files with the same amount of columns
+    Only columns passed by cols are used to compare input/and output.
+    indx is only necessary if fullList is True. indx is used to genereate a list (usually if samples) from column nr indx
+    Usually, indx is the sample-id. indx=0 is the first column, default is second column. 
 
-    Every now and then we have two csv files that need to be compared, but only certain columns (default the two first)
-    This does exactly that, and counts the number of matches
-    Most efficient if you pass the largest file's name in bigfile
-    Returns the (matches, number_of_lines_in_big_file - 1)
-    Note that if bigfile has a header, this is the number of datarows in the a csv file
+    The yaml-structure will always contain the number of input samples/markers as well as sample/markers removed/remaining.
+    An error is print()'ed (shame ...) if number of samples in preQc - "lost in postQc" != number of samples in postQC 
+    
     """
+    # dictionaly with only relevant columns
     outDict = dictFromFile(postQc, cols)       
     result = {
         "in":   0,        # will count lines from the 'in' file
-        "out": len(outDict),  # comes from the out-file
+        "out": len(outDict), 
         "missing": [],    # poplulated by samples if fullList is True
-        "missingCount": 0 # Not found in dictionary, which typically is the output of this qc rule
+        "missingCount": 0 # Not found in dictionary, so it is the effect of the qc-rule on the inputfile
         }
 
     for line in open(preQc): 
@@ -186,18 +181,15 @@ def checkDropouts(preQc, postQc, cols=[0,1], fullList=False, indx = 1):
             if fullList : result["missing"].append(allcols[indx])    # this is the sample number
 
 
-    if (result["missing"] + result["out"]) != result["in"] : print("Error: {preQc} -> {postQc}: remaining + removed samples != original number")
+    if (result["missingCount"] + result["out"]) != result["in"] : print("Error: {preQc} -> {postQc}: remaining + removed samples != original number")
     return result
 
 
 def countCsvDiff(bigfile, smallfile, cols = [0,1]):
     """
-    Every now and then we have two csv files that need to be compared, but only certain columns (default the two first)
-    This does exactly that, and counts the number of matches
-    Most efficient if you pass the largest file's name in bigfile
-    Returns the (matches, number_of_lines_in_big_file - 1)
-    Note that if bigfile has a header, this is the number of datarows in the a csv file
+    Probably Deprecated - rcountCsvDiff
     """
+    print("WARNING: Are we still using a deprecated function checkMatch?")
     smallDict = dictFromFile(smallfile, cols)       
     matches = checkMatch(bigfile, smallDict, cols)
 

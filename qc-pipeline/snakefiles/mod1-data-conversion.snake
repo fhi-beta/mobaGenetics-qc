@@ -121,8 +121,7 @@ rule remove_markers_gc_score:
         snptable=config['snptable']
     output:
         out_bedset=expand(str(base/'mod1-data-preparation/tmp/gcscore_removal') + '{ext}', ext=['.bed','.bim','.fam']),
-        # results = report(resultPath/"gcscore10p_removal.txt",category="Module 1 Data Conversion"),
-        # Note that there also will be a more complete result file under a details subdirectory
+        # Note that there also will be a more complete result file called <results.full>
         results = report(resultPath/"gcscore10p_removal.yaml" ,category="Module 1 Data Conversion"),
         plot = report(resultPath/"gcscore10p_hist.png",category="Module 1 Data Conversion"),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
@@ -150,11 +149,6 @@ rule remove_markers_gc_score:
                 "--out", outTrunk ,
                 "--make-bed"
         ])
-
-        # Checking how many markers we lost on this step MIght be deprecated by dropoutRutines
-        #(kept,total) = mqc.countCsvDiff(inTrunk+".bim",outTrunk+".bim",[0,1])
-        #lost = total - kept
-        # mqc.resultLog(output.results, f"10% GC Score: Removed {lost} markers out of {total}. Treshhold {treshold}\n")
 
         dropouts = mqc.checkDropouts(inTrunk+".bim",outTrunk+".bim",cols = [0,1], fullList = True) 
         dropouts["QC test"] = "GC 10% score"
