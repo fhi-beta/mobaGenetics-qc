@@ -24,13 +24,12 @@ rule update_sample_ids:
                 "--update-ids", input.recode,
                 "--out", outTrunk ,
                 "--make-bed"        ])
-        notUpdated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [0,1], update = True, fullList = True) 
-        notUpdated["QC test"] = "Update sample ids"
-        notUpdated["Description"] = "Mapping lab ids to moba ids"
-        notUpdated["Snakemake rule"] = "update_sample_ids"
-        # Writing the full output (samples included) to details directory
-        mqc.saveYamlResults(output.results, notUpdated)
-        mqc.log(runlog,f'Sample id: Updated {notUpdated["actionTakenCount"]} samples (NIND_NOTUPDATEDID) out of {notUpdated["in"]} (NIND_TOUPDATEID)\n')
+        updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [0,1], update = True, fullList = True) 
+        updated["QC test"] = "Update sample ids"
+        updated["Description"] = "Mapping lab ids to moba ids"
+        updated["Snakemake rule"] = "update_sample_ids"
+        mqc.saveYamlResults(output.results, updated)
+        mqc.log(runlog,f'Sample id: Updated {updated["actionTakenCount"]} samples (NIND_NOTUPDATEDID) out of {updated["in"]} (NIND_TOUPDATEID)\n')
 
 rule update_parents:
     input:
@@ -38,7 +37,7 @@ rule update_parents:
         recode=config['recode_parents']
     output:
         out_bedset=expand(str(base/'mod1-data-preparation/tmp/rawbed-parents-updated') + '{ext}', ext=['.bed','.bim','.fam']),
-        results = report(resultPath/"parentsUpdated.txt",category="Module 1 Data Conversion")
+        results = report(resultPath/"parentsUpdated.yaml",category="Module 1 Data Conversion")
     run:
         mqc.log(runlog, "Update parents: \n")
         inTrunk =  mqc.plinkBase(input.in_bedset[0])
@@ -49,12 +48,13 @@ rule update_parents:
                 "--out", outTrunk ,
                 "--make-bed"
         ])
-        # Checking how many of the original samples we still have
-        (kept, total) = mqc.countCsvDiff(outTrunk+".fam",inTrunk+".fam",[1,2,3])
-        updated = total - kept
+        updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [1,2,3], update = True, fullList = True) 
+        updated["QC test"] = "Update parents"
+        updated["Description"] = "Parents updated using to moba information"
+        updated["Snakemake rule"] = "update_parents"
+        mqc.saveYamlResults(output.results, updated)
+        mqc.log(runlog,f'Sample id: Updated {updated["actionTakenCount"]} samples (NIND_NOTUPDATEDPAR) out of {updated["in"]} (NIND_TOUPDATEPAR)\n')
 
-        mqc.log(runlog,f"Unchanged {kept} samples parents (NIND_NOTUPDATEDPAR) out of {total} (NIND_TOUPDATEPAR)\n")
-        mqc.resultLog(output.results, f"Updated parental information: Updated {updated} samples with one ore more parentes out of {total}\n")
 
 rule update_sex:
     input:
@@ -123,7 +123,6 @@ rule remove_markers_gc_score:
         snptable=config['snptable']
     output:
         out_bedset=expand(str(base/'mod1-data-preparation/tmp/gcscore_removal') + '{ext}', ext=['.bed','.bim','.fam']),
-        # Note that there also will be a more complete result file called <results.full>
         results = report(resultPath/"gcscore10p_removal.yaml" ,category="Module 1 Data Conversion"),
         plot = report(resultPath/"gcscore10p_hist.png",category="Module 1 Data Conversion"),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
@@ -145,12 +144,12 @@ rule remove_markers_gc_score:
                 "--bfile",inTrunk,
                 "--exclude", output.removal_markers,
                 "--out", outTrunk ,
-                "--make-bed"
+                "--make-bed"])
     
 
         dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], fullList = True) 
         dropouts["QC test"] = "GC 10% score"
-        dropouts["Description"] = "(Possibly Documentation/reference to the test)"
+        dropouts["Description"] = "(None for now)"
         dropouts["Threshold"] = treshold
         dropouts["Snakemake rule"] = "remove_markers_gc_score"
         mqc.saveYamlResults(output.results, dropouts)
