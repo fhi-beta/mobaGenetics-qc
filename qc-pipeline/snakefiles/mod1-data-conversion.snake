@@ -3,7 +3,7 @@
 import sys
 sys.path.append('../lib')  # in order to find our local packages
 import mobaQcTools as mqc  # local moba package
-import yaml
+import yaml  # you might be able to remove this ...
 
 rule update_sample_ids:
     input:
@@ -11,7 +11,7 @@ rule update_sample_ids:
         recode=config['recode_ids']
     output:
         out_bedset=expand(str(base  / 'mod1-data-preparation/tmp/rawbed-id-updated') + '{ext}', ext=['.bed','.bim','.fam']),
-        results = report(resultPath/"sampleIdUpdated.txt",category="Module 1 Data Conversion")
+        results = report(resultPath/"sampleIdUpdated.yaml",category="Module 1 Data Conversion")
     run:
         mqc.log(runlog, "*** Module 1 Data Conversion ***\n")
         mqc.log(runlog, "Updating sample ids: \n")
@@ -24,11 +24,13 @@ rule update_sample_ids:
                 "--update-ids", input.recode,
                 "--out", outTrunk ,
                 "--make-bed"        ])
-
-        (kept, total) = mqc.countCsvDiff(outTrunk+".fam",inTrunk+".fam",[0,1])
-        updated = total - kept
-        mqc.log(runlog,f"Sample id: Updated {updated} samples (NIND_NOTUPDATEDID) out of {total} (NIND_TOUPDATEID)\n")
-        mqc.resultLog(output.results, f"Sample id: Updated {updated} samples out of {total}\n")
+        notUpdated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [0,1], update = True, fullList = True) 
+        notUpdated["QC test"] = "Update sample ids"
+        notUpdated["Description"] = "Mapping lab ids to moba ids"
+        notUpdated["Snakemake rule"] = "update_sample_ids"
+        # Writing the full output (samples included) to details directory
+        mqc.saveYamlResults(output.results, notUpdated)
+        mqc.log(runlog,f'Sample id: Updated {notUpdated["actionTakenCount"]} samples (NIND_NOTUPDATEDID) out of {notUpdated["in"]} (NIND_TOUPDATEID)\n')
 
 rule update_parents:
     input:
@@ -144,27 +146,20 @@ rule remove_markers_gc_score:
                 "--exclude", output.removal_markers,
                 "--out", outTrunk ,
                 "--make-bed"
-        ])
+    
 
-        dropouts = mqc.checkDropouts(inTrunk+".bim",outTrunk+".bim",cols = [0,1], fullList = True) 
+        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], fullList = True) 
         dropouts["QC test"] = "GC 10% score"
         dropouts["Description"] = "(Possibly Documentation/reference to the test)"
         dropouts["Threshold"] = treshold
         dropouts["Snakemake rule"] = "remove_markers_gc_score"
-        # Writing the full output (samples included) to details directory
-        outfile = output.results + ".removedSamples"
-        with open(outfile, 'w') as file:
-            yaml.dump(dropouts, file)
-        mqc.log(runlog, f'Removed {dropouts["missingCount"]} markers(NSNP_GC_LOST) out of {dropouts["in"]} (NSNP_BEFORE_GC), leaving {dropouts["out"]} markers. Treshhold {treshold}\n')
-        # A shorter result version, without samples
-        dropouts["missing"] = []
-        with open(output.results, 'w') as file:
-            yaml.dump(dropouts, file)
+        mqc.saveYamlResults(output.results, dropouts)
+        mqc.log(runlog, f'Removed {dropouts["actionTakenCount"]} markers(NSNP_GC_LOST) out of {dropouts["in"]} (NSNP_BEFORE_GC), leaving {dropouts["out"]} markers. Treshhold {treshold}\n')
         # Supersimple plot-test. Legend based on diff before/after QC test
-        percentDropped = dropouts["missingCount"] / dropouts["in"]
+        percentDropped = dropouts["actionTakenCount"] / dropouts["in"]
         mqc.plotHist(input.snptable, output.plot, config["10%_GC_score_col_name"], 
             title = f'{dropouts["QC test"]}: Histogram of the full snp-table - before any exclusion of samples.\n'
-                    f'With treshhold {treshold},  {dropouts["missingCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} were dropped.\n'
+                    f'With treshhold {treshold},  {dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} were dropped.\n'
                     f'At the current point of the QC, {dropouts["out"]} samples are left'
         )
 

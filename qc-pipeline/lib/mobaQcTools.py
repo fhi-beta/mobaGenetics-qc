@@ -3,7 +3,7 @@ import pandas as pd
 import numpy as np
 from pandas.api.types import CategoricalDtype
 from plotnine import *
-
+import yaml
 import re
 import datetime
 from pathlib import Path
@@ -23,8 +23,22 @@ def plotHist(dataFile,resultFile,data="name of the column", title = "no legend??
     hist = p + geom_histogram(binwidth=0.01) + geom_density() + labs(title=title)
     ggsave(plot=hist, filename=resultFile, dpi=600)
     return
-        
 
+def saveYamlResults(files, yamlStruct):
+    """
+    Creates two files from the given yanlStruct
+    files is the name of the structure without samples. Samples are expected in "samples"
+    files.removedSamples with yamlStruct["samples"] intact
+    Side effect: Deletes yamlStruct["samples"]
+    """
+    fullFile = files + ".removedSamples"
+    with open(fullFile, 'w') as file:
+        yaml.dump(yamlStruct, file)
+    # A shorter result version, without sample. 
+    if "samples" in yamlStruct: del yamlStruct["samples"]
+    with open(files, 'w') as file: yaml.dump(yamlStruct, file)
+
+    
 def plinkBase(path):
     """
     plink often works on a trunk and creates extra files: a becomes a.fam, a.bed, a.bid
@@ -152,13 +166,14 @@ def checkMatch(fil,dic,cols=[0,1]):
         if (dic.get(key,0) > 0): matches += 1
     return (matches,lines)
 
-def checkDropouts(preQc, postQc, cols=[0,1], fullList=False, indx = 1):
+def checkUpdates(preQc, postQc, cols=[0,1], update=False, fullList=False, indx = 1):
     """
-    Return number of dropouts due to a QC-test as structure suited for a export as a yaml-file
+    Return number of updates due to a QC-test as structure suited for a export as a yaml-file
     The scenario is that a QC method/step had a dataset (file indData) and produced outData. Some items got filtered out/changed
     pre/postQC are tab-serparated csv-files with the same amount of columns
+    The update parameter is true if the Qc changes were samples updates (as opposed to removals). This is only used for sanity check of results.
     Only columns passed by cols are used to compare input/and output.
-    indx is only necessary if fullList is True. indx is used to genereate a list (usually if samples) from column nr indx
+    indx is only necessary if fullList is True. indx is used to genereate a list (usually of samples) from column nr indx
     Usually, indx is the sample-id. indx=0 is the first column, default is second column. 
 
     The yaml-structure will always contain the number of input samples/markers as well as sample/markers removed/remaining.
@@ -170,8 +185,8 @@ def checkDropouts(preQc, postQc, cols=[0,1], fullList=False, indx = 1):
     result = {
         "in":   0,        # will count lines from the 'in' file
         "out": len(outDict), 
-        "missing": [],    # poplulated by samples if fullList is True
-        "missingCount": 0 # Not found in dictionary, so it is the effect of the qc-rule on the inputfile
+        "samples": [],    # poplulated by samples if fullList is True
+        "actionTakenCount": 0 # Not found in dictionary, so it is the effect of the qc-rule on the inputfile
         }
 
     for line in open(preQc): 
@@ -181,11 +196,13 @@ def checkDropouts(preQc, postQc, cols=[0,1], fullList=False, indx = 1):
         # concatenating so we can look up the strings with corresponding field from postQc file
         key = "".join(map(str,subsetc))
         if (outDict.get(key,0) == 0):
-            result["missingCount"] += 1 
-            if fullList : result["missing"].append(allcols[indx])    # this is the sample number
+            result["actionTakenCount"] += 1 
+            if fullList : result["samples"].append(allcols[indx])    # this is the sample number
 
-
-    if (result["missingCount"] + result["out"]) != result["in"] : print("Error: {preQc} -> {postQc}: remaining + removed samples != original number")
+    if update:  # for updates, we dont't want to loose samples
+        if (result["out"]) != result["in"] : print(f"Error: {preQc} -> {postQc}: Update expected, but number of samples has changed")        
+    else:       # for removals, we want out + removed = in
+        if (result["actionTakenCount"] + result["out"]) != result["in"] : print(f"Error: {preQc} -> {postQc}: remaining + removed samples != original number")
     return result
 
 
