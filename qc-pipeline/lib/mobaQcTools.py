@@ -147,25 +147,6 @@ def dictFromFile(fil,cols=[0,1]):
     if max>1 : print("WARNING: sample " + str(sample) + " found " + str(max) + "times. Might not be the only nonunique")
     return countDict
 
-# def checkMatch(fil,dic,cols=[0,1]):
-#     """
-#     Probably Deprecated - replaced by checkDropout()
-#       For each line in file  fil, extract columns cols and check if their concatenation exist in dictionary dic
-#       Returns (number of matches , number of lines checked)
-#       File must be a csv file with whitespace as delimiters
-#     """
-#     print("WARNING: Are we still using a deprecated function checkMatch?")
-#     matches = 0
-#     lines = 0
-#     for line in open(fil): 
-#         lines += 1
-#         allcols = line.split()
-#         subsetc = [allcols[index] for index in cols]
-#         # concatenating so we can look up the strings in the existing dictionary
-#         key = "".join(map(str,subsetc))
-#         if (dic.get(key,0) > 0): matches += 1
-#     return (matches,lines)
-
 def checkUpdates(preQc, postQc, cols=[0,1], update=False, fullList=False, indx = 1):
     """
     Return number of updates due to a QC-test as structure suited for a export as a yaml-file
@@ -205,17 +186,6 @@ def checkUpdates(preQc, postQc, cols=[0,1], update=False, fullList=False, indx =
         if (result["actionTakenCount"] + result["out"]) != result["in"] : print(f"Error: {preQc} -> {postQc}: remaining + removed samples != original number")
     return result
 
-
-# def countCsvDiff(bigfile, smallfile, cols = [0,1]):  20.11.2019 - checking that removeing this doesn't break anything
-#     """
-#     Probably Deprecated - rcountCsvDiff
-#     """
-#     print("WARNING: Are we still using a deprecated function countCsvDiff?")
-#     smallDict = dictFromFile(smallfile, cols)       
-#     matches = checkMatch(bigfile, smallDict, cols)
-
-#     # logging.warning('Results NOT logged to separate file ' + "Common lines: " + str(matches) + " based on " + str(len(smallDict)) + " Samples.  Columns checked  "+",".join(map(str,cols)))
-#     return matches
 
 def log(logfile, message = "Nothing logged", mode = "a" ):
     """
