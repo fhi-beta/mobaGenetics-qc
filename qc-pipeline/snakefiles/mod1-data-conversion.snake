@@ -24,7 +24,7 @@ rule update_sample_ids:
                 "--update-ids", input.recode,
                 "--out", outTrunk ,
                 "--make-bed"        ])
-        updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [0,1], update = True, fullList = True) 
+        updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [0,1], sanityCheck = "updated", fullList = True) 
         updated["QC test"] = "Update sample ids"
         updated["Description"] = "Mapping lab ids to moba ids"
         updated["Snakemake rule"] = "update_sample_ids"
@@ -48,7 +48,7 @@ rule update_parents:
                 "--out", outTrunk ,
                 "--make-bed"
         ])
-        updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [1,2,3], update = True, fullList = True) 
+        updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [1,2,3], sanityCheck = "updated", fullList = True) 
         updated["QC test"] = "Update parents"
         updated["Description"] = "Parents updated using to moba information"
         updated["Snakemake rule"] = "update_parents"
@@ -76,7 +76,7 @@ rule update_sex:
                 "--make-bed"
         ])
         # Checking how many of the original samples we still have
-        updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [1,4], update = True, fullList = True) 
+        updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [1,4], sanityCheck = "updated", fullList = True) 
         updated["QC test"] = "Update sex"
         updated["Description"] = "Gender updated using to moba information"
         updated["Snakemake rule"] = "update_sex"
@@ -117,7 +117,7 @@ rule remove_markers_cluster_sep:
                 "--make-bed"
         ])
 
-        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], fullList = True) 
+        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
         dropouts["QC test"] = "Cluster separation"
         dropouts["Description"] = "(None for now)"
         dropouts["Threshold"] = treshold
@@ -163,7 +163,7 @@ rule remove_markers_gc_score:
                 "--make-bed"])
     
 
-        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], fullList = True) 
+        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
         dropouts["QC test"] = "GC 10% score"
         dropouts["Description"] = "(None for now)"
         dropouts["Threshold"] = treshold
@@ -210,7 +210,7 @@ rule remove_markers_aa_theta_dev:
         ])
 
 
-        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], fullList = True) 
+        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
         dropouts["QC test"] = "AA Theta Dev"
         dropouts["Description"] = "(None for now)"
         dropouts["Threshold"] = treshold
@@ -235,7 +235,7 @@ rule remove_duplicate_markers:
         dup_remove_list=config['duplicated_markers_list']
     output:
         out_bedset=expand(str(base/'mod1-data-preparation/tmp/dup_markers_removed') + '{ext}', ext=['.bed','.bim','.fam']),
-        results = report(resultPath/"dup_markers_removed.txt",category="Module 1 Data Conversion"),
+        results = report(resultPath/"dup_markers_removed.yaml",category="Module 1 Data Conversion"),
     run:
         mqc.log(runlog, "Removing duplicate markers\n")
         inTrunk =  mqc.plinkBase(input.in_bedset[0])
@@ -248,13 +248,17 @@ rule remove_duplicate_markers:
                 "--make-bed"
         ])
 
-        # Checking how many markers we lost on this step
-        (kept,total) = mqc.countCsvDiff(inTrunk+".bim",outTrunk+".bim",[0,1])
-        updated = total - kept
-        nrDups = mqc.lineCount(input.dup_remove_list)
+        # Checking how many of the original samples we still have
+        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
+        dropouts["QC test"] = "Update remove duplicate/triplicate markers"
+        dropouts["Description"] = ""
+        dropouts["Snakemake rule"] = "remove_duplicate_markers"
+        dropouts["Size of duplicate list"] = mqc.lineCount(input.dup_remove_list)
 
-        mqc.log(runlog, f"Removed {updated} markers (NSNP_DUPLICATEMARKERS_LOST) out of {total}. File {input.dup_remove_list} contained {nrDups} lines/samples\n")
-        mqc.resultLog(output.results, f"Duplicate markers: Removed {updated} markers out of {total}. File {input.dup_remove_list} contained {nrDups} lines\n")
+        mqc.saveYamlResults(output.results, dropouts)
+        mqc.log(runlog,f'Removed {dropouts["actionTakenCount"]} duplicate markers\n')
+        
+
 
 
 # updates both rsid and removes chromosone 0
@@ -264,7 +268,8 @@ rule fix_technical_markers:
         recode_rsid=config['recode_rsid']
     output:
         out_bedset=expand(str(base/'mod1-data-preparation/tmp/chr0_removed') + '{ext}', ext=['.bed','.bim','.fam']),
-        results = report(resultPath/"fix_technical_markers.txt",category="Module 1 Data Conversion")
+        resultsSnp = report(resultPath/"snp2rsID.yaml",category="Module 1 Data Conversion"),
+        resultsChr0 = report(resultPath/"remove_chr0.yaml",category="Module 1 Data Conversion")
     run:
         mqc.log(runlog, "Updating techincal markers (SNP->rsID + chromosome 0)\n")
         inTrunk =  mqc.plinkBase(input.in_bedset[0])
@@ -280,11 +285,16 @@ rule fix_technical_markers:
         ])
 
         # Checking how many markers we updated on this step
-        (kept,total) = mqc.countCsvDiff(inTrunk+".bim",rsidTrunk+".bim",[0,1])
-        updated = total - kept
-        mqc.log(runlog, f"rsid updates (NSNP_RSID_UPDATE_LOST): Updated {updated} markers out of {total} \n")
-        mqc.resultLog(output.results, f"SNPs to rsID updates: Updated {updated} markers out of {total} \n")
+        updated = mqc.checkUpdates(inTrunk+".bim",rsidTrunk+".bim",cols = [0,1],
+                                   sanityCheck = "none", fullList = True) 
+        updated["QC test"] = "Updating SNP -> rsID"
+        updated["Description"] = ""
+        updated["Snakemake rule"] = "fix_technical_markers"
 
+        mqc.saveYamlResults(output.resultsSnp, updated)
+        mqc.log(runlog, f'rsid updates (NSNP_RSID_UPDATE_LOST): Updated {updated["actionTakenCount"]} markers out of {updated["in"]} \n')
+
+        
         subprocess.run([plinklocal,
                 "--bfile",rsidTrunk,
                 "--not-chr", "0", 
@@ -292,9 +302,13 @@ rule fix_technical_markers:
                 "--make-bed"
         ])
 
-        # Checking how many markers we updated on this step
-        (kept,total) = mqc.countCsvDiff(rsidTrunk+".bim",outTrunk+".bim",[0,1])
-        updated = total - kept
-        mqc.log(runlog, f"(NSNP_CHR0_LOST) Chromosone 0 removed: Removed {updated} markers out of {total}\n")
-        mqc.resultLog(output.results, f"Chromosone 0 removed: Removed {updated} markers out of {total}\n",mode="a")
+        # Checking how many markers/chromosone 0 we removed  on this step
+        dropouts = mqc.checkUpdates(rsidTrunk+".bim",outTrunk+".bim",cols = [0,1],
+                                    sanityCheck = "none", fullList = True) 
+        dropouts["QC test"] = "Removing chromosone 0"
+        dropouts["Description"] = ""
+        dropouts["Snakemake rule"] = "fix_technical_markers"
+
+        mqc.saveYamlResults(output.resultsChr0, dropouts)
+        mqc.log(runlog, f'(NSNP_CHR0_LOST) Removed {dropouts["actionTakenCount"]} chromosone 0 out of {dropouts["in"]}, leaving {dropouts["out"]} markers\n')
 

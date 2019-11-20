@@ -147,12 +147,15 @@ def dictFromFile(fil,cols=[0,1]):
     if max>1 : print("WARNING: sample " + str(sample) + " found " + str(max) + "times. Might not be the only nonunique")
     return countDict
 
-def checkUpdates(preQc, postQc, cols=[0,1], update=False, fullList=False, indx = 1):
+def checkUpdates(preQc, postQc, cols=[0,1], sanityCheck="none", fullList=False, indx = 1):
     """
     Return number of updates due to a QC-test as structure suited for a export as a yaml-file
     The scenario is that a QC method/step had a dataset (file indData) and produced outData. Some items got filtered out/changed
     pre/postQC are tab-serparated csv-files with the same amount of columns
-    The update parameter is true if the Qc changes were samples updates (as opposed to removals). This is only used for sanity check of results.
+    The optional sanityCheck parameter will give error message as follows, depending to its value
+       removal: Number of elements taken action on (removed) = size of preQc-postQc
+       updated: size of preQc = postQc  
+       anything different from the above): No tests performed
     Only columns passed by cols are used to compare input/and output.
     indx is only necessary if fullList is True. indx is used to genereate a list (usually of samples) from column nr indx
     Usually, indx is the sample-id. indx=0 is the first column, default is second column. 
@@ -180,9 +183,9 @@ def checkUpdates(preQc, postQc, cols=[0,1], update=False, fullList=False, indx =
             result["actionTakenCount"] += 1 
             if fullList : result["samples"].append(allcols[indx])    # this is the sample number
 
-    if update:  # for updates, we dont't want to loose samples
+    if sanityCheck == 'updated':  # for updates, we dont't want to loose samples
         if (result["out"]) != result["in"] : print(f"Error: {preQc} -> {postQc}: Update expected, but number of samples has changed")        
-    else:       # for removals, we want out + removed = in
+    elif sanityCheck == 'removal':       # for removals, we want out + removed = in
         if (result["actionTakenCount"] + result["out"]) != result["in"] : print(f"Error: {preQc} -> {postQc}: remaining + removed samples != original number")
     return result
 
