@@ -10,11 +10,11 @@ from pathlib import Path
 
 def plotHist(dataFile,resultFile,data="name of the column", title = "no legend??"):
     """
-    Degenerated test
+    Degenerated plot. Should be improved
     Prints out lots of warning, but see https://stackoverflow.com/questions/55805431/is-there-a-way-to-prevent-plotnine-from-printing-user-warnings-when-saving-ggplo
     """
     import matplotlib
-    matplotlib.use('Agg')  # Because this crashes on a terminal ... need a workaround
+    matplotlib.use('Agg')  # Because this crashes on a MobaXterm terminal ... need a workaround (and maybe X2Go fixes this)
 
     df = pd.read_csv(dataFile, sep="\t",
                  usecols = [data] )

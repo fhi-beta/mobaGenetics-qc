@@ -6,12 +6,15 @@ recode_parents: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/reco
 recode_sex: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-sex-rotterdam2.txt"
 recode_rsid: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-rsid.txt"
 snptable: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/snptable/snp_table_rotterdam2.txt"
-cluster_sep_thr: 0.4
-# 10% GC - Threshold and name of the columns in bim-file
-10%_GC_score_col_name: "10% GC"
-10%_GC_score_thr: 0.3
 
+# Thresholds and names of the columns in snptable-file
+cluster_sep_thr: 0.4
+cluster_sep_col_name: "GSAMD-24v1-0_20011747_A4.bpm.Cluster Sep"
+10%_GC_score_thr: 0.3
+10%_GC_score_col_name: "10% GC"
 aa_theta_dev_thr: 0.04
+aa_theta_dev_col_name: "AA T Dev"
+
 # Originally, this was /mnt/archive/ROTTERDAM2/qc/duplicated-marker-removal-list.txt but this file does not exist. The below is a workaround.
 duplicated_markers_list: "/mnt/work/gutorm/qcTest/qcrot2/dummyfiles/duplicated-marker-removal-list.txt"
 hrc_sites: "/mnt/archive/helgeland/refdata/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"

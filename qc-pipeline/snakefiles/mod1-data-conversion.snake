@@ -62,7 +62,7 @@ rule update_sex:
         recode = config['recode_sex']
     output:
         out_bedset = expand(str(base/'mod1-data-preparation/tmp/rawbed-sex-updated') + '{ext}', ext=['.bed','.bim','.fam']),
-        results = report(resultPath/"sexUpdated.txt",category="Module 1 Data Conversion")
+        results = report(resultPath/"sexUpdated.yaml",category="Module 1 Data Conversion")
         
     run:
         mqc.log(runlog, "Update sex: \n")
@@ -76,20 +76,24 @@ rule update_sex:
                 "--make-bed"
         ])
         # Checking how many of the original samples we still have
-        (kept,total) = mqc.countCsvDiff(outTrunk+".fam",inTrunk+".fam",[1,4])
-        updated = total - kept
-        mqc.log(runlog,f"Unchanged {kept} samples sex (NIND_NOTUPDATEDSEX) out of {total} (NIND_TOUPDATESEX)\n")
-        mqc.resultLog(output.results, f"Sex update:  {updated} out of {total} had sex updated\n")
-        
+        updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [1,4], update = True, fullList = True) 
+        updated["QC test"] = "Update sex"
+        updated["Description"] = "Gender updated using to moba information"
+        updated["Snakemake rule"] = "update_sex"
+        mqc.saveYamlResults(output.results, updated)
+        mqc.log(runlog,f'Sex updated: Updated {updated["actionTakenCount"]} samples (NIND_NOTUPDATEDPAR) out of {updated["in"]} (NIND_TOUPDATEPAR)\n')
+
+                
 
 # Remove markers on snp table metrics
-rule remove_markers_snptable:
+rule remove_markers_cluster_sep:
     input:
         in_bedset = rules.update_sex.output.out_bedset,
         snptable=config['snptable']
     output:
         out_bedset=expand(str(base/'mod1-data-preparation/tmp/snptable-markers-excluded') + '{ext}', ext=['.bed','.bim','.fam']),
-        results = report(resultPath/"snptable_removal.txt",category="Module 1 Data Conversion"),
+        results = report(resultPath/"clustersep_removal.yaml",category="Module 1 Data Conversion"),
+        plot = report(resultPath/"clustersep_removal_hist.png",category="Module 1 Data Conversion"),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
         removal= base / 'mod1-data-preparation/tmp/clustersep-removal.txt',
         removal_markers = base / 'mod1-data-preparation/tmp/clustersep-removal.samples.txt',
@@ -103,7 +107,7 @@ rule remove_markers_snptable:
         # identify markers for removal on cluster separation
         (removed,total) = mqc.extractSampleList(input.snptable, 
                 output.removal_markers, output.removal, 
-                colName="Cluster Sep$", condition = "<", treshold = treshold, 
+                colName=config['cluster_sep_col_name'], condition = "<", treshold = treshold, 
                 cols = {0} )
 
         subprocess.run([plinklocal,
@@ -113,18 +117,30 @@ rule remove_markers_snptable:
                 "--make-bed"
         ])
 
-        mqc.log(runlog, f"Removed {removed} markers (NSNP_CLUSTERSEP_LOST) out of {total} (BEFORE_SNPTABLE). Treshhold {treshold}\n")
-        mqc.resultLog(output.results, f"Cluster separation: Removed {removed} markers out of {total}. Treshhold {treshold}\n")
+        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], fullList = True) 
+        dropouts["QC test"] = "Cluster separation"
+        dropouts["Description"] = "(None for now)"
+        dropouts["Threshold"] = treshold
+        dropouts["Snakemake rule"] = "remove_markers_clustersep"
+        mqc.saveYamlResults(output.results, dropouts)
+        mqc.log(runlog, f'Removed {dropouts["actionTakenCount"]} markers(NSNP_CLUSTERSEP_LOST) out of {dropouts["in"]} (BEFORE_SNPTABLE), leaving {dropouts["out"]} markers. Treshhold {treshold}\n')
+        # Supersimple plot-test. Legend based on diff before/after QC test
+        percentDropped = dropouts["actionTakenCount"] / dropouts["in"]
+        mqc.plotHist(input.snptable, output.plot, config["cluster_sep_col_name"], 
+            title = f'{dropouts["QC test"]}: Histogram of the full snp-table - before any exclusion of samples.\n'
+                    f'With treshhold {treshold},  {dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} were dropped.\n'
+                    f'At the current point of the QC, {dropouts["out"]} samples are left'
+        )
 
         
 rule remove_markers_gc_score:
     input:
-        in_bedset = rules.remove_markers_snptable.output.out_bedset,
+        in_bedset = rules.remove_markers_cluster_sep.output.out_bedset,
         snptable=config['snptable']
     output:
         out_bedset=expand(str(base/'mod1-data-preparation/tmp/gcscore_removal') + '{ext}', ext=['.bed','.bim','.fam']),
         results = report(resultPath/"gcscore10p_removal.yaml" ,category="Module 1 Data Conversion"),
-        plot = report(resultPath/"gcscore10p_hist.png",category="Module 1 Data Conversion"),
+        plot = report(resultPath/"gcscore10p_removal_hist.png",category="Module 1 Data Conversion"),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
         removal= base / 'mod1-data-preparation/tmp/gc10_removal.txt',
         removal_markers = base / 'mod1-data-preparation/tmp/gc10_removal.samples.txt',
@@ -169,7 +185,8 @@ rule remove_markers_aa_theta_dev:
         snptable=config['snptable']
     output:
         out_bedset=expand(str(base/'mod1-data-preparation/tmp/aa_theta_removal') + '{ext}', ext=['.bed','.bim','.fam']),
-        results = report(resultPath/"aa_theta_removal.txt",category="Module 1 Data Conversion"),
+        results = report(resultPath/"aa_theta_removal.yaml",category="Module 1 Data Conversion"),
+        plot = report(resultPath/"aa_theta_removal_hist.png",category="Module 1 Data Conversion"),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
         removal= base / 'mod1-data-preparation/tmp/aa_theta_removal.txt',
         removal_markers = base / 'mod1-data-preparation/tmp/aa_theta_removal.samples.txt',
