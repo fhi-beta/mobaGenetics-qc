@@ -13,7 +13,7 @@ cluster_sep_col_name: "GSAMD-24v1-0_20011747_A4.bpm.Cluster Sep"
 10%_GC_score_thr: 0.3
 10%_GC_score_col_name: "10% GC"
 aa_theta_dev_thr: 0.04
-aa_theta_dev_col_name: "AA T Dev"
+aa_theta_dev_col_name: "GSAMD-24v1-0_20011747_A4.bpm.AA T Dev"
 
 # Originally, this was /mnt/archive/ROTTERDAM2/qc/duplicated-marker-removal-list.txt but this file does not exist. The below is a workaround.
 duplicated_markers_list: "/mnt/work/gutorm/qcTest/qcrot2/dummyfiles/duplicated-marker-removal-list.txt"
