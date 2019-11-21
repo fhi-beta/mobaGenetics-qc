@@ -91,12 +91,12 @@ rule remove_markers_cluster_sep:
         in_bedset = rules.update_sex.output.out_bedset,
         snptable=config['snptable']
     output:
-        out_bedset=expand(str(base/'mod1-data-preparation/tmp/snptable-markers-excluded') + '{ext}', ext=['.bed','.bim','.fam']),
+        out_bedset=expand(str(base/'mod1-data-preparation/tmp/clustersep_removal') + '{ext}', ext=['.bed','.bim','.fam']),
         results = report(resultPath/"clustersep_removal.yaml",category="Module 1 Data Conversion"),
         plot = report(resultPath/"clustersep_removal_hist.png",category="Module 1 Data Conversion"),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
-        removal= base / 'mod1-data-preparation/tmp/clustersep-removal.txt',
-        removal_markers = base / 'mod1-data-preparation/tmp/clustersep-removal.samples.txt',
+        removal= base / 'mod1-data-preparation/tmp/clustersep_removal.txt',
+        removal_markers = base / 'mod1-data-preparation/tmp/clustersep_removal.samples.txt',
     message: "mod1 Remove markers by cluster metrics" 
     run:
         mqc.log(runlog, "Remove snp table metrics (CLUSTERSEP)\n")
@@ -234,7 +234,8 @@ rule remove_duplicate_markers:
         in_bedset = rules.remove_markers_aa_theta_dev.output.out_bedset,
         dup_remove_list=config['duplicated_markers_list']
     output:
-        out_bedset=expand(str(base/'mod1-data-preparation/tmp/dup_markers_removed') + '{ext}', ext=['.bed','.bim','.fam']),
+        out_bedset=expand(str(base/'mod1-data-preparation/tmp/dup_markers_removed')
+            + '{ext}', ext=['.bed','.bim','.fam']),
         results = report(resultPath/"dup_markers_removed.yaml",category="Module 1 Data Conversion"),
     run:
         mqc.log(runlog, "Removing duplicate markers\n")
@@ -249,7 +250,8 @@ rule remove_duplicate_markers:
         ])
 
         # Checking how many of the original samples we still have
-        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
+        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols=[0,1],
+                    sanityCheck="removal", fullList=True) 
         dropouts["QC test"] = "Update remove duplicate/triplicate markers"
         dropouts["Description"] = ""
         dropouts["Snakemake rule"] = "remove_duplicate_markers"
@@ -267,7 +269,8 @@ rule fix_technical_markers:
         in_bedset = rules.remove_duplicate_markers.output.out_bedset,
         recode_rsid=config['recode_rsid']
     output:
-        out_bedset=expand(str(base/'mod1-data-preparation/tmp/chr0_removed') + '{ext}', ext=['.bed','.bim','.fam']),
+        out_bedset=expand(str(base/'mod1-data-preparation/tmp/chr0_removed')
+                          + '{ext}', ext=['.bed','.bim','.fam']),
         resultsSnp = report(resultPath/"snp2rsID.yaml",category="Module 1 Data Conversion"),
         resultsChr0 = report(resultPath/"remove_chr0.yaml",category="Module 1 Data Conversion")
     run:
@@ -285,8 +288,8 @@ rule fix_technical_markers:
         ])
 
         # Checking how many markers we updated on this step
-        updated = mqc.checkUpdates(inTrunk+".bim",rsidTrunk+".bim",cols = [0,1],
-                                   sanityCheck = "none", fullList = True) 
+        updated = mqc.checkUpdates(inTrunk+".bim",rsidTrunk+".bim",cols=[0,1],
+                                   sanityCheck="none", fullList=True) 
         updated["QC test"] = "Updating SNP -> rsID"
         updated["Description"] = ""
         updated["Snakemake rule"] = "fix_technical_markers"
@@ -303,8 +306,8 @@ rule fix_technical_markers:
         ])
 
         # Checking how many markers/chromosone 0 we removed  on this step
-        dropouts = mqc.checkUpdates(rsidTrunk+".bim",outTrunk+".bim",cols = [0,1],
-                                    sanityCheck = "none", fullList = True) 
+        dropouts = mqc.checkUpdates(rsidTrunk+".bim", outTrunk+".bim", cols=[0,1],
+                                    sanityCheck="none", fullList=True) 
         dropouts["QC test"] = "Removing chromosone 0"
         dropouts["Description"] = ""
         dropouts["Snakemake rule"] = "fix_technical_markers"
