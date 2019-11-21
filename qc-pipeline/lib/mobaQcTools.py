@@ -3,25 +3,26 @@ import pandas as pd
 import numpy as np
 from pandas.api.types import CategoricalDtype
 from plotnine import *
+# While plotting in a non-interactive environment (xterm ...) we need this:
+import matplotlib
+matplotlib.use('Agg')  
+
 import yaml
 import re
 import datetime
 from pathlib import Path
 
-def plotHist(dataFile,resultFile,data="name of the column", title = "no legend??"):
+def plotHist(dataFile,resultFile,column="name of the column", title = "no legend??"):
     """
-    Degenerated plot. Should be improved
+    Very basic Histogram. Could be prettied up a lot
     Prints out lots of warning, but see https://stackoverflow.com/questions/55805431/is-there-a-way-to-prevent-plotnine-from-printing-user-warnings-when-saving-ggplo
     """
-    import matplotlib
-    matplotlib.use('Agg')  # Because this crashes on a MobaXterm terminal ... need a workaround (and maybe X2Go fixes this)
-
     df = pd.read_csv(dataFile, sep="\t",
-                 usecols = [data] )
-    df = df.sort_values(data)
-    p = ggplot(data=df, mapping=aes(x=data))
-    hist = p + geom_histogram(binwidth=0.01) + geom_density() + labs(title=title)
-    ggsave(plot=hist, filename=resultFile, dpi=600)
+                 usecols = [column] )
+    df = df.sort_values(column)
+    p = ggplot(data=df, mapping=aes(x=column))
+    hist = p + geom_histogram(binwidth=0.01) +  labs(title=title)
+    ggsave(plot=hist, filename=resultFile, dpi=300)
     return
 
 def saveYamlResults(files, yamlStruct):
