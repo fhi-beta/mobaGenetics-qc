@@ -12,13 +12,14 @@ import re
 import datetime
 from pathlib import Path
 
-def plotHist(dataFile,resultFile,column="name of the column", title = "no legend??"):
-    """
+def plotHist(dataFile, resultFile, column="name of the column", title="no legend??"):
+    """ plots and saves a historgram
+
     Very basic Histogram. Could be prettied up a lot
     Prints out lots of warning, but see https://stackoverflow.com/questions/55805431/is-there-a-way-to-prevent-plotnine-from-printing-user-warnings-when-saving-ggplo
     """
     df = pd.read_csv(dataFile, sep="\t",
-                 usecols = [column] )
+                 usecols=[column] )
     df = df.sort_values(column)
     p = ggplot(data=df, mapping=aes(x=column))
     hist = p + geom_histogram(binwidth=0.01) +  labs(title=title)
@@ -26,8 +27,8 @@ def plotHist(dataFile,resultFile,column="name of the column", title = "no legend
     return
 
 def saveYamlResults(files, yamlStruct):
-    """
-    Creates two files from the given yanlStruct
+    """ Creates two files from the given yanlStruct
+
     files is the name of the structure without samples. Samples are expected in "samples"
     files.removedSamples with yamlStruct["samples"] intact
     Side effect: Deletes yamlStruct["samples"]
@@ -41,7 +42,8 @@ def saveYamlResults(files, yamlStruct):
 
     
 def plinkBase(path):
-    """
+    """ part of the file without the last extention (such as .fam .bed .bim)
+
     plink often works on a trunk and creates extra files: a becomes a.fam, a.bed, a.bid
     This function reates this trunk, so /foo/bar/gazonk.fam becomes /foo/bar/gazonk
     The resulting trunk is typically used as input to plink
@@ -53,7 +55,7 @@ def plinkBase(path):
 def lt(a,b):
     return a < b
 def eq(a,b):
-    return a==b
+    return a == b
 def gt(a,b):
     return a > b
 def unknownComp(a,b):
@@ -70,10 +72,11 @@ compOperands = {
 }
 
 
-def extractSampleList(innFile, sampleFile, subsetFile = "/dev/null", 
-                      colName = "none", sep = '\t', condition = "<", treshold = 0, cols = {1}, ):
-    """
-    A typical preprocessor to utilities like plink. Efficient in the sense that it 
+def extractSampleList(innFile, sampleFile, subsetFile="/dev/null", 
+                      colName="none", sep='\t', condition="<", treshold=0, cols={1}, ):
+    """ A typical preprocessor to utilities like plink.
+
+    Efficient in the sense that it 
     is not reading the (huge) files into memory.
     Takes a csv file innFile (first line with headers, seperator is paramneter "sep") and produces 
     * a sample list on sampleFile (one columun, for now hardcoded to column 0)
@@ -148,17 +151,19 @@ def dictFromFile(fil,cols=[0,1]):
     if max>1 : print("WARNING: sample " + str(sample) + " found " + str(max) + "times. Might not be the only nonunique")
     return countDict
 
-def checkUpdates(preQc, postQc, cols=[0,1], sanityCheck="none", fullList=False, indx = 1):
+def checkUpdates(preQc, postQc, cols=[0,1], sanityCheck="none", fullList=False, indx=1):
     """
     Return number of updates due to a QC-test as structure suited for a export as a yaml-file
-    The scenario is that a QC method/step had a dataset (file indData) and produced outData. Some items got filtered out/changed
+    The scenario is that a QC method/step had a dataset (file indData) and produced outData.
+    Some items got filtered out/changed
     pre/postQC are tab-serparated csv-files with the same amount of columns
     The optional sanityCheck parameter will give error message as follows, depending to its value
        removal: Number of elements taken action on (removed) = size of preQc-postQc
        updated: size of preQc = postQc  
        anything different from the above): No tests performed
     Only columns passed by cols are used to compare input/and output.
-    indx is only necessary if fullList is True. indx is used to genereate a list (usually of samples) from column nr indx
+    indx is only necessary if fullList is True. indx is used to genereate a list (usually of samples)
+    from column nr indx
     Usually, indx is the sample-id. indx=0 is the first column, default is second column. 
 
     The yaml-structure will always contain the number of input samples/markers as well as sample/markers removed/remaining.
@@ -185,13 +190,15 @@ def checkUpdates(preQc, postQc, cols=[0,1], sanityCheck="none", fullList=False, 
             if fullList : result["samples"].append(allcols[indx])    # this is the sample number
 
     if sanityCheck == 'updated':  # for updates, we dont't want to loose samples
-        if (result["out"]) != result["in"] : print(f"Error: {preQc} -> {postQc}: Update expected, but number of samples has changed")        
+        if (result["out"]) != result["in"] : 
+            print(f"Error: {preQc} -> {postQc}: Update expected, but number of samples has changed")        
     elif sanityCheck == 'removal':       # for removals, we want out + removed = in
-        if (result["actionTakenCount"] + result["out"]) != result["in"] : print(f"Error: {preQc} -> {postQc}: remaining + removed samples != original number")
+        if (result["actionTakenCount"] + result["out"]) != result["in"] : 
+            print(f"Error: {preQc} -> {postQc}: remaining + removed samples != original number")
     return result
 
 
-def log(logfile, message = "Nothing logged", mode = "a" ):
+def log(logfile, message="Nothing logged", mode="a"):
     """
     Placeholder until we figure out how logging really needs to be done. Default appends message to logfile
     """
@@ -199,21 +206,14 @@ def log(logfile, message = "Nothing logged", mode = "a" ):
         myfile.write('{:%Y-%m-%d %H:%M:%S} '.format(datetime.datetime.now()) + message)
     return
 
-
-def log(logfile, message = "Nothing logged", mode = "a" ):
-    """
-    Placeholder until we figure out how logging really needs to be done. Default appends message to logfile
-    """
-    with open(logfile, mode) as myfile:
-        myfile.write('{:%Y-%m-%d %H:%M:%S} '.format(datetime.datetime.now()) + message)
-    return
-
-def resultLog(logfile, message = "Nothing logged", mode = "w+" ):
+def resultLog(logfile, message="Nothing logged", mode="w+" ):
     """
     Placeholder until we figure out how results will be reporte. Default creates a new message to logfile
     No formating is done, in contrary to log()
-    Currently it logs to logfile, but also to a global file (always in append-mode) where it also shows the path of the result.
-    The (crude) idea of the global file is to make it easier to make a comple (and prettified) report. The name should be a variable somehow
+    Currently it logs to logfile, but also to a global file (always in append-mode) 
+    where it also shows the path of the result.
+    The (crude) idea of the global file is to make it easier to make a comple (and prettified) report. 
+    The name should be a variable somehow
     Have not tested this with threads, it will probably fail unless you reset the file and use append mode
     """
     with open(logfile, mode) as myfile:
@@ -229,7 +229,7 @@ def _make_gen(reader):
     """
     Used to linecount buffered and fast
     """ 
-    b = reader(1024 * 1024)
+    b = reader(1024*1024)
     while b:
         yield b
         b = reader(1024*1024)
