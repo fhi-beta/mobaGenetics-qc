@@ -33,7 +33,7 @@ def saveYamlResults(files, yamlStruct):
     files.removedSamples with yamlStruct["samples"] intact
     Side effect: Deletes yamlStruct["samples"]
     """
-    fullFile = files + ".removedSamples"
+    fullFile = files + ".details"
     with open(fullFile, 'w') as file:
         yaml.dump(yamlStruct, file)
     # A shorter result version, without sample. 
@@ -138,7 +138,7 @@ def dictFromFile(fil,cols=[0,1]):
     # Grab the relevant columns only
     df = pd.read_csv(fil, usecols=cols, delim_whitespace=True, header=None)
     # concat them as strings, handling NA
-    df = pd.Series(df.fillna('').values.tolist()).map(lambda x: ''.join(map(str,x)))
+    df = pd.Series(df.fillna('NA').values.tolist()).map(lambda x: ' '.join(map(str,x)))
     # ... and finally make a dictionary. Note that we will here also count identical lines.
     countDict = dict()
     max = 0
@@ -148,10 +148,10 @@ def dictFromFile(fil,cols=[0,1]):
             max = countDict[i]
             sample = i
     if len(countDict) == 0 : print("ERROR: 0 sized dictionary after reading ",fil)
-    if max>1 : print("WARNING: sample " + str(sample) + " found " + str(max) + "times. Might not be the only nonunique")
+    if max>1 : print(f"WARNING: sample/marker {sample} found {max} times in {fil}. Might not be the only nonunique ...")
     return countDict
 
-def checkUpdates(preQc, postQc, cols=[0,1], sanityCheck="none", fullList=False, indx=1):
+def checkUpdates(preQc, postQc, cols=[0,1], sanityCheck="none", fullList=False, indx=1, mapFile=""):
     """
     Return number of updates due to a QC-test as structure suited for a export as a yaml-file
     The scenario is that a QC method/step had a dataset (file indData) and produced outData.
@@ -162,39 +162,56 @@ def checkUpdates(preQc, postQc, cols=[0,1], sanityCheck="none", fullList=False, 
        updated: size of preQc = postQc  
        anything different from the above): No tests performed
     Only columns passed by cols are used to compare input/and output.
-    indx is only necessary if fullList is True. indx is used to genereate a list (usually of samples)
+    indx is only necessary if fullList is True. indx is used to genereate a list (usually of samples/markers)
     from column nr indx
     Usually, indx is the sample-id. indx=0 is the first column, default is second column. 
+    mapFile is relevant when fullList=True and is the file that mapped values from preQc to postQc and
+    is used to show what the missing/renamed elements were named before
 
     The yaml-structure will always contain the number of input samples/markers as well as sample/markers removed/remaining.
     An error is print()'ed (shame ...) if number of samples in preQc - "lost in postQc" != number of samples in postQC 
     
     """
     # dictionaly with only relevant columns
-    outDict = dictFromFile(postQc, cols)       
+    outDict = dictFromFile(postQc, cols)
+    haveDict = False
+    if mapFile != "":     # Setting up a dictory so we can lookup the original value if postQc later
+        try: 
+            mapper = pd.read_csv(mapFile, sep="\s+", names=["from","to"])
+            lookup = mapper.set_index('from').to_dict()['to']
+            haveDict = True
+        except:
+            print(f"Could not open mapping file {mapFile}")
+
     result = {
         "in":   0,        # will count lines from the 'in' file
         "out": len(outDict), 
-        "samples": [],    # poplulated by samples if fullList is True
+        "xs": [],    # poplulated later by samples/markers if fullList is True
         "actionTakenCount": 0 # Not found in dictionary, so it is the effect of the qc-rule on the inputfile
         }
 
-    for line in open(preQc): 
+    for line in open(preQc):
         result["in"] += 1 
         allcols = line.split()
         subsetc = [allcols[index] for index in cols]
         # concatenating so we can look up the strings with corresponding field from postQc file
-        key = "".join(map(str,subsetc))
+        key = " ".join(map(str,subsetc))
         if (outDict.get(key,0) == 0):
             result["actionTakenCount"] += 1 
-            if fullList : result["samples"].append(allcols[indx])    # this is the sample number
-
+            if fullList:
+                changed = key  # This item was not found in preQc. We might want to show what value it was changed from
+                if haveDict:
+                    now = lookup.get(allcols[indx],'ooops: missing')
+                    changed = f"{changed} -> {now}"
+                result["xs"].append(changed)    # sample/marker id(s)
+                
     if sanityCheck == 'updated':  # for updates, we dont't want to loose samples
         if (result["out"]) != result["in"] : 
-            print(f"Error: {preQc} -> {postQc}: Update expected, but number of samples has changed")        
+            print(f"Warning: {preQc} -> {postQc}: Update expected, but number of unique items have changed "
+                  f"from {result['in']} to {result['out']}" ) 
     elif sanityCheck == 'removal':       # for removals, we want out + removed = in
         if (result["actionTakenCount"] + result["out"]) != result["in"] : 
-            print(f"Error: {preQc} -> {postQc}: remaining + removed samples != original number")
+            print(f"Warning: {preQc} -> {postQc}: remaining + removed samples != original number")
     return result
 
 
