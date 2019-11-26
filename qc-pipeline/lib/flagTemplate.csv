@@ -1,0 +1,11 @@
+# Configures how the flagfile will look like. 
+# Headers of colums to be used
+Parent_Update:Sex_update
+#
+# Where corresponding results are found (yaml-files typically created by snakemake)
+parentsUpdated.yaml.details:sexUpdated.yaml.details
+#
+# What value to use on match in sample-list of the results
+Yes:Yes
+# What value to use on no-match in sample-list of the results
+No:No
