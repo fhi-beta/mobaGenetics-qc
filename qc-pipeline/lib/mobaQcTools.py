@@ -37,7 +37,7 @@ def saveYamlResults(files, yamlStruct):
     with open(fullFile, 'w') as file:
         yaml.dump(yamlStruct, file)
     # A shorter result version, without sample. 
-    if "samples" in yamlStruct: del yamlStruct["samples"]
+    if "xitems" in yamlStruct: del yamlStruct["xitems"]
     with open(files, 'w') as file: yaml.dump(yamlStruct, file)
 
     
@@ -162,7 +162,7 @@ def lookupDict(fil, indx=1):
     except:
         print(f"Could not open mapping file {fil}")
     indexCol = all[indx]  # get the index column
-    # all = all.drop([indx], axis=1) # drop it and convert columns to string
+    # all = all.drop([indx], axis=1) # drop it - figured out it gave confusing output
     all = all.apply(" ".join, axis=1) # make each row a single string
     return dict(zip(indexCol,all))
 
@@ -197,7 +197,7 @@ def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
     result = {
         "in":   0,        # will count lines from the 'in' file
         "out": len(outDict), 
-        "xs": [],    # poplulated later by samples/markers if fullList is True
+        "xitems": [],    # poplulated later by samples/markers if fullList is True
         "actionTakenCount": 0 # Not found in dictionary, so it is the effect of the qc-rule on the inputfile
         }
     haveDict = False
@@ -205,10 +205,10 @@ def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
                           # lookup the original value if postQc has changed
         lookup = lookupDict(mapFile, mapIndx)
         haveDict = True
-        result["xrenameFile"] = mapFile
-        # import json
-        # print ("Saving lookupdict to lookup.json")
-        # json.dump(lookup, open("lookup.json", 'w' ) )
+        result["mapFile"] = mapFile
+        #import json
+        #print ("Saving lookupdict to lookup.json")
+        #json.dump(lookup, open("lookup.json", 'w' ) )
         
     for line in open(preQc):
         result["in"] += 1 
@@ -218,12 +218,13 @@ def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
         key = " ".join(map(str,subsetc))
         if (outDict.get(key,0) == 0):
             result["actionTakenCount"] += 1 
+            item = str(allcols[indx])    # being the sample or the marker
             if fullList:
-                changed = key  # This item was not found in preQc.
+                changed = f"{item} - had {key}"  # This item was not found in preQc
                 if haveDict:
-                    now = lookup.get(str(allcols[indx]), 'ooops: missing')
-                    changed = f'"{changed}" changed {allcols[indx]} mapping {now}'
-                result["xs"].append(changed)    # sample/marker id(s)
+                    mappingRule = lookup.get(item, 'ooops: missing')
+                    changed = f'{changed} changed by mapping {mappingRule}'
+                result["xitems"].append(changed)    # sample/marker id(s)
                 
     if sanityCheck == 'updated':  # for updates, we dont't want to loose samples
         if (result["out"]) != result["in"] : 
