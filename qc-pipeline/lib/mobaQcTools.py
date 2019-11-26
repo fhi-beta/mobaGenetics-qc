@@ -151,7 +151,24 @@ def dictFromFile(fil,cols=[0,1]):
     if max>1 : print(f"WARNING: sample/marker {sample} found {max} times in {fil}. Might not be the only nonunique ...")
     return countDict
 
-def checkUpdates(preQc, postQc, cols=[0,1], sanityCheck="none", fullList=False, indx=1, mapFile=""):
+def lookupDict(fil, indx=1):
+    """ Creates a lookup dictionary from fil, width column indx as index
+
+    fil is a whtiespoce separated csv
+    indx is the column that you will lookup on later, 0 is the first column
+    """
+    try: 
+        all = pd.read_csv(fil, sep="\s+", header=None).astype(str)
+    except:
+        print(f"Could not open mapping file {fil}")
+    indexCol = all[indx]  # get the index column
+    # all = all.drop([indx], axis=1) # drop it and convert columns to string
+    all = all.apply(" ".join, axis=1) # make each row a single string
+    return dict(zip(indexCol,all))
+
+
+def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
+                 fullList=False,  mapFile="", mapIndx=1):
     """
     Return number of updates due to a QC-test as structure suited for a export as a yaml-file
     The scenario is that a QC method/step had a dataset (file indData) and produced outData.
@@ -164,9 +181,12 @@ def checkUpdates(preQc, postQc, cols=[0,1], sanityCheck="none", fullList=False, 
     Only columns passed by cols are used to compare input/and output.
     indx is only necessary if fullList is True. indx is used to genereate a list (usually of samples/markers)
     from column nr indx
-    Usually, indx is the sample-id. indx=0 is the first column, default is second column. 
-    mapFile is relevant when fullList=True and is the file that mapped values from preQc to postQc and
-    is used to show what the missing/renamed elements were named before
+    indx is sample-id/marker-id. indx=0 is the first column, default is second column. 
+    mapFile is relevant when fullList=True and is the file that mapped values from preQc to postQc 
+    and is used to show what the missing/renamed elements were named before
+    mapIndx indicates the column of the mapFile that corresponds to indx in the datafile
+    
+
 
     The yaml-structure will always contain the number of input samples/markers as well as sample/markers removed/remaining.
     An error is print()'ed (shame ...) if number of samples in preQc - "lost in postQc" != number of samples in postQC 
@@ -174,22 +194,22 @@ def checkUpdates(preQc, postQc, cols=[0,1], sanityCheck="none", fullList=False, 
     """
     # dictionaly with only relevant columns
     outDict = dictFromFile(postQc, cols)
-    haveDict = False
-    if mapFile != "":     # Setting up a dictory so we can lookup the original value if postQc later
-        try: 
-            mapper = pd.read_csv(mapFile, sep="\s+", names=["from","to"])
-            lookup = mapper.set_index('from').to_dict()['to']
-            haveDict = True
-        except:
-            print(f"Could not open mapping file {mapFile}")
-
     result = {
         "in":   0,        # will count lines from the 'in' file
         "out": len(outDict), 
         "xs": [],    # poplulated later by samples/markers if fullList is True
         "actionTakenCount": 0 # Not found in dictionary, so it is the effect of the qc-rule on the inputfile
         }
-
+    haveDict = False
+    if mapFile != "":     # Setting up a dictionary 'lookup' to 
+                          # lookup the original value if postQc has changed
+        lookup = lookupDict(mapFile, mapIndx)
+        haveDict = True
+        result["xrenameFile"] = mapFile
+        # import json
+        # print ("Saving lookupdict to lookup.json")
+        # json.dump(lookup, open("lookup.json", 'w' ) )
+        
     for line in open(preQc):
         result["in"] += 1 
         allcols = line.split()
@@ -199,10 +219,10 @@ def checkUpdates(preQc, postQc, cols=[0,1], sanityCheck="none", fullList=False, 
         if (outDict.get(key,0) == 0):
             result["actionTakenCount"] += 1 
             if fullList:
-                changed = key  # This item was not found in preQc. We might want to show what value it was changed from
+                changed = key  # This item was not found in preQc.
                 if haveDict:
-                    now = lookup.get(allcols[indx],'ooops: missing')
-                    changed = f"{changed} -> {now}"
+                    now = lookup.get(str(allcols[indx]), 'ooops: missing')
+                    changed = f'"{changed}" changed {allcols[indx]} mapping {now}'
                 result["xs"].append(changed)    # sample/marker id(s)
                 
     if sanityCheck == 'updated':  # for updates, we dont't want to loose samples

@@ -24,7 +24,7 @@ rule update_sample_ids:
                 "--update-ids", input.recode,
                 "--out", outTrunk ,
                 "--make-bed"        ])
-        updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols=[0,1], sanityCheck="updated", fullList=True, mapFile=input.recode) 
+        updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols=[0,1], indx=1, sanityCheck="updated", fullList=True, mapFile=input.recode, mapIndx=1) 
         updated["QC test"] = "Update sample ids"
         updated["Description"] = "Mapping lab ids to moba ids"
         updated["Snakemake rule"] = "update_sample_ids"
@@ -51,7 +51,7 @@ rule update_parents:
         updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols=[1,2,3], sanityCheck = "updated",
                                    fullList = True, mapFile=input.recode) 
         updated["QC test"] = "Update parents"
-        updated["Description"] = "Parents updated using to moba information"
+        updated["Description"] = "Parents updated based on moba information"
         updated["Snakemake rule"] = "update_parents"
         mqc.saveYamlResults(output.results, updated)
         mqc.log(runlog,f'Sample id: Updated {updated["actionTakenCount"]} samples (NIND_NOTUPDATEDPAR) out of {updated["in"]} (NIND_TOUPDATEPAR)\n')
@@ -77,7 +77,8 @@ rule update_sex:
                 "--make-bed"
         ])
         # Checking how many of the original samples we still have
-        updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [1,4], sanityCheck = "updated", fullList = True) 
+        updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [1,4], indx=1, sanityCheck = "updated",
+                                   fullList = True, mapFile=input.recode, mapIndx=1) 
         updated["QC test"] = "Update sex"
         updated["Description"] = "Gender updated using to moba information"
         updated["Snakemake rule"] = "update_sex"
@@ -275,7 +276,7 @@ rule fix_technical_markers:
         resultsSnp = report(resultPath/"snp2rsID.yaml",category="Module 1 Data Conversion"),
         resultsChr0 = report(resultPath/"remove_chr0.yaml",category="Module 1 Data Conversion")
     run:
-        mqc.log(runlog, "Updating techincal markers (SNP->rsID + chromosome 0)\n")
+        mqc.log(runlog, "Updating techincal markers (SNP->rsID + removing chromosome 0)\n")
         inTrunk =  mqc.plinkBase(input.in_bedset[0])
         outTrunk =  mqc.plinkBase(output.out_bedset[0])
         # since we will perform two operations, we need a temporary trunk
@@ -289,8 +290,8 @@ rule fix_technical_markers:
         ])
 
         # Checking how many markers we updated on this step
-        updated = mqc.checkUpdates(inTrunk+".bim",rsidTrunk+".bim",cols=[0,1,3,4,5],
-                                   sanityCheck="updated", fullList=True, mapFile=input.recode_rsid) 
+        updated = mqc.checkUpdates(inTrunk+".bim",rsidTrunk+".bim",cols=[0,1,4,5],      
+                                   sanityCheck="updated", fullList=True, mapFile=input.recode_rsid, mapIndx=0) 
         updated["QC test"] = "Updating SNP -> rsID"
         updated["Description"] = ""
         updated["Snakemake rule"] = "fix_technical_markers"
@@ -308,7 +309,7 @@ rule fix_technical_markers:
 
         # Checking how many markers/chromosone 0 we removed  on this step
         dropouts = mqc.checkUpdates(rsidTrunk+".bim", outTrunk+".bim", [0,1,3,4,5],
-                                    sanityCheck="removed", fullList=True) 
+                                    sanityCheck="removed", fullList=False) 
         dropouts["QC test"] = "Removing chromosone 0"
         dropouts["Description"] = ""
         dropouts["Snakemake rule"] = "fix_technical_markers"
