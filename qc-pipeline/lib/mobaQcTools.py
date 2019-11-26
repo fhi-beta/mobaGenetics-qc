@@ -159,8 +159,8 @@ def lookupDict(fil, indx=1):
     """
     try: 
         all = pd.read_csv(fil, sep="\s+", header=None).astype(str)
-    except:
-        print(f"Could not open mapping file {fil}")
+    except Exception as e:
+        print(f"Could not open mapping file {fil}, {str(e)}")
     indexCol = all[indx]  # get the index column
     # all = all.drop([indx], axis=1) # drop it - figured out it gave confusing output
     all = all.apply(" ".join, axis=1) # make each row a single string
