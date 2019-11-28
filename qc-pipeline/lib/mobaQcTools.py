@@ -124,11 +124,14 @@ def extractSampleList(innFile, sampleFile, subsetFile="/dev/null",
     
 
     
-def dictFromFile(fil,cols=[0,1]):
+def dict_count_items(fil, cols=[0,1]):
     """
-    Creates a dictionary from the concatenation of the values in the columns found in fil.
+    Creates a dictionary with as key concatenation of the strings of the columns found in fil.
+    Values are the number of times that key is found
+    Returns the dictionary and the largest key value. In many scenarios, 1 is wanted here,
+    meaning no duplicates. 
     fil is expected to be a csv file with whitespace as delimiters
-    First Column is number 0.
+    First Column in the file is number 0 (standar Python)
     (Hint for when this is used to compare the columns of two files: You can reduce memory usage by 
     making a dictionary of the smallest file and searchin/iterating for matches through the largest
 
@@ -136,20 +139,23 @@ def dictFromFile(fil,cols=[0,1]):
     """
     # pandas is overkill here, but since we will use it anyway ...
     # Grab the relevant columns only
-    df = pd.read_csv(fil, usecols=cols, delim_whitespace=True, header=None)
+    try: 
+        df = pd.read_csv(fil, usecols=cols, delim_whitespace=True, header=None)
+    except Exception as e:
+        print(f"Could not open file {fil}, {str(e)}")        
     # concat them as strings, handling NA
     df = pd.Series(df.fillna('NA').values.tolist()).map(lambda x: ' '.join(map(str,x)))
     # ... and finally make a dictionary. Note that we will here also count identical lines.
     countDict = dict()
-    max = 0
+    maxHits = 0
     for i in df:  
         countDict[i] = countDict.get(i,0) + 1
-        if ( countDict[i]) > max : 
-            max = countDict[i]
+        if ( countDict[i]) > maxHits : 
+            maxHits = countDict[i]
             sample = i
     if len(countDict) == 0 : print("ERROR: 0 sized dictionary after reading ",fil)
-    if max>1 : print(f"WARNING: sample/marker {sample} found {max} times in {fil}. Might not be the only nonunique ...")
-    return countDict
+    if maxHits>1 : print(f"WARNING: sample/marker {sample} found {maxHits} times in {fil}. Might not be the only nonunique ...")
+    return countDict, maxHits
 
 def lookupDict(fil, indx=1):
     """ Creates a lookup dictionary from fil, width column indx as index
@@ -193,7 +199,7 @@ def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
     
     """
     # dictionaly with only relevant columns
-    outDict = dictFromFile(postQc, cols)
+    (outDict,m) = dict_count_items(postQc, cols)
     result = {
         "in":   0,        # will count lines from the 'in' file
         "out": len(outDict), 
@@ -280,3 +286,10 @@ def lineCount(filename):
     f = open(filename, 'rb')
     f_gen = _make_gen(f.raw.read)
     return sum( buf.count(b'\n') for buf in f_gen )
+
+def detect_duplicate_markers(bim_file):
+    """
+    In bim_file, first check if the variant identifiser, to make sure it is unique
+    """
+    (d,duplicates) = dict_count_items(bim_file, cols=[1])
+    print (f"Got {duplicates} back in {bim_file}")
