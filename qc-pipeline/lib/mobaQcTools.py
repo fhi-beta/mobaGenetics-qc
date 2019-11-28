@@ -154,7 +154,7 @@ def dictFromFile(fil,cols=[0,1]):
 def lookupDict(fil, indx=1):
     """ Creates a lookup dictionary from fil, width column indx as index
 
-    fil is a whtiespoce separated csv
+    fil is a whitespice separated csv
     indx is the column that you will lookup on later, 0 is the first column
     """
     try: 
