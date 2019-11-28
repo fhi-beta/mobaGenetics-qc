@@ -42,12 +42,26 @@ rule sanity_check_snp:
     input:
         in_bedset = rules.remove_chr0.output.out_bedset,
     output:
-        results = resultPath/"snpSanity.yaml",category="Module 1 Data Conversion"
+        excludeList = base/'mod1-data-preparation/tmp/duplicates_removed.txt'
+        #results = resultPath/"snpSanity.yaml",category="Module 1 Data Conversion"
     run:
         inTrunk = mqc.plinkBase(input.in_bedset[0])
-        mqc.detect_duplicate_markers(inTrunk+".bim")
+        dups = mqc.detect_duplicate_markers(inTrunk+".bim")
+        if dups is not None:
+            # do a calling
+            print("plink calling later")
+            
+        mqc.create_exclude_list(dups, Path(output.excludeList))
 
+# Fix this:
+#     subprocess.run([plinklocal,
+#                 "--bfile",inTrunk,
+#                 "--exclude", input.dup_remove_list,
+#                 "--out", outTrunk,
+#                 "--make-bed"
+#         ])
 
+        
 
 
 rule update_sample_ids:

@@ -303,6 +303,9 @@ def detect_duplicate_markers(bim_file):
     # clean up so we only have duplicates markers left
     m = {k:m[k] for k in m if m[k] > 1}
     print(f"{bim_file} contained {len(m)} duplicate ids (up to {duplicates})")
+    if len(m) == 0:
+        return  #Lucky us, no duplicates
+    
     # Convert dictonary to a pandas frame
     dupMarkers = pd.Series(m, name='dups').to_frame()
 
@@ -318,8 +321,11 @@ def detect_duplicate_markers(bim_file):
 
     dupMarkers = dupMarkers.merge(bim, left_index=True, right_on='position')
     print (dupMarkers)
-    
-    #for key in m:
-    #    print(f"{m[key]}: {key}")
+    return dupMarkers
 
-    
+def create_exclude_list(df, outputfile):
+    """
+    """
+    print (f"Will make removal-list on {outputfile}. But anotherday... ")
+    outputfile.touch()
+
