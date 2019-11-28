@@ -290,6 +290,36 @@ def lineCount(filename):
 def detect_duplicate_markers(bim_file):
     """
     In bim_file, first check if the variant identifiser, to make sure it is unique
+    Finds duplicate markers, maps them to name used in bim file
     """
-    (d,duplicates) = dict_count_items(bim_file, cols=[1])
-    print (f"Got {duplicates} back in {bim_file}")
+    (m,duplicates) = dict_count_items(bim_file, cols=[1])
+    if duplicates > 1:
+        print(f"{bim_file} contained duplicate ids (up to {duplicates})")
+        return
+
+    
+    (m,duplicates) = dict_count_items(bim_file, cols=[0,3,4,5])
+    # m  is markers dictionalry value > 1 means the marker is duplicate
+    # clean up so we only have duplicates markers left
+    m = {k:m[k] for k in m if m[k] > 1}
+    print(f"{bim_file} contained {len(m)} duplicate ids (up to {duplicates})")
+    # Convert dictonary to a pandas frame
+    dupMarkers = pd.Series(m, name='dups').to_frame()
+
+    print(f"Dupmarkers : {dupMarkers}\n")
+    # Now find mapping between marker, and nickname used
+    bim =  pd.read_csv(bim_file, sep="\s+", header=None,
+                       usecols=[0,1,3,4,5],names=['chr','nick','pos','al1','al2']).astype(str)
+    # Reducing this to two columns, one concatenated 'position' and one name/nick/rsdid
+    bim = pd.concat([bim['chr'] + " " + bim['pos'] + " " + bim['al1'] + " " + bim['al2']
+                     ,bim['nick']],axis=1)
+    bim.columns=['position','nick'] 
+    print(bim)
+
+    dupMarkers = dupMarkers.merge(bim, left_index=True, right_on='position')
+    print (dupMarkers)
+    
+    #for key in m:
+    #    print(f"{m[key]}: {key}")
+
+    
