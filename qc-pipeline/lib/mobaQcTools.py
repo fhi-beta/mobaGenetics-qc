@@ -323,7 +323,7 @@ def detect_duplicate_markers(bim_file):
     print (dupMarkers)
     return dupMarkers
 
-def create_exclude_list(df, outputfile):
+def create_exclude_list(df, callRates, outputfile):
     """
     """
     print (f"Will make removal-list on {outputfile}. But anotherday... ")
