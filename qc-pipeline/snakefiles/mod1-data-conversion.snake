@@ -8,15 +8,15 @@ import yaml  # you might be able to remove this ...
 
 rule remove_chr0:
     input:
-        in_bedset=expand(config['raw_bed_stem'] + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=expand(config['raw_bed_stem'] + '{ext}', ext=['.bed','.bim','.fam']),
     output:
-        out_bedset=expand(str(tmpMod1/'chr0_removed')
+        bedset=expand(str(tmpMod1/'chr0_removed')
                           + '{ext}', ext=['.bed','.bim','.fam']),
         resultsChr0 = report(resultPath/"remove_chr0.yaml",category="Module 1 Data Conversion")
     run:
         mqc.log(runlog, "Updating techincal markers (Removing chromosome 0)\n")
-        inTrunk =  mqc.plinkBase(input.in_bedset[0])
-        outTrunk =  mqc.plinkBase(output.out_bedset[0])
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
 
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
@@ -40,16 +40,16 @@ rule remove_chr0:
 
 rule update_sample_ids:
     input:
-        in_bedset=rules.remove_chr0.output.out_bedset,
+        bedset=rules.remove_chr0.output.bedset,
         recode=config['recode_ids']
     output:
-        out_bedset=expand(str(base  / 'mod1-data-preparation/tmp/sample_id_updated') + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=expand(str(base  / 'mod1-data-preparation/tmp/sample_id_updated') + '{ext}', ext=['.bed','.bim','.fam']),
         results = report(resultPath/"sampleIdUpdated.yaml",category="Module 1 Data Conversion")
     run:
         mqc.log(runlog, "*** Module 1 Data Conversion ***\n")
         mqc.log(runlog, "Updating sample ids: \n")
-        inTrunk = mqc.plinkBase(input.in_bedset[0])
-        outTrunk = mqc.plinkBase(output.out_bedset[0])
+        inTrunk = mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
 
 
         subprocess.run([plinklocal,
@@ -66,15 +66,15 @@ rule update_sample_ids:
 
 rule update_parents:
     input:
-        in_bedset=rules.update_sample_ids.output.out_bedset,
+        bedset=rules.update_sample_ids.output.bedset,
         recode=config['recode_parents']
     output:
-        out_bedset=expand(str(tmpMod1/'parents-updated') + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=expand(str(tmpMod1/'parents-updated') + '{ext}', ext=['.bed','.bim','.fam']),
         results = report(resultPath/"parentsUpdated.yaml",category="Module 1 Data Conversion")
     run:
         mqc.log(runlog, "Update parents: \n")
-        inTrunk =  mqc.plinkBase(input.in_bedset[0])
-        outTrunk =  mqc.plinkBase(output.out_bedset[0])
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
                 "--update-parents", input.recode,
@@ -92,16 +92,16 @@ rule update_parents:
 
 rule update_sex:
     input:
-        in_bedset=rules.update_parents.output.out_bedset,
+        bedset=rules.update_parents.output.bedset,
         recode = config['recode_sex']
     output:
-        out_bedset = expand(str(tmpMod1/'sex-updated') + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset = expand(str(tmpMod1/'sex-updated') + '{ext}', ext=['.bed','.bim','.fam']),
         results = report(resultPath/"sexUpdated.yaml",category="Module 1 Data Conversion")
         
     run:
         mqc.log(runlog, "Update sex: \n")
-        inTrunk =  mqc.plinkBase(input.in_bedset[0])
-        outTrunk =  mqc.plinkBase(output.out_bedset[0])
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
 
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
@@ -122,31 +122,42 @@ rule update_sex:
 # Check for duplicate markers, and remove all but one (keep best callrate)
 rule remove_duplicate_markers:
     input:
-        in_bedset = rules.update_sex.output.out_bedset,
+        bedset = rules.update_sex.output.bedset,
     output:
-        excludeList = tmpMod1/'duplicates_removed.txt'
-        #results = resultPath/"snpSanity.yaml",category="Module 1 Data Conversion"
+        bedset=expand(str(tmpMod1/'dup_markers_removed') + '{ext}', ext=['.bed','.bim','.fam']),
+        excludeList = tmpMod1/'duplicates_removed.txt',
+        resultDetails = resultPath/'duplicates_removed.csv',
+        results = report(resultPath/"duplicates_removed.yaml",category="Module 1 Data Conversion"),
     run:
-        inTrunk = mqc.plinkBase(input.in_bedset[0])
-        callRateTrunk = tmpMod1/'callRate'
+        inTrunk = mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
+        callRateTrunk = mqc.plinkBase(output.excludeList)
         dups = mqc.detect_duplicate_markers(inTrunk+".bim")
         if dups is not None:
-            print(f"Add callRate to ouput calling later AND uncomment plink AND fix callRateTrunk")
             subprocess.run([plinklocal,
-                            "--bfile", inTrunk,
-                            "--out", callRateTrunk,
-                            "--missing"
+                             "--bfile", inTrunk,
+                             "--out", callRateTrunk,
+                             "--missing"
             ])
 
             
-        mqc.create_exclude_list(dups, callRateTrunk/".lmiss", Path(output.excludeList))
+        mqc.create_exclude_list(dups, callRateTrunk+".lmiss",
+                                output.resultDetails, output.excludeList)
 
-        #             subprocess.run([plinklocal,
-        #                     "--bfile",inTrunk,
-        #                     "--exclude", input.dup_remove_list,
-        #                     "--out", outTrunk,
-        #                     "--make-bed"
-        # ])
+        subprocess.run([plinklocal,
+                        "--bfile",inTrunk,
+                        "--exclude", output.excludeList,
+                        "--out", outTrunk,
+                        "--make-bed"
+        ])
+        # We are here checking only the snp-id. It should be unique
+        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [1], sanityCheck = "removal", fullList = False) 
+        dropouts["QC test"] = "Remove duplicate markers"
+        dropouts["Description"] = "When duplicate markers are found, only the one with best call rating is kept"
+        dropouts["Detailed results"] = output.resultDetails
+        dropouts["Snakemake rule"] = "remove_duplicate_markers"
+        mqc.saveYamlResults(output.results, dropouts)
+        mqc.log(runlog, f'Due to duplicate markers, removed {dropouts["actionTakenCount"]} markers out of {dropouts["in"]}, leaving {dropouts["out"]} markers\n')
 
 
 
@@ -154,10 +165,10 @@ rule remove_duplicate_markers:
 # Remove markers on snp table metrics
 rule remove_markers_cluster_sep:
     input:
-        in_bedset = rules.update_sex.output.out_bedset,
+        bedset = rules.update_sex.output.bedset,
         snptable=config['snptable']
     output:
-        out_bedset=expand(str(tmpMod1/'clustersep_removal') + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=expand(str(tmpMod1/'clustersep_removal') + '{ext}', ext=['.bed','.bim','.fam']),
         results = report(resultPath/"clustersep_removal.yaml",category="Module 1 Data Conversion"),
         plot = report(resultPath/"clustersep_removal_hist.png",category="Module 1 Data Conversion"),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
@@ -166,8 +177,8 @@ rule remove_markers_cluster_sep:
     message: "mod1 Remove markers by cluster metrics" 
     run:
         mqc.log(runlog, "Remove snp table metrics (CLUSTERSEP)\n")
-        inTrunk =  mqc.plinkBase(input.in_bedset[0])
-        outTrunk =  mqc.plinkBase(output.out_bedset[0])
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
 
         treshold = config['cluster_sep_thr']
         # identify markers for removal on cluster separation
@@ -201,10 +212,10 @@ rule remove_markers_cluster_sep:
         
 rule remove_markers_gc_score:
     input:
-        in_bedset = rules.remove_markers_cluster_sep.output.out_bedset,
+        bedset = rules.remove_markers_cluster_sep.output.bedset,
         snptable=config['snptable']
     output:
-        out_bedset=expand(str(tmpMod1/'gcscore_removal') + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=expand(str(tmpMod1/'gcscore_removal') + '{ext}', ext=['.bed','.bim','.fam']),
         results = report(resultPath/"gcscore10p_removal.yaml" ,category="Module 1 Data Conversion"),
         plot = report(resultPath/"gcscore10p_removal_hist.png",category="Module 1 Data Conversion"),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
@@ -213,8 +224,8 @@ rule remove_markers_gc_score:
     run:
         mqc.log(runlog, "Removing markers based on 10% GC score\n")
 
-        inTrunk =  mqc.plinkBase(input.in_bedset[0])
-        outTrunk =  mqc.plinkBase(output.out_bedset[0])
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
         treshold = config['10%_GC_score_thr']
         # identify markers for removal 
         (removed,total) = mqc.extractSampleList(input.snptable, 
@@ -247,10 +258,10 @@ rule remove_markers_gc_score:
 
 rule remove_markers_aa_theta_dev:
     input:
-        in_bedset = rules.remove_markers_gc_score.output.out_bedset,
+        bedset = rules.remove_markers_gc_score.output.bedset,
         snptable=config['snptable']
     output:
-        out_bedset=expand(str(tmpMod1/'aa_theta_removal') + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=expand(str(tmpMod1/'aa_theta_removal') + '{ext}', ext=['.bed','.bim','.fam']),
         results = report(resultPath/"aa_theta_removal.yaml",category="Module 1 Data Conversion"),
         plot = report(resultPath/"aa_theta_removal_hist.png",category="Module 1 Data Conversion"),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
@@ -258,8 +269,8 @@ rule remove_markers_aa_theta_dev:
         removal_markers = tmpMod1/'aa_theta_removal.samples.txt',
     run:
         mqc.log(runlog, "Removing markers based on AA theta dev\n")
-        inTrunk =  mqc.plinkBase(input.in_bedset[0])
-        outTrunk =  mqc.plinkBase(output.out_bedset[0])
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
 
         treshold = config['aa_theta_dev_thr']
         # identify markers for removal 

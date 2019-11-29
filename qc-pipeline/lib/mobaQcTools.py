@@ -27,11 +27,11 @@ def plotHist(dataFile, resultFile, column="name of the column", title="no legend
     return
 
 def saveYamlResults(files, yamlStruct):
-    """ Creates two files from the given yanlStruct
+    """ Creates two files from the given yamlStruct
 
-    files is the name of the structure without samples. Samples are expected in "samples"
-    files.removedSamples with yamlStruct["samples"] intact
-    Side effect: Deletes yamlStruct["samples"]
+    "files.removedSamples" has yamlStruct["samples"] intact
+    "files" is the name of the structure without samples. Samples are expected in "samples"
+    Side effect: Deletes yamlStruct["xitems"]
     """
     fullFile = files + ".details"
     with open(fullFile, 'w') as file:
@@ -124,12 +124,13 @@ def extractSampleList(innFile, sampleFile, subsetFile="/dev/null",
     
 
     
-def dict_count_items(fil, cols=[0,1]):
+def dict_count_items(fil, cols=[0,1], warn=True):
     """
     Creates a dictionary with as key concatenation of the strings of the columns found in fil.
     Values are the number of times that key is found
     Returns the dictionary and the largest key value. In many scenarios, 1 is wanted here,
     meaning no duplicates. 
+    if warn=True, will warn about key value > 1
     fil is expected to be a csv file with whitespace as delimiters
     First Column in the file is number 0 (standar Python)
     (Hint for when this is used to compare the columns of two files: You can reduce memory usage by 
@@ -142,7 +143,8 @@ def dict_count_items(fil, cols=[0,1]):
     try: 
         df = pd.read_csv(fil, usecols=cols, delim_whitespace=True, header=None)
     except Exception as e:
-        print(f"Could not open file {fil}, {str(e)}")        
+        print(f"Could not open file {fil}, {str(e)}")
+        return
     # concat them as strings, handling NA
     df = pd.Series(df.fillna('NA').values.tolist()).map(lambda x: ' '.join(map(str,x)))
     # ... and finally make a dictionary. Note that we will here also count identical lines.
@@ -154,7 +156,7 @@ def dict_count_items(fil, cols=[0,1]):
             maxHits = countDict[i]
             sample = i
     if len(countDict) == 0 : print("ERROR: 0 sized dictionary after reading ",fil)
-    if maxHits>1 : print(f"WARNING: sample/marker {sample} found {maxHits} times in {fil}. Might not be the only nonunique ...")
+    if maxHits>1 and warn: print(f"WARNING: sample/marker {sample} found {maxHits} times in {fil}. Might not be the only nonunique ...")
     return countDict, maxHits
 
 def lookupDict(fil, indx=1):
@@ -164,9 +166,10 @@ def lookupDict(fil, indx=1):
     indx is the column that you will lookup on later, 0 is the first column
     """
     try: 
-        all = pd.read_csv(fil, sep="\s+", header=None).astype(str)
+        all = pd.read_csv(fil, delim_whitespace=True, header=None).astype(str)
     except Exception as e:
         print(f"Could not open mapping file {fil}, {str(e)}")
+        return
     indexCol = all[indx]  # get the index column
     # all = all.drop([indx], axis=1) # drop it - figured out it gave confusing output
     all = all.apply(" ".join, axis=1) # make each row a single string
@@ -192,10 +195,7 @@ def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
     and is used to show what the missing/renamed elements were named before
     mapIndx indicates the column of the mapFile that corresponds to indx in the datafile
     
-
-
     The yaml-structure will always contain the number of input samples/markers as well as sample/markers removed/remaining.
-    An error is print()'ed (shame ...) if number of samples in preQc - "lost in postQc" != number of samples in postQC 
     
     """
     # dictionaly with only relevant columns
@@ -294,38 +294,68 @@ def detect_duplicate_markers(bim_file):
     """
     (m,duplicates) = dict_count_items(bim_file, cols=[1])
     if duplicates > 1:
-        print(f"{bim_file} contained duplicate ids (up to {duplicates})")
+        print(f"{bim_file} contained duplicate ids (up to {duplicates}-tuples)")
         return
 
     
-    (m,duplicates) = dict_count_items(bim_file, cols=[0,3,4,5])
+    (m,duplicates) = dict_count_items(bim_file, cols=[0,3,4,5], warn=False)
     # m  is markers dictionalry value > 1 means the marker is duplicate
     # clean up so we only have duplicates markers left
     m = {k:m[k] for k in m if m[k] > 1}
-    print(f"{bim_file} contained {len(m)} duplicate ids (up to {duplicates})")
+    print(f"{bim_file} contained {len(m)} duplicate ids (up to {duplicates}-tuples)")
     if len(m) == 0:
         return  #Lucky us, no duplicates
     
     # Convert dictonary to a pandas frame
     dupMarkers = pd.Series(m, name='dups').to_frame()
 
-    print(f"Dupmarkers : {dupMarkers}\n")
     # Now find mapping between marker, and nickname used
-    bim =  pd.read_csv(bim_file, sep="\s+", header=None,
+    bim =  pd.read_csv(bim_file, delim_whitespace=True, header=None,
                        usecols=[0,1,3,4,5],names=['chr','nick','pos','al1','al2']).astype(str)
     # Reducing this to two columns, one concatenated 'position' and one name/nick/rsdid
     bim = pd.concat([bim['chr'] + " " + bim['pos'] + " " + bim['al1'] + " " + bim['al2']
                      ,bim['nick']],axis=1)
     bim.columns=['position','nick'] 
-    print(bim)
 
     dupMarkers = dupMarkers.merge(bim, left_index=True, right_on='position')
-    print (dupMarkers)
     return dupMarkers
 
-def create_exclude_list(df, callRates, outputfile):
+def create_exclude_list(df, callRates, resultfile, excludelist):
     """
+    Based on a df (made by detect_duplciate_markers), will create a detailed
+    list (resultfile) with details on why the marker was excluded.
+    Will also provide a simpler file (excludelist) suitable for plink so it can
+    remove duplicates.
+    If no df is passed (meaning no duplicates), empty files are created.
     """
-    print (f"Will make removal-list on {outputfile}. But anotherday... ")
-    outputfile.touch()
+    if df is None:
+        # Special case, no duplicates
+        mt = Path(resultfile)
+        # From python 3.8, use unlink(missing_ok=True) . for now, live with the uglyness
+        mt.touch()
+        mt.unlink()
+        mt.touch()
+        mt = Path(excludelist)
+        mt.touch()
+        mt.unlink()
+        mt.touch()
+        return
+    try: 
+        calls = pd.read_csv(callRates, usecols=[1,4],
+                            delim_whitespace=True)
+    except Exception as e:
+        print(f"Could not open file {callRates}, {str(e)}")        
+        return
 
+    # include call info to duplicate list
+    all = df.merge(calls, left_on='nick',right_on='SNP')
+    
+    # sort, group and grab the largest
+    drop=all.sort_values(by=['position','F_MISS'],
+                         ascending=False).groupby('position').apply(lambda g: g.iloc[1:])
+    # Result file
+    drop.loc[:,['position', 'SNP','F_MISS']].to_csv(resultfile,sep=" ", index=False)
+    # snp idents plink laters can use
+    drop.loc[:,['SNP']].to_csv(excludelist,sep=" ", index=False, header=False)
+    print ("**** .... and we should make a yaml file with summary in it")
+    
