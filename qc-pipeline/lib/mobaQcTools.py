@@ -18,8 +18,14 @@ def plotHist(dataFile, resultFile, column="name of the column", title="no legend
     Very basic Histogram. Could be prettied up a lot
     Prints out lots of warning, but see https://stackoverflow.com/questions/55805431/is-there-a-way-to-prevent-plotnine-from-printing-user-warnings-when-saving-ggplo
     """
-    df = pd.read_csv(dataFile, sep="\t",
+    try: 
+        df = pd.read_csv(dataFile, delim_whitespace=True, 
                  usecols=[column] )
+    except Exception as e:
+        print(f"Could not read plotdata {column} from {dataFile}, {str(e)}")
+        return
+
+
     df = df.sort_values(column)
     p = ggplot(data=df, mapping=aes(x=column))
     hist = p + geom_histogram(binwidth=0.01) +  labs(title=title)
