@@ -165,7 +165,7 @@ rule remove_duplicate_markers:
 # Remove markers on snp table metrics
 rule remove_markers_cluster_sep:
     input:
-        bedset = rules.update_sex.output.bedset,
+        bedset = rules.remove_duplicate_markers.output.bedset,
         snptable=config['snptable']
     output:
         bedset=expand(str(tmpMod1/'clustersep_removal') + '{ext}', ext=['.bed','.bim','.fam']),

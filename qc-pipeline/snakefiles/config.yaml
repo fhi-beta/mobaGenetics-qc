@@ -15,8 +15,6 @@ cluster_sep_col_name: "GSAMD-24v1-0_20011747_A4.bpm.Cluster Sep"
 aa_theta_dev_thr: 0.04
 aa_theta_dev_col_name: "GSAMD-24v1-0_20011747_A4.bpm.AA T Dev"
 
-# Originally, this was /mnt/archive/ROTTERDAM2/qc/duplicated-marker-removal-list.txt but this file does not exist. The below is a workaround.
-duplicated_markers_list: "/mnt/work/gutorm/qcTest/qcrot2/dummyfiles/duplicated-marker-removal-list.txt"
 hrc_sites: "/mnt/archive/helgeland/refdata/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
 hapmap_stem: "/mnt/archive/helgeland/refdata/hapmap/hapmap_b36/hapmapb36"
 hapmap_pop: "/mnt/archive/helgeland/refdata/hapmap/relationships_w_pops_121708.txt"
