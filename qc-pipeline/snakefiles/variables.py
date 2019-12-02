@@ -11,6 +11,7 @@ tmp_path = os.path.join(config['output_base'],'tmp')
 runlog = Path(config['output_base']) / 'runlog.txt'
 base = Path(config['output_base'])
 tmpMod1 = base/'mod1-data-preparation/tmp/'
+tmpMod2 = base/'mod2-data-preparation/tmp/'
 resultPath = base / "results/"
 
 ### workflow settings ##################################
