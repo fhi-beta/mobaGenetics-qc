@@ -12,11 +12,14 @@ import re
 import datetime
 from pathlib import Path
 
-def plotHist(dataFile, resultFile, column="name of the column", title="no legend??", separator='\s+', treshold=0):
+def plotHist(dataFile, resultFile, column="name of the column", title="no legend??", separator='\s+',
+             treshold=0, logx=False):
     """ plots and saves a historgram
 
     Very basic Histogram. Could be prettied up a lot
     Prints out lots of warning, but see https://stackoverflow.com/questions/55805431/is-there-a-way-to-prevent-plotnine-from-printing-user-warnings-when-saving-ggplo
+    Default separator is whitespice, but it needs to be overriden every now and then ... (typically by pure tab '\t')
+    If (optional) logx is True, x-values are log10 transformed.
     """
     try: 
         df = pd.read_csv(dataFile, sep=separator, 
@@ -31,6 +34,8 @@ def plotHist(dataFile, resultFile, column="name of the column", title="no legend
     hist = p + geom_histogram(binwidth=0.01) + labs(title=title)
     if treshold != 0:
         hist += geom_vline(xintercept=treshold, color='red')
+    if logx:
+        hist += scale_x_log10(name=f"log10({column})")
     ggsave(plot=hist, filename=resultFile, dpi=300)
     return
 
