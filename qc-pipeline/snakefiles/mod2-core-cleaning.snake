@@ -1,15 +1,16 @@
-rule maf_removal_snp:   #Minor allele frequencies removal
+rule maf_removal_markers:   #Minor allele frequencies removal
     input:
         bedset = rules.remove_markers_aa_theta_dev.output.bedset
     output:
-        bedset=expand(str(tmpMod2/'maf_removal_snp')
+        bedset=expand(str(tmpMod2/'maf_removal_markers')
                           + '{ext}', ext=['.bed','.bim','.fam']),
-        results = report(resultPath/"maf_removal_snp.yaml",
+        results = report(resultPath/"maf_removal_markers.yaml",
                          category="Module 2 Core samples and infere pedigree"),
-        plot = report(resultPath/"maf_removal_snp.png",
+        plot = report(resultPath/"maf_removal_markers.png",
                       category="Module 2 Core samples and infere pedigree")
 
     run:
+        items = "markers"
         mqc.log(runlog, "Initial cleaning: Low minor allele frequencies removal(--maf)\n")
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
@@ -22,13 +23,13 @@ rule maf_removal_snp:   #Minor allele frequencies removal
                 "--make-bed"
         ])
         dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
-        dropouts["QC test"] = "Low minor allele frequencies of markers temporarily removed"
+        dropouts["QC test"] = "Low minor allele frequencies of {items} temporarily removed"
         dropouts["Description"] = "(None for now)"
         dropouts["Threshold"] = treshold
-        dropouts["Snakemake rule"] = "maf_removal_snp"
+        dropouts["Snakemake rule"] = "maf_removal_markers"
         mqc.saveYamlResults(output.results, dropouts)
 
-        # call rates for maf will be maf_removal_snp.output.bedset imiss and lmiss
+        # call rates for maf will be maf_removal_markers.output.bedset imiss and lmiss
         subprocess.run([plinklocal,
                 "--bfile", outTrunk,
                 "--missing",
@@ -38,7 +39,7 @@ rule maf_removal_snp:   #Minor allele frequencies removal
         mqc.plotHist(outTrunk+".lmiss", output.plot, "F_MISS", 
             title = f'{dropouts["QC test"]}: Histogram of snp call rates - After snp filtering --maf\n'
                     f'with treshhold {treshold}, {dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} were dropped.\n'
-                     f'At the current point of the QC, {dropouts["out"]} samples are left',
+                     f'At the current point of the QC, {dropouts["out"]} {items} are left',
                      treshold=treshold, logx=True
                      
         )
@@ -46,48 +47,49 @@ rule maf_removal_snp:   #Minor allele frequencies removal
 rule missing_genotype_samples:   
     input:
         # This is for permanent removal
-        perm_bedset = rules.maf_removal_snp.input.bedset,
+        perm_bedset = rules.maf_removal_markers.input.bedset,
         # This is based on earlier temporary filters
-        bedset = rules.maf_removal_snp.output.bedset
+        bedset = rules.maf_removal_markers.output.bedset
     output:
-        tmp_bedset=expand(str(tmpMod2/'tmp_missing_genotype_sample')
+        tmp_bedset=expand(str(tmpMod2/'tmp_missing_genotype_samples')
                           + '{ext}', ext=['.bed','.bim','.fam']),
-        bedset=expand(str(tmpMod2/'missing_genotype')
+        bedset=expand(str(tmpMod2/'missing_genotype_samples')
                           + '{ext}', ext=['.bed','.bim','.fam']),
-        results = report(resultPath/"missing_genotype_sample.yaml",
+        results = report(resultPath/"missing_genotype_samples.yaml",
                          category="Module 2 Core samples and infere pedigree"),
-        plot = report(resultPath/"missing_genotype_sample.png",
+        plot = report(resultPath/"missing_genotype_samples.png",
                       category="Module 2 Core samples and infere pedigree")
 
 
     run:
-        mqc.log(runlog, "Missing genotype samples (--mind)\n")
+        items = "samples"
+        mqc.log(runlog, "Missing genotype {items} (--mind)\n")
         inTrunk =  mqc.plinkBase(input.bedset[0])
         permTrunk =  mqc.plinkBase(input.perm_bedset[0])
-        tmp_outTrunk =  mqc.plinkBase(output.tmp_bedset[0])
+        tmp_outTrunk =  mqc.plinkBase(output.tmp_bedset[0])  # to remember what markers previously were removed by --maf
         outTrunk =  mqc.plinkBase(output.bedset[0])
         treshold = config['mind_thr']
         maf_treshold = config['maf_thr']
-        # First extract temporary samples based on earlier filtered markers (maf_removal_snp)
+        # First extract temporary samples based on earlier filtered markers (maf_removal_markers)
         # Later these will be used to extract samples permanently.
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
                 "--mind", str(treshold),          # identifies samples
-                "--out", tmp_outTrunk,
+                "--out", tmp_outTrunk,            # earlier called superclean_maf_mind
                 "--make-bed"
         ])
 
         # and now PERMANENT removal of very-missing individuals from FULL dataset
         subprocess.run([plinklocal,
                 "--bfile",permTrunk,
-                "--keep", tmp_outTrunk + ".fam", # keeping those samples that just passed the --mind threshold
+                "--keep",tmp_outTrunk + ".fam", # keeping those samples that just passed the --mind threshold
                 "--out", outTrunk,
                 "--make-bed"
         ])
 
         dropouts = mqc.checkUpdates(permTrunk+".fam", outTrunk+".fam",cols = [0,1], sanityCheck = "removal", fullList = True) 
-        dropouts["QC test"] = "--mind (remove samples due to high missing callrates"
-        dropouts["Description"] = "Input to this is a previously --maf filtered (<{maf_treshold}) set"
+        dropouts["QC test"] = f"--mind (remove {items} due to high missing callrates"
+        dropouts["Description"] = f"Input to this is a previously --maf filtered (<{maf_treshold}) set"
         dropouts["Threshold"] = treshold
         dropouts["Snakemake rule"] = "missing_genotype_samples"
         mqc.saveYamlResults(output.results, dropouts)
@@ -95,14 +97,123 @@ rule missing_genotype_samples:
         # call rates for samples were previously computed, we now now how many actually got cut
         percentDropped = dropouts["actionTakenCount"] / dropouts["in"]
         mqc.plotHist(inTrunk+".imiss", output.plot, "F_MISS", 
-            title = f'{dropouts["QC test"]}:\nHistogram of call rates samples - before --mind '
-                    f'{treshold}, but after --maf {maf_treshold}. \n{dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} samples were dropped.\n'
-                    f'At the current point of the QC, {dropouts["out"]} samples are left',
+            title = f'{dropouts["QC test"]}:\nHistogram of call rates {items} - before --mind '
+                    f'{treshold}, but after --maf {maf_treshold}. \n{dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} {items} were dropped.\n'
+                    f'At the current point of the QC, {dropouts["out"]} {items} are left',
                      treshold = treshold, logx=True
         )
         
+
+
+rule missing_genotype_markers:   
+    input:
+        # This is based on earlier temporary filters - the same that we used to remember samples permanently
+        bedset = rules.missing_genotype_samples.output.tmp_bedset
+    output:
+        bedset=expand(str(tmpMod2/'missing_genotype_markers')
+                          + '{ext}', ext=['.bed','.bim','.fam']),
+        results = report(resultPath/"missing_genotype_markers.yaml",
+                         category="Module 2 Core samples and infere pedigree"),
+        plot = report(resultPath/"missing_genotype_markers.png",
+                      category="Module 2 Core samples and infere pedigree")
+    run:
+        items = "markers"
+        mqc.log(runlog, "Missing genotype {items} (--geno)\n")
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+        treshold = config['geno_thr']
+        maf_treshold = config['maf_thr']
+        mind_treshold = config['mind_thr']
+
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--geno", str(treshold),          # identifies markers
+                "--out", outTrunk,                # called superclean_maf_mind_geno before
+                "--make-bed"
+        ])
+
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
+        dropouts["QC test"] = f"Temporary --geno (remove {items} due to high missing callrates)"
+        dropouts["Description"] = f"Input to this is a previously --maf (<{maf_treshold}) --mind (>{mind_treshold}) filtered  set"
+        dropouts["Threshold"] = treshold
+        dropouts["Snakemake rule"] = "missing_genotype_markers"
+        mqc.saveYamlResults(output.results, dropouts)
+
+        # call rates for markers before they got removed
+        subprocess.run([plinklocal,
+                "--bfile", inTrunk,
+                "--missing",
+                "--out", inTrunk
+        ])
+        percentDropped = dropouts["actionTakenCount"] / dropouts["in"]
+        mqc.plotHist(inTrunk+".lmiss", output.plot, "F_MISS", 
+            title = f'{dropouts["QC test"]}:\nHistogram of call rates {items} - before --geno {treshold} but after --mind '
+                    f'{mind_treshold}, and --maf {maf_treshold}. \n{dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} {items}  were dropped.\n'
+                    f'At the current point of the QC, {dropouts["out"]} {items} are left',
+                     treshold = treshold, logx=True
+        )
         
+
+rule exclude_unplaced_markers:   
+    input:
+        # This is based on earlier temporary filters - the same that we used to remember samples permanently
+        bedset = rules.missing_genotype_markers.output.bedset
+    output:
+        bedset=expand(str(tmpMod2/'excluded_unplaced_markers')
+                          + '{ext}', ext=['.bed','.bim','.fam']),
+        results = report(resultPath/"excluded_unplaced_markers.yaml",
+                         category="Module 2 Core samples and infere pedigree"),
+    run:
+        items = "markers"
+        mqc.log(runlog, "Excluded unplaced and non-autosomal {items} (--autosome)\n")
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--autosome",                     # identifies markers
+                "--out", outTrunk,                # called superclean_autosomal
+                "--make-bed"
+        ])
+
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
+        dropouts["QC test"] = f"Temporary --autosome (remove non-autosomal and unplaced {items}"
+        dropouts["Description"] = f"Input to this is a previously --maf --mind --geno filtered  set"
+        dropouts["Snakemake rule"] = "exclude_unplaced_markers"
+        mqc.saveYamlResults(output.results, dropouts)
         
+
+rule hardy_weinberg_filtered_markers:   
+    input:
+        # This is based on earlier temporary filters - the same that we used to remember samples permanently
+        bedset = rules.exclude_unplaced_markers.output.bedset
+    output:
+        bedset=expand(str(tmpMod2/'hwe_filtered_markers')
+                          + '{ext}', ext=['.bed','.bim','.fam']),
+        results = report(resultPath/"hwe_filtered_markers.yaml",
+                         category="Module 2 Core samples and infere pedigree"),
+    run:
+        items = "markers"
+        mqc.log(runlog, "Missing Hardy-Weinberg filtering {items} (--hwe)\n")
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+        treshold = config['hwe_thr']
+
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--hwe", str(treshold),          # identifies markers
+                "--out", outTrunk,                # called superclean_maf_mind_geno before
+                "--make-bed"
+        ])
+
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
+        dropouts["QC test"] = f"Temporary --hwe (remove {items} due to low Hardy-Weinberg equilibrium)"
+        dropouts["Description"] = f"Input to this is a previously filtered  set"
+        dropouts["Threshold"] = treshold
+        dropouts["Snakemake rule"] = "hardy_weinberg_filtered_markers"
+        mqc.saveYamlResults(output.results, dropouts)
+
+
 # 		base + 'both/tmp/' + 'superclean_pruned.bed',
 # 		base + 'both/tmp/' + 'full_mind.bed',	# NON-MISSING samples
 # 		base + 'both/tmp/' + 'superclean_maf_mind_geno.bed',	# for Xchr Fstat
@@ -164,31 +275,10 @@ rule missing_genotype_samples:
 	# 		--out {params.outdir}/full_mind
 	# 	report_ninds {params.outdir}/full_mind "FULL_AFTERMIND"
 
-	# 	# Continue marker supercleaning: GENO for Xchr Fstat
-	# 	report_plots \
-	# 		{params.outdir}/superclean_maf_mind \
-	# 		{params.tmpdir} \
-	# 	        "IDENTIFY" L 0.02
-	# 	{plinklocal} \
-	# 	        --bfile {params.outdir}/superclean_maf_mind \
-	# 	        --geno 0.02 \
-	# 	        --make-bed \
-	# 	        --out {params.outdir}/superclean_maf_mind_geno
+#	        --out {params.outdir}/superclean_maf_mind_geno
 	# 	log "Initial cleaning: --geno 0.02"
-	# 	report_nsnps {params.outdir}/superclean_maf_mind_geno "SUPERCLEAN_AFTERGENO"
-		
-	# 	# Continue marker supercleaning for PCA/IBD/inferped
-	# 	report_plots \
-	# 	        {params.outdir}/superclean_maf_mind_geno \
-	# 		{params.tmpdir} \
-	# 	        "IDENTIFY" E -4
-	# 	{plinklocal} \
-	# 		--bfile {params.outdir}/superclean_maf_mind_geno \
-	# 		--autosome \
-	# 		--make-bed \
-	# 		--out {params.outdir}/superclean_autosomal
-	# 	log "Initial cleaning: filter autosomal"
-	# 	report_nsnps {params.outdir}/superclean_autosomal "SUPERCLEAN_AUTOSOMAL"
+
+#     <SNIP SNAP ....>		
 		
 	# 	{plinklocal} \
 	# 	        --bfile {params.outdir}/superclean_autosomal \
