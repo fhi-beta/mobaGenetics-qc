@@ -48,7 +48,7 @@ def main(argv):
     """
     
     parser = argparse.ArgumentParser(description='Creates a flag-list showing all QC results for all samples')
-    parser.add_argument("--samplefile","-s", required=True, help="Typically a plink .fam file")
+    parser.add_argument("--samplefile","-s", required=True, help="Typically a plink .fam file. parents-updatet.fam is usually a good one as it is early in the pipe")
     parser.add_argument("--configfile","-c", default="flagTemplate.csv", help="A csv-file describing columns to add to the flagfile")
     parser.add_argument("--resultdir","-r", required=True, help="A direcory containing QC results")
     parser.add_argument("--output","-o", required=False, help="Result for the flag-matrix. Default sampleFlags.txt on resuldir")
