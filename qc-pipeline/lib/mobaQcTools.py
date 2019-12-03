@@ -12,14 +12,14 @@ import re
 import datetime
 from pathlib import Path
 
-def plotHist(dataFile, resultFile, column="name of the column", title="no legend??"):
+def plotHist(dataFile, resultFile, column="name of the column", title="no legend??", separator='\s+', treshold=0):
     """ plots and saves a historgram
 
     Very basic Histogram. Could be prettied up a lot
     Prints out lots of warning, but see https://stackoverflow.com/questions/55805431/is-there-a-way-to-prevent-plotnine-from-printing-user-warnings-when-saving-ggplo
     """
     try: 
-        df = pd.read_csv(dataFile, delim_whitespace=True, 
+        df = pd.read_csv(dataFile, sep=separator, 
                  usecols=[column] )
     except Exception as e:
         print(f"Could not read plotdata {column} from {dataFile}, {str(e)}")
@@ -28,7 +28,9 @@ def plotHist(dataFile, resultFile, column="name of the column", title="no legend
 
     df = df.sort_values(column)
     p = ggplot(data=df, mapping=aes(x=column))
-    hist = p + geom_histogram(binwidth=0.01) +  labs(title=title)
+    hist = p + geom_histogram(binwidth=0.01) + labs(title=title)
+    if treshold != 0:
+        hist += geom_vline(xintercept=treshold, color='red')
     ggsave(plot=hist, filename=resultFile, dpi=300)
     return
 

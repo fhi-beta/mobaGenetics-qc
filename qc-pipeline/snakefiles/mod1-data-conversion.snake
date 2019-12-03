@@ -203,10 +203,11 @@ rule remove_markers_cluster_sep:
         mqc.log(runlog, f'Removed {dropouts["actionTakenCount"]} markers(NSNP_CLUSTERSEP_LOST) out of {dropouts["in"]} (BEFORE_SNPTABLE), leaving {dropouts["out"]} markers. Treshhold {treshold}\n')
         # Supersimple plot-test. Legend based on diff before/after QC test
         percentDropped = dropouts["actionTakenCount"] / dropouts["in"]
-        mqc.plotHist(input.snptable, output.plot, config["cluster_sep_col_name"], 
-            title = f'{dropouts["QC test"]}: Histogram of the full snp-table - before any exclusion of samples.\n'
+        mqc.plotHist(input.snptable, output.plot, config["cluster_sep_col_name"],
+            title=f'{dropouts["QC test"]}: Histogram of the full snp-table - before any exclusion of samples.\n'
                     f'With treshhold {treshold},  {dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} were dropped.\n'
-                    f'At the current point of the QC, {dropouts["out"]} samples are left'
+                     f'At the current point of the QC, {dropouts["out"]} samples are left',
+                     separator='\t', treshold=treshold
         )
 
         
@@ -251,8 +252,9 @@ rule remove_markers_gc_score:
         percentDropped = dropouts["actionTakenCount"] / dropouts["in"]
         mqc.plotHist(input.snptable, output.plot, config["10%_GC_score_col_name"], 
             title = f'{dropouts["QC test"]}: Histogram of the full snp-table - before any exclusion of samples.\n'
-                    f'With treshhold {treshold},  {dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} were dropped.\n'
-                    f'At the current point of the QC, {dropouts["out"]} samples are left'
+                     f'With treshhold {treshold},  {dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} were dropped.\n'
+                     f'At the current point of the QC, {dropouts["out"]} samples are left',
+                     separator='\t', treshold=treshold
         )
 
 
@@ -299,7 +301,10 @@ rule remove_markers_aa_theta_dev:
         mqc.plotHist(input.snptable, output.plot, config["aa_theta_dev_col_name"], 
             title = f'{dropouts["QC test"]}: Histogram of the full snp-table - before any exclusion of samples.\n'
                     f'With treshhold {treshold},  {dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} were dropped.\n'
-                    f'At the current point of the QC, {dropouts["out"]} samples are left'
+                    f'At the current point of the QC, {dropouts["out"]} samples are left',
+                    separator='\t', treshold=treshold
+
+                     
         )
         
 
