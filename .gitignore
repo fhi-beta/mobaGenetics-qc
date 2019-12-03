@@ -1,3 +1,6 @@
 */.snakemake
 */*.swp
 *~
+__pycache__
+*.bak
+*.old
