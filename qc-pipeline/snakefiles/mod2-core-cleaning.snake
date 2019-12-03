@@ -18,25 +18,25 @@ rule maf_removal_snp:   #Minor allele frequencies removal
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
                 "--maf", str(treshold),
-                "--out", outTrunk,
+                "--out", outTrunk,      # previously named superclean_maf
                 "--make-bed"
         ])
         dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
-        dropouts["QC test"] = "Low minor allele frequencies of markers temorarily removed"
+        dropouts["QC test"] = "Low minor allele frequencies of markers temporarily removed"
         dropouts["Description"] = "(None for now)"
         dropouts["Threshold"] = treshold
         dropouts["Snakemake rule"] = "maf_removal_snp"
         mqc.saveYamlResults(output.results, dropouts)
 
-        # call rates
+        # call rates for maf will be maf_removal_snp.output.bedset imiss and lmiss
         subprocess.run([plinklocal,
-                "--bfile",outTrunk,
+                "--bfile", outTrunk,
                 "--missing",
-                "--out", tmpMod2/"maf_removal_snp"
+                "--out", outTrunk
         ])
         percentDropped = dropouts["actionTakenCount"] / dropouts["in"]
         mqc.plotHist(outTrunk+".lmiss", output.plot, "F_MISS", 
-            title = f'{dropouts["QC test"]}: Histogram of call rates - After snp filtering --maf\n'
+            title = f'{dropouts["QC test"]}: Histogram of snp call rates - After snp filtering --maf\n'
                     f'with treshhold {treshold}, {dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} were dropped.\n'
                     f'At the current point of the QC, {dropouts["out"]} samples are left'
         )
@@ -65,12 +65,12 @@ rule missing_genotype_samples:
         tmp_outTrunk =  mqc.plinkBase(output.tmp_bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
         treshold = config['mind_thr']
-
-        # First extract temporary data based on earlier filtered markers (maf_removal_snp)
+        maf_treshold = config['maf_thr']
+        # First extract temporary samples based on earlier filtered markers (maf_removal_snp)
         # Later these will be used to extract samples permanently.
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
-                "--mind", str(treshold),
+                "--mind", str(treshold),          # identifies samples
                 "--out", tmp_outTrunk,
                 "--make-bed"
         ])
@@ -84,38 +84,22 @@ rule missing_genotype_samples:
         ])
 
         dropouts = mqc.checkUpdates(permTrunk+".fam", outTrunk+".fam",cols = [0,1], sanityCheck = "removal", fullList = True) 
-        dropouts["QC test"] = "Samples permanently removed due to missing callrates to high"
-        dropouts["Description"] = "(None for now)"
+        dropouts["QC test"] = "--mind (remove samples due to high missing callrates"
+        dropouts["Description"] = "Input to this is a previously --maf filtered (<{maf_treshold}) set"
         dropouts["Threshold"] = treshold
         dropouts["Snakemake rule"] = "missing_genotype_samples"
         mqc.saveYamlResults(output.results, dropouts)
 
-        # call rates
-        subprocess.run([plinklocal,
-                "--bfile",outTrunk,
-                "--missing",
-                "--out", outTrunk
-        ])
-
+        # call rates for samples were previously computed, we now now how many actually got cut
         percentDropped = dropouts["actionTakenCount"] / dropouts["in"]
-        mqc.plotHist(outTrunk+".imiss", output.plot, "F_MISS", 
-            title = f'{dropouts["QC test"]}: Histogram of call rates samples - after --mind \n'
-                    f'with treshhold {treshold}, {dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} were dropped.\n'
+        mqc.plotHist(inTrunk+".imiss", output.plot, "F_MISS", 
+            title = f'{dropouts["QC test"]}:\nHistogram of call rates samples - before --mind '
+                    f'{treshold}, but after --maf {maf_treshold}. \n{dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} samples were dropped.\n'
                     f'At the current point of the QC, {dropouts["out"]} samples are left'
         )
         
         
         
-	# 	# PERMANENT removal of very-missing individuals from FULL dataset
-	# 	{plinklocal} \
-	# 		--bfile {params.instem} \
-	# 		--keep {params.outdir}/superclean_maf_mind.fam \
-	# 		--make-bed \
-	# 		--out {params.outdir}/full_mind
-	# 	report_ninds {params.outdir}/full_mind "FULL_AFTERMIND"
-
-
-        # 	output:
 # 		base + 'both/tmp/' + 'superclean_pruned.bed',
 # 		base + 'both/tmp/' + 'full_mind.bed',	# NON-MISSING samples
 # 		base + 'both/tmp/' + 'superclean_maf_mind_geno.bed',	# for Xchr Fstat
@@ -166,18 +150,9 @@ rule missing_genotype_samples:
 	# 	# 4. next exclusion filter
 	# 	# 5. exclusion threshtold
 	# 	# [6. optional: MAF threshold for HET split]
-	# 	report_plots \
-	#         	{params.outdir}/superclean_maf \
-	# 		{params.tmpdir} \
-	# 	        "IDENTIFY" I 0.05
-	# 	plink_remove_above_mind \
-	# 		{params.outdir}/superclean_maf \
-	# 		0.05 \
-	# 		{params.outdir}/superclean_maf_mind
-	# 	log "Initial cleaning: --mind 0.05"
-	# 	report_ninds {params.outdir}/superclean_maf_mind "SUPERCLEAN_AFTERP2"
-
-        # 
+#     <SNIP SNAP ....>
+# IDENTIFY maf_mind 0.1/0.05  done 
+# full_mind is the newest, kept based on superclean_maf_mind.fam
 	# 	# PERMANENT removal of very-missing individuals from FULL dataset
 	# 	{plinklocal} \
 	# 		--bfile {params.instem} \
