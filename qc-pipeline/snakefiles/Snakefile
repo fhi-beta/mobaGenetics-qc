@@ -1,4 +1,9 @@
 # Config files containing hard coded variables
+import sys
+sys.path.append('../lib')  # in order to find our local packages
+import mobaQcTools as mqc  # local moba package
+# import yaml  # you might be able to remove this ...
+
 configfile: "config.yaml"
 
 #ensure bash as shell
