@@ -26,7 +26,7 @@ rule maf_removal_markers:   #Minor allele frequencies removal
         dropouts["QC test"] = "Low minor allele frequencies of {items} temporarily removed"
         dropouts["Description"] = "(None for now)"
         dropouts["Threshold"] = treshold
-        dropouts["Snakemake rule"] = {rule}
+        dropouts["Snakemake rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
 
         # call rates for maf will be maf_removal_markers.output.bedset imiss and lmiss
@@ -91,7 +91,7 @@ rule missing_genotype_samples:
         dropouts["QC test"] = f"--mind (remove {items} due to high missing callrates"
         dropouts["Description"] = f"Input to this is a previously --maf filtered (<{maf_treshold}) set"
         dropouts["Threshold"] = treshold
-        dropouts["Snakemake rule"] = {rule}
+        dropouts["Snakemake rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
 
         # call rates for samples were previously computed, we now now how many actually got cut
@@ -100,7 +100,7 @@ rule missing_genotype_samples:
             title = f'{dropouts["QC test"]}:\nHistogram of call rates {items} - before --mind '
                     f'{treshold}, but after --maf {maf_treshold}. \n{dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} {items} were dropped.\n'
                     f'At the current point of the QC, {dropouts["out"]} {items} are left',
-                     treshold = treshold, logx=True
+                     treshold = treshold
         )
         
 
@@ -135,7 +135,7 @@ rule missing_genotype_markers:
         dropouts["QC test"] = f"Temporary --geno (remove {items} due to high missing callrates)"
         dropouts["Description"] = f"Input to this is a previously --maf (<{maf_treshold}) --mind (>{mind_treshold}) filtered  set"
         dropouts["Threshold"] = treshold
-        dropouts["Snakemake rule"] = {rule}
+        dropouts["Snakemake rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
 
         # call rates for markers before they got removed
@@ -149,7 +149,7 @@ rule missing_genotype_markers:
             title = f'{dropouts["QC test"]}:\nHistogram of call rates {items} - before --geno {treshold} but after --mind '
                     f'{mind_treshold}, and --maf {maf_treshold}. \n{dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} {items}  were dropped.\n'
                     f'At the current point of the QC, {dropouts["out"]} {items} are left',
-                     treshold = treshold, logx=True
+                     treshold = treshold
         )
         
 rule exclude_unplaced_markers:   
@@ -177,7 +177,7 @@ rule exclude_unplaced_markers:
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
         dropouts["QC test"] = f"Temporary --autosome (remove non-autosomal and unplaced {items}"
         dropouts["Description"] = f"Input to this is a previously --maf --mind --geno filtered  set"
-        dropouts["Snakemake rule"] = {rule}
+        dropouts["Snakemake rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
         
 rule_stem = 'hwe_filtered_markers' # used for ouputfilenames
@@ -191,7 +191,6 @@ rule hardy_weinberg_filtered_markers:
                          category="Module 2 Core samples and infere pedigree"),
     run:
         items = "markers"
-        print (f"I am currently running  {rule}")
         mqc.log(runlog, "Missing Hardy-Weinberg filtering {items} (--hwe)\n")
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
@@ -200,7 +199,7 @@ rule hardy_weinberg_filtered_markers:
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
                 "--hwe", str(treshold),          # identifies markers
-                "--out", outTrunk,                # called superclean_maf_mind_geno before
+                "--out", outTrunk,               # called superclean_autosomal_hwe before
                 "--make-bed"
         ])
 
@@ -208,8 +207,40 @@ rule hardy_weinberg_filtered_markers:
         dropouts["QC test"] = f"Temporary --hwe (remove {items} due to low Hardy-Weinberg equilibrium)"
         dropouts["Description"] = f"Input to this is a previously filtered  set"
         dropouts["Threshold"] = treshold
-        dropouts["Snakemake rule"] = {rule}
+        dropouts["Snakemake rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
+
+rule_stem = 'excluded_strand_amb_markers' # used for ouputfilenames
+rule exclude_strand_ambigious_markers:
+    input:
+        # This is based on earlier temporary filters 
+        bedset = rules.hardy_weinberg_filtered_markers.output.bedset
+    output:
+        bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        results = report(str(resultPath/rule_stem) + ".yaml",
+                         category="Module 2 Core samples and infere pedigree"),
+    run:
+        items = "markers"
+        mqc.log(runlog, "Excluding ambigiuos {items} (GC/CG/AT/TA\n")
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+
+        mqc.exclude_strand_ambigious_markers(inTrunk, outTrunk, plinklocal)  
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
+        dropouts["QC test"] = f"Temporary remove alleles GC/CG/AT/TA {items}"
+        dropouts["Description"] = f"Input to this is a previously filtered  set"
+        dropouts["Snakemake rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+        
+
+	# 	# Remove ambiguous SNPs (A/T  and C/G snps)
+	# 	# 1. input bedset
+	# 	# 2. output bedset
+	# 	# 3. TMP-folder
+	# 	remove_strand_ambiguous_markers \
+	# 	        {params.outdir}/superclean_autosomal_hwe \
+	# 	        {params.outdir}/superclean_no_ag_ct \
+	# 	        {params.outdir}
 
 
         
@@ -279,13 +310,7 @@ rule hardy_weinberg_filtered_markers:
 
 #     <SNIP SNAP ....>		
 		
-	# 	{plinklocal} \
-	# 	        --bfile {params.outdir}/superclean_autosomal \
-	# 	        --hwe 0.0001 \
-	# 	        --make-bed \
-	# 	        --out {params.outdir}/superclean_autosomal_hwe
-	# 	log "Initial cleaning: --hwe 0.0001"
-	# 	report_nsnps {params.outdir}/superclean_autosomal_hwe "SUPERCLEAN_AFTERHWE"
+
 		
 	# 	# Remove ambiguous SNPs (A/T  and C/G snps)
 	# 	# 1. input bedset
