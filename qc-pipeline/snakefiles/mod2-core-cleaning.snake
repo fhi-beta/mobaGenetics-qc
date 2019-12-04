@@ -26,7 +26,7 @@ rule maf_removal_markers:   #Minor allele frequencies removal
         dropouts["QC test"] = "Low minor allele frequencies of {items} temporarily removed"
         dropouts["Description"] = "(None for now)"
         dropouts["Threshold"] = treshold
-        dropouts["Snakemake rule"] = "maf_removal_markers"
+        dropouts["Snakemake rule"] = {rule}
         mqc.saveYamlResults(output.results, dropouts)
 
         # call rates for maf will be maf_removal_markers.output.bedset imiss and lmiss
@@ -91,7 +91,7 @@ rule missing_genotype_samples:
         dropouts["QC test"] = f"--mind (remove {items} due to high missing callrates"
         dropouts["Description"] = f"Input to this is a previously --maf filtered (<{maf_treshold}) set"
         dropouts["Threshold"] = treshold
-        dropouts["Snakemake rule"] = "missing_genotype_samples"
+        dropouts["Snakemake rule"] = {rule}
         mqc.saveYamlResults(output.results, dropouts)
 
         # call rates for samples were previously computed, we now now how many actually got cut
@@ -103,7 +103,6 @@ rule missing_genotype_samples:
                      treshold = treshold, logx=True
         )
         
-
 
 rule missing_genotype_markers:   
     input:
@@ -136,7 +135,7 @@ rule missing_genotype_markers:
         dropouts["QC test"] = f"Temporary --geno (remove {items} due to high missing callrates)"
         dropouts["Description"] = f"Input to this is a previously --maf (<{maf_treshold}) --mind (>{mind_treshold}) filtered  set"
         dropouts["Threshold"] = treshold
-        dropouts["Snakemake rule"] = "missing_genotype_markers"
+        dropouts["Snakemake rule"] = {rule}
         mqc.saveYamlResults(output.results, dropouts)
 
         # call rates for markers before they got removed
@@ -153,7 +152,6 @@ rule missing_genotype_markers:
                      treshold = treshold, logx=True
         )
         
-
 rule exclude_unplaced_markers:   
     input:
         # This is based on earlier temporary filters - the same that we used to remember samples permanently
@@ -179,21 +177,21 @@ rule exclude_unplaced_markers:
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
         dropouts["QC test"] = f"Temporary --autosome (remove non-autosomal and unplaced {items}"
         dropouts["Description"] = f"Input to this is a previously --maf --mind --geno filtered  set"
-        dropouts["Snakemake rule"] = "exclude_unplaced_markers"
+        dropouts["Snakemake rule"] = {rule}
         mqc.saveYamlResults(output.results, dropouts)
         
-
-rule hardy_weinberg_filtered_markers:   
+rule_stem = 'hwe_filtered_markers' # used for ouputfilenames
+rule hardy_weinberg_filtered_markers:
     input:
         # This is based on earlier temporary filters - the same that we used to remember samples permanently
         bedset = rules.exclude_unplaced_markers.output.bedset
     output:
-        bedset=expand(str(tmpMod2/'hwe_filtered_markers')
-                          + '{ext}', ext=['.bed','.bim','.fam']),
-        results = report(resultPath/"hwe_filtered_markers.yaml",
+        bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        results = report(str(resultPath/rule_stem) + ".yaml",
                          category="Module 2 Core samples and infere pedigree"),
     run:
         items = "markers"
+        print (f"I am currently running  {rule}")
         mqc.log(runlog, "Missing Hardy-Weinberg filtering {items} (--hwe)\n")
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
@@ -210,10 +208,11 @@ rule hardy_weinberg_filtered_markers:
         dropouts["QC test"] = f"Temporary --hwe (remove {items} due to low Hardy-Weinberg equilibrium)"
         dropouts["Description"] = f"Input to this is a previously filtered  set"
         dropouts["Threshold"] = treshold
-        dropouts["Snakemake rule"] = "hardy_weinberg_filtered_markers"
+        dropouts["Snakemake rule"] = {rule}
         mqc.saveYamlResults(output.results, dropouts)
 
 
+        
 # 		base + 'both/tmp/' + 'superclean_pruned.bed',
 # 		base + 'both/tmp/' + 'full_mind.bed',	# NON-MISSING samples
 # 		base + 'both/tmp/' + 'superclean_maf_mind_geno.bed',	# for Xchr Fstat

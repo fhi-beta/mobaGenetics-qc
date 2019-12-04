@@ -31,7 +31,7 @@ rule remove_chr0:
                                     sanityCheck="none", fullList=True, ) 
         dropouts["QC test"] = "Removing chromosone 0"
         dropouts["Description"] = ""
-        dropouts["Snakemake rule"] = "remove_chr0"
+        dropouts["Snakemake rule"] = {rule}
 
         mqc.saveYamlResults(output.resultsChr0, dropouts)
         mqc.log(runlog, f'(NSNP_CHR0_LOST) Removed {dropouts["actionTakenCount"]} chromosone 0 out of {dropouts["in"]}, leaving {dropouts["out"]} markers\n')
@@ -60,7 +60,7 @@ rule update_sample_ids:
         updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols=[0,1], indx=1, sanityCheck="updated", fullList=True, mapFile=input.recode, mapIndx=1) 
         updated["QC test"] = "Update sample ids"
         updated["Description"] = "Mapping lab ids to moba ids"
-        updated["Snakemake rule"] = "update_sample_ids"
+        updated["Snakemake rule"] = {rule}
         mqc.saveYamlResults(output.results, updated)
         mqc.log(runlog,f'Sample id: Updated {updated["actionTakenCount"]} samples (NIND_NOTUPDATEDID) out of {updated["in"]} (NIND_TOUPDATEID)\n')
 
@@ -85,7 +85,7 @@ rule update_parents:
                                    fullList = True, mapFile=input.recode) 
         updated["QC test"] = "Update parents"
         updated["Description"] = "Parents updated based on moba information"
-        updated["Snakemake rule"] = "update_parents"
+        updated["Snakemake rule"] = {rule}
         mqc.saveYamlResults(output.results, updated)
         mqc.log(runlog,f'Sample id: Updated {updated["actionTakenCount"]} samples (NIND_NOTUPDATEDPAR) out of {updated["in"]} (NIND_TOUPDATEPAR)\n')
 
@@ -114,7 +114,7 @@ rule update_sex:
                                    fullList = True, mapFile=input.recode, mapIndx=1) 
         updated["QC test"] = "Update sex"
         updated["Description"] = "Gender updated using to moba information"
-        updated["Snakemake rule"] = "update_sex"
+        updated["Snakemake rule"] = {rule}
         mqc.saveYamlResults(output.results, updated)
         mqc.log(runlog,f'Sex updated: Updated {updated["actionTakenCount"]} samples (NIND_NOTUPDATEDPAR) out of {updated["in"]} (NIND_TOUPDATEPAR)\n')
 
@@ -155,7 +155,7 @@ rule remove_duplicate_markers:
         dropouts["QC test"] = "Remove duplicate markers"
         dropouts["Description"] = "When duplicate markers are found, only the one with best call rating is kept"
         dropouts["Detailed results"] = output.resultDetails
-        dropouts["Snakemake rule"] = "remove_duplicate_markers"
+        dropouts["Snakemake rule"] = {rule}
         mqc.saveYamlResults(output.results, dropouts)
         mqc.log(runlog, f'Due to duplicate markers, removed {dropouts["actionTakenCount"]} markers out of {dropouts["in"]}, leaving {dropouts["out"]} markers\n')
 
@@ -198,7 +198,7 @@ rule remove_markers_cluster_sep:
         dropouts["QC test"] = "Cluster separation"
         dropouts["Description"] = "(None for now)"
         dropouts["Threshold"] = treshold
-        dropouts["Snakemake rule"] = "remove_markers_clustersep"
+        dropouts["Snakemake rule"] = {rule}
         mqc.saveYamlResults(output.results, dropouts)
         mqc.log(runlog, f'Removed {dropouts["actionTakenCount"]} markers(NSNP_CLUSTERSEP_LOST) out of {dropouts["in"]} (BEFORE_SNPTABLE), leaving {dropouts["out"]} markers. Treshhold {treshold}\n')
         # Supersimple plot-test. Legend based on diff before/after QC test
@@ -245,7 +245,7 @@ rule remove_markers_gc_score:
         dropouts["QC test"] = "GC 10% score"
         dropouts["Description"] = "(None for now)"
         dropouts["Threshold"] = treshold
-        dropouts["Snakemake rule"] = "remove_markers_gc_score"
+        dropouts["Snakemake rule"] = {rule}
         mqc.saveYamlResults(output.results, dropouts)
         mqc.log(runlog, f'Removed {dropouts["actionTakenCount"]} markers(NSNP_GC_LOST) out of {dropouts["in"]} (NSNP_BEFORE_GC), leaving {dropouts["out"]} markers. Treshhold {treshold}\n')
         # Supersimple plot-test. Legend based on diff before/after QC test
@@ -293,7 +293,7 @@ rule remove_markers_aa_theta_dev:
         dropouts["QC test"] = "AA Theta Dev"
         dropouts["Description"] = "(None for now)"
         dropouts["Threshold"] = treshold
-        dropouts["Snakemake rule"] = "remove_markers_clustersep"
+        dropouts["Snakemake rule"] = {rule}
         mqc.saveYamlResults(output.results, dropouts)
         mqc.log(runlog, f'Removed {dropouts["actionTakenCount"]} markers(NSNP_AATHETADEV_LOST) out of {dropouts["in"]} (NSNP_GC_LOST), leaving {dropouts["out"]} markers. Treshhold {treshold}\n')
         # Supersimple plot-test. Legend based on diff before/after QC test
