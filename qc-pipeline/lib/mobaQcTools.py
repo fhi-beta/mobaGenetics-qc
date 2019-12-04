@@ -11,6 +11,7 @@ import yaml
 import re
 import datetime
 from pathlib import Path
+import subprocess
 
 def plotHist(dataFile, resultFile, column="name of the column", title="no legend??", separator='\s+',
              treshold=0, logx=False):
@@ -372,3 +373,31 @@ def create_exclude_list(df, callRates, resultfile, excludelist):
     drop.loc[:,['SNP']].to_csv(excludelist,sep=" ", index=False, header=False)
     print ("**** .... and we should make a yaml file with summary in it")
     
+
+def exclude_strand_ambigious_markers(input, output, plink):
+    """ Runs plink to exlucde A/T and C/G SNPs
+
+
+    input is the trunk of a .bed/.bim/.fam triplet
+    ouput will be the corresponding set, without excluded markers 
+    The list over exluded markers can be found in ouput.excl
+    plink will produce the output-bedset
+
+    """
+    try: 
+        df = pd.read_csv(input+".bim", delim_whitespace=True, header=None).astype(str)
+    except Exception as e:
+        print(f"Could not open .bim-file of bedset {input}, {str(e)}")
+        return
+    mask = ((df[4] == 'G') & (df[5] == 'C') |
+           (df[4] == 'C') & (df[5] == 'G') |
+           (df[4] == 'A') & (df[5] == 'T') |
+           (df[4] == 'T') & (df[5] == 'A'))
+    (df[mask])[1].to_csv(output+".excl",index=False, header=False)
+
+    subprocess.run([plink,
+                "--bfile",input,
+                "--exclude", output+".excl",                     
+                "--out", output,               
+                "--make-bed"
+        ])
