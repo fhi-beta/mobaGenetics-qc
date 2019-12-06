@@ -1,32 +1,38 @@
+rule_stem = 'maf_removal_markers'
 rule maf_removal_markers:   #Minor allele frequencies removal
     input:
         bedset = rules.remove_markers_aa_theta_dev.output.bedset
     output:
-        bedset=expand(str(tmpMod2/'maf_removal_markers')
+        bedset=expand(str(tmpMod2/rule_stem)
                           + '{ext}', ext=['.bed','.bim','.fam']),
-        results = report(resultPath/"maf_removal_markers.yaml",
-                         category="Module 2 Core samples and infere pedigree"),
-        plot = report(resultPath/"maf_removal_markers.png",
-                      category="Module 2 Core samples and infere pedigree")
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/rule_stem).with_suffix(".png"),
+                      category="Module 2 Core samples and infere pedigree",
+                      caption=(resultPath/rule_stem).with_suffix(".rst"))
+
+    params:
+        treshold = config['maf_thr']
 
     run:
-        items = "markers"
+        item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, "Initial cleaning: Low minor allele frequencies removal(--maf)\n")
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
-        treshold = config['maf_thr']
 
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
-                "--maf", str(treshold),
+                "--maf", str(params.treshold),
                 "--out", outTrunk,      # previously named superclean_maf
                 "--make-bed"
         ])
         dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
-        dropouts["QC test"] = "Low minor allele frequencies of {items} temporarily removed"
-        dropouts["Description"] = "(None for now)"
-        dropouts["Threshold"] = treshold
-        dropouts["Snakemake rule"] = rule
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Threshold"] = params.treshold
+        dropouts["Rule"] = rule
+
+        
         mqc.saveYamlResults(output.results, dropouts)
 
         # call rates for maf will be maf_removal_markers.output.bedset imiss and lmiss
@@ -38,12 +44,11 @@ rule maf_removal_markers:   #Minor allele frequencies removal
         percentDropped = dropouts["actionTakenCount"] / dropouts["in"]
         mqc.plotHist(outTrunk+".lmiss", output.plot, "F_MISS", 
             title = f'{dropouts["QC test"]}: Histogram of snp call rates - After snp filtering --maf\n'
-                    f'with treshhold {treshold}, {dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} were dropped.\n'
-                     f'At the current point of the QC, {dropouts["out"]} {items} are left',
-                     treshold=treshold, logx=True
-                     
-        )
+                    f'with treshold {params.treshold}, {dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} were dropped.\n'
+                     f'At the current point of the QC, {dropouts["out"]} {item_type} are left',
+                     treshold=params.treshold, logx=True)
 
+rule_stem = 'tmp_missing_genotype_samples'
 rule missing_genotype_samples:   
     input:
         # This is for permanent removal
@@ -51,30 +56,32 @@ rule missing_genotype_samples:
         # This is based on earlier temporary filters
         bedset = rules.maf_removal_markers.output.bedset
     output:
-        tmp_bedset=expand(str(tmpMod2/'tmp_missing_genotype_samples')
+        tmp_bedset=expand(str(tmpMod2/rule_stem)
                           + '{ext}', ext=['.bed','.bim','.fam']),
         bedset=expand(str(tmpMod2/'missing_genotype_samples')
                           + '{ext}', ext=['.bed','.bim','.fam']),
-        results = report(resultPath/"missing_genotype_samples.yaml",
-                         category="Module 2 Core samples and infere pedigree"),
-        plot = report(resultPath/"missing_genotype_samples.png",
-                      category="Module 2 Core samples and infere pedigree")
-
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/rule_stem).with_suffix(".png"),
+                      category="Module 2 Core samples and infere pedigree",
+                      caption=(resultPath/rule_stem).with_suffix(".rst"))
+    params:
+        treshold = config['mind_thr']
 
     run:
-        items = "samples"
-        mqc.log(runlog, "Missing genotype {items} (--mind)\n")
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, "Missing genotype {item_type} (--mind)\n")
         inTrunk =  mqc.plinkBase(input.bedset[0])
         permTrunk =  mqc.plinkBase(input.perm_bedset[0])
         tmp_outTrunk =  mqc.plinkBase(output.tmp_bedset[0])  # to remember what markers previously were removed by --maf
         outTrunk =  mqc.plinkBase(output.bedset[0])
-        treshold = config['mind_thr']
         maf_treshold = config['maf_thr']
         # First extract temporary samples based on earlier filtered markers (maf_removal_markers)
         # Later these will be used to extract samples permanently.
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
-                "--mind", str(treshold),          # identifies samples
+                "--mind", str(params.treshold),          # identifies samples
                 "--out", tmp_outTrunk,            # earlier called superclean_maf_mind
                 "--make-bed"
         ])
@@ -87,55 +94,58 @@ rule missing_genotype_samples:
                 "--make-bed"
         ])
 
-        dropouts = mqc.checkUpdates(permTrunk+".fam", outTrunk+".fam",cols = [0,1], sanityCheck = "removal", fullList = True) 
-        dropouts["QC test"] = f"--mind (remove {items} due to high missing callrates"
-        dropouts["Description"] = f"Input to this is a previously --maf filtered (<{maf_treshold}) set"
-        dropouts["Threshold"] = treshold
-        dropouts["Snakemake rule"] = rule
+        dropouts = mqc.checkUpdates(permTrunk+".fam", outTrunk+".fam",cols = [0,1], sanityCheck = "removal", fullList = True)
+
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Threshold"] = params.treshold
+        dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
 
         # call rates for samples were previously computed, we now now how many actually got cut
         percentDropped = dropouts["actionTakenCount"] / dropouts["in"]
         mqc.plotHist(inTrunk+".imiss", output.plot, "F_MISS", 
-            title = f'{dropouts["QC test"]}:\nHistogram of call rates {items} - before --mind '
-                    f'{treshold}, but after --maf {maf_treshold}. \n{dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} {items} were dropped.\n'
-                    f'At the current point of the QC, {dropouts["out"]} {items} are left',
-                     treshold = treshold
+            title = f'{dropouts["QC test"]}:\nHistogram of call rates {item_type} - before --mind '
+                    f'{params.treshold}, but after --maf {maf_treshold}. \n{dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} {item_type} were dropped.\n'
+                    f'At the current point of the QC, {dropouts["out"]} {item_type} are left',
+                     treshold = params.treshold
         )
         
-
-rule missing_genotype_markers:   
+rule_stem = 'missing_genotype__markers' # used for ouputfilenames        
+rule missing_genotype_markers:
     input:
         # This is based on earlier temporary filters - the same that we used to remember samples permanently
         bedset = rules.missing_genotype_samples.output.tmp_bedset
     output:
-        bedset=expand(str(tmpMod2/'missing_genotype_markers')
+        bedset=expand(str(tmpMod2/rule_stem)
                           + '{ext}', ext=['.bed','.bim','.fam']),
-        results = report(resultPath/"missing_genotype_markers.yaml",
-                         category="Module 2 Core samples and infere pedigree"),
-        plot = report(resultPath/"missing_genotype_markers.png",
-                      category="Module 2 Core samples and infere pedigree")
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/rule_stem).with_suffix(".png"),
+                      category="Module 2 Core samples and infere pedigree",
+                      caption=(resultPath/rule_stem).with_suffix(".rst"))
+    params:
+        treshold = config['geno_thr']
     run:
-        items = "markers"
-        mqc.log(runlog, "Missing genotype {items} (--geno)\n")
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, "Missing genotype {item_type} (--geno)\n")
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
-        treshold = config['geno_thr']
         maf_treshold = config['maf_thr']
         mind_treshold = config['mind_thr']
 
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
-                "--geno", str(treshold),          # identifies markers
+                "--geno", str(params.treshold),          # identifies markers
                 "--out", outTrunk,                # called superclean_maf_mind_geno before
                 "--make-bed"
         ])
 
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
-        dropouts["QC test"] = f"Temporary --geno (remove {items} due to high missing callrates)"
-        dropouts["Description"] = f"Input to this is a previously --maf (<{maf_treshold}) --mind (>{mind_treshold}) filtered  set"
-        dropouts["Threshold"] = treshold
-        dropouts["Snakemake rule"] = rule
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Threshold"] = params.treshold
+        dropouts["Rule"] = rule
+
         mqc.saveYamlResults(output.results, dropouts)
 
         # call rates for markers before they got removed
@@ -145,28 +155,23 @@ rule missing_genotype_markers:
                 "--out", inTrunk
         ])
         percentDropped = dropouts["actionTakenCount"] / dropouts["in"]
-        mqc.plotHist(inTrunk+".lmiss", output.plot, "F_MISS", 
-            title = f'{dropouts["QC test"]}:\nHistogram of call rates {items} - before --geno {treshold} but after --mind '
-                    f'{mind_treshold}, and --maf {maf_treshold}. \n{dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} {items}  were dropped.\n'
-                    f'At the current point of the QC, {dropouts["out"]} {items} are left',
-                     treshold = treshold
-        )
-        
-rule exclude_unplaced_markers:   
+        mqc.plotHist(inTrunk+".lmiss", output.plot, "F_MISS", title=f'{dropouts["QC test"]}', treshold=params.treshold)
+
+rule_stem = 'exclude_non-autosomal+unplaced_markers' # used for ouputfilenames        
+rule exclude_unplaced_and_non_autosomal_markers:
     input:
         # This is based on earlier temporary filters - the same that we used to remember samples permanently
         bedset = rules.missing_genotype_markers.output.bedset
     output:
-        bedset=expand(str(tmpMod2/'excluded_unplaced_markers')
-                          + '{ext}', ext=['.bed','.bim','.fam']),
-        results = report(resultPath/"excluded_unplaced_markers.yaml",
-                         category="Module 2 Core samples and infere pedigree"),
+        bedset = expand(str(tmpMod2/rule_stem)+'{ext}', ext=['.bed','.bim','.fam']),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
     run:
-        items = "markers"
-        mqc.log(runlog, "Excluded unplaced and non-autosomal {items} (--autosome)\n")
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, "Excluded unplaced and non-autosomal {params.item_type} (--autosome)\n")
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
-
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
                 "--autosome",                     # identifies markers
@@ -174,40 +179,43 @@ rule exclude_unplaced_markers:
                 "--make-bed"
         ])
 
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
-        dropouts["QC test"] = f"Temporary --autosome (remove non-autosomal and unplaced {items}"
-        dropouts["Description"] = f"Input to this is a previously --maf --mind --geno filtered  set"
-        dropouts["Snakemake rule"] = rule
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
+                                    sanityCheck = "removal", fullList = True) 
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+
         mqc.saveYamlResults(output.results, dropouts)
-        
+
 rule_stem = 'hwe_filtered_markers' # used for ouputfilenames
 rule hardy_weinberg_filtered_markers:
     input:
         # This is based on earlier temporary filters - the same that we used to remember samples permanently
-        bedset = rules.exclude_unplaced_markers.output.bedset
+        bedset = rules.exclude_unplaced_and_non_autosomal_markers.output.bedset
     output:
         bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
-        results = report(str(resultPath/rule_stem) + ".yaml",
-                         category="Module 2 Core samples and infere pedigree"),
-    run:
-        items = "markers"
-        mqc.log(runlog, "Missing Hardy-Weinberg filtering {items} (--hwe)\n")
-        inTrunk =  mqc.plinkBase(input.bedset[0])
-        outTrunk =  mqc.plinkBase(output.bedset[0])
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+    params:
         treshold = config['hwe_thr']
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, "Missing Hardy-Weinberg filtering {item_type} (--hwe)\n")
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
 
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
-                "--hwe", str(treshold),          # identifies markers
+                "--hwe", str(params.treshold),          # identifies markers
                 "--out", outTrunk,               # called superclean_autosomal_hwe before
                 "--make-bed"
         ])
 
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
-        dropouts["QC test"] = f"Temporary --hwe (remove {items} due to low Hardy-Weinberg equilibrium)"
-        dropouts["Description"] = f"Input to this is a previously filtered  set"
-        dropouts["Threshold"] = treshold
-        dropouts["Snakemake rule"] = rule
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Threshold"] = params.treshold
+        dropouts["Rule"] = rule
+
         mqc.saveYamlResults(output.results, dropouts)
 
 rule_stem = 'excluded_strand_amb_markers' # used for ouputfilenames
@@ -217,19 +225,19 @@ rule exclude_strand_ambigious_markers:
         bedset = rules.hardy_weinberg_filtered_markers.output.bedset
     output:
         bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
-        results = report(str(resultPath/rule_stem) + ".yaml",
-                         category="Module 2 Core samples and infere pedigree"),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
     run:
-        items = "markers"
-        mqc.log(runlog, "Excluding ambigiuos {items} (GC/CG/AT/TA\n")
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, "Excluding ambigiuos {item_type} (GC/CG/AT/TA\n")
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
 
         mqc.exclude_strand_ambigious_markers(inTrunk, outTrunk, plinklocal)  
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
-        dropouts["QC test"] = f"Temporary remove alleles GC/CG/AT/TA {items}"
-        dropouts["Description"] = f"Input to this is a previously filtered  set"
-        dropouts["Snakemake rule"] = rule
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
         
 

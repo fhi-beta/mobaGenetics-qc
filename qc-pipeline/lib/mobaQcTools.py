@@ -29,7 +29,6 @@ def plotHist(dataFile, resultFile, column="name of the column", title="no legend
         print(f"Could not read plotdata {column} from {dataFile}, {str(e)}")
         return
 
-
     df = df.sort_values(column)
     p = ggplot(data=df, mapping=aes(x=column))
     hist = p + geom_histogram(binwidth=0.01) + labs(title=title)
@@ -41,19 +40,30 @@ def plotHist(dataFile, resultFile, column="name of the column", title="no legend
     return
 
 def saveYamlResults(files, yamlStruct):
-    """ Creates two files from the given yamlStruct
+    """ Creates three files from the given yamlStruct
 
-    "files.removedSamples" has yamlStruct["samples"] intact
-    "files" is the name of the structure without samples. Samples are expected in "samples"
+    files is a Path or string, typically result.yaml
+    "files.removedSamples" has yamlStruct["xitems"] intact
+    "files" is the name of the structure without samples/markers (xitems). 
+    A .rst file will be produced in addition to the .yaml file (used by snakemake --report)
     Side effect: Deletes yamlStruct["xitems"]
     """
-    fullFile = files + ".details"
+    files = Path(files)
+    fullFile = files.with_suffix(".yaml.details")
     with open(fullFile, 'w') as file:
         yaml.dump(yamlStruct, file)
     # A shorter result version, without sample. 
-    if "xitems" in yamlStruct: del yamlStruct["xitems"]
-    with open(files, 'w') as file: yaml.dump(yamlStruct, file)
-
+    if "xitems" in yamlStruct:
+        del yamlStruct["xitems"]
+    with open(files, 'w') as file:
+        yaml.dump(yamlStruct, file)
+    # A .rst version used for captions
+    rstFile = files.with_suffix(".rst")
+    with open(rstFile, 'w') as file:
+        file.write(f'Rule {yamlStruct["Rule order"]}\n\n')
+        file.write(f'- {yamlStruct["in"]} in\n')
+        file.write(f'- {yamlStruct["actionTakenCount"]} actions on {yamlStruct["rule type"]} \n') # 
+        file.write(f'- {yamlStruct["out"]} left\n')
     
 def plinkBase(path):
     """ part of the file without the last extention (such as .fam .bed .bim)
@@ -193,7 +203,7 @@ def lookupDict(fil, indx=1):
 def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
                  fullList=False,  mapFile="", mapIndx=1):
     """
-    Return number of updates due to a QC-test as structure suited for a export as a yaml-file
+    Return number of updates due to a QC-test as well as a structure suited for a export as a yaml-file
     The scenario is that a QC method/step had a dataset (file indData) and produced outData.
     Some items got filtered out/changed
     pre/postQC are tab-serparated csv-files with the same amount of columns

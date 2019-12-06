@@ -1,8 +1,9 @@
 # Config files containing hard coded variables
 import sys
+import yaml
+import io
 sys.path.append('../lib')  # in order to find our local packages
 import mobaQcTools as mqc  # local moba package
-# import yaml  # you might be able to remove this ...
 
 configfile: "config.yaml"
 
@@ -11,6 +12,9 @@ shell.executable("/bin/bash")
 
 # Runtime variables
 include: "variables.py"
+# A file with rule properites and ordering
+with open("rules.yaml", 'r') as stream:
+    rule_info = yaml.safe_load(stream)
 
 # Report (top level)
 report: "report/qc.rst"
