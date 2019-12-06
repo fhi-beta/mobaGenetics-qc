@@ -1,0 +1,174 @@
+# Shows meta-info about the rules - typical documentation and what order they should show up in the documentation
+# Each rule should match a corresponding snakemake rule
+remove_chr0:
+  QC test: Remove chromosone 0
+  Description:
+  # Used to sort report
+  Rule order: mod1-a
+  rule type: markers
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+
+update_sample_ids:
+  QC test: Update sample ids
+  Description: Mapping lab ids to moba ids
+  # Used to sort report
+  Rule order: mod1-b
+  rule type: samples
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+
+update_parents:
+  QC test: Update parents
+  Description: Parents updated based on moba information
+  # Used to sort report
+  Rule order: mod1-c
+  rule type: samples
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+
+update_sex:
+  QC test: Update sex
+  Description: Gender updated using to moba information
+  # Used to sort report
+  Rule order: mod1-d
+  rule type: samples
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+
+
+remove_duplicate_markers:
+  QC test: Remove duplicate markers
+  Description: When duplicate markers are found, only the one with best call rating is kept
+  # Used to sort report
+  Rule order: mod1-e
+  rule type: markers
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+
+remove_markers_cluster_sep:
+  QC test: Cluster separation
+  Description:
+  # Used to sort report
+  Rule order: mod1-f
+  rule type: markers
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+
+remove_markers_gc_score:
+  QC test: GC 10% score
+  Description:
+  # Used to sort report
+  Rule order: mod1-g
+  rule type: markers
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+
+remove_markers_aa_theta_dev:
+  QC test: AA Theta Dev
+  Description:
+  # Used to sort report
+  Rule order: mod1-h
+  rule type: markers
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+
+maf_removal_markers: 
+  QC test: Low minor allele frequencies of markers temporarily removed
+  Description: plink --maf
+  # Used to sort report
+  Rule order: mod2-a
+  rule type: markers
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+
+missing_genotype_samples:
+  QC test: plink --mind (temorary remove samples due to high missing callrates)
+  Description: Input to this is a previously --maf filtered marker set
+  # Used to sort report
+  Rule order: mod2-b
+  rule type: samples
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+
+missing_genotype_markers:
+  QC test: plink --geno (temporary remove markers due high missing callrates)
+  Description: Input is previously --maf and --mind reduced set
+  # Used to sort report
+  Rule order: mod2-c
+  rule type: markers
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+
+exclude_unplaced_and_non_autosomal_markers:
+  QC test: plink--autosome (remove non-autosomal and unplaced markers"
+  Description: Input is previously --maf --mind --geno reduced set
+  # Used to sort report
+  Rule order: mod2-d
+  rule type: markers
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+
+hardy_weinberg_filtered_markers:
+  QC test: plink --hwe (remove markers due to low Hardy-Weinberg equilibrium)
+  Description: Input is previously --maf --mind --geno --autosome reduced set
+  # Used to sort report
+  Rule order:  mod2-e
+  # Describes what item (samples/markers) the rule works on
+  rule type: markers
+  # A couple of placeholders that will be set in the pipe
+  Rule: Will become the same as the key of this entry
+
+exclude_strand_ambigious_markers:
+  QC test: Remove alleles GC/CG/AT/TA from markers
+  Description:
+  # Used to sort report
+  Rule order: mod2-f
+  rule type: markers
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+
+merge_foundersoffspring:
+  QC test:
+  Description:
+  # Used to sort report
+  Rule order: mod5-a
+  rule type: samples
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+
+set_mendelian_errors_missing:
+  QC test:
+  Description:
+  # Used to sort report
+  Rule order: mod5-b
+  rule type: markers
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+
+hrc_verification_check:
+  QC test:
+  Description:
+  # Used to sort report
+  Rule order: mod5-c
+  rule type: markers
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+
+split_by_chr:
+  QC test:
+  Description:
+  # Used to sort report
+  Rule order: mod5-d
+  rule type: markers
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+
+prepare_phased_for_imputation:
+  QC test:
+  Description:
+  # Used to sort report
+  Rule order: mod5-e
+  rule type: markers
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this
