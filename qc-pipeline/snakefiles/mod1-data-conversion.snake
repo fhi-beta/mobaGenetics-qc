@@ -192,7 +192,7 @@ rule remove_markers_cluster_sep:
                                  caption=(resultPath/rule_stem).with_suffix(".rst")),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
         removal= (tmpMod1/rule_stem).with_suffix(".txt"), 
-        removal_markers = (tmpMod1/rule_stem).with_suffix(".samples.txt"),
+        removal_markers = (tmpMod1/rule_stem).with_suffix(".markers.txt"),
     params:
         treshold = config['cluster_sep_thr']
     message: "mod1 Remove markers by cluster metrics" 
@@ -218,20 +218,15 @@ rule remove_markers_cluster_sep:
         dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1],
                                     sanityCheck = "removal", fullList = True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Threshold"] = params.treshold
+        dropouts["Treshold"] = params.treshold
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
         
         mqc.log(runlog, f'Removed {dropouts["actionTakenCount"]} markers(NSNP_CLUSTERSEP_LOST) out of {dropouts["in"]} (BEFORE_SNPTABLE), leaving {dropouts["out"]} markers. Treshhold {params.treshold}\n')
 
-        # Supersimple plot-test. Legend based on diff before/after QC test
-        percentDropped = dropouts["actionTakenCount"] / dropouts["in"]
-        mqc.plotHist(input.snptable, output.plot, config["cluster_sep_col_name"],
-            title=f'{dropouts["QC test"]}: Histogram of the full snp-table - before any exclusion of samples.\n'
-                    f'With treshhold {params.treshold},  {dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} were dropped.\n'
-                     f'At the current point of the QC, {dropouts["out"]} samples are left',
-                     separator='\t', treshold=params.treshold
-        )
+        mqc.plot_point_and_line(dropouts, input.snptable, output.plot,
+                                config["cluster_sep_col_name"], separator='\t',
+                                ylabel="Separation", invert=False)
 
         
 rule_stem = 'gcscore_removal'
@@ -247,8 +242,8 @@ rule remove_markers_gc_score:
         plot = report((resultPath/rule_stem).with_suffix(".png"),category="Module 1 Data preparation",
                                  caption=(resultPath/rule_stem).with_suffix(".rst")),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
-        removal= tmpMod1/'gc10_removal.txt',
-        removal_markers = tmpMod1/'gc10_removal.samples.txt',
+        removal= (tmpMod1/rule_stem).with_suffix(".txt"),
+        removal_markers = (tmpMod1/rule_stem).with_suffix(".markers.txt"),
     params:
         treshold = config['10%_GC_score_thr']
     run:
@@ -272,20 +267,15 @@ rule remove_markers_gc_score:
 
         dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Threshold"] = params.treshold
+        dropouts["Treshold"] = params.treshold
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
 
         mqc.log(runlog, f'Removed {dropouts["actionTakenCount"]} markers(NSNP_GC_LOST) out of {dropouts["in"]} (NSNP_BEFORE_GC), leaving {dropouts["out"]} markers. Treshhold {params.treshold}\n')
-        # Supersimple plot-test. Legend based on diff before/after QC test
-        percentDropped = dropouts["actionTakenCount"] / dropouts["in"]
 
-        mqc.plotHist(input.snptable, output.plot, config["10%_GC_score_col_name"], 
-            title = f'{dropouts["QC test"]}: Histogram of the full snp-table - before any exclusion of samples.\n'
-                     f'With treshhold {params.treshold},  {dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} were dropped.\n'
-                     f'At the current point of the QC, {dropouts["out"]} samples are left',
-                     separator='\t', treshold=params.treshold
-        )
+        mqc.plot_point_and_line(dropouts, input.snptable, output.plot,
+                                config["10%_GC_score_col_name"], separator='\t',
+                                ylabel="10% GC Score", invert=False)
 
 
 rule_stem = 'aa_theta_removal'
@@ -301,8 +291,8 @@ rule remove_markers_aa_theta_dev:
         plot = report((resultPath/rule_stem).with_suffix(".png"),category="Module 1 Data preparation",
                                  caption=(resultPath/rule_stem).with_suffix(".rst")),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
-        removal= tmpMod1/'aa_theta_removal.txt',
-        removal_markers = tmpMod1/'aa_theta_removal.samples.txt',
+        removal= (tmpMod1/rule_stem).with_suffix(".txt"),
+        removal_markers = (tmpMod1/rule_stem).with_suffix(".markers.txt"),
     params:
         treshold = config['aa_theta_dev_thr']
     run:
@@ -325,22 +315,16 @@ rule remove_markers_aa_theta_dev:
         ])
 
 
-        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
+        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Threshold"] = params.treshold
+        dropouts["Treshold"] = params.treshold
         dropouts["Rule"] = rule
 
         mqc.saveYamlResults(output.results, dropouts)
         mqc.log(runlog, f'Removed {dropouts["actionTakenCount"]} markers(NSNP_AATHETADEV_LOST) out of {dropouts["in"]} (NSNP_GC_LOST), leaving {dropouts["out"]} markers. Treshhold {params.treshold}\n')
-        # Supersimple plot-test. Legend based on diff before/after QC test
-        percentDropped = dropouts["actionTakenCount"] / dropouts["in"]
-        mqc.plotHist(input.snptable, output.plot, config["aa_theta_dev_col_name"], 
-            title = f'{dropouts["QC test"]}: Histogram of the full snp-table - before any exclusion of samples.\n'
-                    f'With treshhold {params.treshold},  {dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} were dropped.\n'
-                    f'At the current point of the QC, {dropouts["out"]} samples are left',
-                    separator='\t', treshold=params.treshold
-
                      
-        )
-        
+        mqc.plot_point_and_line(dropouts, input.snptable, output.plot,
+                                config["aa_theta_dev_col_name"], separator='\t',
+                                ylabel="AA-\u03B8 deviation", invert=False)
+
 

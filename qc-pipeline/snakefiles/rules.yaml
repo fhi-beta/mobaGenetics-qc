@@ -89,7 +89,7 @@ remove_markers_gc_score:
   Timestamp: 
 
 remove_markers_aa_theta_dev:
-  QC test: AA Theta Dev
+  QC test: AA Theta Deviation
   Description:
   Rule order: mod1-h
   rule type: markers

@@ -16,7 +16,7 @@ from datetime import datetime
 
 def plotHist(dataFile, resultFile, column="name of the column", title="no legend??", separator='\s+',
              treshold=0, logx=False):
-    """ plots and saves a historgram
+    """ plots and saves a historgram - can probably be removed as plot_point_and_line is now used
 
     Very basic Histogram. Could be prettied up a lot
     Prints out lots of warning, but see https://stackoverflow.com/questions/55805431/is-there-a-way-to-prevent-plotnine-from-printing-user-warnings-when-saving-ggplo
@@ -40,29 +40,36 @@ def plotHist(dataFile, resultFile, column="name of the column", title="no legend
     ggsave(plot=hist, filename=resultFile, dpi=300)
     return
 
-def plot_missingness(qc_results, dataFile, resultFile, column="name of the column", separator='\s+'):
-    """ plots and saves missingnes (actually 1-missingness) from a QC-test/rule
+def plot_point_and_line(qc_results, dataFile, resultFile, column="name of the column", separator='\s+',
+                     ylabel="no label given", invert=True):
+    """ plots and saves a plot of sample/markers probabilities - probsabilities on y-axis
 
     Prints out lots of warning, but see https://stackoverflow.com/questions/55805431/is-there-a-way-to-prevent-plotnine-from-printing-user-warnings-when-saving-ggplo
     Default separator is whitespace, but it needs to be overriden every now and then ... (typically by pure tab '\t')
+    Probabiliits are found as specified by dataFuke and column, with the separator given
     qc_results is a dictionary containing values that will be used for labels etc.
+    If invert=True, will plot 1-probabilities . Default is True as this is often used to plot missingess/call rates.
+
     """
     try: 
         df = pd.read_csv(dataFile, sep=separator, 
                  usecols=[column] )
+        treshold = qc_results.get("Treshold",0)
     except Exception as e:
-        print(f"Could not read plotdata {column} from {dataFile}, {str(e)}")
+        print(f"Could not read plotdata {column} from {dataFile} or qc-results, {str(e)}")
         return
 
-    df = 1-df
-    treshold = 1- qc_results.get("Treshold",0)
-    ylabel = f"1 - {column}"
+
+    if invert:
+        df = 1-df
+        treshold = 1-treshold
+    
     xlabel = qc_results.get("rule type")
     title = f'{qc_results.get("QC test")}\n{qc_results.get("Timestamp")}'
     df = df.sort_values(column).reset_index(drop=True)
     p = ggplot(df, aes(x=df.index,y=column)) 
     line = p + geom_line() + geom_point()
-    if treshold != 1:
+    if treshold > 0 and treshold <1 :
         line += geom_hline(yintercept=treshold, color='red')
         ylabel += f"   (treshold {treshold})"
         xlabel += f' ({qc_results.get("actionTakenCount")} outside treshold)' 

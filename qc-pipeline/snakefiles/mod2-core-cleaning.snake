@@ -29,7 +29,7 @@ rule maf_removal_markers:   #Minor allele frequencies removal
         ])
         dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Threshold"] = params.treshold
+        dropouts["Treshold"] = params.treshold
         dropouts["Rule"] = rule
 
         
@@ -41,12 +41,10 @@ rule maf_removal_markers:   #Minor allele frequencies removal
                 "--missing",
                 "--out", outTrunk
         ])
-        percentDropped = dropouts["actionTakenCount"] / dropouts["in"]
-        mqc.plotHist(outTrunk+".lmiss", output.plot, "F_MISS", 
-            title = f'{dropouts["QC test"]}: Histogram of snp call rates - After snp filtering --maf\n'
-                    f'with treshold {params.treshold}, {dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} were dropped.\n'
-                     f'At the current point of the QC, {dropouts["out"]} {item_type} are left',
-                     treshold=params.treshold, logx=True)
+
+        mqc.plot_point_and_line(dropouts, outTrunk+".lmiss", output.plot,
+                                column="F_MISS",ylabel="1 - missingness")
+
 
 rule_stem = 'tmp_missing_genotype_samples'
 rule missing_genotype_samples:   
@@ -101,11 +99,12 @@ rule missing_genotype_samples:
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
 
-        # call rates for samples were previously computed, we now now how many actually got cut
-        mqc.plot_missingness(dropouts, inTrunk+".imiss", output.plot, "F_MISS")
+        # call rates for samples were previously computed, we now know how many actually got cut
+        mqc.plot_point_and_line(dropouts, inTrunk+".imiss", output.plot,
+                                column="F_MISS",ylabel="1 - missingness")
 
         
-rule_stem = 'missing_genotype__markers' # used for ouputfilenames        
+rule_stem = 'tmp_missing_genotype_markers' # used for ouputfilenames        
 rule missing_genotype_markers:
     input:
         # This is based on earlier temporary filters - the same that we used to remember samples permanently
@@ -138,7 +137,7 @@ rule missing_genotype_markers:
 
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Threshold"] = params.treshold
+        dropouts["Treshold"] = params.treshold
         dropouts["Rule"] = rule
 
         mqc.saveYamlResults(output.results, dropouts)
@@ -149,10 +148,11 @@ rule missing_genotype_markers:
                 "--missing",
                 "--out", inTrunk
         ])
-        percentDropped = dropouts["actionTakenCount"] / dropouts["in"]
-        mqc.plotHist(inTrunk+".lmiss", output.plot, "F_MISS", title=f'{dropouts["QC test"]}', treshold=params.treshold)
+        mqc.plot_point_and_line(dropouts, inTrunk+".lmiss", output.plot,
+                                column="F_MISS",ylabel="1 - missingness")
 
-rule_stem = 'exclude_non-autosomal+unplaced_markers' # used for ouputfilenames        
+        
+rule_stem = 'tmp_exclude_non-autosomal+unplaced_markers' # used for ouputfilenames        
 rule exclude_unplaced_and_non_autosomal_markers:
     input:
         # This is based on earlier temporary filters - the same that we used to remember samples permanently
@@ -181,7 +181,7 @@ rule exclude_unplaced_and_non_autosomal_markers:
 
         mqc.saveYamlResults(output.results, dropouts)
 
-rule_stem = 'hwe_filtered_markers' # used for ouputfilenames
+rule_stem = 'tmp_hwe_filtered_markers' # used for ouputfilenames
 rule hardy_weinberg_filtered_markers:
     input:
         # This is based on earlier temporary filters - the same that we used to remember samples permanently
@@ -208,12 +208,12 @@ rule hardy_weinberg_filtered_markers:
 
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Threshold"] = params.treshold
+        dropouts["Treshold"] = params.treshold
         dropouts["Rule"] = rule
 
         mqc.saveYamlResults(output.results, dropouts)
 
-rule_stem = 'excluded_strand_amb_markers' # used for ouputfilenames
+rule_stem = 'tmp_excluded_strand_amb_markers' # used for ouputfilenames
 rule exclude_strand_ambigious_markers:
     input:
         # This is based on earlier temporary filters 
