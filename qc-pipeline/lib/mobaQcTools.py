@@ -20,7 +20,7 @@ def plotHist(dataFile, resultFile, column="name of the column", title="no legend
 
     Very basic Histogram. Could be prettied up a lot
     Prints out lots of warning, but see https://stackoverflow.com/questions/55805431/is-there-a-way-to-prevent-plotnine-from-printing-user-warnings-when-saving-ggplo
-    Default separator is whitespice, but it needs to be overriden every now and then ... (typically by pure tab '\t')
+    Default separator is whitespace, but it needs to be overriden every now and then ... (typically by pure tab '\t')
     If (optional) logx is True, x-values are log10 transformed.
     """
     try: 
@@ -38,6 +38,36 @@ def plotHist(dataFile, resultFile, column="name of the column", title="no legend
     if logx:
         hist += scale_x_log10(name=f"log10({column})")
     ggsave(plot=hist, filename=resultFile, dpi=300)
+    return
+
+def plot_missingness(qc_results, dataFile, resultFile, column="name of the column", separator='\s+'):
+    """ plots and saves missingnes (actually 1-missingness) from a QC-test/rule
+
+    Prints out lots of warning, but see https://stackoverflow.com/questions/55805431/is-there-a-way-to-prevent-plotnine-from-printing-user-warnings-when-saving-ggplo
+    Default separator is whitespace, but it needs to be overriden every now and then ... (typically by pure tab '\t')
+    qc_results is a dictionary containing values that will be used for labels etc.
+    """
+    try: 
+        df = pd.read_csv(dataFile, sep=separator, 
+                 usecols=[column] )
+    except Exception as e:
+        print(f"Could not read plotdata {column} from {dataFile}, {str(e)}")
+        return
+
+    df = 1-df
+    treshold = 1- qc_results.get("Treshold",0)
+    ylabel = f"1 - {column}"
+    xlabel = qc_results.get("rule type")
+    title = f'{qc_results.get("QC test")}\n{qc_results.get("Timestamp")}'
+    df = df.sort_values(column).reset_index(drop=True)
+    p = ggplot(df, aes(x=df.index,y=column)) 
+    line = p + geom_line() + geom_point()
+    if treshold != 1:
+        line += geom_hline(yintercept=treshold, color='red')
+        ylabel += f"   (treshold {treshold})"
+        xlabel += f' ({qc_results.get("actionTakenCount")} outside treshold)' 
+    line += labs(title=title, y=ylabel, x=xlabel)
+    ggsave(plot=line, filename=resultFile, dpi=300)
     return
 
 def saveYamlResults(files, yamlStruct):

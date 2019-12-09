@@ -10,7 +10,13 @@
 #                 this is the normal order they should be documented in
 # * Timetamp    : When the results of this rule was logged (UTC aka GMT)
 # * rule type   : Either sample or marker
-# * rule action : Wht the rule does to the date. Either remove or update 
+# * rule action : Wht the rule does to the date. Either remove or update
+#
+# Some items are not shown here at all, but will be inserted as results of the QC
+# * in          : Number of markers/sample before rule
+# * out         : Number of markers/sample after rule
+# * actionTakenCount: Number of markers/samples affected by the rul
+
 
 remove_chr0:
   QC test: Remove chromosone 0
@@ -103,7 +109,7 @@ maf_removal_markers:
   Timestamp: 
 
 missing_genotype_samples:
-  QC test: plink --mind (temorary remove samples due to high missing callrates)
+  QC test: Remove samples due to high missing callrates (plink --mind)
   Description: Input to this is a previously --maf filtered marker set
   Rule order: mod2-b
   rule type: samples
@@ -113,7 +119,7 @@ missing_genotype_samples:
   Timestamp: 
 
 missing_genotype_markers:
-  QC test: plink --geno (temporary remove markers due high missing callrates)
+  QC test: Remove markers due high missing callrates (plink --geno)
   Description: Input is previously --maf and --mind reduced set
   Rule order: mod2-c
   rule type: markers
@@ -123,7 +129,7 @@ missing_genotype_markers:
   Timestamp: 
 
 exclude_unplaced_and_non_autosomal_markers:
-  QC test: plink--autosome (remove non-autosomal and unplaced markers"
+  QC test: Remove non-autosomal and unplaced markers (plink--autosome)
   Description: Input is previously --maf --mind --geno reduced set
   Rule order: mod2-d
   rule type: markers

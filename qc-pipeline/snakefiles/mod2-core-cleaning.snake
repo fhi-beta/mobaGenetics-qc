@@ -97,18 +97,13 @@ rule missing_genotype_samples:
         dropouts = mqc.checkUpdates(permTrunk+".fam", outTrunk+".fam",cols = [0,1], sanityCheck = "removal", fullList = True)
 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Threshold"] = params.treshold
+        dropouts["Treshold"] = params.treshold
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
 
         # call rates for samples were previously computed, we now now how many actually got cut
-        percentDropped = dropouts["actionTakenCount"] / dropouts["in"]
-        mqc.plotHist(inTrunk+".imiss", output.plot, "F_MISS", 
-            title = f'{dropouts["QC test"]}:\nHistogram of call rates {item_type} - before --mind '
-                    f'{params.treshold}, but after --maf {maf_treshold}. \n{dropouts["actionTakenCount"]} ({percentDropped:.1%}) out of {dropouts["in"]} {item_type} were dropped.\n'
-                    f'At the current point of the QC, {dropouts["out"]} {item_type} are left',
-                     treshold = params.treshold
-        )
+        mqc.plot_missingness(dropouts, inTrunk+".imiss", output.plot, "F_MISS")
+
         
 rule_stem = 'missing_genotype__markers' # used for ouputfilenames        
 rule missing_genotype_markers:
