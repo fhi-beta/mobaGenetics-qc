@@ -225,7 +225,7 @@ rule exclude_strand_ambigious_markers:
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
     run:
         item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, "Excluding ambigiuos {item_type} (GC/CG/AT/TA\n")
+        mqc.log(runlog, "Excluding ambigious {item_type} (GC/CG/AT/TA\n")
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
 
@@ -234,7 +234,38 @@ rule exclude_strand_ambigious_markers:
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
+
+rule_stem = 'tmp_high_ld_excluded_markers' # used for ouputfilenames
+rule exclude_high_ld_markers:
+    input:
+        # This is based on earlier temporary filters 
+        bedset = rules.exclude_strand_ambigious_markers.output.bedset,
+        high_ld_regions_hg19 = "../resources/high-ld-regions-hg19"
+    output:
+        bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+    run:
+        print (f"{workflow.basedir} ")
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+
+
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--exclude", "range", input.high_ld_regions_hg19,    # identifies markers
+                "--out", outTrunk,                                   # called superclean_no_ag_ct_ld
+                "--make-bed"
+        ])
         
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+
 
 	# 	# Remove ambiguous SNPs (A/T  and C/G snps)
 	# 	# 1. input bedset
@@ -314,15 +345,6 @@ rule exclude_strand_ambigious_markers:
 #     <SNIP SNAP ....>		
 		
 
-		
-	# 	# Remove ambiguous SNPs (A/T  and C/G snps)
-	# 	# 1. input bedset
-	# 	# 2. output bedset
-	# 	# 3. TMP-folder
-	# 	remove_strand_ambiguous_markers \
-	# 	        {params.outdir}/superclean_autosomal_hwe \
-	# 	        {params.outdir}/superclean_no_ag_ct \
-	# 	        {params.outdir}
 		
 	# 	# Remove High LD regions
 	# 	# 1. input bedset

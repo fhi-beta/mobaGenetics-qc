@@ -119,7 +119,7 @@ missing_genotype_samples:
   Timestamp: 
 
 missing_genotype_markers:
-  QC test: Remove markers due high missing callrates (plink --geno)
+  QC test: Temporary remove markers due high missing callrates (plink --geno)
   Description: Input is previously --maf and --mind reduced set
   Rule order: mod2-c
   rule type: markers
@@ -139,7 +139,7 @@ exclude_unplaced_and_non_autosomal_markers:
   Timestamp: 
 
 hardy_weinberg_filtered_markers:
-  QC test: plink --hwe (remove markers due to low Hardy-Weinberg equilibrium)
+  QC test: Temporary remove markers due to low Hardy-Weinberg equilibrium (plink --hwe)
   Description: Input is previously --maf --mind --geno --autosome reduced set
   Rule order:  mod2-e
   # Describes what item (samples/markers) the rule works on
@@ -150,7 +150,7 @@ hardy_weinberg_filtered_markers:
   Timestamp: 
 
 exclude_strand_ambigious_markers:
-  QC test: Remove alleles GC/CG/AT/TA from markers
+  QC test: Temporary remove alleles GC/CG/AT/TA from markers
   Description:
   Rule order: mod2-f
   rule type: markers
@@ -159,6 +159,17 @@ exclude_strand_ambigious_markers:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
+exclude_high_ld_markers:
+  QC test: Temporary remove markers in high LD 
+  Description: 
+  Rule order: mod2-e
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+    
 merge_foundersoffspring:
   QC test:
   Description:
