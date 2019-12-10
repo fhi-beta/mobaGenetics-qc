@@ -5,6 +5,8 @@ rule maf_removal_markers:   #Minor allele frequencies removal
     output:
         bedset=expand(str(tmpMod2/rule_stem)
                           + '{ext}', ext=['.bed','.bim','.fam']),
+        callrates = expand(str(tmpMod2/rule_stem)
+                          + '{ext}', ext=['.lmiss','.imiss']),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
@@ -35,6 +37,7 @@ rule maf_removal_markers:   #Minor allele frequencies removal
         mqc.saveYamlResults(output.results, dropouts)
 
         # call rates for maf will be maf_removal_markers.output.bedset imiss and lmiss
+        # these will be reused later
         subprocess.run([plinklocal,
                 "--bfile", outTrunk,
                 "--missing",
@@ -47,21 +50,13 @@ rule maf_removal_markers:   #Minor allele frequencies removal
 rule_stem = 'tmp_missing_genotype_samples'
 rule missing_genotype_samples:   
     input:
-        # This is for permanent removal
-        perm_bedset = rules.maf_removal_markers.input.bedset,
-        # This is based on earlier temporary filters
         bedset = rules.maf_removal_markers.output.bedset
     output:
-        tmp_bedset=expand(str(tmpMod2/rule_stem)
-                          + '{ext}', ext=['.bed','.bim','.fam']),
-        bedset=expand(str(tmpMod2/'missing_genotype_samples')
+        bedset=expand(str(tmpMod2/rule_stem)
                           + '{ext}', ext=['.bed','.bim','.fam']),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
-                         caption=(resultPath/rule_stem).with_suffix(".rst")),
-        plot = report((resultPath/rule_stem).with_suffix(".png"),
-                      category="Module 2 Core samples and infere pedigree",
-                      caption=(resultPath/rule_stem).with_suffix(".rst"))
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
     params:
         treshold = config['mind_thr']
 
@@ -69,41 +64,72 @@ rule missing_genotype_samples:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, "Missing genotype {item_type} (--mind)\n")
         inTrunk =  mqc.plinkBase(input.bedset[0])
-        permTrunk =  mqc.plinkBase(input.perm_bedset[0])
-        tmp_outTrunk =  mqc.plinkBase(output.tmp_bedset[0])  # to remember what markers previously were removed by --maf
         outTrunk =  mqc.plinkBase(output.bedset[0])
         maf_treshold = config['maf_thr']
         # First extract temporary samples based on earlier filtered markers (maf_removal_markers)
-        # Later these will be used to extract samples permanently.
+        # Later these will be used to extract samples permanently (rule clean_samples:)
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
                 "--mind", str(params.treshold),          # identifies samples
-                "--out", tmp_outTrunk,            # earlier called superclean_maf_mind
+                "--out", outTrunk,                       # earlier called superclean_maf_mind
                 "--make-bed" ])
 
-        # and now PERMANENT removal of very-missing individuals from FULL dataset
-        subprocess.run([plinklocal,
-                "--bfile",permTrunk,
-                "--keep",tmp_outTrunk + ".fam", # keeping those samples that just passed the --mind threshold
-                "--out", outTrunk,
-                "--make-bed" ])
-        dropouts = mqc.checkUpdates(permTrunk+".fam", outTrunk+".fam",cols = [0,1], sanityCheck = "removal", fullList = True)
-
+        dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam",cols = [0,1],
+                                    sanityCheck = "removal", fullList = True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Treshold"] = params.treshold
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
 
+rule_stem = "perm_after_mind"
+rule clean_samples:
+    input:
+        # This is for permanent removal - as it was wayback before sevaral removals
+        perm_bedset = rules.maf_removal_markers.input.bedset,
+        # This is based on earlier temporary filters
+        bedset = rules.missing_genotype_samples.output.bedset,
+        # While this is callrates we computed at the --maf stage
+        callrates = rules.maf_removal_markers.output.callrates
+    output:
+        perm_bedset=expand(str(tmpMod2/'missing_genotype_samples')
+                          + '{ext}', ext=['.bed','.bim','.fam']),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/rule_stem).with_suffix(".png"),
+                      category="Module 2 Core samples and infere pedigree",
+                      caption=(resultPath/rule_stem).with_suffix(".rst"))
+    
+    run:
+        oldPermTrunk =  mqc.plinkBase(input.perm_bedset[0])   # what we had
+        callRateTrunk = mqc.plinkBase(input.callrates[0])
+
+        inTrunk =  mqc.plinkBase(input.bedset[0])             # what we temporary filtered
+        permTrunk =  mqc.plinkBase(output.perm_bedset[0])     # what we are making
+
+        # PERMANENT removal of very-missing individuals from FULL dataset
+        subprocess.run([plinklocal,
+                "--bfile",oldPermTrunk,
+                "--keep",inTrunk + ".fam", # keeping those samples that just passed the --mind threshold
+                "--out", permTrunk,
+                "--make-bed" ])
+        dropouts = mqc.checkUpdates(oldPermTrunk+".fam", permTrunk+".fam",cols = [0,1],
+                                    sanityCheck = "removal", fullList = True)
+
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+
         # call rates for samples were previously computed, we now know how many actually got cut
-        mqc.plot_point_and_line(dropouts, inTrunk+".imiss", output.plot,
+        mqc.plot_point_and_line(dropouts, callRateTrunk+".imiss", output.plot,
                                 column="F_MISS",ylabel="1 - missingness")
 
-        
+     
 rule_stem = 'tmp_missing_genotype_markers' # used for ouputfilenames        
 rule missing_genotype_markers:
     input:
         # This is based on earlier temporary filters - the same that we used to remember samples permanently
-        bedset = rules.missing_genotype_samples.output.tmp_bedset
+        bedset = rules.missing_genotype_samples.output.bedset
     output:
         bedset=expand(str(tmpMod2/rule_stem)
                           + '{ext}', ext=['.bed','.bim','.fam']),
