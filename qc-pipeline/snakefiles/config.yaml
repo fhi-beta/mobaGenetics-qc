@@ -21,9 +21,12 @@ maf_thr: 0.10
 mind_thr: 0.05
 # Missing genotype threshold (markers) plink --geno
 geno_thr: 0.02
-# mHardy-Weinberg equilibrium tests plink --hwe
+# Hardy-Weinberg equilibrium tests plink --hwe
 hwe_thr: 0.0001
-
+# prune_markers --make founders (command and params).
+prune_cmd: --indep-pairwise 200 100 0.1
+#
+#
 hrc_sites: "/mnt/archive/helgeland/refdata/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
 hapmap_stem: "/mnt/archive/helgeland/refdata/hapmap/hapmap_b36/hapmapb36"
 hapmap_pop: "/mnt/archive/helgeland/refdata/hapmap/relationships_w_pops_121708.txt"

@@ -25,8 +25,7 @@ rule maf_removal_markers:   #Minor allele frequencies removal
                 "--bfile",inTrunk,
                 "--maf", str(params.treshold),
                 "--out", outTrunk,      # previously named superclean_maf
-                "--make-bed"
-        ])
+                "--make-bed" ])
         dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Treshold"] = params.treshold
@@ -39,8 +38,7 @@ rule maf_removal_markers:   #Minor allele frequencies removal
         subprocess.run([plinklocal,
                 "--bfile", outTrunk,
                 "--missing",
-                "--out", outTrunk
-        ])
+                "--out", outTrunk ])
 
         mqc.plot_point_and_line(dropouts, outTrunk+".lmiss", output.plot,
                                 column="F_MISS",ylabel="1 - missingness")
@@ -81,17 +79,14 @@ rule missing_genotype_samples:
                 "--bfile",inTrunk,
                 "--mind", str(params.treshold),          # identifies samples
                 "--out", tmp_outTrunk,            # earlier called superclean_maf_mind
-                "--make-bed"
-        ])
+                "--make-bed" ])
 
         # and now PERMANENT removal of very-missing individuals from FULL dataset
         subprocess.run([plinklocal,
                 "--bfile",permTrunk,
                 "--keep",tmp_outTrunk + ".fam", # keeping those samples that just passed the --mind threshold
                 "--out", outTrunk,
-                "--make-bed"
-        ])
-
+                "--make-bed" ])
         dropouts = mqc.checkUpdates(permTrunk+".fam", outTrunk+".fam",cols = [0,1], sanityCheck = "removal", fullList = True)
 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -132,8 +127,7 @@ rule missing_genotype_markers:
                 "--bfile",inTrunk,
                 "--geno", str(params.treshold),          # identifies markers
                 "--out", outTrunk,                # called superclean_maf_mind_geno before
-                "--make-bed"
-        ])
+                "--make-bed" ])
 
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -146,8 +140,7 @@ rule missing_genotype_markers:
         subprocess.run([plinklocal,
                 "--bfile", inTrunk,
                 "--missing",
-                "--out", inTrunk
-        ])
+                "--out", inTrunk ])
         mqc.plot_point_and_line(dropouts, inTrunk+".lmiss", output.plot,
                                 column="F_MISS",ylabel="1 - missingness")
 
@@ -171,8 +164,7 @@ rule exclude_unplaced_and_non_autosomal_markers:
                 "--bfile",inTrunk,
                 "--autosome",                     # identifies markers
                 "--out", outTrunk,                # called superclean_autosomal
-                "--make-bed"
-        ])
+                "--make-bed" ])
 
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
                                     sanityCheck = "removal", fullList = True) 
@@ -203,8 +195,7 @@ rule hardy_weinberg_filtered_markers:
                 "--bfile",inTrunk,
                 "--hwe", str(params.treshold),          # identifies markers
                 "--out", outTrunk,               # called superclean_autosomal_hwe before
-                "--make-bed"
-        ])
+                "--make-bed" ])
 
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -247,44 +238,63 @@ rule exclude_high_ld_markers:
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
     run:
-        print (f"{workflow.basedir} ")
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
         inTrunk =  mqc.plinkBase(input.bedset[0])
-        outTrunk =  mqc.plinkBase(output.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0]) 
 
 
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
                 "--exclude", "range", input.high_ld_regions_hg19,    # identifies markers
-                "--out", outTrunk,                                   # called superclean_no_ag_ct_ld
-                "--make-bed"
-        ])
+                "--out", outTrunk,                                   # called superclean_no_ag_ct_ld before
+                "--make-bed"  ])
         
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
 
-
-	# 	# Remove ambiguous SNPs (A/T  and C/G snps)
-	# 	# 1. input bedset
-	# 	# 2. output bedset
-	# 	# 3. TMP-folder
-	# 	remove_strand_ambiguous_markers \
-	# 	        {params.outdir}/superclean_autosomal_hwe \
-	# 	        {params.outdir}/superclean_no_ag_ct \
-	# 	        {params.outdir}
-
-
+rule_stem = 'tmp_prune_markers' # used for ouputfilenames
+rule prune_markers:
+    input:
+        # This is based on earlier temporary filters 
+        bedset = rules.exclude_high_ld_markers.output.bedset,
+    output:
+        bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        exclude_list = (tmpMod2/rule_stem).with_suffix(".prune.in"),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+    params:
+        prune_cmd = config["prune_cmd"].split()    # As plink will want a list
         
-# 		base + 'both/tmp/' + 'superclean_pruned.bed',
-# 		base + 'both/tmp/' + 'full_mind.bed',	# NON-MISSING samples
-# 		base + 'both/tmp/' + 'superclean_maf_mind_geno.bed',	# for Xchr Fstat
-# 		base + 'both/tmp/' + 'prune_markers_tmp.prune.in', # SUPERCLEAN markers
-# 		stvars = base + 'both/rep/' + 'storedvars_superclean.txt',
-# 		exclinds = base + 'both/rep/' + 'exclusions_superclean_ind.txt',
-# 		exclsnps = base + 'both/rep/' + 'exclusions_superclean_snp.txt'
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+        
+        subprocess.run([plinklocal,
+                "--bfile", inTrunk,
+                        "--make-founders",
+                 "--out", outTrunk]    # no bed-file prodused, just .in
+                 + params.prune_cmd )  # note that we here add a list to another list ... 
+
+
+        subprocess.run([plinklocal,
+                "--bfile", inTrunk,
+                "--extract", output.exclude_list,            
+                "--out", outTrunk,                           # called superclean_pruned before
+                "--make-bed" ])
+        
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
+                                    sanityCheck = "removal", fullList = True) 
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+        
+
 
 
 # rule superclean:
@@ -329,34 +339,6 @@ rule exclude_high_ld_markers:
 	# 	# 5. exclusion threshtold
 	# 	# [6. optional: MAF threshold for HET split]
 #     <SNIP SNAP ....>
-# IDENTIFY maf_mind 0.1/0.05  done 
-# full_mind is the newest, kept based on superclean_maf_mind.fam
-	# 	# PERMANENT removal of very-missing individuals from FULL dataset
-	# 	{plinklocal} \
-	# 		--bfile {params.instem} \
-	# 		--keep {params.outdir}/superclean_maf_mind.fam \
-	# 		--make-bed \
-	# 		--out {params.outdir}/full_mind
-	# 	report_ninds {params.outdir}/full_mind "FULL_AFTERMIND"
-
-#	        --out {params.outdir}/superclean_maf_mind_geno
-	# 	log "Initial cleaning: --geno 0.02"
-
-#     <SNIP SNAP ....>		
-		
-
-		
-	# 	# Remove High LD regions
-	# 	# 1. input bedset
-	# 	# 2. output bedset
-	# 	# 3. TMP-folder
-	# 	# 4. Exclusion filter
-	# 	# 5. No logging flag
-	# 	plink_exclude_markers \
-	# 	        {params.outdir}/superclean_no_ag_ct \
-	# 	        "range ../resources/high-ld-regions-hg19" \
-	# 	        {params.outdir}/superclean_no_ag_ct_ld \
-	# 	        "HIGHLD" 1
 
 	# 	# Prune the dataset
 	# 	# 1. input dataset

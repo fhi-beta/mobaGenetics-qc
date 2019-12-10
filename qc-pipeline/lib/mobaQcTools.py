@@ -12,6 +12,7 @@ import re
 import datetime
 from pathlib import Path
 import subprocess
+import inspect    # to find stack-info, such as the functions name
 from datetime import datetime
 
 def plotHist(dataFile, resultFile, column="name of the column", title="no legend??", separator='\s+',
@@ -23,11 +24,12 @@ def plotHist(dataFile, resultFile, column="name of the column", title="no legend
     Default separator is whitespace, but it needs to be overriden every now and then ... (typically by pure tab '\t')
     If (optional) logx is True, x-values are log10 transformed.
     """
+    my_name = inspect.stack()[0][3]      # Generic way of find this functions name
     try: 
         df = pd.read_csv(dataFile, sep=separator, 
                  usecols=[column] )
     except Exception as e:
-        print(f"Could not read plotdata {column} from {dataFile}, {str(e)}")
+        print(f"{my_name}: Could not read plotdata {column} from {dataFile}, {str(e)}")
         return
 
     df = df.sort_values(column)
@@ -51,12 +53,13 @@ def plot_point_and_line(qc_results, dataFile, resultFile, column="name of the co
     If invert=True, will plot 1-probabilities . Default is True as this is often used to plot missingess/call rates.
 
     """
+    my_name = inspect.stack()[0][3]      # Generic way of find this functions name. Use 
     try: 
         df = pd.read_csv(dataFile, sep=separator, 
                  usecols=[column] )
         treshold = qc_results.get("Treshold",0)
     except Exception as e:
-        print(f"Could not read plotdata {column} from {dataFile} or qc-results, {str(e)}")
+        print(f"{my_name}: Could not read plotdata {column} from {dataFile} or qc-results, {str(e)}")
         return
 
 

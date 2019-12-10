@@ -118,6 +118,16 @@ missing_genotype_samples:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
+clean_samples:
+  QC test: Permanently remove samples we don't like
+  Description: Input to this is a previously --maf --mind filtered marker set
+  Rule order: mod2-b1
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+    
 missing_genotype_markers:
   QC test: Temporary remove markers due high missing callrates (plink --geno)
   Description: Input is previously --maf and --mind reduced set
@@ -162,13 +172,33 @@ exclude_strand_ambigious_markers:
 exclude_high_ld_markers:
   QC test: Temporary remove markers in high LD 
   Description: 
-  Rule order: mod2-e
+  Rule order: mod2-g
   rule type: markers
   rule action: remove
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
+prune_markers:
+  QC test: Temporary prune markers due to  linkage disequilibrium
+  Description: Uses plink --make-founders  indep-pairwise 
+  Rule order: mod2-h
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+pedigree_inconsistence:
+  QC test: Remove of pedigree inconsistent samples
+  Description: Tries to fix various errors like misplaced/switched samples. Lots of manual work (in 2018)
+  Rule order: mod2-i
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+    
     
 merge_foundersoffspring:
   QC test:
