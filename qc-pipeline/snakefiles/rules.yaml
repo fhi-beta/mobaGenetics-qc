@@ -189,17 +189,38 @@ prune_markers:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-pedigree_inconsistence:
-  QC test: Remove of pedigree inconsistent samples
-  Description: Tries to fix various errors like misplaced/switched samples. Lots of manual work (in 2018)
+pedigree_inconsistence_prep:
+  QC test: Prepares for pedigree fix of inconsistent samples
+  Description: See pedigree_fix
   Rule order: mod2-i
-  rule type: samples
+  rule type: markers
   rule action: remove
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
     
+pedigree_fix:
+  QC test: Tries to fix triads/missplaced sample
+  Description: A R-script inferped_FuckupDetectorAndSolver.R is run and it's result will be used as a new bedset.
+  Rule order: mod2-j
+  rule type: samples
+  rule action: remove/update
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+document_pedigree_fix:
+  QC test: Documents changes to bedfiles as a result of the two previous steps
+  Description: Just a comparing of samples/individuals changes
+  Rule order: mod2-k
+  rule type: samples
+  rule action: remove/update
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
     
+  
 merge_foundersoffspring:
   QC test:
   Description:

@@ -111,7 +111,7 @@ rule clean_samples:
         subprocess.run([plinklocal,
                 "--bfile",oldPermTrunk,
                 "--keep",inTrunk + ".fam", # keeping those samples that just passed the --mind threshold
-                "--out", permTrunk,
+                "--out", permTrunk,        # earlier called full_mind
                 "--make-bed" ])
         dropouts = mqc.checkUpdates(oldPermTrunk+".fam", permTrunk+".fam",cols = [0,1],
                                     sanityCheck = "removal", fullList = True)
@@ -125,7 +125,7 @@ rule clean_samples:
                                 column="F_MISS",ylabel="1 - missingness")
 
      
-rule_stem = 'tmp_missing_genotype_markers' # used for ouputfilenames        
+rule_stem = 'tmp_missing_genotype_markers' # used for outputfilenames        
 rule missing_genotype_markers:
     input:
         # This is based on earlier temporary filters - the same that we used to remember samples permanently
@@ -152,7 +152,7 @@ rule missing_genotype_markers:
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
                 "--geno", str(params.treshold),          # identifies markers
-                "--out", outTrunk,                # called superclean_maf_mind_geno before
+                "--out", outTrunk,                       # called superclean_maf_mind_geno before
                 "--make-bed" ])
 
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
@@ -171,7 +171,7 @@ rule missing_genotype_markers:
                                 column="F_MISS",ylabel="1 - missingness")
 
         
-rule_stem = 'tmp_exclude_non-autosomal+unplaced_markers' # used for ouputfilenames        
+rule_stem = 'tmp_exclude_non-autosomal+unplaced_markers' # used for outputfilenames        
 rule exclude_unplaced_and_non_autosomal_markers:
     input:
         # This is based on earlier temporary filters - the same that we used to remember samples permanently
@@ -199,7 +199,7 @@ rule exclude_unplaced_and_non_autosomal_markers:
 
         mqc.saveYamlResults(output.results, dropouts)
 
-rule_stem = 'tmp_hwe_filtered_markers' # used for ouputfilenames
+rule_stem = 'tmp_hwe_filtered_markers' # used for outputfilenames
 rule hardy_weinberg_filtered_markers:
     input:
         # This is based on earlier temporary filters - the same that we used to remember samples permanently
@@ -230,7 +230,7 @@ rule hardy_weinberg_filtered_markers:
 
         mqc.saveYamlResults(output.results, dropouts)
 
-rule_stem = 'tmp_excluded_strand_amb_markers' # used for ouputfilenames
+rule_stem = 'tmp_excluded_strand_amb_markers' # used for outputfilenames
 rule exclude_strand_ambigious_markers:
     input:
         # This is based on earlier temporary filters 
@@ -252,7 +252,7 @@ rule exclude_strand_ambigious_markers:
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
 
-rule_stem = 'tmp_high_ld_excluded_markers' # used for ouputfilenames
+rule_stem = 'tmp_high_ld_excluded_markers' # used for outputfilenames
 rule exclude_high_ld_markers:
     input:
         # This is based on earlier temporary filters 
@@ -281,7 +281,7 @@ rule exclude_high_ld_markers:
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
 
-rule_stem = 'tmp_prune_markers' # used for ouputfilenames
+rule_stem = 'tmp_prune_markers' # used for outputfilenames
 rule prune_markers:
     input:
         # This is based on earlier temporary filters 
@@ -319,148 +319,152 @@ rule prune_markers:
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
+
+
+rule_stem = 'ped_incons_prep' # used for outputfilenames
+rule pedigree_inconsistence_prep:
+    input:
+        in_geno = rules.missing_genotype_markers.output.bedset,
+        in_all= rules.clean_samples.output.perm_bedset,
+        clean_snps = rules.prune_markers.output.exclude_list
+    output:
+        bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        genome = (tmpMod2/rule_stem).with_suffix(".genome"),
+        inferpedx = tmpMod2/"inferpedx.sexcheck",
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inGenoTrunk =  mqc.plinkBase(input.in_geno[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+
+  		# plink will recommend sex assignments based on X het and Y calls
+        subprocess.run([plinklocal,
+                "--bfile", inGenoTrunk,
+                "--check-sex", "ycount",
+                "--out", mqc.plinkBase(output.inferpedx)  ]) # local stem: don't want to overwrite logfiles
+
+        # get PIHAT estimates
+        subprocess.run([plinklocal,
+                "--bfile", inGenoTrunk,
+                "--extract", input.clean_snps,
+                "--genome", "--min", "0.10",                 # not parametrized for now 
+                "--out", outTrunk,                           # called inferped_pruned before
+                "--make-bed" ])
+
+        dropouts = mqc.checkUpdates(inGenoTrunk+".bim", outTrunk+".bim",cols = [0,1],
+                                    sanityCheck = "remove", fullList = True) 
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+
+
+# This rule is still in shell-syntax.        
+rule pedigree_fix:
+    input:
+        in_geno = rules.missing_genotype_markers.output.bedset,
+        in_all = rules.clean_samples.output.perm_bedset,
+        ped_pruned = rules.pedigree_inconsistence_prep.output.bedset,
+        ped_pruned_pihat = rules.pedigree_inconsistence_prep.output.genome,
+        ped_sexcheck = rules.pedigree_inconsistence_prep.output.inferpedx
+    output:
+        pheno_ok_flags = tmpMod2/'phenotypesOK.txt',  # A list of samples that have passed sanitycheck?
+        # Under: INFERRED family info, SUPERCLEAN markers
+  	inferped_pruned = expand(str(tmpMod2/'inferped_pruned') + '{ext}', ext=['.bed','.bim','.fam']) ,
+        # Under  INFERRED family info, ALL markers
+       	inferped_all = expand(str(tmpMod2/'inferped_all') + '{ext}', ext=['.bed','.bim','.fam']) ,
+        Rfixed_fam = tmpMod2/"inferped_updated.fam",
+    params:
+        outdir = tmpMod2,
+        resdir = resultPath,
+	inferfam = config['infer_recfam'],
+	inferbad = config['infer_badids']
+    shell:
+        """
+        set -x
+        # lets used trunks to mimic earlier behaviour by extracting truncts from input/output
+        foo={input.in_geno[0]}
+        inGenoTrunk=${{foo%\.*}}
+        foo={input.in_all[0]}
+        inAllTrunk=${{foo%\.*}}
+        foo={input.ped_pruned[0]}
+        pedPrunedTrunk=${{foo%\.*}}
+
+        foo={output.inferped_pruned[0]}
+        outPrunedTrunk=${{foo%\.*}}
+        foo={output.inferped_all[0]}
+        outAllTrunk=${{foo%\.*}}
+
+        # There used to be a column extractor here, but it didn't work so gutorm removed it
+        # the .genome file is not tab-separated). Remove this after test/confirm
+ 	# cut -f 2,4,8,10 input.ped_pruned_pihat > output.ped_pruned_pihat
+        # We use the input.ped_pruned_pihat directlry in the R script later
+
+	# # ERROR if fam files were different for PRUNED and ALL markers (can't update then)
+       	diff $inAllTrunk.fam $pedPrunedTrunk.fam
+
+	# R script for updating fam file
+	# 1. input fam file
+	# 2. pihat file
+	# 3. PLINK's sexcheck results
+	# 4. /media/local-disk2/helgeland/rotterdam1/inferred-pedigree/permanent_reconstruct-fam.txt
+	# 5. /media/local-disk2/helgeland/rotterdam1/inferred-pedigree/permanent_bad-sample-IIDs.txt
+	# 6. inferped_data.RData
+	# 7. updated fam file  - The one we will later use
+	# 8. flag file for individuals/samples
+	Rscript {libdir}/inferped_FuckupDetectorAndSolver.R \
+	    $pedPrunedTrunk.fam \
+	    {input.ped_pruned_pihat} \
+	    {input.ped_sexcheck} \
+	    {params.inferbad} \
+	    {params.inferfam} \
+	    {params.resdir}/inferped_data.RData \
+	    {output.Rfixed_fam} \
+	    {output.pheno_ok_flags}
+
+	# # produce bedset with ALL markers and INFERRED family info
+       	cp $inAllTrunk.bed $outAllTrunk.bed
+       	cp $inAllTrunk.bim $outAllTrunk.bim
+	cp {output.Rfixed_fam} $outAllTrunk.fam
+
+	# produce/modify bedset with PRUNED (pruned) markers by replacing earlier .fam file with fixed one
+	# (inferped_pruned.bed and .bim were made above)
+       	cp $pedPrunedTrunk.bed $outPrunedTrunk.bed
+       	cp $pedPrunedTrunk.bim $outPrunedTrunk.bim
+        cp {output.Rfixed_fam} $outPrunedTrunk.fam  
+
+        """
+
+rule document_pedigree_fix:
+    input:
+        in_all = mqc.plinkBase(rules.pedigree_fix.input.in_all[0]) + ".fam",
+        out_all = mqc.plinkBase(rules.pedigree_fix.output.inferped_all[0]) + ".fam",
+        in_pruned = mqc.plinkBase(rules.pedigree_fix.input.ped_pruned[0]) + ".fam",
+        out_pruned = mqc.plinkBase(rules.pedigree_fix.output.inferped_pruned[0]) + ".fam",
+    output:
+        results_all = report((resultPath/"pedigree_fix_all").with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/"pedigree_fix_all").with_suffix(".rst")),       
+        results_pruned = report((resultPath/"pedigree_fix_pruned").with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/"pedigree_fix_pruned").with_suffix(".rst")),       
+    run:
+        dropouts = mqc.checkUpdates(input.in_all, input.out_all,cols = [0,1],
+                                    sanityCheck = "removal", fullList = True) 
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        mqc.saveYamlResults(output.results_all, dropouts)
         
+        dropouts = mqc.checkUpdates(input.in_pruned, input.out_pruned,cols = [0,1],
+                                    sanityCheck = "removal", fullList = True) 
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        mqc.saveYamlResults(output.results_pruned, dropouts)
 
 
 
-# rule superclean:
-# 	input:
-# 		gh>changed: bedset = rules.remove_markers_aa_theta_dev.output.bedset
-# 	output:
-# 		base + 'both/tmp/' + 'superclean_pruned.bed',
-# 		base + 'both/tmp/' + 'full_mind.bed',	# NON-MISSING samples
-# 		base + 'both/tmp/' + 'superclean_maf_mind_geno.bed',	# for Xchr Fstat
-# 		base + 'both/tmp/' + 'prune_markers_tmp.prune.in', # SUPERCLEAN markers
-# 		stvars = base + 'both/rep/' + 'storedvars_superclean.txt',
-# 		exclinds = base + 'both/rep/' + 'exclusions_superclean_ind.txt',
-# 		exclsnps = base + 'both/rep/' + 'exclusions_superclean_snp.txt'
-# 	params:
-# 		instem = base + 'mod1-data-preparation/tmp/' + 'chr0-removed',
-# 		outdir = base + 'both/tmp/',
-# 		plotdir = base + 'both/rep/' + 'plots_superclean/',
-# 		tmpdir = base + 'both/rep/'
-	# shell:
-	# 	"""
-	# 	log "--- IDENTIFY CORE: RULE SUPERCLEAN ---"
-	#         mkdir -p $PLOTDIR
-	#        	clear_store
-	
-	# 	# ONLY COMMON markers will be used further on
-	# 	report_ninds {params.instem} "SUPERCLEAN_IN"
-	# 	report_nsnps {params.instem} "SUPERCLEAN_IN"
-	# 	{plinklocal} \
-	# 	        --bfile {params.instem} \
-	# 	        --maf 0.10 \
-	# 	        --make-bed \
-	# 	        --out {params.outdir}/superclean_maf
-	# 	log "Initial cleaning: --maf 0.10"
-	# 	report_nsnps {params.outdir}/superclean_maf "SUPERCLEAN_AFTERP1"
 
-	# 	# Removal of very-missing individuals from SUPERCLEAN dataset
-	# 	# Args:
-	# 	# 1. input dataset
-	# 	# 2. tmp directory
-	# 	# 3. stage name
-	# 	# 4. next exclusion filter
-	# 	# 5. exclusion threshtold
-	# 	# [6. optional: MAF threshold for HET split]
-#     <SNIP SNAP ....>
-
-	# 	# Prune the dataset
-	# 	# 1. input dataset
-	# 	# 2. "indep-pairwise" or "indep-pairphase"
-	# 	# 3. window-size (variant count)
-	# 	# 4. step-size (variant count)
-	# 	# 5. R2-threshold
-	# 	# 6. output path + bed stem
-	# 	# 7. TMP-path
-	# 	plink_prune_markers \
-	# 	        {params.outdir}/superclean_no_ag_ct_ld \
-	# 	        "indep-pairwise" \
-	# 	        200 100 0.1 \
-	# 	        {params.outdir}/superclean_pruned \
-	# 	        {params.outdir}
-	# 	"""
-
-# rule inferped:
-# 	input:
-# 		base + 'both/tmp/' + 'full_mind.bed', # ALL markers for updating fam file
-# 		base + 'both/tmp/' + 'superclean_maf_mind_geno.bed', # SORTOFCLEAN markers for X chr sexcheck
-# 		cleansnps = base + 'both/tmp/' + 'prune_markers_tmp.prune.in' # SUPERCLEAN markers for pihat
-# 	output:
-# 		base + 'both/tmp/' + 'inferped_pruned.bed', # INFERRED family info, SUPERCLEAN markers
-# 		base + 'both/tmp/' + 'inferped_all.bed', # INFERRED family info, ALL markers
-# 		phenookflags = base + 'both/rep/' + 'phenotypesOK.txt'
-# 	params:
-# 		ingeno = base + 'both/tmp/' + 'superclean_maf_mind_geno',
-# 		inall = base + 'both/tmp/' + 'full_mind',
-# 		outdir = base + 'both/tmp/',
-# 		repdir = base + 'both/rep/',
-# 		plotdir = base + 'both/rep/' + 'plots_inferped/',
-# 		inferfam = config['infer_recfam'],
-# 		inferbad = config['infer_badids']
-# 	shell:
-# 		"""
-# 		set -e
-# 		libdir={libdir}
-# 		plinklocal={plinklocal}
-
-# 		source {libdir}/functions.sh
-# 		source {libdir}/plink_wrapper_functions.sh
-
-# 		PIPELINELOG={runlog}
-
-# 		log "--- IDENTIFY CORE: RULE PCAWHAPMAP ---"
-# 		log "Starting pedigree inference"
-
-#  		# plink will recommend sex assignments based on X het and Y calls
-#  		{plinklocal} \
-#  			--bfile {params.ingeno} \
-#  			--check-sex ycount \
-#  			--out {params.outdir}/inferpedx
- 
-#  		# get PIHAT estimates
-#  		{plinklocal} \
-#  			--bfile {params.ingeno} \
-#  			--extract {input.cleansnps} \
-#  			--genome \
-#  			--min 0.10 \
-#  			--make-bed \
-#  			--out {params.outdir}/inferped_pruned
-#  		cut -f 2,4,8,10 {params.outdir}/inferped_pruned.genome > {params.outdir}/inferped_pruned_pihat.txt
- 
-# 		# ERROR if fam files were different for PRUNED and ALL markers (can't update then)
-# 		diff {params.inall}.fam {params.outdir}/inferped_pruned.fam
-
-# 		# R script for updating fam file
-# 		# 1. input fam file
-# 		# 2. pihat file
-# 		# 3. PLINK's sexcheck results
-# 		# 4. /media/local-disk2/helgeland/rotterdam1/inferred-pedigree/permanent_reconstruct-fam.txt
-# 		# 5. /media/local-disk2/helgeland/rotterdam1/inferred-pedigree/permanent_bad-sample-IIDs.txt
-# 		# 6. inferped_data.RData
-# 		# 7. updated fam file
-# 		# 8. flag file for individuals
-# 		Rscript {libdir}/inferped_FuckupDetectorAndSolver.R \
-# 			{params.outdir}/inferped_pruned.fam \
-# 			{params.outdir}/inferped_pruned_pihat.txt \
-# 			{params.outdir}/inferpedx.sexcheck \
-# 			{params.inferbad} \
-# 			{params.inferfam} \
-# 			{params.repdir}/inferped_data.RData \
-# 			{params.outdir}/inferped_updated.fam \
-# 			{output.phenookflags}
-
-# 		# produce bedset with ALL markers and INFERRED family info
-# 		cp {params.inall}.bed {params.outdir}/inferped_all.bed
-# 		cp {params.inall}.bim {params.outdir}/inferped_all.bim
-# 		cp {params.outdir}/inferped_updated.fam {params.outdir}/inferped_all.fam
-
-# 		# produce bedset with PRUNED markers and INFERRED family info
-# 		# (inferped_pruned.bed and .bim were made above)
-# 		cp {params.outdir}/inferped_updated.fam {params.outdir}/inferped_pruned.fam
-# 		"""
-	
 # rule pcawhapmap:
 # 	input:
 # 		base + 'both/tmp/' + 'inferped_pruned.bed', # for running the PCA
