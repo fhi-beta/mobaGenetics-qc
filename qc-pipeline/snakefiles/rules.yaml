@@ -191,7 +191,7 @@ prune_markers:
 
 pedigree_inconsistence_prep:
   QC test: Prepares for pedigree fix of inconsistent samples
-  Description: See pedigree_fix
+  Description: Plink --sexcheck and --extract --genome
   Rule order: mod2-i
   rule type: markers
   rule action: remove
@@ -199,17 +199,18 @@ pedigree_inconsistence_prep:
   Rule: Will be the same as the key of this entry
   Timestamp: 
     
-pedigree_fix:
+pedigree_fu_detector_solver:
   QC test: Tries to fix triads/missplaced sample
-  Description: A R-script inferped_FuckupDetectorAndSolver.R is run and it's result will be used as a new bedset.
+  Description: A R-script inferped_FuckupDetectorAndSolver.R is run and it's result will be used as two new bedset.
+    Both will be earlier pruned/full sets, but with a new .fam(ily) file
   Rule order: mod2-j
   rule type: samples
-  rule action: remove/update
+  rule action: update
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-document_pedigree_fix:
+document_pedigree_fu_detector_solver:
   QC test: Documents changes to bedfiles as a result of the two previous steps
   Description: Just a comparing of samples/individuals changes
   Rule order: mod2-k

@@ -341,7 +341,7 @@ rule pedigree_inconsistence_prep:
         inGenoTrunk =  mqc.plinkBase(input.in_geno[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
 
-  		# plink will recommend sex assignments based on X het and Y calls
+  	# plink will recommend sex assignments based on X het and Y calls
         subprocess.run([plinklocal,
                 "--bfile", inGenoTrunk,
                 "--check-sex", "ycount",
@@ -363,7 +363,7 @@ rule pedigree_inconsistence_prep:
 
 
 # This rule is still in shell-syntax.        
-rule pedigree_fix:
+rule pedigree_fu_detector_solver:
     input:
         in_geno = rules.missing_genotype_markers.output.bedset,
         in_all = rules.clean_samples.output.perm_bedset,
@@ -384,7 +384,7 @@ rule pedigree_fix:
 	inferbad = config['infer_badids']
     shell:
         """
-        set -x
+        # set -x
         # lets used trunks to mimic earlier behaviour by extracting truncts from input/output
         foo={input.in_geno[0]}
         inGenoTrunk=${{foo%\.*}}
@@ -438,19 +438,19 @@ rule pedigree_fix:
 
         """
 
-rule document_pedigree_fix:
+rule document_pedigree_fu_detector_solver:
     input:
-        in_all = mqc.plinkBase(rules.pedigree_fix.input.in_all[0]) + ".fam",
-        out_all = mqc.plinkBase(rules.pedigree_fix.output.inferped_all[0]) + ".fam",
-        in_pruned = mqc.plinkBase(rules.pedigree_fix.input.ped_pruned[0]) + ".fam",
-        out_pruned = mqc.plinkBase(rules.pedigree_fix.output.inferped_pruned[0]) + ".fam",
+        in_all = mqc.plinkBase(rules.pedigree_fu_detector_solver.input.in_all[0]) + ".fam",
+        out_all = mqc.plinkBase(rules.pedigree_fu_detector_solver.output.inferped_all[0]) + ".fam",
+        in_pruned = mqc.plinkBase(rules.pedigree_fu_detector_solver.input.ped_pruned[0]) + ".fam",
+        out_pruned = mqc.plinkBase(rules.pedigree_fu_detector_solver.output.inferped_pruned[0]) + ".fam",
     output:
-        results_all = report((resultPath/"pedigree_fix_all").with_suffix(".yaml"),
+        results_all = report((resultPath/"pedigree_fu_detector_solver_all").with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
-                         caption=(resultPath/"pedigree_fix_all").with_suffix(".rst")),       
-        results_pruned = report((resultPath/"pedigree_fix_pruned").with_suffix(".yaml"),
+                         caption=(resultPath/"pedigree_fu_detector_solver_all").with_suffix(".rst")),       
+        results_pruned = report((resultPath/"pedigree_fu_detector_solver_pruned").with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
-                         caption=(resultPath/"pedigree_fix_pruned").with_suffix(".rst")),       
+                         caption=(resultPath/"pedigree_fu_detector_solver_pruned").with_suffix(".rst")),       
     run:
         dropouts = mqc.checkUpdates(input.in_all, input.out_all,cols = [0,1],
                                     sanityCheck = "update", fullList = True) 
@@ -458,11 +458,12 @@ rule document_pedigree_fix:
         mqc.saveYamlResults(output.results_all, dropouts)
         
         dropouts = mqc.checkUpdates(input.in_pruned, input.out_pruned,cols = [0,1],
-                                    sanityCheck = "removal", fullList = True) 
+                                    sanityCheck = "update", fullList = True) 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         mqc.saveYamlResults(output.results_pruned, dropouts)
 
 
+#rule extract_bad_pedigree_samples:
 
 
 # rule pcawhapmap:
@@ -507,7 +508,7 @@ rule document_pedigree_fix:
 # 		report_nsnps {params.ingeno} "PCA_IN"
 
 # 		# Extracting the inferred-bad samples from the full set
-#                 # Note we dont want to exit if grep fails find no prblm
+#               # !!Note we dont want to exit if grep fails find no prblm
 # 		grep prblm {params.ingeno}.fam > {params.outdir}/inferped_toremove || true
 # 		plink_remove_samples \
 # 		        {params.ingeno} \
