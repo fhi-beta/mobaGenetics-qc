@@ -452,6 +452,8 @@ rule document_pedigree_fu_detector_solver:
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/"pedigree_fu_detector_solver_pruned").with_suffix(".rst")),       
     run:
+        mqc.log(runlog, rule_info[rule]["QC test"])
+
         dropouts = mqc.checkUpdates(input.in_all, input.out_all,cols = [0,1],
                                     sanityCheck = "update", fullList = True) 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -460,11 +462,96 @@ rule document_pedigree_fu_detector_solver:
         dropouts = mqc.checkUpdates(input.in_pruned, input.out_pruned,cols = [0,1],
                                     sanityCheck = "update", fullList = True) 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+
         mqc.saveYamlResults(output.results_pruned, dropouts)
 
+# Part of the earlier rule pcawhapmap:
+rule_stem = "pedigree_fix_all"
+rule pedigree_fix_all:
+    input:
+        bedset = rules.pedigree_fu_detector_solver.output.inferped_all,
+    output:
+        bedset = expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        problems = (tmpMod2/rule_stem).with_suffix(".prblm"),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                    category="Module 2 Core samples and infere pedigree",
+                    caption=(resultPath/rule_stem).with_suffix(".rst")),       
+        
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
 
-#rule extract_bad_pedigree_samples:
+        # Somewhere earlier, we left trace about problematic triads naming the families *prblm
+        with open(output.problems, "w") as fil:
+            subprocess.run(["grep", "prblm", inTrunk+".fam"], stdout=fil)
 
+        subprocess.run([plinklocal,
+                "--bfile", inTrunk,
+                "--remove", output.problems,
+                "--out", outTrunk, "--make-bed"  ])  # used to be called no_inferped_problems
+        dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam",cols = [0,1],
+                                    sanityCheck = "remove", fullList = True) 
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+
+rule_stem = "hapmap_pruned"
+rule prune_hapmap:
+    input:
+        bedset = rules.pedigree_fix_all.output.bedset,
+        hap_map = expand(config['hapmap_stem']+'{ext}', ext=['.bed','.bim','.fam']),
+    output:
+        bedset = expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        markerlist_in = tmpMod2/"pcain_pruned_markerlist",
+        markerlist_hapmap = tmpMod2/"referencedata.studymarkers.tmp.prune.in",
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                    category="Module 2 Core samples and infere pedigree",
+                    caption=(resultPath/rule_stem).with_suffix(".rst")),       
+        
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+        hapmapTrunk = config['hapmap_stem']  # also trunk of input.hap_map
+
+        # Get markerlist (aka column 2) from previously pruned set
+        with open(output.markerlist_in, "w") as fil:
+            subprocess.run(["cut", "-f", "2", inTrunk+".bim"], stdout=fil)
+        # ... and pick just these from the HapMap (reference) dataset
+        subprocess.run([plinklocal,
+                "--bfile", hapmapTrunk,
+                "--extract", output.markerlist_in,
+                "--out", outTrunk, "--make-bed"  ])  # used to be called hapmap_pruned
+        dropouts = mqc.checkUpdates(hapmapTrunk+".bim", outTrunk+".bim",cols = [0,1],
+                                    sanityCheck = "remove", fullList = True) 
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+        # Counting duplicate markers in the pruned files
+        (dic, count) = mqc.dict_count_items(mqc.plinkBase(rules.prune_hapmap.output.bedset[0])+".fam", [1])
+        if count > 1:
+            print ("Reference set had multiple chromosones with same marker ID. Will remove these for you")
+            
+        with open(output.markerlist_hapmap, "w") as fil:
+            for key in dic:
+                if dic[key] == 1 : fil.write(f'{key}\n') 
+
+
+rule merge_study_and_hapmap:
+    run:
+        print ("Nice!")
+
+# rule_stem = "merge_sets"
+# rule merge_sets_b4_pca:
+#     input:
+#  	hapmap_pop = config['hapmap_pop']
+#     output: touch("foo")
+#     run:
+#         print("Not written yet")
 
 # rule pcawhapmap:
 # 	input:
@@ -487,34 +574,10 @@ rule document_pedigree_fu_detector_solver:
 # 		plotdir = base + 'both/rep/' + 'plots_pca/'
 # 	shell:
 # 		"""
-# 		set -e
-# 		libdir={libdir}
-# 		plinklocal={plinklocal}
+# <SNIPP - SNAPP>
 
-# 		source {libdir}/functions.sh
-# 		source {libdir}/plink_wrapper_functions.sh
 
-# 		PIPELINELOG={runlog}
-# 	       	STOREDVARS={output.stvars}
-# 	        EXCLUSIONSI={output.exclinds}
-# 	        EXCLUSIONSS={output.exclsnps}
-# 	       	PLOTDIR={params.plotdir}
-
-# 		log "--- IDENTIFY CORE: RULE PCAWHAPMAP ---"
-# 	        mkdir -p $PLOTDIR
-# 	       	clear_store
-
-# 		report_ninds {params.ingeno} "PCA_IN"
-# 		report_nsnps {params.ingeno} "PCA_IN"
-
-# 		# Extracting the inferred-bad samples from the full set
-#               # !!Note we dont want to exit if grep fails find no prblm
-# 		grep prblm {params.ingeno}.fam > {params.outdir}/inferped_toremove || true
-# 		plink_remove_samples \
-# 		        {params.ingeno} \
-# 		        {params.outdir}/inferped_toremove \
 # 		        {params.outdir}/no_inferped_problems \
-# 		        "INFERPED"
 
 # 		# Function merges, prunes and plots merged data after PCA
 # 		# 1. Input stem of pruned bedset

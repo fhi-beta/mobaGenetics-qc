@@ -220,6 +220,37 @@ document_pedigree_fu_detector_solver:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
+pedigree_fix_all:
+  QC test: Removes pedigree-problematic samples form the full set based on earlier steps
+  Description: Some of these steps have been manual (2019)
+  Rule order: mod2-l
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+prune_hapmap:
+  QC test: An earlier (big!) reference set (hapmap) needs to be reduced to the markers we are currently working with
+  Description: This rule used to be part of the earlier pcawhapmap. Also, the reference set will be made unique on marker-id.
+  Rule order: mod2-m
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+    
+merge_sets_b4_pca:
+  QC test: Before pca we merge manually made hapmap bedset + the pruned marker make earlier
+  Description: "See previous step for description of the reference set"
+  Rule order: mod2-n
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
     
   
 merge_foundersoffspring:

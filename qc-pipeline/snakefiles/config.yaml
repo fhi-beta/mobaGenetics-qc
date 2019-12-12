@@ -1,5 +1,6 @@
 # Used by various reporting to describe the set
 dataSet: "Rotterdam2"
+output_base: "/mnt/work/gutorm/qcTest/qcrot2/fullNewOutput"
 raw_bed_stem: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/plink/GSA2017_246_025_ReRun"
 recode_ids: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-ids-rotterdam2.txt"
 recode_parents: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-parents-rotterdam2.txt"
@@ -26,14 +27,18 @@ hwe_thr: 0.0001
 # prune_markers --make founders (command and params).
 prune_cmd: --indep-pairwise 200 100 0.1
 #
-#
-hrc_sites: "/mnt/archive/helgeland/refdata/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
-hapmap_stem: "/mnt/archive/helgeland/refdata/hapmap/hapmap_b36/hapmapb36"
-hapmap_pop: "/mnt/archive/helgeland/refdata/hapmap/relationships_w_pops_121708.txt"
-pca_thr: "6 0.015 NA 0.0355 NA"
-
 # these two files have been produced by Jonas by hand and have better pedigree info than we had
 # We want to automate this - but for now (2019) we are just keeping it as it is
 infer_recfam: "/mnt/archive/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_reconstruct-fam.txt"
 infer_badids: "/mnt/archive/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_bad-sample-IIDs.txt"
-output_base: "/mnt/work/gutorm/qcTest/qcrot2/fullNewOutput"
+# hapmap ... How are these made? Probably part of the pedigree fixup described above
+# note that there is a full set bedset here ...
+hapmap_stem: "/mnt/archive/helgeland/refdata/hapmap/hapmap_b36/hapmapb36"
+hapmap_pop: "/mnt/archive/helgeland/refdata/hapmap/relationships_w_pops_121708.txt"
+pca_thr: "6 0.015 NA 0.0355 NA"
+
+hrc_sites: "/mnt/archive/helgeland/refdata/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
+
+
+
+
