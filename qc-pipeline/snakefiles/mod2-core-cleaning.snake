@@ -453,7 +453,7 @@ rule document_pedigree_fix:
                          caption=(resultPath/"pedigree_fix_pruned").with_suffix(".rst")),       
     run:
         dropouts = mqc.checkUpdates(input.in_all, input.out_all,cols = [0,1],
-                                    sanityCheck = "removal", fullList = True) 
+                                    sanityCheck = "update", fullList = True) 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         mqc.saveYamlResults(output.results_all, dropouts)
         

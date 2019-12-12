@@ -214,7 +214,7 @@ document_pedigree_fix:
   Description: Just a comparing of samples/individuals changes
   Rule order: mod2-k
   rule type: samples
-  rule action: remove/update
+  rule action: update
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
