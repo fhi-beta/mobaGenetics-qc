@@ -303,7 +303,7 @@ rule prune_markers:
         
         subprocess.run([plinklocal,
                 "--bfile", inTrunk,
-                        "--make-founders",
+                "--make-founders",
                  "--out", outTrunk]    # no bed-file prodused, just .in
                  + params.prune_cmd )  # note that we here add a list to another list ... 
 
@@ -384,7 +384,7 @@ rule pedigree_fu_detector_solver:
 	inferbad = config['infer_badids']
     shell:
         """
-        # set -x
+        set -x
         # lets used trunks to mimic earlier behaviour by extracting truncts from input/output
         foo={input.in_geno[0]}
         inGenoTrunk=${{foo%\.*}}
@@ -426,12 +426,12 @@ rule pedigree_fu_detector_solver:
 	    {output.pheno_ok_flags}
 
 	# # produce bedset with ALL markers and INFERRED family info
-       	cp $inAllTrunk.bed $outAllTrunk.bed
-       	cp $inAllTrunk.bim $outAllTrunk.bim
+       	cp $inAllTrunk.bed     $outAllTrunk.bed
+       	cp $inAllTrunk.bim     $outAllTrunk.bim
 	cp {output.Rfixed_fam} $outAllTrunk.fam
 
 	# produce/modify bedset with PRUNED (pruned) markers by replacing earlier .fam file with fixed one
-	# (inferped_pruned.bed and .bim were made above)
+	# (inferped_pruned.bed and .bim were made by previous rule)
        	cp $pedPrunedTrunk.bed $outPrunedTrunk.bed
        	cp $pedPrunedTrunk.bim $outPrunedTrunk.bim
         cp {output.Rfixed_fam} $outPrunedTrunk.fam  
@@ -467,10 +467,10 @@ rule document_pedigree_fu_detector_solver:
         mqc.saveYamlResults(output.results_pruned, dropouts)
 
 # Part of the earlier rule pcawhapmap:
-rule_stem = "pedigree_fix_all"
-rule pedigree_fix_all:
+rule_stem = "pedigree_fix_pruned"
+rule pedigree_fix_pruned:
     input:
-        bedset = rules.pedigree_fu_detector_solver.output.inferped_all,
+        bedset = rules.pedigree_fu_detector_solver.output.inferped_pruned,
     output:
         bedset = expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
         problems = (tmpMod2/rule_stem).with_suffix(".prblm"),
@@ -501,14 +501,14 @@ rule pedigree_fix_all:
 rule_stem = "hapmap_pruned"
 rule prune_hapmap:
     input:
-        bedset = rules.pedigree_fix_all.output.bedset,
+        bedset = rules.pedigree_fix_pruned.output.bedset,
         hap_map = expand(config['hapmap_stem']+'{ext}', ext=['.bed','.bim','.fam']),
     output:
         bedset = expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
         markerlist_in = tmpMod2/"pcain_pruned_markerlist",
         markerlist_hapmap = tmpMod2/"referencedata.studymarkers.tmp.prune.in",
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
-                    category="Module 2 Core samples and infere pedigree",
+                    category="Module 2.1 PCA with hapmap",
                     caption=(resultPath/rule_stem).with_suffix(".rst")),       
         
     run:
@@ -532,7 +532,7 @@ rule prune_hapmap:
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
         # Counting duplicate markers in the pruned files
-        (dic, count) = mqc.dict_count_items(mqc.plinkBase(rules.prune_hapmap.output.bedset[0])+".fam", [1])
+        (dic, count) = mqc.dict_count_items(mqc.plinkBase(rules.prune_hapmap.output.bedset[0])+".bim", [1])
         if count > 1:
             print ("Reference set had multiple chromosones with same marker ID. Will remove these for you")
             
@@ -540,10 +540,61 @@ rule prune_hapmap:
             for key in dic:
                 if dic[key] == 1 : fil.write(f'{key}\n') 
 
+rule_stem_ref = "pca_extract_hapmap"
+rule_stem_study = "pca_extract_study"
+rule pca_extracts:
+    input:
+        study_map = rules.pedigree_fix_pruned.output.bedset, # this is actually rules.prune_hapmap.input.bedset
+                                                         # but we want the dag to be more informative
+        reference_map = rules.prune_hapmap.output.bedset,
+        markerlist_common = rules.prune_hapmap.output.markerlist_hapmap,
+    output:
+        study_map = expand(str(tmpMod2/rule_stem_study)+ '{ext}', ext=['.bed','.bim','.fam']),
+        reference_map = expand(str(tmpMod2/rule_stem_ref) + '{ext}', ext=['.bed','.bim','.fam']),
+        results_study = report((resultPath/rule_stem_study).with_suffix(".yaml"),
+                    category="Module 2.1 PCA with hapmap",
+                    caption=(resultPath/rule_stem_study).with_suffix(".rst")),       
+        results_reference = report((resultPath/rule_stem_ref).with_suffix(".yaml"),
+                    category="Module 2.1 PCA with hapmap",
+                    caption=(resultPath/rule_stem_ref).with_suffix(".rst")),       
 
+        
+    run:
+        # Docs - see rules.yaml
+        item_type = rule_info[rule]["rule type"]
+        in_study_map_trunk = mqc.plinkBase(input.study_map[0])
+        in_reference_map_trunk = mqc.plinkBase(input.reference_map[0])
+        out_study_map_trunk = mqc.plinkBase(output.study_map[0])
+        out_reference_map_trunk = mqc.plinkBase(output.reference_map[0])
+
+        # Extract from study
+        subprocess.run([plinklocal,
+                "--bfile", in_study_map_trunk,
+                "--extract", input.markerlist_common,
+                "--out", out_study_map_trunk, "--make-bed"  ])  # used to be called studydata_refmarkers_ok
+        dropouts = mqc.checkUpdates(in_study_map_trunk+".bim", out_study_map_trunk+".bim",cols = [0,1],
+                                    sanityCheck = "remove", fullList = True) 
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results_study, dropouts)
+
+        # Extract from reference/hapmap
+        subprocess.run([plinklocal,
+                "--bfile", in_reference_map_trunk,
+                "--extract", input.markerlist_common,
+                "--out", out_reference_map_trunk, "--make-bed"  ])  # used to be called refdata_refmarkers_ok
+        dropouts = mqc.checkUpdates(in_reference_map_trunk+".bim", out_reference_map_trunk+".bim",cols = [0,1],
+                                    sanityCheck = "remove", fullList = True) 
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results_reference, dropouts)
+                
 rule merge_study_and_hapmap:
     run:
         print ("Nice!")
+0
+
+
 
 # rule_stem = "merge_sets"
 # rule merge_sets_b4_pca:
