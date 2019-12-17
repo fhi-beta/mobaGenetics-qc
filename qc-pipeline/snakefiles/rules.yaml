@@ -96,7 +96,19 @@ remove_markers_aa_theta_dev:
   rule action: remove
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
-  Timestamp: 
+  Timestamp:
+
+update_rsids:
+  QC test: Update rsid of markers
+  Description:
+  Rule order: mod1-i
+  rule type: markers
+  rule action: update
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp:
+
+
 
 maf_removal_markers: 
   QC test: Low minor allele frequencies of markers temporarily removed

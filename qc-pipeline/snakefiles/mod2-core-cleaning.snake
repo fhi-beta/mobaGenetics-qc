@@ -1,7 +1,7 @@
 rule_stem = 'maf_removal_markers'
 rule maf_removal_markers:   #Minor allele frequencies removal
     input:
-        bedset = rules.remove_markers_aa_theta_dev.output.bedset
+        bedset = rules.update_rsids.output.bedset
     output:
         bedset=expand(str(tmpMod2/rule_stem)
                           + '{ext}', ext=['.bed','.bim','.fam']),
@@ -532,7 +532,7 @@ rule prune_hapmap:
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
         # Counting duplicate markers in the pruned files
-        (dic, count) = mqc.dict_count_items(mqc.plinkBase(rules.prune_hapmap.output.bedset[0])+".bim", [1])
+        (dic, count) = mqc.dict_count_items(outTrunk+".bim", [1])
         if count > 1:
             print ("Reference set had multiple chromosones with same marker ID. Will remove these for you")
             

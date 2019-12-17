@@ -328,3 +328,37 @@ rule remove_markers_aa_theta_dev:
                                 ylabel="AA-\u03B8 deviation", invert=False)
 
 
+
+# Note that for historical reason, this is placed at the end of module1, since we earlier could not do this
+# due to the 'duplicate marker' being a list. The list used old ids.
+# It would be clearner now -after testing, to do this early in the pipe ...
+# Should you move this, make sure the first mod2 rule gets new input ...
+rule_stem ='update_rsids'
+rule update_rsids:
+    input:
+        bedset=rules.remove_markers_aa_theta_dev.output.bedset,
+        recode=config['recode_rsid']
+    output:
+        bedset=expand(str(tmpMod1/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 1 Data preparation",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, "*** Module 1 Data preparation ***\n")
+        mqc.log(runlog, "Updating rsids: \n")
+        inTrunk = mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
+
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--update-name", input.recode,
+                "--out", outTrunk ,
+                "--make-bed" ])
+        # Comparing only the rsid field, it should be uniq also after the remap
+        updated = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols=[1], indx=1,
+                                   sanityCheck="updated", fullList=True, mapFile=input.recode, mapIndx=1) 
+        updated.update(rule_info[rule])   # Metainfo and documentation about the rule
+        updated["Rule"] = rule
+        mqc.saveYamlResults(output.results, updated)
+        mqc.log(runlog,f'Marker id: Updated {updated["actionTakenCount"]} markers (RSID_UPDATE) out of {updated["in"]} (NIND_TOUPDATEID)\n')
