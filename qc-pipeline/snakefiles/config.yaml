@@ -1,11 +1,17 @@
 # Used by various reporting to describe the set
+
 dataSet: "Rotterdam2"
+# Chip is GSAMD24-v1.0
 output_base: "/mnt/work/gutorm/qcTest/qcrot2/fullNewOutput"
+
+
+# Lab QC report: /mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/lab-report/GSA2017_246_QC_report.pdf
 raw_bed_stem: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/plink/GSA2017_246_025_ReRun"
+
+recode_rsid: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-rsid.txt"
 recode_ids: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-ids-rotterdam2.txt"
 recode_parents: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-parents-rotterdam2.txt"
 recode_sex: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-sex-rotterdam2.txt"
-recode_rsid: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-rsid.txt"
 snptable: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/snptable/snp_table_rotterdam2.txt"
 
 # Thresholds and names of the columns in snptable-file
