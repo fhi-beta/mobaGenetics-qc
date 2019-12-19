@@ -5,7 +5,8 @@ import io
 sys.path.append('../lib')  # in order to find our local packages
 import mobaQcTools as mqc  # local moba package
 
-configfile: "config.yaml"
+# configfile: "configR3.yaml" # for running rotterdam3 tests
+configfile: "config.yaml" 
 
 #ensure bash as shell
 shell.executable("/bin/bash")

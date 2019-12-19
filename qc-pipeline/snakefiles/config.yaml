@@ -43,10 +43,17 @@ prune_cmd: --indep-pairwise 200 100 0.1
 # We want to automate this - but for now (2019) we are just keeping it as it is
 infer_recfam: "/mnt/archive/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_reconstruct-fam.txt"
 infer_badids: "/mnt/archive/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_bad-sample-IIDs.txt"
-# hapmap ... How are these made? Probably part of the pedigree fixup described above
+
+# hapmap ... Old reference set b36 - We switch to G1000
 # note that there is a full set bedset here ...
-hapmap_stem: "/mnt/archive/helgeland/refdata/hapmap/hapmap_b36/hapmapb36"
-hapmap_pop: "/mnt/archive/helgeland/refdata/hapmap/relationships_w_pops_121708.txt"
+#hapmap_stem: "/mnt/archive/helgeland/refdata/hapmap/hapmap_b36/hapmapb36"
+#hapmap_pop: "/mnt/archive/helgeland/refdata/hapmap/relationships_w_pops_121708.txt"
+# Reference is p37
+pcaref_stem: "/home/gthh/work/gutorm/1000Genomes/all_phase3"
+
+
+
+
 pca_thr: "6 0.015 NA 0.0355 NA"
 
 hrc_sites: "/mnt/archive/helgeland/refdata/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
