@@ -1,7 +1,8 @@
 QC report for {{ snakemake.config["dataSet"] }}
 
-Cut off paramenters:
+Chip used {{ snakemake.config["chip"] }}
 
+Cut off paramenters (not updated yet):
 
 ====================  ====================
 Parameter                   Value 

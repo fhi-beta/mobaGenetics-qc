@@ -1,7 +1,7 @@
 # Used by various reporting to describe the set
 
 dataSet: "Rotterdam2"
-# Chip is GSAMD24-v1.0
+chip: "illumina GSA-MD 24 v1.0"
 output_base: "/mnt/work/gutorm/qcTest/qcrot2/fullNewOutput"
 
 
@@ -11,9 +11,13 @@ raw_bed_stem: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/plink/GSA2017_
 # old recode_rsid: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-rsid.txt"
 # recode based on https://support.illumina.com/array/array_kits/infinium-global-screening-array/downloads.html (GSA v1.0)
 recode_rsid: "/mnt/archive/chip-support-files/GSAMD24-v1.0/GSA-24v1-0_C1_b150_rsids.txt"
+
+# MOBA info
 recode_ids: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-ids-rotterdam2.txt"
 recode_parents: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-parents-rotterdam2.txt"
 recode_sex: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-sex-rotterdam2.txt"
+
+# GenomeStudio produced. Note that headers here are chip-dependent.
 snptable: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/snptable/snp_table_rotterdam2.txt"
 
 # Thresholds and names of the columns in snptable-file
