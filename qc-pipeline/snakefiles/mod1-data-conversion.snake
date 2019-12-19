@@ -337,8 +337,9 @@ rule_stem ='update_rsids'
 rule update_rsids:
     input:
         bedset=rules.remove_markers_aa_theta_dev.output.bedset,
-        recode=config['recode_rsid']
+        recode=config['recode_rsid']   # some business logic will be imposed here, producing ouput.recode
     output:
+        recode = (tmpMod1/rule_stem).with_suffix(".txt"),
         bedset=expand(str(tmpMod1/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
@@ -350,14 +351,18 @@ rule update_rsids:
         inTrunk = mqc.plinkBase(input.bedset[0])
         outTrunk = mqc.plinkBase(output.bedset[0])
 
+        mqc.fix_rsid_map(input.recode, output.recode)
+        # Note: We don't care about whether there is a header or not in the recode file as
+        # long as the headers do not match ids ...
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
-                "--update-name", input.recode,
+                "--update-name", output.recode, 
                 "--out", outTrunk ,
                 "--make-bed" ])
-        # Comparing only the rsid field, it should be uniq also after the remap
+        # Comparing only the rsid field, it will not be unique after the remap
+        # See rules.yaml for more info
         updated = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols=[1], indx=1,
-                                   sanityCheck="updated", fullList=True, mapFile=input.recode, mapIndx=1) 
+                                   sanityCheck="none", fullList=True, mapFile=output.recode, mapIndx=1) 
         updated.update(rule_info[rule])   # Metainfo and documentation about the rule
         updated["Rule"] = rule
         mqc.saveYamlResults(output.results, updated)

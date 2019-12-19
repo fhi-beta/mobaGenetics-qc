@@ -99,8 +99,8 @@ remove_markers_aa_theta_dev:
   Timestamp:
 
 update_rsids:
-  QC test: Update rsid of markers
-  Description:
+  QC test: Update rsid of markers. After this step, rsIDs can be repeated in the .bim file
+  Description: See <url> for info. Basically we use the GSA chip mapping, but ignore . and select an rsid were several are listed (creating fewer unique rsIDs). Also, chip ids on the form .1 .2 etc are not mapped. These would typcailly come from allele alternatives on the same rsID.
   Rule order: mod1-i
   rule type: markers
   rule action: update
