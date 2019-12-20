@@ -589,11 +589,130 @@ rule pedigree_fix_pruned:
 #         dropouts["Rule"] = rule
 #         mqc.saveYamlResults(output.results_reference, dropouts)
                 
-rule merge_study_and_hapmap:
+rule_stem = 'kgp_x_high_ld_autosome' 
+rule kgp_x_high_ld_autosome:
+    input:
+        # This is based on earlier temporary filters 
+        bedset = expand(config["1000_genomes_stem"] +'{ext}', ext=['.bed','.bim','.fam']),
+        high_ld_regions_hg19 = "../resources/high-ld-regions-hg19"
+    output:
+        bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 1000Genomes prep",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
     run:
-        print ("Nice!")
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0]) 
 
 
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--exclude", "range", input.high_ld_regions_hg19,    # identifies markers
+                "--autosome",
+                "--allow-extra-chr",                                 # avoid error messages e.g PAR1                        
+                "--out", outTrunk,                                   
+                "--make-bed"  ])
+        
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = False) 
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+
+rule_stem = 'prune_1kgp' 
+rule prune_1kgp:
+    input:
+        bedset = rules.kgp_x_high_ld_autosome.output.bedset,
+    output:
+        bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        exclude_list = (tmpMod2/rule_stem).with_suffix(".prune.in"),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 1000Genomes prep",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+    params:
+        prune_cmd = config["1kgp_prune_cmd"].split(),    # As plink will want a list
+        maf_thr = config["1kgp_maf_thr"]
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0]) 
+
+        subprocess.run([plinklocal,
+                "--bfile", inTrunk,
+                "--maf", str(params.maf_thr),
+                "--out", outTrunk]     # no bed-file prodused, just .in
+                 + params.prune_cmd )  # note that we here add a list to another list ... 
+
+
+        subprocess.run([plinklocal,
+                "--bfile", inTrunk,
+                "--allow-extra-chr",                                 # e.g PAR1
+                "--extract", output.exclude_list,            
+                "--out", outTrunk,                           
+                "--make-bed" ])
+        
+
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = False) 
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+        
+               
+rule_stem = "pca_1kgp"               
+rule pca_1kgp:
+    input:
+        bedset = rules.prune_1kgp.output.bedset,
+        pop_map = config["1000_genomes_pop"]       # maps samples to population-groups
+        
+    output:
+        ref_pcs=tmpMod2/rule_stem/'pcs',
+        ref_eigenvec=tmpMod2/rule_stem/'eigenvec',
+        ref_loadings=tmpMod2/rule_stem/'loadings',
+        ref_eigenval=tmpMod2/rule_stem/'eigenval',
+        ref_var_explained=tmpMod2/rule_stem/'var_explained',
+        ref_meansd=tmpMod2/rule_stem/'meansd',      
+# plot?        ref_meansd=tresultPath/rule_stem).with_suffix(".yaml"),
+#                         category="Module 2 1000Genomes prep",
+#                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+
+# Can probably drop omost of these parameters - just copied øyvinds        
+        subprocess.run([flashpca,
+                        "--bfile", inTrunk,
+                        "--outpc", output.ref_pcs,
+                        "--outvec",  output.ref_eigenvec,
+                        "--outload", output.ref_loadings,
+                        "--outval", output.ref_eigenval,
+                        "--outpve", output.ref_var_explained,
+                        "--outmeansd", output.ref_meansd ])
+        
+rule_stem = "plot_pca_tmp"        
+rule plot_pca:  #just to avoid having to rerun the longlasting pca for now
+    input:
+        pop_map = config["1000_genomes_pop"],       # maps samples to population-groups
+        ref_pcs = "/mnt/work/gutorm/qcTest/qcrot2/fullNewOutput/mod2-data-preparation/tmp/pca/pcs.txt"
+    output:
+        plot = report((resultPath/rule_stem).with_suffix(".png"),
+                      category="Module 2 1000Genomes prep")
+                      
+    run:
+        # To remove when this goes to mobaQcTools
+        import pandas as pd
+        import plotnine as p9
+        import matplotlib
+        matplotlib.use('Agg')  
+
+        pc = pd.read_csv(input.ref_pcs, usecols=['IID','PC1','PC2'],delim_whitespace=True)
+        pop = pd.read_csv(input.pop_map,usecols=['#IID','SuperPop','Population'],delim_whitespace=True)    
+        merged = pd.merge(left=pc, right=pop, left_on='IID', right_on='#IID')
+        p = p9.ggplot(data=merged, mapping=p9.aes(x='PC1',y='PC2',color='SuperPop'))
+        p9.ggsave(plot=p + p9.geom_point(), filename=output.plot, dpi=600)
 
 
 # rule_stem = "merge_sets_b4_pca"
@@ -628,7 +747,7 @@ rule merge_study_and_hapmap:
 # <SNIPP - SNAPP>
 
 
-# 		        {params.outdir}/no_inferped_problems \
+                        # 		        {params.outdir}/no_inferped_problems",
 
 # 		# Function merges, prunes and plots merged data after PCA
 # 		# 1. Input stem of pruned bedset

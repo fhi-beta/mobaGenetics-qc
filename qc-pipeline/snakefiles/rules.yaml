@@ -240,11 +240,11 @@ pedigree_fix_pruned:
   rule action: remove
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
-  Timestamp: 
+  Timestamp:
 
-prune_hapmap:
-  QC test: The reference set hapmap (b36) needs to be reduced to the markers in the stydy (b37)
-  Description: This rule used to be part of the earlier pcawhapmap. Also, the reference set will be made unique on marker-id.
+kgp_x_high_ld_autosome:
+  QC test: Extract high LD of autosome markers from the 1000 Genomes Project reference dataset
+  Description: Part of a series of transformation
   Rule order: mod2.1a
   rule type: markers
   rule action: remove
@@ -252,29 +252,61 @@ prune_hapmap:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-pca_extracts:
-  QC test: Prepare two bedsets (reference hapmap b36,  and study) for later merge and then pca
-  Description: Uses plink to find difference between b36 (hapmap) and b37 (study) markers so we can exclude them from the pca
+prune_1kgp:
+  QC test: Subset of markers from 1000 Genomes Project reference dataset
+  Description: Output has removed high LD, autosome, low --maf, --indep-pairwise
   Rule order: mod2.1b
   rule type: markers
   rule action: remove
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
-    
-    
-merge_study_and_hapmap:
-  QC test: Before pca we merge manually made hapmap bedset + the pruned marker make earlier
-  Description: "See previous step for description of the reference set"
+
+pca_1kgp:
+  QC test: PCA on reference set 1000 Genomes (without Moba data)
+  Description: (flashpca used)
   Rule order: mod2.1c
-  rule type: markers
-  rule action: remove
+  rule type: analysis
+  rule action: pca/plot
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
+    
+
+# prune_hapmap:
+#   QC test: The reference set hapmap (b36) needs to be reduced to the markers in the stydy (b37)
+#   Description: This rule used to be part of the earlier pcawhapmap. Also, the reference set will be made unique on marker-id.
+#   Rule order: mod2.1a
+#   rule type: markers
+#   rule action: remove
+#   # Placeholders that the pipeline will fill in
+#   Rule: Will be the same as the key of this entry
+#   Timestamp: 
+
+# pca_extracts:
+#   QC test: Prepare two bedsets (reference hapmap b36,  and study) for later merge and then pca
+#   Description: Uses plink to find difference between b36 (hapmap) and b37 (study) markers so we can exclude them from the pca
+#   Rule order: mod2.1b
+#   rule type: markers
+#   rule action: remove
+#   # Placeholders that the pipeline will fill in
+#   Rule: Will be the same as the key of this entry
+#   Timestamp: 
+    
+    
+# merge_study_and_hapmap:
+#   QC test: Before pca we merge manually made hapmap bedset + the pruned marker make earlier
+#   Description: "See previous step for description of the reference set"
+#   Rule order: mod2.1c
+#   rule type: markers
+#   rule action: remove
+#   # Placeholders that the pipeline will fill in
+#   Rule: Will be the same as the key of this entry
+#   Timestamp: 
 
     
-  
+
+    
 merge_foundersoffspring:
   QC test:
   Description:

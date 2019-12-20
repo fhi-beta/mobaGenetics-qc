@@ -7,6 +7,7 @@ libdir = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'lib'))
 bcftools = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/bcftools-1.7/bcftools'))
 vcftools = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/vcftools-0.1.13/vcftools'))
 plinklocal = Path(os.path.dirname(workflow.basedir)) / 'bin/plink-1.90b5.4/plink'
+flashpca = Path(os.path.dirname(workflow.basedir)) / 'bin/flashpca_x86-64'
 tmp_path = os.path.join(config['output_base'],'tmp')
 runlog = Path(config['output_base']) / 'runlog.txt'
 base = Path(config['output_base'])

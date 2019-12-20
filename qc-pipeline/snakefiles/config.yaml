@@ -44,12 +44,19 @@ prune_cmd: --indep-pairwise 200 100 0.1
 infer_recfam: "/mnt/archive/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_reconstruct-fam.txt"
 infer_badids: "/mnt/archive/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_bad-sample-IIDs.txt"
 
+# See https://cran.r-project.org/web/packages/plinkQC/vignettes/Genomes1000.pdf
+# Reference is p37
+1000_genomes_stem: "/mnt/work/gutorm/1000Genomes/all_phase3"
+1000_genomes_pop: "/mnt/work/gutorm/1000Genomes/all_phase3.psam"
+1kgp_maf_thr: 0.01
+1kgp_prune_cmd: --indep-pairwise 100 50 0.1
+
 # hapmap ... Old reference set b36 - We switch to G1000
 # note that there is a full set bedset here ...
 #hapmap_stem: "/mnt/archive/helgeland/refdata/hapmap/hapmap_b36/hapmapb36"
 #hapmap_pop: "/mnt/archive/helgeland/refdata/hapmap/relationships_w_pops_121708.txt"
-# Reference is p37
-pcaref_stem: "/home/gthh/work/gutorm/1000Genomes/all_phase3"
+
+
 
 
 
