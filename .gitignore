@@ -1,4 +1,4 @@
-*/.snakemake
+.snakemake
 */*.swp
 *~
 __pycache__
