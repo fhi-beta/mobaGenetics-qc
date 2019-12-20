@@ -682,7 +682,7 @@ rule pca_1kgp:
         mqc.log(runlog, rule_info[rule]["QC test"])
         inTrunk =  mqc.plinkBase(input.bedset[0])
 
-# Can probably drop omost of these parameters - just copied øyvinds        
+# Can probably drop almost of these parameters - just copied øyvinds        
         subprocess.run([flashpca,
                         "--bfile", inTrunk,
                         "--outpc", output.ref_pcs,
@@ -696,7 +696,8 @@ rule_stem = "plot_pca_tmp"
 rule plot_pca:  #just to avoid having to rerun the longlasting pca for now
     input:
         pop_map = config["1000_genomes_pop"],       # maps samples to population-groups
-        ref_pcs = "/mnt/work/gutorm/qcTest/qcrot2/fullNewOutput/mod2-data-preparation/tmp/pca/pcs.txt"
+#        ref_pcs = "/mnt/work/gutorm/qcTest/qcrot2/fullNewOutput/mod2-data-preparation/tmp/pca/pcs.txt"
+        ref_pcs = rules.pca_1kgp.output.ref_pcs
     output:
         plot = report((resultPath/rule_stem).with_suffix(".png"),
                       category="Module 2 1000Genomes prep")
