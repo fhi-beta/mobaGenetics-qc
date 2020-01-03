@@ -426,7 +426,7 @@ def dict_count_items(fil, cols=[0,1], warn=True):
             maxHits = countDict[i]
             sample = i
     if len(countDict) == 0 : print("ERROR: 0 sized dictionary after reading ",fil)
-    if maxHits>1 and warn: print(f"WARNING: sample/marker {sample} found {maxHits} times in {fil}. Might not be the only nonunique ...")
+    if maxHits>1 and warn: print(f"WARNING: marker (or sample) identified by {sample} found {maxHits} times in {fil}. Might not be the only nonunique ...")
     return countDict, maxHits
 
 def lookupDict(fil, indx=1):
@@ -530,57 +530,27 @@ def _make_gen(reader):
         b = reader(1024*1024)
 
 
-def lineCount(filename):
-    """
+def line_count(filename):
+    """ Returns number of line if filename (assuming it is a text-file) just as wc -l
+
     Efficient linecounting by buffered reads
     """
     f = open(filename, 'rb')
     f_gen = _make_gen(f.raw.read)
     return sum( buf.count(b'\n') for buf in f_gen )
 
-def detect_duplicate_markers(bim_file):
-    """
-    In bim_file, first check if the variant identifiser, to make sure it is unique
-    Finds duplicate markers, maps them to name used in bim file
-    """
-    (m,duplicates) = dict_count_items(bim_file, cols=[1])
-    if duplicates > 1:
-        print(f"{bim_file} contained duplicate ids (up to {duplicates}-tuples)")
-        return
 
-    
-    (m,duplicates) = dict_count_items(bim_file, cols=[0,3,4,5], warn=False)
-    # m  is markers dictionalry value > 1 means the marker is duplicate
-    # clean up so we only have duplicates markers left
-    m = {k:m[k] for k in m if m[k] > 1}
-    print(f"{bim_file} contained {len(m)} duplicate ids (up to {duplicates}-tuples)")
-    if len(m) == 0:
-        return  #Lucky us, no duplicates
-    
-    # Convert dictonary to a pandas frame
-    dupMarkers = pd.Series(m, name='dups').to_frame()
-
-    # Now find mapping between marker, and nickname used
-    bim =  pd.read_csv(bim_file, delim_whitespace=True, header=None,
-                       usecols=[0,1,3,4,5],names=['chr','nick','pos','al1','al2']).astype(str)
-    # Reducing this to two columns, one concatenated 'position' and one name/nick/rsdid
-    bim = pd.concat([bim['chr'] + " " + bim['pos'] + " " + bim['al1'] + " " + bim['al2']
-                     ,bim['nick']],axis=1)
-    bim.columns=['position','nick'] 
-
-    dupMarkers = dupMarkers.merge(bim, left_index=True, right_on='position')
-    return dupMarkers
-
-def create_exclude_list(df, callRates, resultfile, excludelist):
+def create_exclude_list(duplicates, callRates, resultfile, excludelist):
     """
-    Based on a df (made by detect_duplciate_markers), will create a detailed
-    list (resultfile) with details on why the marker was excluded.
-    Will also provide a simpler file (excludelist) suitable for plink so it can
-    remove duplicates.
-    If no df is passed (meaning no duplicates), empty files are created.
+    Based on a file duplicates (created by plink --list-duplicate-vars), 
+    and a call rate file (created by plink --missing)
+    will create a list (resultfile) with the call rates/alleleles/etc of markers to be  excluded.
+    Only the best call rate is kept, so the list will consist of the other duplicates
+    Will also provide a simpler file (excludelist) suitable for plink to remove duplicates.
+    If there were no duplicates, empty files are created.
     """
-    if df is None:
-        # Special case, no duplicates
+    if line_count(duplicates) == 1 :
+        # Special case, no duplicates - only header in file duplicate
         mt = Path(resultfile)
         # From python 3.8, use unlink(missing_ok=True) . for now, live with the uglyness
         mt.touch()
@@ -592,20 +562,27 @@ def create_exclude_list(df, callRates, resultfile, excludelist):
         mt.touch()
         return
     try: 
-        calls = pd.read_csv(callRates, usecols=[1,4],
+        calls = pd.read_csv(callRates, usecols=['CHR','SNP','F_MISS'],
                             delim_whitespace=True)
+        dups = pd.read_csv(duplicates, usecols=['CHR','POS','ALLELES','IDS'], delimiter='\t')
     except Exception as e:
-        print(f"Could not open file {callRates}, {str(e)}")        
+        print(f"Could not open inputfile, {str(e)}")        
         return
 
-    # include call info to duplicate list
-    all = df.merge(calls, left_on='nick',right_on='SNP')
-    
-    # sort, group and grab the largest
-    drop=all.sort_values(by=['position','F_MISS'],
-                         ascending=False).groupby('position').apply(lambda g: g.iloc[1:])
+    # Series of ids, keep index - in order to explode the ids and join them back on chr
+    ids = dups.IDS.str.split(' ',expand=True).stack().str.strip().reset_index(level=1, drop=True)
+    df = pd.concat([dups.CHR, dups.POS, dups.ALLELES, ids], axis=1,
+                   keys=['chr','pos','alleles','id'])
+    df['duplicate_group'] = df.index   # The index show grouping, rememeber it
+    # include call value to duplicate list
+    all = df.merge(calls, left_on=['chr','id'], right_on=['CHR','SNP'])
+                   
+    # sort, group and keep all but the largest callrate
+    drop=all.sort_values(by=['duplicate_group','F_MISS'],
+             ascending=False).groupby('duplicate_group').apply(lambda g: g.iloc[1:])
+
     # Result file
-    drop.loc[:,['position', 'SNP','F_MISS']].to_csv(resultfile,sep=" ", index=False)
+    drop.loc[:,['chr', 'pos', 'alleles', 'SNP','F_MISS']].to_csv(resultfile,sep=" ", index=False)
     # snp idents plink laters can use
     drop.loc[:,['SNP']].to_csv(excludelist,sep=" ", index=False, header=False)
     print ("**** .... and we should make a yaml file with summary in it")

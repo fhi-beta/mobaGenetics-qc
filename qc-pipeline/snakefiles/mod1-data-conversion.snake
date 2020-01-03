@@ -133,14 +133,16 @@ rule update_sex:
 
 
 # Check for duplicate markers, and remove all but one (keep best callrate)
-rule_stem = 'dup_markers_removed'
+# The code here is copied and reused in remove_dup_markers_1kg
+rule_stem = 'remove_duplicate_markers'
 rule remove_duplicate_markers:
     input:
         bedset = rules.update_sex.output.bedset,
     output:
         bedset=expand(str(tmpMod1/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
         excludeList = (tmpMod1/rule_stem).with_suffix(".txt"),
-        resultDetails = (tmpMod1/rule_stem).with_suffix(".csv"),
+        resultDetails = (resultPath/rule_stem).with_suffix(".csv"),
+        plink_dup_list = (tmpMod1/rule_stem).with_suffix(".plinkdups"),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
@@ -149,16 +151,23 @@ rule remove_duplicate_markers:
         inTrunk = mqc.plinkBase(input.bedset[0])
         outTrunk = mqc.plinkBase(output.bedset[0])
         callRateTrunk = mqc.plinkBase(output.excludeList)
-        dups = mqc.detect_duplicate_markers(inTrunk+".bim")
-        if dups is not None:
-            subprocess.run([plinklocal,
-                             "--bfile", inTrunk,
-                             "--out", callRateTrunk,
-                             "--missing"
-            ])
+        # Create a plink.dupvar file
+        subprocess.run([plinklocal,
+                        "--bfile",inTrunk,
+                        "--list-duplicate-vars"
+        ])
+        # Unfortunately, the result is placed in cwd, we want it with the other tmp files 
+        dup_file_old = Path(os.getcwd())/'plink.dupvar'
+        dup_file_old.rename(output.plink_dup_list)
+        dup_file = output.plink_dup_list
+        
+        subprocess.run([plinklocal,
+                        "--bfile", inTrunk,
+                        "--out", callRateTrunk,
+                        "--missing"
+        ])
 
-            
-        mqc.create_exclude_list(dups, callRateTrunk+".lmiss",
+        mqc.create_exclude_list(dup_file, callRateTrunk+".lmiss",
                                 output.resultDetails, output.excludeList)
 
         subprocess.run([plinklocal,
