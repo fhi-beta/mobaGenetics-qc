@@ -134,6 +134,7 @@ rule update_sex:
 
 # Check for duplicate markers, and remove all but one (keep best callrate)
 # The code here is copied and reused in remove_dup_markers_1kg
+# This rule could be smarter in the case no duplicate markers are found
 rule_stem = 'remove_duplicate_markers'
 rule remove_duplicate_markers:
     input:

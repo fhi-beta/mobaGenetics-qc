@@ -28,12 +28,11 @@ rule maf_removal_markers:   #Minor allele frequencies removal
                 "--maf", str(params.treshold),
                 "--out", outTrunk,      # previously named superclean_maf
                 "--make-bed" ])
-        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
+        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1],
+                                    sanityCheck = "removal", fullList = True) 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Treshold"] = params.treshold
         dropouts["Rule"] = rule
-
-        
         mqc.saveYamlResults(output.results, dropouts)
 
         # call rates for maf will be maf_removal_markers.output.bedset imiss and lmiss
@@ -620,10 +619,67 @@ rule kgp_x_high_ld_autosome:
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
 
+# Check for duplicate markers, and remove all but one (keep best callrate)
+# The code here is copied from remove_duplicate_markers -
+rule_stem = 'remove_dup_markers_1kg'
+rule remove_dup_markers_1kg:
+    input:
+        bedset = rules.kgp_x_high_ld_autosome.output.bedset,
+    output:
+        bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        excludeList = (tmpMod2/rule_stem).with_suffix(".txt"),
+        resultDetails = (resultPath/rule_stem).with_suffix(".csv"),
+        plink_dup_list = (tmpMod2/rule_stem).with_suffix(".plinkdups"),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 1000Genomes prep",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+    run:
+        item_type = rule_info[rule]["rule type"]
+        inTrunk = mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
+        callRateTrunk = mqc.plinkBase(output.excludeList)
+        # Create a plink.dupvar file
+        subprocess.run([plinklocal,
+                        "--bfile",inTrunk,
+                        "--list-duplicate-vars"
+        ])
+        # Unfortunately, the result is placed in cwd, we want it with the other tmp files 
+        dup_file_old = Path(os.getcwd())/'plink.dupvar'
+        dup_file_old.rename(output.plink_dup_list)
+        dup_file = output.plink_dup_list
+
+        # The blow is stupid as all F_MISS are 0 for this set ... We could have used
+        # --list-duplicate-vars ids-only but it crashes since some ids are replicated
+        # Could/sould have fixed this, but we just run stupid brute force copy/paste here
+        subprocess.run([plinklocal,
+                        "--bfile", inTrunk,
+                        "--out", callRateTrunk,
+                        "--missing"
+        ])
+
+        mqc.create_exclude_list(dup_file, callRateTrunk+".lmiss",
+                                output.resultDetails, output.excludeList)
+
+        subprocess.run([plinklocal,
+                        "--bfile",inTrunk,
+                        "--exclude", output.excludeList,
+                        "--out", outTrunk,
+                        "--make-bed"
+        ])
+        # We are here checking only the snp-id. They are not unique, so we don't check for it.
+        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [1], sanityCheck = "none",
+                                    fullList = False) 
+        dropouts["Detailed results"] = output.resultDetails
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+        mqc.log(runlog, f'Due to duplicate markers, removed {dropouts["actionTakenCount"]} markers out of {dropouts["in"]}, leaving {dropouts["out"]} unique markers (some were repeating)\n')
+
+            
 rule_stem = 'prune_1kgp' 
 rule prune_1kgp:
     input:
-        bedset = rules.kgp_x_high_ld_autosome.output.bedset,
+        bedset = rules.remove_dup_markers_1kg.output.bedset,
     output:
         bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
         exclude_list = (tmpMod2/rule_stem).with_suffix(".prune.in"),
@@ -638,7 +694,7 @@ rule prune_1kgp:
         mqc.log(runlog, rule_info[rule]["QC test"])
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0]) 
-
+        
         subprocess.run([plinklocal,
                 "--bfile", inTrunk,
                 "--maf", str(params.maf_thr),
@@ -654,7 +710,9 @@ rule prune_1kgp:
                 "--make-bed" ])
         
 
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = False) 
+        # We know about rsID (such as '.') - so we turn of sainityCheck
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
+                                    sanityCheck = "none", fullList = False)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
@@ -667,22 +725,17 @@ rule pca_1kgp:
         pop_map = config["1000_genomes_pop"]       # maps samples to population-groups
         
     output:
-        ref_pcs=tmpMod2/rule_stem/'pcs',
-        ref_eigenvec=tmpMod2/rule_stem/'eigenvec',
-        ref_loadings=tmpMod2/rule_stem/'loadings',
-        ref_eigenval=tmpMod2/rule_stem/'eigenval',
-        ref_var_explained=tmpMod2/rule_stem/'var_explained',
-        ref_meansd=tmpMod2/rule_stem/'meansd',      
-# plot?        ref_meansd=tresultPath/rule_stem).with_suffix(".yaml"),
-#                         category="Module 2 1000Genomes prep",
-#                         caption=(resultPath/rule_stem).with_suffix(".rst"))
-
+        ref_pcs=tmpMod2/rule_stem/'pcs_1kgp',
+        ref_eigenvec=tmpMod2/rule_stem/'eigenvec_1kgp',
+        ref_loadings=tmpMod2/rule_stem/'loadings_1kgp',
+        ref_eigenval=tmpMod2/rule_stem/'eigenval_1kgp',
+        ref_var_explained=tmpMod2/rule_stem/'var_explained_1kgp',
+        ref_meansd=tmpMod2/rule_stem/'meansd_1kgp',      
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
         inTrunk =  mqc.plinkBase(input.bedset[0])
 
-# Can probably drop almost of these parameters - just copied øyvinds        
         subprocess.run([flashpca,
                         "--bfile", inTrunk,
                         "--outpc", output.ref_pcs,
@@ -692,12 +745,40 @@ rule pca_1kgp:
                         "--outpve", output.ref_var_explained,
                         "--outmeansd", output.ref_meansd ])
         
+
+        
+rule_stem = "pca_moba"               
+rule pca_moba:
+    input:
+        bedset = rules.pedigree_fix_pruned.output.bedset, # mobadata to be ...
+        ref_meansd = rules.pca_1kgp.output.ref_meansd,    # projected onto pca from ...
+        ref_loadings = rules.pca_1kgp.output.ref_loadings,# 1000 genomes pca
+    output:
+        moba_projection=tmpMod2/rule_stem/'projection_moba',
+# plot?        ref_meansd=tresultPath/rule_stem).with_suffix(".yaml"),
+#                         category="Module 2 1000Genomes prep",
+#                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+
+        # --project moba data onto 1000 genomes loading
+        subprocess.run([flashpca,
+                        "--bfile", inTrunk,
+                        "--project",
+                        "--inload", input.ref_loadings,
+                        "--inmeansd", input.ref_meansd,
+                        "--outproj", output.moba_projection ])
+        
+
 rule_stem = "plot_pca_tmp"        
 rule plot_pca:  #just to avoid having to rerun the longlasting pca for now
     input:
         pop_map = config["1000_genomes_pop"],       # maps samples to population-groups
-#        ref_pcs = "/mnt/work/gutorm/qcTest/qcrot2/fullNewOutput/mod2-data-preparation/tmp/pca/pcs.txt"
-        ref_pcs = rules.pca_1kgp.output.ref_pcs
+        ref_pcs = rules.pca_1kgp.output.ref_pcs,
+        moba_pcs = rules.pca_moba.output.moba_projection,
     output:
         plot = report((resultPath/rule_stem).with_suffix(".png"),
                       category="Module 2 1000Genomes prep")
@@ -710,10 +791,31 @@ rule plot_pca:  #just to avoid having to rerun the longlasting pca for now
         matplotlib.use('Agg')  
 
         pc = pd.read_csv(input.ref_pcs, usecols=['IID','PC1','PC2'],delim_whitespace=True)
-        pop = pd.read_csv(input.pop_map,usecols=['#IID','SuperPop','Population'],delim_whitespace=True)    
-        merged = pd.merge(left=pc, right=pop, left_on='IID', right_on='#IID')
+        moba = pd.read_csv(input.moba_pcs, usecols=['IID','PC1','PC2'],delim_whitespace=True)
+        # All data. We here later assume that moba ID and 1000 genomes ID are different
+        all = pd.concat([pc,moba],ignore_index=True) 
+
+        # Populations for colouring
+        pop = pd.read_csv(input.pop_map,usecols=['#IID','SuperPop','Population'],delim_whitespace=True)
+        # Simulate population for Moba
+        popmoba = pd.read_csv(input.moba_pcs,usecols=['IID'],delim_whitespace=True)
+        popmoba.columns = ["#IID"]  # rename to match earlier pop
+        popmoba['SuperPop'] = 'MoBa'
+        popmoba['Population'] = 'MoBa'
+        all_pop = pd.concat([pop,popmoba],ignore_index=True)
+        merged = pd.merge(left=all, right=all_pop, left_on='IID', right_on='#IID')
+
+        # Set up colours
+        colours = {'EUR': 'red', 
+                   'EAS': 'darkblue', 
+                   'AMR': 'violet', 
+                   'SAS': 'orange', 
+                   'AFR': 'yellow', 
+                   'Moba':'black'}
+        
         p = p9.ggplot(data=merged, mapping=p9.aes(x='PC1',y='PC2',color='SuperPop'))
-        p9.ggsave(plot=p + p9.geom_point(), filename=output.plot, dpi=600)
+        p +=  p9.geom_point() + p9.scale_fill_manual(values=colours) + p9.scale_color_manual(values=colours)
+        p9.ggsave(plot=p, filename=output.plot, dpi=600)
 
 
 # rule_stem = "merge_sets_b4_pca"

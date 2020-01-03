@@ -426,7 +426,7 @@ def dict_count_items(fil, cols=[0,1], warn=True):
             maxHits = countDict[i]
             sample = i
     if len(countDict) == 0 : print("ERROR: 0 sized dictionary after reading ",fil)
-    if maxHits>1 and warn: print(f"WARNING: marker (or sample) identified by {sample} found {maxHits} times in {fil}. Might not be the only nonunique ...")
+    if maxHits>1 and warn: print(f"WARNING: marker (or sample) identified by '{sample}' found {maxHits} times in {fil}. Might not be the only nonunique ...")
     return countDict, maxHits
 
 def lookupDict(fil, indx=1):

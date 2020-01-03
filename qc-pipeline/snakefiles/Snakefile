@@ -23,10 +23,12 @@ report: "report/qc.rst"
 # rule all
 rule all:
     input:
+        # For now, this is hardly used, but needed for -R. Edit a late result inn here
+        resultPath/"kgp_x_high_ld_autosome.yaml"
 	# final output:
-        expand(config['output_base'] + 'mod5-shaping-preparation/tmp/hrc-update-complete-{chr}' + '{ext}', ext=['.bed','.bim','.fam'], chr=chrom),
-	expand(config['output_base'] + '{role}/pca/final_pca_covars.txt', role=ROLES),
-	config['output_base'] + 'sample_flag_list.txt'
+        # expand(config['output_base'] + 'mod5-shaping-preparation/tmp/hrc-update-complete-{chr}' + '{ext}', ext=['.bed','.bim','.fam'], chr=chrom),
+	# expand(config['output_base'] + '{role}/pca/final_pca_covars.txt', role=ROLES),
+	# config['output_base'] + 'sample_flag_list.txt'
 
 
 # Include modules

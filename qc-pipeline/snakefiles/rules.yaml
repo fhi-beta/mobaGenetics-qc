@@ -230,7 +230,7 @@ document_pedigree_fu_detector_solver:
   rule action: update
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
-  Timestamp: 
+  Timestamp:
 
 pedigree_fix_pruned:
   QC test: Removes pedigree-problematic samples form the pruned set based on earlier steps
@@ -252,20 +252,41 @@ kgp_x_high_ld_autosome:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-prune_1kgp:
-  QC test: Subset of markers from 1000 Genomes Project reference dataset
-  Description: Output has removed high LD, autosome, low --maf, --indep-pairwise
+
+remove_dup_markers_1kg:
+  QC test: Remove duplicte markers in 1000 Genomes
+  Description: Best call rate kept
   Rule order: mod2.1b
-  rule type: markers
+  rule type: marker
   rule action: remove
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
+prune_1kgp:
+  QC test: Subset of markers from 1000 Genomes Project reference dataset
+  Description: Output has removed high LD, autosome, low --maf, --indep-pairwise
+  Rule order: mod2.1c
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+    
 pca_1kgp:
   QC test: PCA on reference set 1000 Genomes (without Moba data)
   Description: (flashpca used)
-  Rule order: mod2.1c
+  Rule order: mod2.1d
+  rule type: analysis
+  rule action: pca/plot
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+pca_moba:
+  QC test: Project moba PCA on reference set 1000 Genomes 
+  Description: (flashpca used)
+  Rule order: mod2.1e
   rule type: analysis
   rule action: pca/plot
   # Placeholders that the pipeline will fill in
