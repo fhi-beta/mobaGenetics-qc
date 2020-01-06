@@ -272,11 +272,21 @@ prune_1kgp:
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
-    
+
+common_markers_moba_ref:
+  QC test: Find markers common to both Moba and reference set (1000 Genomes)
+  Description: Also extract those markers and creates plink bedsets for them
+  Rule order: mod2.1d
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
 pca_1kgp:
   QC test: PCA on reference set 1000 Genomes (without Moba data)
   Description: (flashpca used)
-  Rule order: mod2.1d
+  Rule order: mod2.1e
   rule type: analysis
   rule action: pca/plot
   # Placeholders that the pipeline will fill in
@@ -286,7 +296,7 @@ pca_1kgp:
 pca_moba:
   QC test: Project moba PCA on reference set 1000 Genomes 
   Description: (flashpca used)
-  Rule order: mod2.1e
+  Rule order: mod2.1f
   rule type: analysis
   rule action: pca/plot
   # Placeholders that the pipeline will fill in

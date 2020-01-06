@@ -8,11 +8,13 @@ import matplotlib
 matplotlib.use('Agg')  
 
 import yaml
+import json
 import re
 import datetime
 from pathlib import Path
 import subprocess
 import inspect    # to find stack-info, such as the functions name
+import os
 from datetime import datetime
 
 def plotHist(dataFile, resultFile, column="name of the column", title="no legend??", separator='\s+',
@@ -152,7 +154,7 @@ def extractSampleList(innFile, sampleFile, subsetFile="/dev/null",
     * a sample list on sampleFile (one columun, for now hardcoded to column 0)
     * a subset file with at set of numbered columns (cols) that also contains colName (see below)
     
-    Only columns were the column colName matches the condition of treshhold will be written
+    Only columns were the column colName matches the condition of treshold will be written
     Returns (number of sample extracted, total samples)
     Restrictions: 
     * Assuming the first column in innFile is samplenumber - Only the first column will be written to sampleFile
@@ -646,3 +648,19 @@ def fix_rsid_map(mapfile, newmap):
             out.write(f"{row['from']} {to}\n")
 
 
+def intersect_rsid(bim1, bim2, intersection):
+    """ Assumes bim files, that is tab-serarated plink with rsID in second column
+    """
+    my_name = inspect.stack()[0][3]      # Generic way of find this functions name        
+    try: 
+        s1 = pd.read_csv(bim1, usecols=[1], delim_whitespace=True, squeeze = True).astype(str)
+        s2 = pd.read_csv(bim2, usecols=[1], delim_whitespace=True, squeeze = True).astype(str)
+    except Exception as e:
+        print(f"{my_name}: {str(e)}")        
+        return
+    with open(intersection,'w') as f:
+        for s in list(set(s1) & set(s2)):
+            f.write(f"{s}\n")
+
+#os.chdir("/mnt/work/gutorm/qcTest/qcrot2/fullNewOutput/mod2-data-preparation/tmp")
+#intersect_rsid("prune_1kgp.bim","pedigree_fix_pruned.bim","result")

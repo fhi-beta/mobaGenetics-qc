@@ -674,7 +674,6 @@ rule remove_dup_markers_1kg:
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
         mqc.log(runlog, f'Due to duplicate markers, removed {dropouts["actionTakenCount"]} markers out of {dropouts["in"]}, leaving {dropouts["out"]} unique markers (some were repeating)\n')
-
             
 rule_stem = 'prune_1kgp' 
 rule prune_1kgp:
@@ -716,13 +715,64 @@ rule prune_1kgp:
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
-        
-               
+
+rule_stem = 'common_markers_moba_ref'
+rule common_markers_moba_ref:
+    input:
+        bedset_ref = rules.prune_1kgp.output.bedset,
+        bedset_moba = rules.pedigree_fix_pruned.output.bedset
+    output:
+        bedset_ref = expand(str(tmpMod2/"pca_ref") + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset_moba = expand(str(tmpMod2/"pca_moba") + '{ext}', ext=['.bed','.bim','.fam']),
+        exclude_list = (tmpMod2/rule_stem).with_suffix(".txt"),
+        results_ref = report((resultPath/"pca_ref").with_suffix(".yaml"),
+                         category="Module 2 1000Genomes prep",
+                         caption=(resultPath/"pca_ref").with_suffix(".rst")),
+        results_moba = report((resultPath/"pca_moba").with_suffix(".yaml"),
+                         category="Module 2 1000Genomes prep",
+                         caption=(resultPath/"pca_moba").with_suffix(".rst"))
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk_ref =  mqc.plinkBase(input.bedset_ref[0])
+        inTrunk_moba =  mqc.plinkBase(input.bedset_moba[0])
+        outTrunk_ref =  mqc.plinkBase(output.bedset_ref[0])
+        outTrunk_moba =  mqc.plinkBase(output.bedset_moba[0]) 
+
+        # Common markers found in exclude_list
+        mqc.intersect_rsid(inTrunk_ref+".bim", inTrunk_moba+".bim", output.exclude_list)
+        # Reduce/prune both sets to the common markers
+        subprocess.run([plinklocal,
+                "--bfile", inTrunk_ref,
+                "--extract", output.exclude_list,            
+                "--out", outTrunk_ref,                           
+                "--make-bed" ])
+        subprocess.run([plinklocal,
+                "--bfile", inTrunk_moba,
+                "--extract", output.exclude_list,            
+                "--out", outTrunk_moba,                           
+                "--make-bed" ])
+        # Document the reduction for ref (1000 genomes)
+        dropouts = mqc.checkUpdates(inTrunk_ref+".bim", outTrunk_ref+".bim",cols = [0,1],
+                                    sanityCheck = "removal", fullList = False)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        dropouts["Excluded markers"] = output.exclude_list
+        mqc.saveYamlResults(output.results_ref, dropouts)
+
+        # Document the reduction for moba
+        dropouts = mqc.checkUpdates(inTrunk_moba+".bim", outTrunk_moba+".bim",cols = [0,1],
+                                    sanityCheck = "removal", fullList = False)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        dropouts["Excluded markers"] = output.exclude_list
+        mqc.saveYamlResults(output.results_moba, dropouts)
+                
 rule_stem = "pca_1kgp"               
 rule pca_1kgp:
     input:
-        bedset = rules.prune_1kgp.output.bedset,
-        pop_map = config["1000_genomes_pop"]       # maps samples to population-groups
+        bedset = rules.common_markers_moba_ref.output.bedset_ref,
+        pop_map = config["1000_genomes_pop"]       # maps 1000genomes samples to population-groups
         
     output:
         ref_pcs=tmpMod2/rule_stem/'pcs_1kgp',
@@ -739,18 +789,16 @@ rule pca_1kgp:
         subprocess.run([flashpca,
                         "--bfile", inTrunk,
                         "--outpc", output.ref_pcs,
-                        "--outvec",  output.ref_eigenvec,
+                        "--outmeansd", output.ref_meansd,
                         "--outload", output.ref_loadings,
+                        "--outvec",  output.ref_eigenvec,
                         "--outval", output.ref_eigenval,
-                        "--outpve", output.ref_var_explained,
-                        "--outmeansd", output.ref_meansd ])
-        
+                        "--outpve", output.ref_var_explained ])
 
-        
 rule_stem = "pca_moba"               
 rule pca_moba:
     input:
-        bedset = rules.pedigree_fix_pruned.output.bedset, # mobadata to be ...
+        bedset = rules.common_markers_moba_ref.output.bedset_moba,        
         ref_meansd = rules.pca_1kgp.output.ref_meansd,    # projected onto pca from ...
         ref_loadings = rules.pca_1kgp.output.ref_loadings,# 1000 genomes pca
     output:
@@ -768,8 +816,8 @@ rule pca_moba:
         subprocess.run([flashpca,
                         "--bfile", inTrunk,
                         "--project",
-                        "--inload", input.ref_loadings,
                         "--inmeansd", input.ref_meansd,
+                        "--inload", input.ref_loadings,
                         "--outproj", output.moba_projection ])
         
 
@@ -795,26 +843,30 @@ rule plot_pca:  #just to avoid having to rerun the longlasting pca for now
         # All data. We here later assume that moba ID and 1000 genomes ID are different
         all = pd.concat([pc,moba],ignore_index=True) 
 
-        # Populations for colouring
+        # Populations for colouring -
+        # see https://www.internationalgenome.org/faq/which-populations-are-part-your-study/ for details
         pop = pd.read_csv(input.pop_map,usecols=['#IID','SuperPop','Population'],delim_whitespace=True)
         # Simulate population for Moba
         popmoba = pd.read_csv(input.moba_pcs,usecols=['IID'],delim_whitespace=True)
         popmoba.columns = ["#IID"]  # rename to match earlier pop
-        popmoba['SuperPop'] = 'MoBa'
-        popmoba['Population'] = 'MoBa'
+        popmoba['SuperPop'] = '->MoBa'
+        popmoba['Population'] = '->MoBa'
         all_pop = pd.concat([pop,popmoba],ignore_index=True)
         merged = pd.merge(left=all, right=all_pop, left_on='IID', right_on='#IID')
+        
 
         # Set up colours
-        colours = {'EUR': 'red', 
-                   'EAS': 'darkblue', 
-                   'AMR': 'violet', 
-                   'SAS': 'orange', 
-                   'AFR': 'yellow', 
-                   'Moba':'black'}
+        # colours = {'EUR': 'red', 
+        #            'EAS': 'darkblue', 
+        #            'AMR': 'violet', 
+        #            'SAS': 'orange', 
+        #            'AFR': 'yellow', 
+        #            'Moba':'black'}
         
-        p = p9.ggplot(data=merged, mapping=p9.aes(x='PC1',y='PC2',color='SuperPop'))
-        p +=  p9.geom_point() + p9.scale_fill_manual(values=colours) + p9.scale_color_manual(values=colours)
+        p = p9.ggplot(data=merged, mapping=p9.aes(x='PC1',y='PC2'))
+        looks = p9.aes(color='SuperPop', shape='SuperPop')
+        p +=  p9.geom_point(looks)
+        p += p9.scale_colour_brewer(type="qual", palette="Set1")  # better for colourblind
         p9.ggsave(plot=p, filename=output.plot, dpi=600)
 
 
