@@ -648,7 +648,7 @@ rule remove_dup_markers_1kg:
         dup_file_old.rename(output.plink_dup_list)
         dup_file = output.plink_dup_list
 
-        # The blow is stupid as all F_MISS are 0 for this set ... We could have used
+        # The below is stupid as all F_MISS are 0 for this set ... We could have used
         # --list-duplicate-vars ids-only but it crashes since some ids are replicated
         # Could/sould have fixed this, but we just run stupid brute force copy/paste here
         subprocess.run([plinklocal,
@@ -725,19 +725,23 @@ rule common_markers_moba_ref:
         bedset_ref = expand(str(tmpMod2/"pca_ref") + '{ext}', ext=['.bed','.bim','.fam']),
         bedset_moba = expand(str(tmpMod2/"pca_moba") + '{ext}', ext=['.bed','.bim','.fam']),
         exclude_list = (tmpMod2/rule_stem).with_suffix(".txt"),
+        tri_alleles = report((tmpMod2/rule_stem).with_suffix(".missnp"),
+                             category="Module 2 1000Genomes prep",
+                             caption=(resultPath/"pca_ref").with_suffix(".rst")),
         results_ref = report((resultPath/"pca_ref").with_suffix(".yaml"),
-                         category="Module 2 1000Genomes prep",
-                         caption=(resultPath/"pca_ref").with_suffix(".rst")),
+                             category="Module 2 1000Genomes prep",
+                             caption=(resultPath/"pca_ref").with_suffix(".rst")),
         results_moba = report((resultPath/"pca_moba").with_suffix(".yaml"),
-                         category="Module 2 1000Genomes prep",
-                         caption=(resultPath/"pca_moba").with_suffix(".rst"))
+                              category="Module 2 1000Genomes prep",
+                              caption=(resultPath/"pca_moba").with_suffix(".rst")),
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
         inTrunk_ref =  mqc.plinkBase(input.bedset_ref[0])
         inTrunk_moba =  mqc.plinkBase(input.bedset_moba[0])
         outTrunk_ref =  mqc.plinkBase(output.bedset_ref[0])
-        outTrunk_moba =  mqc.plinkBase(output.bedset_moba[0]) 
+        outTrunk_moba =  mqc.plinkBase(output.bedset_moba[0])
+        triallelesTrunk =  mqc.plinkBase(output.tri_alleles) 
 
         # Common markers found in exclude_list
         mqc.intersect_rsid(inTrunk_ref+".bim", inTrunk_moba+".bim", output.exclude_list)
@@ -752,12 +756,30 @@ rule common_markers_moba_ref:
                 "--extract", output.exclude_list,            
                 "--out", outTrunk_moba,                           
                 "--make-bed" ])
+        # alas these two are not identical enough - discover  problems by dummy-merging
+        subprocess.run([plinklocal,
+                 "--bfile", outTrunk_ref,
+                 "--bmerge", outTrunk_moba,
+                 "--out", triallelesTrunk ])
+        # ... And then remove these markers from both sets
+        subprocess.run([plinklocal,
+                "--bfile", outTrunk_ref,
+                "--exclude", output.tri_alleles,            
+                "--out", outTrunk_ref,                           
+                "--make-bed" ])
+
+        subprocess.run([plinklocal,
+                "--bfile", outTrunk_moba,
+                "--exclude", output.tri_alleles,            
+                "--out", outTrunk_moba,                           
+                "--make-bed" ])
+        
         # Document the reduction for ref (1000 genomes)
         dropouts = mqc.checkUpdates(inTrunk_ref+".bim", outTrunk_ref+".bim",cols = [0,1],
                                     sanityCheck = "removal", fullList = False)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
-        dropouts["Excluded markers"] = output.exclude_list
+        dropouts["Excluded markers"] = f"Common markers in {output.exclude_list}, trialleles removed in {output.tri_alleles}"
         mqc.saveYamlResults(output.results_ref, dropouts)
 
         # Document the reduction for moba
@@ -765,15 +787,13 @@ rule common_markers_moba_ref:
                                     sanityCheck = "removal", fullList = False)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
-        dropouts["Excluded markers"] = output.exclude_list
+        dropouts["Excluded markers"] = f"Common markers in {output.exclude_list}, trialleles removed in {output.tri_alleles}"
         mqc.saveYamlResults(output.results_moba, dropouts)
                 
 rule_stem = "pca_1kgp"               
 rule pca_1kgp:
     input:
         bedset = rules.common_markers_moba_ref.output.bedset_ref,
-        pop_map = config["1000_genomes_pop"]       # maps 1000genomes samples to population-groups
-        
     output:
         ref_pcs=tmpMod2/rule_stem/'pcs_1kgp',
         ref_eigenvec=tmpMod2/rule_stem/'eigenvec_1kgp',
@@ -800,7 +820,7 @@ rule pca_moba:
     input:
         bedset = rules.common_markers_moba_ref.output.bedset_moba,        
         ref_meansd = rules.pca_1kgp.output.ref_meansd,    # projected onto pca from ...
-        ref_loadings = rules.pca_1kgp.output.ref_loadings,# 1000 genomes pca
+        ref_loadings = rules.pca_1kgp.output.ref_loadings,# ... 1000 genomes pca
     output:
         moba_projection=tmpMod2/rule_stem/'projection_moba',
 # plot?        ref_meansd=tresultPath/rule_stem).with_suffix(".yaml"),
@@ -817,16 +837,18 @@ rule pca_moba:
                         "--bfile", inTrunk,
                         "--project",
                         "--inmeansd", input.ref_meansd,
+                        "--outproj", output.moba_projection,
                         "--inload", input.ref_loadings,
-                        "--outproj", output.moba_projection ])
+        ])
         
 
 rule_stem = "plot_pca_tmp"        
-rule plot_pca:  #just to avoid having to rerun the longlasting pca for now
+rule plot_pca:  #just to avoid having to rerun  pca for now
     input:
         pop_map = config["1000_genomes_pop"],       # maps samples to population-groups
         ref_pcs = rules.pca_1kgp.output.ref_pcs,
         moba_pcs = rules.pca_moba.output.moba_projection,
+
     output:
         plot = report((resultPath/rule_stem).with_suffix(".png"),
                       category="Module 2 1000Genomes prep")

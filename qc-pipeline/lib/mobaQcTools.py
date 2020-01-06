@@ -662,5 +662,3 @@ def intersect_rsid(bim1, bim2, intersection):
         for s in list(set(s1) & set(s2)):
             f.write(f"{s}\n")
 
-#os.chdir("/mnt/work/gutorm/qcTest/qcrot2/fullNewOutput/mod2-data-preparation/tmp")
-#intersect_rsid("prune_1kgp.bim","pedigree_fix_pruned.bim","result")
