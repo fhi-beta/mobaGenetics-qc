@@ -815,6 +815,7 @@ rule pca_1kgp:
                         "--outval", output.ref_eigenval,
                         "--outpve", output.ref_var_explained ])
 
+# This projection does not work (6.1.2020). Must look at this laters
 rule_stem = "pca_moba"               
 rule pca_moba:
     input:
@@ -838,7 +839,7 @@ rule pca_moba:
                         "--project",
                         "--inmeansd", input.ref_meansd,
                         "--outproj", output.moba_projection,
-                        "--inload", input.ref_loadings,
+                        "--inload", input.ref_loadings
         ])
         
 
@@ -891,77 +892,49 @@ rule plot_pca:  #just to avoid having to rerun  pca for now
         p += p9.scale_colour_brewer(type="qual", palette="Set1")  # better for colourblind
         p9.ggsave(plot=p, filename=output.plot, dpi=600)
 
+rule_stem = "split"
+rule split_founder_offspring:
+    input:
+        bedset = rules.pedigree_fix_pruned.output.bedset
+    output:
+        bedset_founder =expand(str(tmpMod2/rule_stem) + '_founder' + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset_offspring =expand(str(tmpMod2/rule_stem) + '_offspring' + '{ext}', ext=['.bed','.bim','.fam']),
+        results_founder = report(str(resultPath/rule_stem)+"_founder.yaml",
+                         category="Module 2 1000Genomes prep",
+                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+        results_offspring = report(str(resultPath/rule_stem)+"_offspring.yaml",
+                         category="Module 2 1000Genomes prep",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        founderTrunk =  mqc.plinkBase(output.bedset_founder[0])
+        offspringTrunk =  mqc.plinkBase(output.bedset_offspring[0])
 
-# rule_stem = "merge_sets_b4_pca"
-# rule merge_sets_b4_pca:
-#     input:
-#  	hapmap_pop = config['hapmap_pop']
-#     output: touch("foo")
-#     run:
-#         print("Not written yet")
+        subprocess.run([plinklocal,
+                        "--bfile", inTrunk,
+                        "--filter-founders",
+                        "--out", founderTrunk,
+                        "--make-bed"  ])
+        
+        dropouts = mqc.checkUpdates(inTrunk+".fam", founderTrunk+".fam",cols = [1], sanityCheck = "removal", fullList = True) 
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results_founder, dropouts)
 
-# rule pcawhapmap:
-# 	input:
-# 		base + 'both/tmp/' + 'inferped_pruned.bed', # for running the PCA
-# 		base + 'both/tmp/' + 'inferped_all.bed'	# for extracting ETHNIC-PASS samples
-# 	output:
-# 		base + 'both/tmp/' + 'pcainds_allmarkers.bed',
-# 		base + 'both/pca/' + 'manual_selection_core_list', # ETHNIC-PASS samplelist
-# 		stvars = base + 'both/rep/' + 'storedvars_pca.txt',
-# 		exclinds = base + 'both/rep/' + 'exclusions_pca_ind.txt',
-# 		exclsnps = base + 'both/rep/' + 'exclusions_pca_snp.txt'
-# 	params:
-# 		inall = base + 'both/tmp/' + 'inferped_all',
-# 		ingeno = base + 'both/tmp/' + 'inferped_pruned',
-# 		pcadir = base + 'both/pca/',
-# 		outdir = base + 'both/tmp/',
-# 		hapmap = config['hapmap_stem'],
-# 		hmpop = config['hapmap_pop'],
-# 		pcathr = config['pca_thr'],
-# 		plotdir = base + 'both/rep/' + 'plots_pca/'
-# 	shell:
-# 		"""
-# <SNIPP - SNAPP>
-
-
-                        # 		        {params.outdir}/no_inferped_problems",
-
-# 		# Function merges, prunes and plots merged data after PCA
-# 		# 1. Input stem of pruned bedset
-# 		# 2. Input stem of hapmap
-# 		# 3. Output path + prefix of PCA results
-# 		# 4. TMP-folder
-# 		pca_with_hapmap \
-# 		        {params.outdir}/no_inferped_problems \
-# 		        {params.hapmap} \
-# 		        {params.pcadir}/superclean_core_with_hapmap \
-# 		        {params.pcadir}
-
-# 		# Manual identifation of samples for the core sample.
-# 		# 1. Eigenstrat PCA output
-# 		# 2. HapMap population file
-# 		# 3. Output name of filtered samples list
-# 		# 4. Output path of saved files
-# 		# 5. Std. dev. threshold for inclusion
-# 		# 6. Lower limit in first dimension, i.e. left vertical line in the PCA, ignored if NA
-# 		# 7. Upper limit in first dimension, i.e. right vertical line in the PCA, ignored if NA
-# 		# 8. Lower limit in second dimension, i.e. lower horizontal line in the PCA, ignored if NA
-# 		# 9. Upper limit in second dimension, i.e. upper horizontal line in the PCA, ignored if NA
-# 		manual_core_selection \
-# 		        {params.pcadir}/superclean_core_with_hapmap.pca.evec \
-# 		        {params.hmpop} \
-# 		        {params.pcadir}/manual_selection_core_list \
-# 		        $PLOTDIR \
-# 		        {params.pcathr}
-		
-# 		# Extracting the manually selected core samples from the full set
-# 		# including all markers before cleaning the core in the next steps
-# 		plink_keep_samples \
-# 		        {params.inall} \
-# 		        {params.pcadir}/manual_selection_core_list \
-# 		        {params.outdir}/pcainds_allmarkers \
-# 		        "PCA"
-# 		"""
+        subprocess.run([plinklocal,
+                        "--bfile", inTrunk,
+                        "--filter-nonfounders",
+                        "--make-founders",
+                        "--out", offspringTrunk,                         
+                        "--make-bed"  ])
+        
+        dropouts = mqc.checkUpdates(inTrunk+".fam", offspringTrunk+".fam",cols = [1], sanityCheck = "removal", fullList = True) 
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results_offspring, dropouts)
+        
 
 # rule split:
 # 	input:

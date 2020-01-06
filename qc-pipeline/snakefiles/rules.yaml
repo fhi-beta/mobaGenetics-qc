@@ -302,6 +302,16 @@ pca_moba:
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
+
+split_founder_offspring:
+  QC test: Split child/parent
+  Description: Two different plink bedsets made 
+  Rule order: mod2.2a
+  rule type: sample
+  rule action: remove (split)
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
     
 
 # prune_hapmap:
