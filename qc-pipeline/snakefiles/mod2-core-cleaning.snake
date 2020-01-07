@@ -588,143 +588,16 @@ rule pedigree_fix_pruned:
 #         dropouts["Rule"] = rule
 #         mqc.saveYamlResults(output.results_reference, dropouts)
                 
-rule_stem = 'kgp_x_high_ld_autosome' 
-rule kgp_x_high_ld_autosome:
-    input:
-        # This is based on earlier temporary filters 
-        bedset = expand(config["1000_genomes_stem"] +'{ext}', ext=['.bed','.bim','.fam']),
-        high_ld_regions_hg19 = "../resources/high-ld-regions-hg19"
-    output:
-        bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
-                         category="Module 2 1000Genomes prep",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))
-    run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])
-        inTrunk =  mqc.plinkBase(input.bedset[0])
-        outTrunk =  mqc.plinkBase(output.bedset[0]) 
-
-
-        subprocess.run([plinklocal,
-                "--bfile",inTrunk,
-                "--exclude", "range", input.high_ld_regions_hg19,    # identifies markers
-                "--autosome",
-                "--allow-extra-chr",                                 # avoid error messages e.g PAR1                        
-                "--out", outTrunk,                                   
-                "--make-bed"  ])
-        
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = False) 
-        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Rule"] = rule
-        mqc.saveYamlResults(output.results, dropouts)
-
-# Check for duplicate markers, and remove all but one (keep best callrate)
-# The code here is copied from remove_duplicate_markers -
-rule_stem = 'remove_dup_markers_1kg'
-rule remove_dup_markers_1kg:
-    input:
-        bedset = rules.kgp_x_high_ld_autosome.output.bedset,
-    output:
-        bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
-        excludeList = (tmpMod2/rule_stem).with_suffix(".txt"),
-        resultDetails = (resultPath/rule_stem).with_suffix(".csv"),
-        plink_dup_list = (tmpMod2/rule_stem).with_suffix(".plinkdups"),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
-                         category="Module 2 1000Genomes prep",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))
-    run:
-        item_type = rule_info[rule]["rule type"]
-        inTrunk = mqc.plinkBase(input.bedset[0])
-        outTrunk = mqc.plinkBase(output.bedset[0])
-        callRateTrunk = mqc.plinkBase(output.excludeList)
-        # Create a plink.dupvar file
-        subprocess.run([plinklocal,
-                        "--bfile",inTrunk,
-                        "--list-duplicate-vars"
-        ])
-        # Unfortunately, the result is placed in cwd, we want it with the other tmp files 
-        dup_file_old = Path(os.getcwd())/'plink.dupvar'
-        dup_file_old.rename(output.plink_dup_list)
-        dup_file = output.plink_dup_list
-
-        # The below is stupid as all F_MISS are 0 for this set ... We could have used
-        # --list-duplicate-vars ids-only but it crashes since some ids are replicated
-        # Could/sould have fixed this, but we just run stupid brute force copy/paste here
-        subprocess.run([plinklocal,
-                        "--bfile", inTrunk,
-                        "--out", callRateTrunk,
-                        "--missing"
-        ])
-
-        mqc.create_exclude_list(dup_file, callRateTrunk+".lmiss",
-                                output.resultDetails, output.excludeList)
-
-        subprocess.run([plinklocal,
-                        "--bfile",inTrunk,
-                        "--exclude", output.excludeList,
-                        "--out", outTrunk,
-                        "--make-bed"
-        ])
-        # We are here checking only the snp-id. They are not unique, so we don't check for it.
-        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [1], sanityCheck = "none",
-                                    fullList = False) 
-        dropouts["Detailed results"] = output.resultDetails
-        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Rule"] = rule
-        mqc.saveYamlResults(output.results, dropouts)
-        mqc.log(runlog, f'Due to duplicate markers, removed {dropouts["actionTakenCount"]} markers out of {dropouts["in"]}, leaving {dropouts["out"]} unique markers (some were repeating)\n')
-            
-rule_stem = 'prune_1kgp' 
-rule prune_1kgp:
-    input:
-        bedset = rules.remove_dup_markers_1kg.output.bedset,
-    output:
-        bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
-        exclude_list = (tmpMod2/rule_stem).with_suffix(".prune.in"),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
-                         category="Module 2 1000Genomes prep",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))
-    params:
-        prune_cmd = config["1kgp_prune_cmd"].split(),    # As plink will want a list
-        maf_thr = config["1kgp_maf_thr"]
-    run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])
-        inTrunk =  mqc.plinkBase(input.bedset[0])
-        outTrunk =  mqc.plinkBase(output.bedset[0]) 
-        
-        subprocess.run([plinklocal,
-                "--bfile", inTrunk,
-                "--maf", str(params.maf_thr),
-                "--out", outTrunk]     # no bed-file prodused, just .in
-                 + params.prune_cmd )  # note that we here add a list to another list ... 
-
-
-        subprocess.run([plinklocal,
-                "--bfile", inTrunk,
-                "--allow-extra-chr",                                 # e.g PAR1
-                "--extract", output.exclude_list,            
-                "--out", outTrunk,                           
-                "--make-bed" ])
-        
-
-        # We know about rsID (such as '.') - so we turn of sainityCheck
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
-                                    sanityCheck = "none", fullList = False)
-        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Rule"] = rule
-        mqc.saveYamlResults(output.results, dropouts)
-
+# Reduce 1000 genome markers to the one already pruned and sorted out for moba
 rule_stem = 'common_markers_moba_ref'
 rule common_markers_moba_ref:
     input:
-        bedset_ref = rules.prune_1kgp.output.bedset,
+        bedset_ref = expand(config["1000_genomes_stem"] +'{ext}', ext=['.bed','.bim','.fam']),
         bedset_moba = rules.pedigree_fix_pruned.output.bedset
     output:
         bedset_ref = expand(str(tmpMod2/"pca_ref") + '{ext}', ext=['.bed','.bim','.fam']),
         bedset_moba = expand(str(tmpMod2/"pca_moba") + '{ext}', ext=['.bed','.bim','.fam']),
-        exclude_list = (tmpMod2/rule_stem).with_suffix(".txt"),
+        marker_list = (tmpMod2/rule_stem).with_suffix(".txt"),
         tri_alleles = report((tmpMod2/rule_stem).with_suffix(".missnp"),
                              category="Module 2 1000Genomes prep",
                              caption=(resultPath/"pca_ref").with_suffix(".rst")),
@@ -743,25 +616,30 @@ rule common_markers_moba_ref:
         outTrunk_moba =  mqc.plinkBase(output.bedset_moba[0])
         triallelesTrunk =  mqc.plinkBase(output.tri_alleles) 
 
-        # Common markers found in exclude_list
-        mqc.intersect_rsid(inTrunk_ref+".bim", inTrunk_moba+".bim", output.exclude_list)
-        # Reduce/prune both sets to the common markers
+        # Common markers found in marker_list
+        mqc.intersect_rsid(inTrunk_ref+".bim", inTrunk_moba+".bim", output.marker_list)
+        #  mqc.copy_file(output.marker_list)
+        # Reduce both sets to the common markers
         subprocess.run([plinklocal,
                 "--bfile", inTrunk_ref,
-                "--extract", output.exclude_list,            
-                "--out", outTrunk_ref,                           
+                "--extract", output.marker_list,            
+                "--out", outTrunk_ref,
+                "--allow-extra-chr",  # such as PAR1 ...
                 "--make-bed" ])
         subprocess.run([plinklocal,
                 "--bfile", inTrunk_moba,
-                "--extract", output.exclude_list,            
+                "--extract", output.marker_list,            
                 "--out", outTrunk_moba,                           
                 "--make-bed" ])
-        # alas these two are not identical enough - discover  problems by dummy-merging
+        # alas these two are not identical enough -
+        # discover tri-allele  problems by dummy-merging
         subprocess.run([plinklocal,
                  "--bfile", outTrunk_ref,
                  "--bmerge", outTrunk_moba,
                  "--out", triallelesTrunk ])
+        # mqc.copy_file(output.tri_alleles)
         # ... And then remove these markers from both sets
+        # fyi: plink will append inputfiles  by ~ ... since input/output have same name
         subprocess.run([plinklocal,
                 "--bfile", outTrunk_ref,
                 "--exclude", output.tri_alleles,            
@@ -779,7 +657,7 @@ rule common_markers_moba_ref:
                                     sanityCheck = "removal", fullList = False)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
-        dropouts["Excluded markers"] = f"Common markers in {output.exclude_list}, trialleles removed in {output.tri_alleles}"
+        dropouts["Excluded markers"] = f"Common markers in {output.marker_list}, trialleles removed in {output.tri_alleles}"
         mqc.saveYamlResults(output.results_ref, dropouts)
 
         # Document the reduction for moba
@@ -787,9 +665,10 @@ rule common_markers_moba_ref:
                                     sanityCheck = "removal", fullList = False)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
-        dropouts["Excluded markers"] = f"Common markers in {output.exclude_list}, trialleles removed in {output.tri_alleles}"
+        dropouts["Excluded markers"] = f"Common markers in {output.marker_list}, trialleles removed in {output.tri_alleles}"
         mqc.saveYamlResults(output.results_moba, dropouts)
-                
+
+                        
 rule_stem = "pca_1kgp"               
 rule pca_1kgp:
     input:
@@ -843,8 +722,8 @@ rule pca_moba:
         ])
         
 
-rule_stem = "plot_pca_tmp"        
-rule plot_pca:  #just to avoid having to rerun  pca for now
+rule_stem = "plot_pca"        
+rule plot_pca:  
     input:
         pop_map = config["1000_genomes_pop"],       # maps samples to population-groups
         ref_pcs = rules.pca_1kgp.output.ref_pcs,
@@ -876,6 +755,7 @@ rule plot_pca:  #just to avoid having to rerun  pca for now
         popmoba['Population'] = '->MoBa'
         all_pop = pd.concat([pop,popmoba],ignore_index=True)
         merged = pd.merge(left=all, right=all_pop, left_on='IID', right_on='#IID')
+        print(merged)
         
 
         # Set up colours
@@ -885,10 +765,10 @@ rule plot_pca:  #just to avoid having to rerun  pca for now
         #            'SAS': 'orange', 
         #            'AFR': 'yellow', 
         #            'Moba':'black'}
-        
-        p = p9.ggplot(data=merged, mapping=p9.aes(x='PC1',y='PC2'))
-        looks = p9.aes(color='SuperPop', shape='SuperPop')
-        p +=  p9.geom_point(looks)
+        popc = "SuperPop"
+        p = p9.ggplot(data=merged, mapping=p9.aes(x='PC1',y='PC2',color=popc, shape=popc))
+        looks = p9.aes(color=popc, shape=popc)
+        p +=  p9.geom_point()
         p += p9.scale_colour_brewer(type="qual", palette="Set1")  # better for colourblind
         p9.ggsave(plot=p, filename=output.plot, dpi=600)
 

@@ -16,6 +16,7 @@ import subprocess
 import inspect    # to find stack-info, such as the functions name
 import os
 from datetime import datetime
+from shutil import copyfile
 
 def plotHist(dataFile, resultFile, column="name of the column", title="no legend??", separator='\s+',
              treshold=0, logx=False):
@@ -662,3 +663,16 @@ def intersect_rsid(bim1, bim2, intersection):
         for s in list(set(s1) & set(s2)):
             f.write(f"{s}\n")
 
+def copy_file(f,ext=".bak"):
+    """ makes a .bak file
+
+    This is a debug-tool used keep a copy of a snakemake result that it would have deleted due 
+    to failure.
+
+    """
+    print(f"DEBUG> Making a backup of {f} to {f+ext}.")
+    copyfile(f, f+ext)
+    
+
+sti = "/mnt/work/gutorm/qcTest/qcrot2/fullNewOutput/mod2-data-preparation/tmp/pca_"
+intersect_rsid(sti+"moba.bim",sti+"ref.bim",sti+"intersect")

@@ -242,42 +242,21 @@ pedigree_fix_pruned:
   Rule: Will be the same as the key of this entry
   Timestamp:
 
-kgp_x_high_ld_autosome:
-  QC test: Extract high LD of autosome markers from the 1000 Genomes Project reference dataset
-  Description: Part of a series of transformation
+common_markers_moba_ref:
+  QC test: Find markers common to both Moba and reference set (1000 Genomes)
+  Description: Also extract those markers and creates plink bedsets for them. Pruning has allready be done one moba-set, so that pruning will carry over to the reference set
   Rule order: mod2.1a
   rule type: markers
   rule action: remove
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
-
-
+    
 remove_dup_markers_1kg:
   QC test: Remove duplicte markers in 1000 Genomes
-  Description: Best call rate kept
+  Description: 
   Rule order: mod2.1b
   rule type: marker
-  rule action: remove
-  # Placeholders that the pipeline will fill in
-  Rule: Will be the same as the key of this entry
-  Timestamp: 
-
-prune_1kgp:
-  QC test: Subset of markers from 1000 Genomes Project reference dataset
-  Description: Output has removed high LD, autosome, low --maf, --indep-pairwise
-  Rule order: mod2.1c
-  rule type: markers
-  rule action: remove
-  # Placeholders that the pipeline will fill in
-  Rule: Will be the same as the key of this entry
-  Timestamp: 
-
-common_markers_moba_ref:
-  QC test: Find markers common to both Moba and reference set (1000 Genomes)
-  Description: Also extract those markers and creates plink bedsets for them
-  Rule order: mod2.1d
-  rule type: markers
   rule action: remove
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
@@ -286,7 +265,7 @@ common_markers_moba_ref:
 pca_1kgp:
   QC test: PCA on reference set 1000 Genomes (without Moba data)
   Description: (flashpca used)
-  Rule order: mod2.1e
+  Rule order: mod2.1c
   rule type: analysis
   rule action: pca/plot
   # Placeholders that the pipeline will fill in
@@ -296,13 +275,23 @@ pca_1kgp:
 pca_moba:
   QC test: Project moba PCA on reference set 1000 Genomes 
   Description: (flashpca used)
-  Rule order: mod2.1f
+  Rule order: mod2.1d
   rule type: analysis
   rule action: pca/plot
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
+plot_pca_moba:
+  QC test: Plot moba and reference data on the same plot
+  Description: 
+  Rule order: mod2.e
+  rule type: analysis
+  rule action: plot
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+    
 split_founder_offspring:
   QC test: Split child/parent
   Description: Two different plink bedsets made 

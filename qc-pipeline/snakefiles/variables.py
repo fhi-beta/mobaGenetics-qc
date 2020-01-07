@@ -1,5 +1,6 @@
 #!/usr/bin/python3
 from pathlib import Path
+from shutil import copyfile
 # These global variables can be shared only between Snakefiles 
 ### snakemake_workflows initialization ########################################
 
@@ -29,3 +30,5 @@ if not os.path.exists(config['output_base']):
 
 if not os.path.exists(tmp_path):
     os.makedirs(tmp_path)
+
+
