@@ -282,12 +282,32 @@ pca_moba:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-plot_pca_moba:
-  QC test: Plot moba and reference data on the same plot
-  Description: 
-  Rule order: mod2.e
+pca_both:
+  QC test: Merge Moba and reference data (1000g) and do pca
+  Description: (flashpca used)
+  Rule order: mod2.1e
   rule type: analysis
-  rule action: plot
+  rule action: pca/plot
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+    
+# plot_pca_moba:
+#   QC test: Plot moba and reference data on the same plot
+#   Description: 
+#   Rule order: mod2.f
+#   rule type: analysis
+#   rule action: plot
+#   # Placeholders that the pipeline will fill in
+#   Rule: Will be the same as the key of this entry
+#   Timestamp: 
+
+extract_pca_outliers:
+  QC test: Exclude csamples where there is too much diversity in pca
+  Description: Consider only the two first principal components. 2020.1. Criteria to be improved
+  Rule order: mod2.1f
+  rule type: sample
+  rule action: remove
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 

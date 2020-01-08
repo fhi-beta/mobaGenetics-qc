@@ -663,6 +663,8 @@ def intersect_rsid(bim1, bim2, intersection):
         for s in list(set(s1) & set(s2)):
             f.write(f"{s}\n")
 
+
+            
 def copy_file(f,ext=".bak"):
     """ makes a .bak file
 
@@ -674,5 +676,3 @@ def copy_file(f,ext=".bak"):
     copyfile(f, f+ext)
     
 
-sti = "/mnt/work/gutorm/qcTest/qcrot2/fullNewOutput/mod2-data-preparation/tmp/pca_"
-intersect_rsid(sti+"moba.bim",sti+"ref.bim",sti+"intersect")

@@ -1,6 +1,12 @@
 #!/usr/bin/python3
 from pathlib import Path
 from shutil import copyfile
+# numerical & plots
+import pandas as pd
+import plotnine as p9
+import matplotlib
+matplotlib.use('Agg')  
+
 # These global variables can be shared only between Snakefiles 
 ### snakemake_workflows initialization ########################################
 

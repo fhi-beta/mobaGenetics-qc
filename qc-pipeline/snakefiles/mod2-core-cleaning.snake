@@ -618,7 +618,6 @@ rule common_markers_moba_ref:
 
         # Common markers found in marker_list
         mqc.intersect_rsid(inTrunk_ref+".bim", inTrunk_moba+".bim", output.marker_list)
-        #  mqc.copy_file(output.marker_list)
         # Reduce both sets to the common markers
         subprocess.run([plinklocal,
                 "--bfile", inTrunk_ref,
@@ -637,7 +636,6 @@ rule common_markers_moba_ref:
                  "--bfile", outTrunk_ref,
                  "--bmerge", outTrunk_moba,
                  "--out", triallelesTrunk ])
-        # mqc.copy_file(output.tri_alleles)
         # ... And then remove these markers from both sets
         # fyi: plink will append inputfiles  by ~ ... since input/output have same name
         subprocess.run([plinklocal,
@@ -668,66 +666,146 @@ rule common_markers_moba_ref:
         dropouts["Excluded markers"] = f"Common markers in {output.marker_list}, trialleles removed in {output.tri_alleles}"
         mqc.saveYamlResults(output.results_moba, dropouts)
 
-                        
-rule_stem = "pca_1kgp"               
-rule pca_1kgp:
+# 7.1.2020 projecting moba data on this did not work. For now we merge the data.                        
+# rule_stem = "pca_1kgp"               
+# rule pca_1kgp:
+#     input:
+#         bedset = rules.common_markers_moba_ref.output.bedset_ref,
+#     output:
+#         ref_pcs=tmpMod2/rule_stem/'pcs_1kgp',
+#         ref_eigenvec=tmpMod2/rule_stem/'eigenvec_1kgp',
+#         ref_loadings=tmpMod2/rule_stem/'loadings_1kgp',
+#         ref_eigenval=tmpMod2/rule_stem/'eigenval_1kgp',
+#         ref_var_explained=tmpMod2/rule_stem/'var_explained_1kgp',
+#         ref_meansd=tmpMod2/rule_stem/'meansd_1kgp',      
+#     run:
+#         item_type = rule_info[rule]["rule type"]
+#         mqc.log(runlog, rule_info[rule]["QC test"])
+#         inTrunk =  mqc.plinkBase(input.bedset[0])
+
+#         subprocess.run([flashpca,
+#                         "--bfile", inTrunk,
+#                         "--outpc", output.ref_pcs,
+#                         "--outmeansd", output.ref_meansd,
+#                         "--outload", output.ref_loadings,
+#                         "--outvec",  output.ref_eigenvec,
+#                         "--outval", output.ref_eigenval,
+#                         "--outpve", output.ref_var_explained ])
+
+# This projection does not work (7.1.2020). Must look at this laters
+# instead we rune one pca on a merged file, see below
+# rule_stem = "pca_moba"               
+# rule pca_moba:
+#     input:
+#         bedset = rules.common_markers_moba_ref.output.bedset_moba,        
+#         ref_meansd = rules.pca_1kgp.output.ref_meansd,    # projected onto pca from ...
+#         ref_loadings = rules.pca_1kgp.output.ref_loadings,# ... 1000 genomes pca
+#     output:
+#         moba_projection=tmpMod2/rule_stem/'projection_moba',
+# # plot?        ref_meansd=tresultPath/rule_stem).with_suffix(".yaml"),
+# #                         category="Module 2 1000Genomes prep",
+# #                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+
+#     run:
+#         item_type = rule_info[rule]["rule type"]
+#         mqc.log(runlog, rule_info[rule]["QC test"])
+#         inTrunk =  mqc.plinkBase(input.bedset[0])
+
+#         # --project moba data onto 1000 genomes loading
+#         subprocess.run([flashpca,
+#                         "--bfile", inTrunk,
+#                         "--project",
+#                         "--inmeansd", input.ref_meansd,
+#                         "--outproj", output.moba_projection,
+#                         "--inload", input.ref_loadings
+#         ])
+
+rule_stem = "pca_both"
+rule pca_both:
     input:
-        bedset = rules.common_markers_moba_ref.output.bedset_ref,
+        bedset_ref = rules.common_markers_moba_ref.output.bedset_ref,        
+        bedset_moba = rules.common_markers_moba_ref.output.bedset_moba,        
     output:
-        ref_pcs=tmpMod2/rule_stem/'pcs_1kgp',
-        ref_eigenvec=tmpMod2/rule_stem/'eigenvec_1kgp',
-        ref_loadings=tmpMod2/rule_stem/'loadings_1kgp',
-        ref_eigenval=tmpMod2/rule_stem/'eigenval_1kgp',
-        ref_var_explained=tmpMod2/rule_stem/'var_explained_1kgp',
-        ref_meansd=tmpMod2/rule_stem/'meansd_1kgp',      
+        bedset = expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        pcs=tmpMod2/(rule_stem+".pcs"),
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
-        inTrunk =  mqc.plinkBase(input.bedset[0])
+        inTrunk_ref =  mqc.plinkBase(input.bedset_ref[0])
+        inTrunk_moba =  mqc.plinkBase(input.bedset_moba[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+
+        subprocess.run([plinklocal,
+                        "--bfile", inTrunk_ref,
+                        "--bmerge", inTrunk_moba,
+                        "--out", outTrunk,
+                        "--make-bed"    ])
 
         subprocess.run([flashpca,
-                        "--bfile", inTrunk,
-                        "--outpc", output.ref_pcs,
-                        "--outmeansd", output.ref_meansd,
-                        "--outload", output.ref_loadings,
-                        "--outvec",  output.ref_eigenvec,
-                        "--outval", output.ref_eigenval,
-                        "--outpve", output.ref_var_explained ])
+                        "--bfile", outTrunk,
+                        "--outpc", output.pcs,
+                        ])
 
-# This projection does not work (6.1.2020). Must look at this laters
-rule_stem = "pca_moba"               
-rule pca_moba:
-    input:
-        bedset = rules.common_markers_moba_ref.output.bedset_moba,        
-        ref_meansd = rules.pca_1kgp.output.ref_meansd,    # projected onto pca from ...
-        ref_loadings = rules.pca_1kgp.output.ref_loadings,# ... 1000 genomes pca
-    output:
-        moba_projection=tmpMod2/rule_stem/'projection_moba',
-# plot?        ref_meansd=tresultPath/rule_stem).with_suffix(".yaml"),
-#                         category="Module 2 1000Genomes prep",
-#                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+           
+        
+# plots a projection, does not work well 7.1.2020 Delete or fix later, see plot_pca_both below  
+# rule_stem = "plot_pca"        
+# rule plot_pca:  
+#     input:
+#         pop_map = config["1000_genomes_pop"],       # maps samples to population-groups
+#         ref_pcs = rules.pca_1kgp.output.ref_pcs,
+#         moba_pcs = rules.pca_moba.output.moba_projection,
 
-    run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])
-        inTrunk =  mqc.plinkBase(input.bedset[0])
+#     output:
+#         plot = report((resultPath/rule_stem).with_suffix(".png"),
+#                       category="Module 2 1000Genomes prep")
+                      
+#     run:
+#         # To remove when this goes to mobaQcTools
+#         import pandas as pd
+#         import plotnine as p9
+#         import matplotlib
+#         matplotlib.use('Agg')  
 
-        # --project moba data onto 1000 genomes loading
-        subprocess.run([flashpca,
-                        "--bfile", inTrunk,
-                        "--project",
-                        "--inmeansd", input.ref_meansd,
-                        "--outproj", output.moba_projection,
-                        "--inload", input.ref_loadings
-        ])
+#         pc = pd.read_csv(input.ref_pcs, usecols=['IID','PC1','PC2'],delim_whitespace=True)
+#         moba = pd.read_csv(input.moba_pcs, usecols=['IID','PC1','PC2'],delim_whitespace=True)
+#         # All data. We here later assume that moba ID and 1000 genomes ID are different
+#         all = pd.concat([pc,moba],ignore_index=True) 
+
+#         # Populations for colouring -
+#         # see https://www.internationalgenome.org/faq/which-populations-are-part-your-study/ for details
+#         pop = pd.read_csv(input.pop_map,usecols=['#IID','SuperPop','Population'],delim_whitespace=True)
+#         # Simulate population for Moba
+#         popmoba = pd.read_csv(input.moba_pcs,usecols=['IID'],delim_whitespace=True)
+#         popmoba.columns = ["#IID"]  # rename to match earlier pop
+#         popmoba['SuperPop'] = '->MoBa'
+#         popmoba['Population'] = '->MoBa'
+#         all_pop = pd.concat([pop,popmoba],ignore_index=True)
+#         merged = pd.merge(left=all, right=all_pop, left_on='IID', right_on='#IID')
+#         print(merged)
         
 
-rule_stem = "plot_pca"        
-rule plot_pca:  
+#         # Set up colours
+#         # colours = {'EUR': 'red', 
+#         #            'EAS': 'darkblue', 
+#         #            'AMR': 'violet', 
+#         #            'SAS': 'orange', 
+#         #            'AFR': 'yellow', 
+#         #            'Moba':'black'}
+#         popc = "SuperPop"
+#         p = p9.ggplot(data=merged, mapping=p9.aes(x='PC1',y='PC2',color=popc, shape=popc))
+#         looks = p9.aes(color=popc, shape=popc)
+#         p +=  p9.geom_point()
+#         p += p9.scale_colour_brewer(type="qual", palette="Set1")  # better for colourblind
+#         p9.ggsave(plot=p, filename=output.plot, dpi=600)
+
+        
+rule_stem = "plot_pca_both"        
+rule plot_pca_both:  
     input:
         pop_map = config["1000_genomes_pop"],       # maps samples to population-groups
-        ref_pcs = rules.pca_1kgp.output.ref_pcs,
-        moba_pcs = rules.pca_moba.output.moba_projection,
+        pcs = rules.pca_both.output.pcs,            # principal components
+        moba = mqc.plinkBase(rules.common_markers_moba_ref.output.bedset_moba[0]) + ".fam"
 
     output:
         plot = report((resultPath/rule_stem).with_suffix(".png"),
@@ -735,30 +813,22 @@ rule plot_pca:
                       
     run:
         # To remove when this goes to mobaQcTools
-        import pandas as pd
-        import plotnine as p9
-        import matplotlib
-        matplotlib.use('Agg')  
 
-        pc = pd.read_csv(input.ref_pcs, usecols=['IID','PC1','PC2'],delim_whitespace=True)
-        moba = pd.read_csv(input.moba_pcs, usecols=['IID','PC1','PC2'],delim_whitespace=True)
-        # All data. We here later assume that moba ID and 1000 genomes ID are different
-        all = pd.concat([pc,moba],ignore_index=True) 
+        pc = pd.read_csv(input.pcs, usecols=['IID','PC1','PC2'],delim_whitespace=True)
 
         # Populations for colouring -
         # see https://www.internationalgenome.org/faq/which-populations-are-part-your-study/ for details
         pop = pd.read_csv(input.pop_map,usecols=['#IID','SuperPop','Population'],delim_whitespace=True)
-        # Simulate population for Moba
-        popmoba = pd.read_csv(input.moba_pcs,usecols=['IID'],delim_whitespace=True)
+        # Simulate population for Moba, read 2-column in fam-file
+        popmoba = pd.read_csv(input.moba,usecols=[1], header=None,
+                              delim_whitespace=True)
         popmoba.columns = ["#IID"]  # rename to match earlier pop
         popmoba['SuperPop'] = '->MoBa'
         popmoba['Population'] = '->MoBa'
         all_pop = pd.concat([pop,popmoba],ignore_index=True)
-        merged = pd.merge(left=all, right=all_pop, left_on='IID', right_on='#IID')
-        print(merged)
-        
+        merged = pd.merge(left=pc, right=all_pop, left_on='IID', right_on='#IID')
 
-        # Set up colours
+        # Set up colours   - no using this - did not get it right and dont want to spend time on it
         # colours = {'EUR': 'red', 
         #            'EAS': 'darkblue', 
         #            'AMR': 'violet', 
@@ -772,6 +842,59 @@ rule plot_pca:
         p += p9.scale_colour_brewer(type="qual", palette="Set1")  # better for colourblind
         p9.ggsave(plot=p, filename=output.plot, dpi=600)
 
+
+rule_stem = 'extracted_pca_outliers'
+rule extract_pca_outliers:
+    input:
+        bedset = rules.common_markers_moba_ref.output.bedset_moba,
+        pcs = rules.pca_both.output.pcs,            # principal components
+        moba = rules.plot_pca_both.input.moba,           # moba samples
+    output:
+        bedset=expand(str(tmpMod2/rule_stem)
+                          + '{ext}', ext=['.bed','.bim','.fam']),
+        exclude_list = (tmpMod2/rule_stem).with_suffix(".txt"),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+    params:
+        treshold = -0.05752391   # Stupid and visual - for now
+
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        mqc.log(runlog, "PCA exlude {item_type} ({params.treshold})\n")
+
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+        pca_treshold = params.treshold
+        pc = pd.read_csv(input.pcs, usecols=['IID','PC1','PC2'],delim_whitespace=True)
+        # List (only) moba samples that pca-wise are too spread
+        mobasamples = pd.read_csv(input.moba,usecols=[0,1], header=None,
+                                  delim_whitespace=True)
+        mobasamples.columns = ["FID","IID"]
+        # keep just moba-samples
+        moba_pca = pd.merge(left=pc, right=mobasamples, left_on='IID', right_on='IID')
+
+        # This is a superdirty hack to exclude the same number as samples as
+        # was excluded by the hapmap pca. Must be replace by a sensible function
+        # Samples to exclude found put in output.excludelist
+        moba_pca.loc[(moba_pca.PC1 > params.treshold)].to_csv(output.exclude_list,
+                columns=['FID','IID'],index=False, header=False, sep = ' ')
+        
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--remove", output.exclude_list,
+                "--out", outTrunk,  
+                "--make-bed" ])
+
+        dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam",cols = [0,1],
+                                    sanityCheck = "removal", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Treshold"] = params.treshold
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+        
+        
 rule_stem = "split"
 rule split_founder_offspring:
     input:
@@ -815,7 +938,6 @@ rule split_founder_offspring:
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results_offspring, dropouts)
         
-
 # rule split:
 # 	input:
 # 		base + 'both/tmp/' + 'pcainds_allmarkers.bed' # INFERRED family info, PCA pass, all markers
