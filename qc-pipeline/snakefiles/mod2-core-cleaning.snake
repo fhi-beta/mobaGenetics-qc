@@ -898,10 +898,10 @@ rule extract_pca_outliers:
 rule_stem = "split"
 rule split_founder_offspring:
     input:
-        bedset = rules.pedigree_fix_pruned.output.bedset
+        bedset = rules.extract_pca_outliers.output.bedset
     output:
-        bedset_founder =expand(str(tmpMod2/rule_stem) + '_founder' + '{ext}', ext=['.bed','.bim','.fam']),
-        bedset_offspring =expand(str(tmpMod2/rule_stem) + '_offspring' + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset_founder =expand(str(tmpMod2/"founders"/"start_clean") + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset_offspring =expand(str(tmpMod2/"offspring"/"start_clean") + '{ext}', ext=['.bed','.bim','.fam']),
         results_founder = report(str(resultPath/rule_stem)+"_founder.yaml",
                          category="Module 2 1000Genomes prep",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
@@ -937,53 +937,23 @@ rule split_founder_offspring:
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results_offspring, dropouts)
+
+rule_stem = "ibd"
+rule ibd:
+    input:
+        bedset = tmpMod2/"{role}/start_clean.bed"
+    output:
+        bedset = touch(tmpMod2/"{role}"/rule_stem/"foo")
+    params:
         
-# rule split:
-# 	input:
-# 		base + 'both/tmp/' + 'pcainds_allmarkers.bed' # INFERRED family info, PCA pass, all markers
-# 	output:
-# 		base + 'founders/tmp/' + 'starting_clean.bed',
-# 		base + 'offspring/tmp/' + 'starting_clean.bed',
-# 		stvars = base + 'both/rep/' + 'storedvars_split.txt'
-# 	params:
-# 		instem = base + 'both/tmp/' + 'pcainds_allmarkers',
-# 		outstemf = base + 'founders/tmp/' + 'starting_clean',
-# 		outstemo = base + 'offspring/tmp/' + 'starting_clean'
-# 	shell:
-# 		"""
-# 		set -e
-# 		libdir={libdir}
-# 		plinklocal={plinklocal}
-
-# 		source {libdir}/functions.sh
-# 		source {libdir}/plink_wrapper_functions.sh
-
-# 		PIPELINELOG={runlog}
-# 	       	STOREDVARS={output.stvars}
-
-# 		log "--- IDENTIFY CORE: RULE SPLIT ---"
-
-# 		# separate founders
-# 		{plinklocal} \
-# 			--bfile {params.instem} \
-# 			--filter-founders \
-# 			--make-bed \
-# 			--out {params.outstemf}
-# 		report_ninds {params.outstemf} "REMAIN_FOUNDERS"
-
-# 		# separate offspring (i.e. anyone with provided parent info)
-# 		{plinklocal} \
-# 			--bfile {params.instem} \
-# 			--filter-nonfounders \
-# 			--make-founders \
-# 			--make-bed \
-# 			--out {params.outstemo}
-# 		report_ninds {params.outstemo} "REMAIN_OFFSPRING"
-# 		"""
+    run:
+        print (f"OMW: {input.bedset} -> {output.bedset}")
+        
+rule_stem  = "morndu"
 
 # rule ibd:
 # 	input:
-#       		base + '{role}/tmp/' + 'starting_clean.bed',
+#       	base + '{role}/tmp/' + 'starting_clean.bed',
 # 		cleansnps = base + 'both/tmp/' + 'prune_markers_tmp.prune.in'
 # 	output:
 #                 base + '{role}/tmp/' + 'ibdpruned.bed', # for marker clean
