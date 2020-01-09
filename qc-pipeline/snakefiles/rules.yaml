@@ -30,7 +30,7 @@ remove_chr0:
 
 update_sample_ids:
   QC test: Update sample ids
-  Description: Mapping lab ids to moba ids
+  Description: Mapping lab ids to sentrix ids
   Rule order: mod1-b
   rule type: samples
   rule action: update
@@ -291,6 +291,16 @@ pca_both:
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
+
+plot_pca_both:
+  QC test: Plot Moba and reference data (1000g). 
+  Description: 1000genomes superpopulations used, except for europe where countries are shown. 
+  Rule order: mod2.1e
+  rule type: analysis
+  rule action: pca/plot
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
     
 # plot_pca_moba:
 #   QC test: Plot moba and reference data on the same plot
@@ -305,7 +315,7 @@ pca_both:
 extract_pca_outliers:
   QC test: Exclude csamples where there is too much diversity in pca
   Description: Consider only the two first principal components. 2020.1. Criteria to be improved
-  Rule order: mod2.1f
+  Rule order: mod2.1g
   rule type: sample
   rule action: remove
   # Placeholders that the pipeline will fill in

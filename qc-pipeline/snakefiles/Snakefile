@@ -25,7 +25,9 @@ rule all:
     input:
         # For now, this is hardly used, but needed for -R. Edit a late result inn here
         #resultPath/"kgp_x_high_ld_autosome.yaml",
-        expand(str(tmpMod2) + "/{role}/ibd/foo", role=ROLES)
+        expand(str(tmpMod2) + "/{role}/ibd/foo", role=ROLES),
+        # For now: this is needed to force the pcaplot into the report. Fix later
+        resultPath/"plot_pca_both.png"
 	# final output:
         # expand(config['output_base'] + 'mod5-shaping-preparation/tmp/hrc-update-complete-{chr}' + '{ext}', ext=['.bed','.bim','.fam'], chr=chrom),
 	# expand(config['output_base'] + '{role}/pca/final_pca_covars.txt', role=ROLES),

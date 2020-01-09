@@ -746,7 +746,6 @@ rule pca_both:
                         "--outpc", output.pcs,
                         ])
 
-           
         
 # plots a projection, does not work well 7.1.2020 Delete or fix later, see plot_pca_both below  
 # rule_stem = "plot_pca"        
@@ -809,15 +808,15 @@ rule plot_pca_both:
 
     output:
         plot = report((resultPath/rule_stem).with_suffix(".png"),
-                      category="Module 2 1000Genomes prep")
+                      category="Module 2 Core samples and infere pedigree",
+                      caption=(resultPath/rule_stem).with_suffix(".rst"))
+
+    params: "Legend on https://www.internationalgenome.org/faq/which-populations-are-part-your-study/"
                       
     run:
         # To remove when this goes to mobaQcTools
-
         pc = pd.read_csv(input.pcs, usecols=['IID','PC1','PC2'],delim_whitespace=True)
-
         # Populations for colouring -
-        # see https://www.internationalgenome.org/faq/which-populations-are-part-your-study/ for details
         pop = pd.read_csv(input.pop_map,usecols=['#IID','SuperPop','Population'],delim_whitespace=True)
         # Simulate population for Moba, read 2-column in fam-file
         popmoba = pd.read_csv(input.moba,usecols=[1], header=None,
@@ -827,7 +826,9 @@ rule plot_pca_both:
         popmoba['Population'] = '->MoBa'
         all_pop = pd.concat([pop,popmoba],ignore_index=True)
         merged = pd.merge(left=pc, right=all_pop, left_on='IID', right_on='#IID')
-
+        # Explode Europe to Countries in Population
+        merged.loc[merged['SuperPop'] == 'EUR', 'SuperPop'] = 'EUR_'+merged['Population']
+        legend_info = params[0]
         # Set up colours   - no using this - did not get it right and dont want to spend time on it
         # colours = {'EUR': 'red', 
         #            'EAS': 'darkblue', 
@@ -841,7 +842,10 @@ rule plot_pca_both:
         p +=  p9.geom_point()
         p += p9.scale_colour_brewer(type="qual", palette="Set1")  # better for colourblind
         p9.ggsave(plot=p, filename=output.plot, dpi=600)
-
+        # create the caption usually made by saveYamlResults
+        with open(str(resultPath/rule)+".rst", 'w') as file:
+            file.write(f'Rule {rule_info[rule]["Rule order"]} ({rule_info[rule]["rule action"]})\n')
+            file.write(f"{legend_info}\n")
 
 rule_stem = 'extracted_pca_outliers'
 rule extract_pca_outliers:
@@ -903,11 +907,11 @@ rule split_founder_offspring:
         bedset_founder =expand(str(tmpMod2/"founders"/"start_clean") + '{ext}', ext=['.bed','.bim','.fam']),
         bedset_offspring =expand(str(tmpMod2/"offspring"/"start_clean") + '{ext}', ext=['.bed','.bim','.fam']),
         results_founder = report(str(resultPath/rule_stem)+"_founder.yaml",
-                         category="Module 2 1000Genomes prep",
-                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+                         category="Module 2 Core samples and infere pedigree",                      
+                         caption=str(resultPath/rule_stem)+"_founder.rst"),
         results_offspring = report(str(resultPath/rule_stem)+"_offspring.yaml",
-                         category="Module 2 1000Genomes prep",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+                         category="Module 2 Core samples and infere pedigree",                      
+                         caption=str(resultPath/rule_stem)+"_offspring.rst")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -937,6 +941,7 @@ rule split_founder_offspring:
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results_offspring, dropouts)
+        mqc.saveYamlResults(output.results_founder, dropouts)
 
 rule_stem = "ibd"
 rule ibd:
@@ -949,7 +954,7 @@ rule ibd:
     run:
         print (f"OMW: {input.bedset} -> {output.bedset}")
         
-rule_stem  = "morndu"
+
 
 # rule ibd:
 # 	input:
@@ -1535,3 +1540,4 @@ rule_stem  = "morndu"
 
 #         """
 
+rule_stem  = "rule_stem is only to be used in snakemake directives - have you used it in other code?"
