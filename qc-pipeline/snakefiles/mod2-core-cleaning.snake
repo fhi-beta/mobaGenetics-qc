@@ -287,7 +287,7 @@ rule prune_markers:
         bedset = rules.exclude_high_ld_markers.output.bedset,
     output:
         bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
-        exclude_list = (tmpMod2/rule_stem).with_suffix(".prune.in"),
+        exclude_list = (tmpMod2/rule_stem).with_suffix(".prune.in"),  #called prune_markers_tmp.prune.in before
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
@@ -303,14 +303,14 @@ rule prune_markers:
         subprocess.run([plinklocal,
                 "--bfile", inTrunk,
                 "--make-founders",
-                 "--out", outTrunk]    # no bed-file prodused, just .in
+                 "--out", outTrunk]    # no bed-file prodused, just .prune.in (exclude_list)
                  + params.prune_cmd )  # note that we here add a list to another list ... 
 
 
         subprocess.run([plinklocal,
                 "--bfile", inTrunk,
-                "--extract", output.exclude_list,            
-                "--out", outTrunk,                           # called superclean_pruned before
+                "--extract", output.exclude_list,               
+                "--out", outTrunk,                  # called superclean_pruned before
                 "--make-bed" ])
         
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
@@ -838,7 +838,7 @@ rule plot_pca_both:
         #            'Moba':'black'}
         popc = "SuperPop"
         p = p9.ggplot(data=merged, mapping=p9.aes(x='PC1',y='PC2',color=popc, shape=popc))
-        looks = p9.aes(color=popc, shape=popc)
+        #looks = p9.aes(color=popc, shape=popc)
         p +=  p9.geom_point()
         p += p9.scale_colour_brewer(type="qual", palette="Set1")  # better for colourblind
         p9.ggsave(plot=p, filename=output.plot, dpi=600)
@@ -943,18 +943,36 @@ rule split_founder_offspring:
         mqc.saveYamlResults(output.results_offspring, dropouts)
         mqc.saveYamlResults(output.results_founder, dropouts)
 
-rule_stem = "ibd"
-rule ibd:
+rule_stem = "ibd_pruned"
+rule ibd_pruning:
     input:
-        bedset = tmpMod2/"{role}/start_clean.bed"
+        bedset = tmpMod2/"{role}/start_clean.bed",
+        clean_snps = rules.prune_markers.output.exclude_list
     output:
-        bedset = touch(tmpMod2/"{role}"/rule_stem/"foo")
-    params:
-        
+        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),
+        genome = (tmpMod2/"{role}"/rule_stem).with_suffix(".genome"),
+        preplot = (resultPath/"{role}"/rule_stem).with_suffix(".png")
+        # ibd_pruned.genome is an output
+        # output a plot
+    params:  # replace these by outputs
+
     run:
         print (f"OMW: {input.bedset} -> {output.bedset}")
-        
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk =  mqc.plinkBase(input.bedset)
+        outTrunk =  mqc.plinkBase(output.bedset)
 
+        subprocess.run([plinklocal,
+                        "--bfile", inTrunk,
+                        "--extract", input.clean_snps,
+                        "--genome",
+                        "--out", outTrunk ])
+        
+        # create a plot for this
+        p = mqc.dotplot(output.genome,prec=3, x='Z0',y='Z1', c='RT')
+        p9.ggsave(plot=p, filename=output.preplot, dpi=600)
+        mqc.copy_file(output.preplot)
 
 # rule ibd:
 # 	input:
@@ -971,26 +989,7 @@ rule ibd:
 # 		plotdir = base + '{role}/rep/' + 'plots_ibd/'
 # 	shell:
 # 		"""
-# 		set -e
-# 		libdir={libdir}
-# 		plinklocal={plinklocal}
-
-#                 source {libdir}/functions.sh
-#                 source {libdir}/plink_wrapper_functions.sh
-
-#                 PIPELINELOG={runlog}
-#                 STOREDVARS={output.stvars}
-#                 EXCLUSIONSI={output.exclinds}
-#                 EXCLUSIONSS={output.exclsnps}
-#                 PLOTDIR={params.plotdir}
-                
-#                 log "--- IDENTIFY CORE: RULE IBD ---"
-#                 mkdir -p $PLOTDIR
-#                 clear_store
-
-# 		report_ninds {params.instem} "IBD_IN"
-# 		report_nsnps {params.instem} "IBD_IN"
-
+# SNIPP SNAPP
 # 		## ACCUMULATED RELATEDNESS
 # 		# calculate .genome
 # 		{plinklocal} \

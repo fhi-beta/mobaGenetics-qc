@@ -663,7 +663,6 @@ def intersect_rsid(bim1, bim2, intersection):
         for s in list(set(s1) & set(s2)):
             f.write(f"{s}\n")
 
-
             
 def copy_file(f,ext=".bak"):
     """ makes a .bak file
@@ -674,5 +673,27 @@ def copy_file(f,ext=".bak"):
     """
     print(f"DEBUG> Making a backup of {f} to {f+ext}.")
     copyfile(f, f+ext)
+
+def dotplot(genomedata,prec=2,x='x',y='y',c='c'):
+    """ Returns a plotnine object ready to be printet, but where extra lines can be added
+
+    Assumes x and y are numbers, these will be rounded to precision decimals
+    The preicision is there to not cluster set plot when there are two many points to be seen
+    c is used for colouring and shaping - a colourblind palette will be used
+    The data is found in a whitespace separated file where they x,y and c are headers
     
+    """
+    my_name = inspect.stack()[0][3]      # Generic way of find this functions name        
+    try: 
+        df = pd.read_csv(genomedata, usecols=[c,x,y], delim_whitespace=True)
+    except Exception as e:
+        print(f"{my_name}: {str(e)}")        
+        return
+    
+    p = ggplot(data=df.round(prec).drop_duplicates(), mapping=aes(x=x,y=y,color=c, shape=c))
+    p += scale_colour_brewer(type="qual", palette="Set1")  # better for colourblind
+    p += geom_point()
+    
+    return p
+
 

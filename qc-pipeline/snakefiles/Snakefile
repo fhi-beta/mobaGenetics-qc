@@ -25,7 +25,7 @@ rule all:
     input:
         # For now, this is hardly used, but needed for -R. Edit a late result inn here
         #resultPath/"kgp_x_high_ld_autosome.yaml",
-        expand(str(tmpMod2) + "/{role}/ibd/foo", role=ROLES),
+        expand(str(tmpMod2) + "/{role}/ibd_pruned.bed", role=ROLES),
         # For now: this is needed to force the pcaplot into the report. Fix later
         resultPath/"plot_pca_both.png"
 	# final output:
