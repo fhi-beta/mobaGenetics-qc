@@ -333,9 +333,9 @@ split_founder_offspring:
   Timestamp: 
     
 
-ibd_pruning:   
-  QC test: Accumulated relateness
-  Description: 
+ibd_prep:   
+  QC test: Prepare for accumulated relateness check
+  Description: The Djenghis Khan effect is computed  through R in a isolated/separate step
   Rule order: mod2.2b
   rule type: sample
   rule action: remove
@@ -343,6 +343,16 @@ ibd_pruning:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
+ibd_exclusion:   
+  QC test: Remove samples that are too closely related
+  Description: Djenghis Khan effect is done through R with handset thresholds
+  Rule order: mod2.2c
+  rule type: sample
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+    
     
 merge_foundersoffspring:
   QC test:
