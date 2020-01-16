@@ -145,7 +145,7 @@ compOperands = {
 }
 
 
-def extractSampleList(innFile, sampleFile, subsetFile="/dev/null", 
+def extractSampleList(innFile, sampleFile, threshold_doc_file="/dev/null", 
                       colName="none", sep='\t', condition="<", treshold=0, cols={1}, ):
     """ A typical preprocessor to utilities like plink.
 
@@ -153,7 +153,7 @@ def extractSampleList(innFile, sampleFile, subsetFile="/dev/null",
     is not reading the (huge) files into memory.
     Takes a csv file innFile (first line with headers, seperator is paramneter "sep") and produces 
     * a sample list on sampleFile (one columun, for now hardcoded to column 0)
-    * a subset file with at set of numbered columns (cols) that also contains colName (see below)
+    * a threshold_doc_file with at set of numbered columns (cols) that also contains colName (see below)
     
     Only columns were the column colName matches the condition of treshold will be written
     Returns (number of sample extracted, total samples)
@@ -178,7 +178,7 @@ def extractSampleList(innFile, sampleFile, subsetFile="/dev/null",
             return
         # These lines are data, indx[0] is the index  of the column we found interesting
         sample = open(sampleFile,"w+")
-        subset = open(subsetFile,"w+")
+        subset = open(threshold_doc_file,"w+")
         for line in enumerate(fp):
             allcols = line[1].split(sep)
             if compare(float(allcols[indx[0]]) , treshold): 
@@ -345,23 +345,28 @@ compOperands = {
 }
 
 
-def extractSampleList(innFile, sampleFile, subsetFile="/dev/null", 
-                      colName="none", sep='\t', condition="<", treshold=0, cols={1}, ):
+def extractSampleList(innFile, sampleFile, threshold_doc_file = '/dev/null',
+                      colName="none", condition="<", treshold=0, cols={1}, sep=None ):
     """ A typical preprocessor to utilities like plink.
 
-    Efficient in the sense that it 
+    Despite the name, this also handles markers. Efficient in the sense that it 
     is not reading the (huge) files into memory.
-    Takes a csv file innFile (first line with headers, seperator is paramneter "sep") and produces 
-    * a sample list on sampleFile (one columun, for now hardcoded to column 0)
-    * a subset file with at set of numbered columns (cols) that also contains colName (see below)
+    Takes a csv file innFile (first line with headers, seperator whitespace) and produces 
+    * a sample list on sampleFile showing the numbered columns (cols)
+    * a file whith the  numbered columns (cols) that also contains colName (see below)
+
+    colName is a numerical column that will be compared to given threshold according to the
+    wished threshould (using the condition parameter)
+    For sample retrievel by plink, you will typically need the two first columns (fam/iid)
+    while for marker extract you will typically need the first column (markerid)
+
+    A seprator can be forced through sep, if not set one or more whitespaces is assumed to sperate columns
     
-    Only columns were the column colName matches the condition of treshhold will be written
     Returns (number of sample extracted, total samples)
     Restrictions: 
-    * Assuming the first column in innFile is samplenumber - Only the first column will be written to sampleFile
     * Assumes only one match for the regExp colName
     * Columns are ordered in the same way as the innFile : {0,1} is identical to {1,0,0,1}
-    * Outputfiles use the same separator as used for innFile
+    * Outputfiles always have space as separator. They have no headers. 
     """ 
     with open(innFile) as fp:
         
@@ -378,20 +383,20 @@ def extractSampleList(innFile, sampleFile, subsetFile="/dev/null",
             return
         # These lines are data, indx[0] is the index  of the column we found interesting
         sample = open(sampleFile,"w+")
-        subset = open(subsetFile,"w+")
+        extra_info = open(threshold_doc_file,"w+")
         for line in enumerate(fp):
             allcols = line[1].split(sep)
             if compare(float(allcols[indx[0]]) , treshold): 
-                # File with only sample number
-                sample.write(allcols[0] + "\n")
+                # File without threshold
+                subsetc = [allcols[index] for index in cols]
+                sample.write(' '.join(map(str,subsetc)) + "\n" )
                 # File with more columns, and always include the treshold column
                 # subsetc is a relevant subset of the columns 
-                subsetc = [allcols[index] for index in cols]                
-                subset.write(sep.join(map(str,subsetc)) + sep + allcols[indx[0]] + "\n" )
+                extra_info.write(' '.join(map(str,subsetc)) + " " + allcols[indx[0]] + "\n" )
                 matches += 1
     totalLines = line[0] + 1 # enumerates from 0, and we read a line manually
     sample.close()
-    subset.close()
+    extra_info.close()
     return (matches,totalLines)
 
     

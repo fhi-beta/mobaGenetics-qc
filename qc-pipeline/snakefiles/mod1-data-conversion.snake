@@ -216,7 +216,7 @@ rule remove_markers_cluster_sep:
         (removed,total) = mqc.extractSampleList(input.snptable, 
                 output.removal_markers, output.removal, 
                 colName=config['cluster_sep_col_name'], condition = "<", treshold = params.treshold, 
-                cols = {0} )
+                                                        cols = {0}, sep='\t' )
 
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
@@ -233,7 +233,7 @@ rule remove_markers_cluster_sep:
         mqc.saveYamlResults(output.results, dropouts)
         
         mqc.log(runlog, f'Removed {dropouts["actionTakenCount"]} markers(NSNP_CLUSTERSEP_LOST) out of {dropouts["in"]} (BEFORE_SNPTABLE), leaving {dropouts["out"]} markers. Treshhold {params.treshold}\n')
-
+        # The following has a huge potential for speedup (using round as in mqc.dotplot()
         mqc.plot_point_and_line(dropouts, input.snptable, output.plot,
                                 config["cluster_sep_col_name"], separator='\t',
                                 ylabel="Separation", invert=False)
