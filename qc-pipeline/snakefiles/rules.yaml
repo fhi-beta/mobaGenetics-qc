@@ -352,6 +352,16 @@ ibd_exclusion:
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
+
+ibd_prune:   
+  QC test: Remove samples that's straightforward related in addidtion to closely related
+  Description: --genome above a pihat threshold in addition to what ibd_exclusion produced
+  Rule order: mod2.2d
+  rule type: sample
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
     
     
 merge_foundersoffspring:

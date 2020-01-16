@@ -496,97 +496,6 @@ rule pedigree_fix_pruned:
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
-
-# rule_stem = "hapmap_pruned"
-# rule prune_hapmap:
-#     input:
-#         bedset = rules.pedigree_fix_pruned.output.bedset,
-#         hap_map = expand(config['hapmap_stem']+'{ext}', ext=['.bed','.bim','.fam']),
-#     output:
-#         bedset = expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
-#         markerlist_in = tmpMod2/"pcain_pruned_markerlist",
-#         markerlist_hapmap = tmpMod2/"referencedata.studymarkers.tmp.prune.in",
-#         results = report((resultPath/rule_stem).with_suffix(".yaml"),
-#                     category="Module 2.1 PCA with hapmap",
-#                     caption=(resultPath/rule_stem).with_suffix(".rst")),       
-        
-#     run:
-#         item_type = rule_info[rule]["rule type"]
-#         mqc.log(runlog, rule_info[rule]["QC test"])
-#         inTrunk =  mqc.plinkBase(input.bedset[0])
-#         outTrunk =  mqc.plinkBase(output.bedset[0])
-#         hapmapTrunk = config['hapmap_stem']  # also trunk of input.hap_map
-
-#         # Get markerlist (aka column 2) from previously pruned set
-#         with open(output.markerlist_in, "w") as fil:
-#             subprocess.run(["cut", "-f", "2", inTrunk+".bim"], stdout=fil)
-#         # ... and pick just these from the HapMap (reference) dataset
-#         subprocess.run([plinklocal,
-#                 "--bfile", hapmapTrunk,
-#                 "--extract", output.markerlist_in,
-#                 "--out", outTrunk, "--make-bed"  ])  # used to be called hapmap_pruned
-#         dropouts = mqc.checkUpdates(hapmapTrunk+".bim", outTrunk+".bim",cols = [0,1],
-#                                     sanityCheck = "remove", fullList = True) 
-#         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-#         dropouts["Rule"] = rule
-#         mqc.saveYamlResults(output.results, dropouts)
-#         # Counting duplicate markers in the pruned files
-#         (dic, count) = mqc.dict_count_items(outTrunk+".bim", [1])
-#         if count > 1:
-#             print ("Reference set had multiple chromosones with same marker ID. Will remove these for you")
-            
-#         with open(output.markerlist_hapmap, "w") as fil:
-#             for key in dic:
-#                 if dic[key] == 1 : fil.write(f'{key}\n') 
-
-# rule_stem_ref = "pca_extract_hapmap"
-# rule_stem_study = "pca_extract_study"
-# rule pca_extracts:
-#     input:
-#         study_map = rules.pedigree_fix_pruned.output.bedset, # this is actually rules.prune_hapmap.input.bedset
-#                                                          # but we want the dag to be more informative
-#         reference_map = rules.prune_hapmap.output.bedset,
-#         markerlist_common = rules.prune_hapmap.output.markerlist_hapmap,
-#     output:
-#         study_map = expand(str(tmpMod2/rule_stem_study)+ '{ext}', ext=['.bed','.bim','.fam']),
-#         reference_map = expand(str(tmpMod2/rule_stem_ref) + '{ext}', ext=['.bed','.bim','.fam']),
-#         results_study = report((resultPath/rule_stem_study).with_suffix(".yaml"),
-#                     category="Module 2.1 PCA with hapmap",
-#                     caption=(resultPath/rule_stem_study).with_suffix(".rst")),       
-#         results_reference = report((resultPath/rule_stem_ref).with_suffix(".yaml"),
-#                     category="Module 2.1 PCA with hapmap",
-#                     caption=(resultPath/rule_stem_ref).with_suffix(".rst")),       
-
-        
-#     run:
-#         # Docs - see rules.yaml
-#         item_type = rule_info[rule]["rule type"]
-#         in_study_map_trunk = mqc.plinkBase(input.study_map[0])
-#         in_reference_map_trunk = mqc.plinkBase(input.reference_map[0])
-#         out_study_map_trunk = mqc.plinkBase(output.study_map[0])
-#         out_reference_map_trunk = mqc.plinkBase(output.reference_map[0])
-
-#         # Extract from study
-#         subprocess.run([plinklocal,
-#                 "--bfile", in_study_map_trunk,
-#                 "--extract", input.markerlist_common,
-#                 "--out", out_study_map_trunk, "--make-bed"  ])  # used to be called studydata_refmarkers_ok
-#         dropouts = mqc.checkUpdates(in_study_map_trunk+".bim", out_study_map_trunk+".bim",cols = [0,1],
-#                                     sanityCheck = "remove", fullList = True) 
-#         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-#         dropouts["Rule"] = rule
-#         mqc.saveYamlResults(output.results_study, dropouts)
-
-#         # Extract from reference/hapmap
-#         subprocess.run([plinklocal,
-#                 "--bfile", in_reference_map_trunk,
-#                 "--extract", input.markerlist_common,
-#                 "--out", out_reference_map_trunk, "--make-bed"  ])  # used to be called refdata_refmarkers_ok
-#         dropouts = mqc.checkUpdates(in_reference_map_trunk+".bim", out_reference_map_trunk+".bim",cols = [0,1],
-#                                     sanityCheck = "remove", fullList = True) 
-#         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-#         dropouts["Rule"] = rule
-#         mqc.saveYamlResults(output.results_reference, dropouts)
                 
 # Reduce 1000 genome markers to the one already pruned and sorted out for moba
 rule_stem = 'common_markers_moba_ref'
@@ -950,7 +859,7 @@ rule ibd_prep:
         clean_snps = rules.prune_markers.output.exclude_list
     output:
         genome = (tmpMod2/"{role}"/rule_stem).with_suffix(".genome"),
-        ibd_reduced_genome = tmpMod2/"{role}"/"ibd_reduced.genome",   #input for R laters
+        ibd_reduced_genome = tmpMod2/"{role}"/"ibd_reduced.genome",   #input for R laters, 3 columns of genome file
         preplot = (resultPath/"{role}"/rule_stem).with_suffix(".png")
 
     run:
@@ -980,11 +889,11 @@ rule ibd_exclusion:
         exclusion = (tmpMod2/"{role}"/rule_stem).with_suffix(".txt"),
         bedset = (tmpMod2/"{role}"/"allmarkers_pihat_accum").with_suffix(".bed"),
         plot = report((resultPath/"{role}"/"pihat_accum").with_suffix(".png"), # a hack as R produces the plot
-                         category="Module 2 Core samples and infere pedigree",                      
-                         caption=str(resultPath/rule_stem)+"_{role}.rst"),
+                         category="Module 2 Core samples and infere pedigree"),
+                         #, caption=str(resultPath/rule_stem)+"_{role}.rst"),
         results = report(str(resultPath/rule_stem)+"_{role}.yaml",
-                         category="Module 2 Core samples and infere pedigree",                      
-                         caption=str(resultPath/rule_stem)+"_{role}.rst"),
+                         category="Module 2 Core samples and infere pedigree")
+                         #, caption=str(resultPath/rule_stem)+"_{role}.rst"),
     params:
         pihat_thr = str(config["ibd_pihat_thr"]),
         hard_thr = str(config["ibd_hard_thr"])
@@ -1020,6 +929,47 @@ rule ibd_exclusion:
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
 
+rule_stem = 'ibd_pruned'
+rule ibd_prune:
+    input:
+        bedset = rules.ibd_exclusion.output.bedset,
+        genome = rules.ibd_prep.output.genome
+    output:
+        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),
+        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree"),                         
+                         # caption=(resultPath/rule_stem).with_suffix(".rst")),
+        # in addition to the removal list, a removal.samples.txt is produced, sporting only the sample-list
+        removal= (tmpMod2/"{role}"/rule_stem).with_suffix(".txt"),
+        removal_samples = (tmpMod2/"{role}"/rule_stem).with_suffix(".samples.txt"),
+    params:
+        treshold = config['ibd_straight_thr']
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+
+        inTrunk =  mqc.plinkBase(input.bedset)
+        outTrunk =  mqc.plinkBase(output.bedset)
+        # identify samples forremoval due to high PI_HAT
+        (removed,total) = mqc.extractSampleList(input.genome, 
+                output.removal_samples, output.removal, 
+                colName="PI_HAT", condition = ">", treshold = params.treshold, 
+                cols = {0,1} )
+
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--remove", output.removal_samples,
+                "--out", outTrunk ,
+                "--make-bed"])
+    
+
+        dropouts = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [0,1], sanityCheck = "removal", fullList = True) 
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Treshold"] = params.treshold
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+
+        
         
 # rule ibd:
 # 	input:
@@ -1050,31 +1000,6 @@ rule ibd_exclusion:
 # 		# extracts only RT, Z0, Z1 columns
 # 		awk '{{print $5, $7, $8}}' {params.outdir}/ibd.genome > {params.outdir}/ibd_forplot.genome
 		
-# 		# Generate "before" IBD plot
-# 		Rscript {libdir}/draw-pihat-plots.R \
-# 		        {params.outdir}/ibd_forplot.genome \
-# 		        ${{PLOTDIR}}z1z0_before.png "TRUE"
-		
-# 		# Args:
-# 		# 1. reduced .genome file (three columns)
-# 		# 2. .fam which was used to generate .genome
-# 		# 3. output ind list file
-# 		# 4. a full path and name of TEXT REPORT (accumPIHAT of all samples)
-# 		# 5. a PI_HAT threshold to ignore too-closely related pairs
-# 		# 6. a hard-set (accumPIHAT) threshold to define outliers
-# 		Rscript {libdir}/accumPIHAT.R \
-# 		        {params.outdir}/ibd_reduced.genome \
-# 		        {params.instem}.fam \
-# 		        {params.outdir}/accumulated_exclusions.txt \
-# 		        $PLOTDIR \
-# 		        0.2 0.015
-		
-# 		# exclude the related samples from ALLMARKERS file
-# 		plink_remove_samples \
-# 		        {params.instem} \
-# 		        {params.outdir}/accumulated_exclusions.txt \
-# 		        {params.outdir}/allmarkers_pihat_accum \
-# 		        "PIHAT_ACCUM"
 		
 # 		####  STRAIGHTFORWARD RELATEDNESS
 # 		# read .genome and remove 0.1 thr
