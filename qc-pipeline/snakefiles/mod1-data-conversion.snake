@@ -266,7 +266,7 @@ rule remove_markers_gc_score:
         (removed,total) = mqc.extractSampleList(input.snptable, 
                 output.removal_markers, output.removal, 
                 colName=config["10%_GC_score_col_name"], condition = "<", treshold = params.treshold, 
-                cols = {0} )
+                                                cols = {0}, sep ='\t' )
 
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
@@ -315,7 +315,7 @@ rule remove_markers_aa_theta_dev:
         (removed,total) = mqc.extractSampleList(input.snptable, 
                 output.removal_markers, output.removal, 
                 colName=config["aa_theta_dev_col_name"], condition = ">", treshold = params.treshold, 
-                cols = {0} )
+                                                cols = {0},  sep ='\t')
 
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
