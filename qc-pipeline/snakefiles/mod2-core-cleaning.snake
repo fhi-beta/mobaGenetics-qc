@@ -182,7 +182,7 @@ rule exclude_unplaced_and_non_autosomal_markers:
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
     run:
         item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, "Excluded unplaced and non-autosomal {params.item_type} (--autosome)\n")
+        mqc.log(runlog, "Excluded unplaced and non-autosomal {item_type} (--autosome)\n")
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
         subprocess.run([plinklocal,
@@ -846,11 +846,10 @@ rule split_founder_offspring:
                         "--out", offspringTrunk,                         
                         "--make-bed"  ])
         
-        dropouts = mqc.checkUpdates(inTrunk+".fam", offspringTrunk+".fam",cols = [1], sanityCheck = "removal", fullList = True) 
+        dropouts = mqc.checkUpdates(inTrunk+".fam", offspringTrunk+".fam", cols=[1], sanityCheck="removal", fullList=True) 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results_offspring, dropouts)
-        mqc.saveYamlResults(output.results_founder, dropouts)
 
 rule_stem = "ibd_prep"
 rule ibd_prep:
@@ -980,41 +979,6 @@ rule ibd_prune:
 #                 stvars = base + '{role}/rep/' + 'storedvars_ibd.txt',
 #                 exclinds = base + '{role}/rep/' + 'exclusions_ibd_ind.txt',
 #                 exclsnps = base + '{role}/rep/' + 'exclusions_ibd_snp.txt'
-# 	params:
-# 		instem = base + '{role}/tmp/' + 'starting_clean',
-# 		outdir = base + '{role}/tmp/',
-# 		plotdir = base + '{role}/rep/' + 'plots_ibd/'
-# 	shell:
-# 		"""
-# SNIPP SNAPP
-# 		## ACCUMULATED RELATEDNESS
-# 		# calculate .genome
-# 		{plinklocal} \
-# 		        --bfile {params.instem} \
-# 			--extract {input.cleansnps} \
-# 		        --genome \
-# 		        --out {params.outdir}/ibd
-		
-# 		# extracts only IID1, IID2, PIHAT columns
-# 		awk '{{print $2, $4, $10}}' {params.outdir}/ibd.genome > {params.outdir}/ibd_reduced.genome
-# 		# extracts only RT, Z0, Z1 columns
-# 		awk '{{print $5, $7, $8}}' {params.outdir}/ibd.genome > {params.outdir}/ibd_forplot.genome
-		
-		
-# 		####  STRAIGHTFORWARD RELATEDNESS
-# 		# read .genome and remove 0.1 thr
-# 		# Args:
-# 		# 1. Input bedset
-# 		# 2. PIHAT threshold
-# 		# 3. Output bedset
-# 		# 4. .genome filestem
-# 		remove_related_above_pihat_threshold \
-# 		        {params.outdir}/allmarkers_pihat_accum \
-# 		        0.1 \
-# 		        {params.outdir}/ibdpruned \
-# 		        {params.outdir}/ibd
-
-# 		"""
 
 # rule markerclean:
 # 	input:
@@ -1032,7 +996,6 @@ rule ibd_prune:
 # 	shell:
 # 		"""
 # 		set -e
-# SNIPP SNAPP (things done in run:have removed some lines that 
 #                 PIPELINELOG={runlog}
 #                 STOREDVARS={output.stvars}
 #                 EXCLUSIONSI={output.exclinds}

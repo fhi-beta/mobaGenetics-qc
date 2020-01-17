@@ -26,6 +26,9 @@ rule all:
         # For now, this is hardly used, but needed for -R. Edit a late result inn here
         #resultPath/"kgp_x_high_ld_autosome.yaml",
         #expand(str(resultPath) + "/{role}/ibd_prep.png", role=ROLES),
+        #
+        # Forcing documentation of fu_detector
+        (resultPath/"pedigree_fu_detector_solver_pruned").with_suffix(".yaml"),
         expand(str(tmpMod2) + "/{role}/ibd_pruned.txt", role=ROLES),
         # For now: this is needed to force the plots into the report. Fix later
         resultPath/"plot_pca_both.png",

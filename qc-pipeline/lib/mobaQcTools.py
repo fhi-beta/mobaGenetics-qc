@@ -466,6 +466,7 @@ def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
        updated: size of preQc = postQc  
        anything different from the above): No tests performed
     Only columns passed by cols are used to compare input/and output.
+    fullList documents (in list xitems), what sample/markers have been changed/missing.
     indx is only necessary if fullList is True. indx is used to genereate a list (usually of samples/markers)
     from column nr indx
     indx is sample-id/marker-id. indx=0 is the first column, default is second column. 

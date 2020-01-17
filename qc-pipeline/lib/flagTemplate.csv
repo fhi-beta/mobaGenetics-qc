@@ -1,11 +1,14 @@
 # Configures how the flagfile will look like. 
 # Headers of colums to be used
-Parent_Update:Sex_update:Geno_miss
+Parent_Update:Sex_update:Geno_miss:Mind:Ped_all:Ped_prune:Ped_dropped:Pca_outl:Offspring:Founder
 #
 # Where corresponding results are found (yaml-files typically created by snakemake)
-parentsUpdated.yaml.details:sexUpdated.yaml.details:missing_genotype.yaml.details
+parents-updated.yaml.details:sex-updated.yaml.details:tmp_missing_genotype_samples.yaml.details:perm_after_mind.yaml.details:pedigree_fu_detector_solver_all.yaml.details:pedigree_fu_detector_solver_pruned.yaml.details:pedigree_fix_pruned.yaml.details:extracted_pca_outliers.yaml.details:split_offspring.yaml.details:split_founder.yaml.details
 #
 # What value to use on match in sample-list of the results
-Yes:Yes:F
+# spaces right after : are skipped
+# F/P for Fail/Pass - U/K for Update/Kept
+# Also, an X for a sample means it has been dropped at the given stage - no more data will be shown for later columns. Use upper case X for initial drop, all other columns will get lower case x
+Yes:Yes:X:X:U:U:X:X: No: No
 # What value to use on no-match in sample-list of the results
-No:No:P
+ No: No:P:P:K:K:P:P:Yes:Yes
