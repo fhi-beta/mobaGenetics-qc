@@ -18,6 +18,20 @@ import os
 from datetime import datetime
 from shutil import copyfile
 
+# This is kinda ugly
+cwd = Path.cwd()
+snake_dir = cwd/"../snakefiles"
+# Grab the same conifgfiles as snakefile has
+try: 
+    with open(snake_dir/"rules.yaml", 'r') as stream:
+        rule_info = yaml.safe_load(stream)
+    with open(snake_dir/"config.yaml", 'r') as stream:
+        config = yaml.safe_load(stream)
+except Exception as e:
+    print(f"mobaQcTools.py: Could load configfile, {str(e)}")
+
+plink=config["plinklocal"]
+
 def plotHist(dataFile, resultFile, column="name of the column", title="no legend??", separator='\s+',
              treshold=0, logx=False):
     """ plots and saves a historgram - can probably be removed as plot_point_and_line is now used
@@ -624,35 +638,75 @@ def exclude_strand_ambigious_markers(input, output, plink):
                 "--out", output,               
                 "--make-bed"
         ])
-def fix_rsid_map(mapfile, newmap):
-    """ Create a rsid mapping based on som Moba business-logic
-    Map of the rsid given in mapfile needs tweeking. newmap is produced
-    Multiple whitespaces in mapfile will become a single space in newmap
-    Could have been a lot more efficient
 
-    We do the following: (works for GSA/GSADM)
-    * Ignore lines that map to dot ('.')
-    * If multiple (comma-separated) ids are found in to-map, we use the first
-    * from strings containg .1 .2 ... .9 are ignored
+
+def exclude_strand_ambigious_markers(input, output, plink):
+    """ Runs plink to exlucde A/T and C/G SNPs
+
+
+    input is the trunk of a .bed/.bim/.fam triplet
+    ouput will be the corresponding set, without excluded markers 
+    The list over exluded markers can be found in ouput.excl
+    plink will produce the output-bedset
+
     """
     try: 
-        mappings = pd.read_csv(mapfile, usecols=[0,1], names=['from','to'], 
-                            delim_whitespace=True).astype(str)
+        df = pd.read_csv(input+".bim", delim_whitespace=True, header=None).astype(str)
     except Exception as e:
-        print(f"Could not open file {mapfile}, {str(e)}")        
+        print(f"Could not open .bim-file of bedset {input}, {str(e)}")
         return
+    mask = ((df[4] == 'G') & (df[5] == 'C') |
+           (df[4] == 'C') & (df[5] == 'G') |
+           (df[4] == 'A') & (df[5] == 'T') |
+           (df[4] == 'T') & (df[5] == 'A'))
+    (df[mask])[1].to_csv(output+".excl",index=False, header=False)
 
-    with open(newmap, "w") as out:
-        multiAllele = re.compile("\.\d")
-        for index,row in mappings.iterrows():
-            # Elements to ignore
-            if row['to'] == "." : continue
-            if multiAllele.search(row['from']) : continue   #eg rs222.1 is ignored
-            # Elements to simplify:
-            # 1 - Trucate everything including and after the first comma
-            to = re.sub(r",.+$","",row['to'])
-            # Save
-            out.write(f"{row['from']} {to}\n")
+    subprocess.run([plink,
+                "--bfile",input,
+                "--exclude", output+".excl",                     
+                "--out", output,               
+                "--make-bed"
+        ])
+    
+    
+def missing_genotype_rate(rule,
+                          in_bedset, out_bedset, sample=True, treshold=0.1,
+                          result_file='/dev/null'):
+    """ Runs plink --geno or --mind and produces output
+
+    Wrapper around plink and saveYamlResults.
+    Returns a 'dropouts' structure that contains info about the dropped samples/markers 
+    (but only summaries).
+    rule is the calling rule, and will be added to the result_file/dropouts
+    
+    The bedset are truncs and not files: For example for in_bedset=foo and sample=True, 
+    plink --mind will be used, and exclusion results will be related to foo.fam
+
+    sample could have been pulled from the rule["tule type"]. Maybe laters ...
+    
+    """
+    print (plink)
+    if sample:
+        extension = ".fam"
+        plink_switch = "--mind"
+    else: # marker
+        extension = ".bim"
+        plink_switch = "--geno"
+    
+    subprocess.run([plink,
+                "--bfile",in_bedset,
+                    plink_switch, str(treshold),
+                "--out", out_bedset,               
+                "--make-bed"
+        ])
+    
+    dropouts = checkUpdates(in_bedset+extension, out_bedset+extension, cols = [0,1],
+                            sanityCheck = "removal", fullList = True) 
+    dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+    dropouts["Treshold"] = treshold
+    dropouts["Rule"] = rule
+    saveYamlResults(result_file, dropouts)
+    return dropouts
 
 
 def intersect_rsid(bim1, bim2, intersection):

@@ -3,6 +3,7 @@
 dataSet: "Rotterdam2"
 chip: "illumina GSA-MD 24 v1.0"
 output_base: "/mnt/work/gutorm/qcTest/qcrot2/fullNewOutput"
+plinklocal: "/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/bin/plink-1.90b5.4/plink"
 
 
 # Lab QC report: /mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/lab-report/GSA2017_246_QC_report.pdf

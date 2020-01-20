@@ -52,7 +52,7 @@ rule missing_genotype_samples:
         bedset = rules.maf_removal_markers.output.bedset
     output:
         bedset=expand(str(tmpMod2/rule_stem)
-                          + '{ext}', ext=['.bed','.bim','.fam']),
+                          + '{ext}', ext=['.bed','.bim','.fam']),  # earlier called superclean_maf_mind
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
@@ -64,21 +64,12 @@ rule missing_genotype_samples:
         mqc.log(runlog, "Missing genotype {item_type} (--mind)\n")
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
-        maf_treshold = config['maf_thr']
         # First extract temporary samples based on earlier filtered markers (maf_removal_markers)
         # Later these will be used to extract samples permanently (rule clean_samples:)
-        subprocess.run([plinklocal,
-                "--bfile",inTrunk,
-                "--mind", str(params.treshold),          # identifies samples
-                "--out", outTrunk,                       # earlier called superclean_maf_mind
-                "--make-bed" ])
-
-        dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam",cols = [0,1],
-                                    sanityCheck = "removal", fullList = True)
-        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Treshold"] = params.treshold
-        dropouts["Rule"] = rule
-        mqc.saveYamlResults(output.results, dropouts)
+        mqc.missing_genotype_rate(rule,
+                        inTrunk, outTrunk, sample=True, treshold=params.treshold,
+                        result_file=output.results)
+        
 
 rule_stem = "perm_after_mind"
 rule clean_samples:
@@ -145,21 +136,10 @@ rule missing_genotype_markers:
         mqc.log(runlog, "Missing genotype {item_type} (--geno)\n")
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
-        maf_treshold = config['maf_thr']
-        mind_treshold = config['mind_thr']
 
-        subprocess.run([plinklocal,
-                "--bfile",inTrunk,
-                "--geno", str(params.treshold),          # identifies markers
-                "--out", outTrunk,                       # called superclean_maf_mind_geno before
-                "--make-bed" ])
-
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
-        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Treshold"] = params.treshold
-        dropouts["Rule"] = rule
-
-        mqc.saveYamlResults(output.results, dropouts)
+        dropouts = mqc.missing_genotype_rate(rule,
+                        inTrunk, outTrunk, sample=False, treshold=params.treshold,
+                        result_file=output.results)
 
         # call rates for markers before they got removed
         subprocess.run([plinklocal,
@@ -1019,6 +999,46 @@ rule ibd_prune:
 # 		# 1. Input bedset
 # 		# 2. Sample/marker missingness threshold
 # 		# 3. Output bedset
+# rule_stem = 'markerclean'
+# rule markerclean:
+#     input:
+#         bedset = rules.ibd_pruned.output.bedset,
+#         genome = rules.ibd_prep.output.genome
+#     output:
+#         bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),
+#         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+#                          category="Module 2 Core samples and infere pedigree"),                         
+#                          # caption=(resultPath/rule_stem).with_suffix(".rst")),
+#         # in addition to the removal list, a removal.samples.txt is produced, sporting only the sample-list
+#         removal= (tmpMod2/"{role}"/rule_stem).with_suffix(".txt"),
+#         removal_samples = (tmpMod2/"{role}"/rule_stem).with_suffix(".samples.txt"),
+#     params:
+#         treshold = config['ibd_straight_thr']
+#     run:
+#         item_type = rule_info[rule]["rule type"]
+#         mqc.log(runlog, rule_info[rule]["QC test"])
+
+#         inTrunk =  mqc.plinkBase(input.bedset)
+#         outTrunk =  mqc.plinkBase(output.bedset)
+#         # identify samples forremoval due to high PI_HAT
+#         (removed,total) = mqc.extractSampleList(input.genome, 
+#                 output.removal_samples, output.removal, 
+#                 colName="PI_HAT", condition = ">", treshold = params.treshold, 
+#                 cols = {0,1} )
+
+#         subprocess.run([plinklocal,
+#                 "--bfile",inTrunk,
+#                 "--remove", output.removal_samples,
+#                 "--out", outTrunk ,
+#                 "--make-bed"])
+    
+
+#         dropouts = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [0,1], sanityCheck = "removal", fullList = True) 
+#         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+#         dropouts["Treshold"] = params.treshold
+#         dropouts["Rule"] = rule
+#         mqc.saveYamlResults(output.results, dropouts)
+
 
 # 		# CYCLE 1
 #               NB! This guy fails so no plots were done (28.10.19)
