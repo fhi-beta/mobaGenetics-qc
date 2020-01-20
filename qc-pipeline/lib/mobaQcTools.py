@@ -708,6 +708,58 @@ def missing_genotype_rate(rule,
     saveYamlResults(result_file, dropouts)
     return dropouts
 
+def exclude_strand_ambigious_markers(input, output, plink):
+    """ Runs plink to exlucde A/T and C/G SNPs
+    input is the trunk of a .bed/.bim/.fam triplet
+    ouput will be the corresponding set, without excluded markers 
+    The list over exluded markers can be found in ouput.excl
+    plink will produce the output-bedset
+    """
+    try: 
+        df = pd.read_csv(input+".bim", delim_whitespace=True, header=None).astype(str)
+    except Exception as e:
+        print(f"Could not open .bim-file of bedset {input}, {str(e)}")
+        return
+    mask = ((df[4] == 'G') & (df[5] == 'C') |
+           (df[4] == 'C') & (df[5] == 'G') |
+           (df[4] == 'A') & (df[5] == 'T') |
+           (df[4] == 'T') & (df[5] == 'A'))
+    (df[mask])[1].to_csv(output+".excl",index=False, header=False)
+
+    subprocess.run([plink,
+                "--bfile",input,
+                "--exclude", output+".excl",                     
+                "--out", output,               
+                "--make-bed"
+        ])
+def fix_rsid_map(mapfile, newmap):
+    """ Create a rsid mapping based on som Moba business-logic
+    Map of the rsid given in mapfile needs tweeking. newmap is produced
+    Multiple whitespaces in mapfile will become a single space in newmap
+    Could have been a lot more efficient
+    We do the following: (works for GSA/GSADM)
+    * Ignore lines that map to dot ('.')
+    * If multiple (comma-separated) ids are found in to-map, we use the first
+    * from strings containg .1 .2 ... .9 are ignored
+    """
+    try: 
+        mappings = pd.read_csv(mapfile, usecols=[0,1], names=['from','to'], 
+                            delim_whitespace=True).astype(str)
+    except Exception as e:
+        print(f"Could not open file {mapfile}, {str(e)}")        
+        return
+
+    with open(newmap, "w") as out:
+        multiAllele = re.compile("\.\d")
+        for index,row in mappings.iterrows():
+            # Elements to ignore
+            if row['to'] == "." : continue
+            if multiAllele.search(row['from']) : continue   #eg rs222.1 is ignored
+            # Elements to simplify:
+            # 1 - Trucate everything including and after the first comma
+            to = re.sub(r",.+$","",row['to'])
+            # Save
+            out.write(f"{row['from']} {to}\n")
 
 def intersect_rsid(bim1, bim2, intersection):
     """ Assumes bim files, that is tab-serarated plink with rsID in second column
