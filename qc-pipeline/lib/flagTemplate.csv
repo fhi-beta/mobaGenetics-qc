@@ -1,14 +1,17 @@
-# Configures how the flagfile will look like. 
+# Configures how the flagfile will look like.
+# This is a hack, and very sensitive to filenames/paths being changed in snakefiles.
+# For founders/offspring, fail (X) works, while P(ass) will be used as a default.
+# For example, offspring samples will all pass 'founder-checks-for-deletion'
 # Headers of colums to be used
-Parent_Update:Sex_update:Geno_miss:Mind:Ped_all:Ped_prune:Ped_dropped:Pca_outl:Offspring:Founder
+Parent_Update:Sex_update:Geno_miss:Mind:Ped_all:Ped_prune:Ped_dropped:Pca_outl:Offspring:Founder:O_ibd_excl:F_ibd_excl:O_ibd_pruned:F_ibd_pruned
 #
 # Where corresponding results are found (yaml-files typically created by snakemake)
-parents-updated.yaml.details:sex-updated.yaml.details:tmp_missing_genotype_samples.yaml.details:perm_after_mind.yaml.details:pedigree_fu_detector_solver_all.yaml.details:pedigree_fu_detector_solver_pruned.yaml.details:pedigree_fix_pruned.yaml.details:extracted_pca_outliers.yaml.details:split_offspring.yaml.details:split_founder.yaml.details
+parents-updated.yaml.details:sex-updated.yaml.details:tmp_missing_genotype_samples.yaml.details:perm_after_mind.yaml.details:pedigree_fu_detector_solver_all.yaml.details:pedigree_fu_detector_solver_pruned.yaml.details:pedigree_fix_pruned.yaml.details:extracted_pca_outliers.yaml.details:split_offspring.yaml.details:split_founder.yaml.details:ibd_exclusion_offspring.yaml.details:ibd_exclusion_founders.yaml.details:offspring/ibd_pruned.yaml.details:founders/ibd_pruned.yaml.details
 #
 # What value to use on match in sample-list of the results
 # spaces right after : are skipped
 # F/P for Fail/Pass - U/K for Update/Kept
 # Also, an X for a sample means it has been dropped at the given stage - no more data will be shown for later columns. Use upper case X for initial drop, all other columns will get lower case x
-Yes:Yes:X:X:U:U:X:X: No: No
+Yes:Yes:X:X:U:U:X:X: No: No:X:X:X:X
 # What value to use on no-match in sample-list of the results
- No: No:P:P:K:K:P:P:Yes:Yes
+ No: No:P:P:K:K:P:P:Yes:Yes:P:P:P:P
