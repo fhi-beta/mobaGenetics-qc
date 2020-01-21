@@ -66,6 +66,14 @@ ibd_pihat_thr: 0.2    #ignore too closely related pairs
 ibd_hard_thr: 0.015   # (?) hard-set (non-SD) threshold for normalized accumPIHAT to determine outliers
 ibd_straight_thr: 0.1 # Used for the direct relatedness (not Djenghis Khan effect)
 
+# 3 cycles of mind/geno removal
+geno_rate.geno1: 0.10
+geno_rate.mind1: 0.05
+geno_rate.geno2: 0.05
+geno_rate.mind2: 0.03
+geno_rate.geno3: 0.02
+geno_rate.mind3: 0.02
+
 hrc_sites: "/mnt/archive/helgeland/refdata/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
 
 

@@ -30,6 +30,7 @@ rule all:
         # Forcing documentation of fu_detector
         (resultPath/"pedigree_fu_detector_solver_pruned").with_suffix(".yaml"),
         expand(str(tmpMod2) + "/{role}/ibd_pruned.txt", role=ROLES),
+        expand(str(resultPath) + "/{role}/geno_rates_mind3.yaml", role=ROLES),
         # For now: this is needed to force the plots into the report. Fix later
         resultPath/"plot_pca_both.png",
         expand(str(resultPath/"{role}/ibd_prep.png"), role=ROLES),

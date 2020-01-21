@@ -999,47 +999,52 @@ rule ibd_prune:
 # 		# 1. Input bedset
 # 		# 2. Sample/marker missingness threshold
 # 		# 3. Output bedset
-# rule_stem = 'markerclean'
-# rule markerclean:
-#     input:
-#         bedset = rules.ibd_pruned.output.bedset,
-#         genome = rules.ibd_prep.output.genome
-#     output:
-#         bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),
-#         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
-#                          category="Module 2 Core samples and infere pedigree"),                         
-#                          # caption=(resultPath/rule_stem).with_suffix(".rst")),
-#         # in addition to the removal list, a removal.samples.txt is produced, sporting only the sample-list
-#         removal= (tmpMod2/"{role}"/rule_stem).with_suffix(".txt"),
-#         removal_samples = (tmpMod2/"{role}"/rule_stem).with_suffix(".samples.txt"),
-#     params:
-#         treshold = config['ibd_straight_thr']
-#     run:
-#         item_type = rule_info[rule]["rule type"]
-#         mqc.log(runlog, rule_info[rule]["QC test"])
+rule_stem = 'geno_rates_mind3' # last iteration - keep <= 9 or fix code below
+rule geno_rates:        # part of earlier markerclean
+    input:
+        bedset = rules.ibd_prune.output.bedset,
+    output:
+        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),
+        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree"),                         
+                         # caption=(resultPath/rule_stem).with_suffix(".rst")),
+    params:
+        #3 cycles of mind/geno removal
+        geno1 = config["geno_rate.geno1"],
+        mind1 = config["geno_rate.mind1"],
+        geno2 = config["geno_rate.geno2"],
+        mind2 = config["geno_rate.mind2"],
+        geno3 = config["geno_rate.geno3"],
+        mind3 = config["geno_rate.mind3"]
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
 
-#         inTrunk =  mqc.plinkBase(input.bedset)
-#         outTrunk =  mqc.plinkBase(output.bedset)
-#         # identify samples forremoval due to high PI_HAT
-#         (removed,total) = mqc.extractSampleList(input.genome, 
-#                 output.removal_samples, output.removal, 
-#                 colName="PI_HAT", condition = ">", treshold = params.treshold, 
-#                 cols = {0,1} )
+        inTrunk =  mqc.plinkBase(input.bedset)
+        out_dir = Path(output.bedset).parent    # Directory according to output.bedset
+        res_dir = Path(output.results).parent   # and corresponding for results
+        lastTrunk = inTrunk
+        # Iterate 3 times, greating a chain of geno1->mind1->geno2->mind2 etc files
+        # We might have just as well off with cut'n paste here
+        for i in (1,2,3):      # last number must max must match rule all:
+            file_name= rule + "_geno" + str(i)
+            outTrunk =  str(out_dir/file_name)
+            res_file =  str(res_dir/file_name)+".yaml"
+            # Plink for both marker and samples, slightly different names for the params
+            mqc.missing_genotype_rate(rule, lastTrunk, outTrunk, sample=False,
+                                 treshold=getattr(params,f"geno{i}"),
+                                 result_file=res_file)
+            lastTrunk = outTrunk
+            file_name= rule + "_mind" + str(i)
+            outTrunk =  str(out_dir/file_name)
+            res_file =  str(res_dir/file_name)+".yaml"
+            mqc.missing_genotype_rate(rule, lastTrunk, outTrunk, sample=True,
+                                 treshold=getattr(params,f"mind{i}"),
+                                     result_file=res_file)            
 
-#         subprocess.run([plinklocal,
-#                 "--bfile",inTrunk,
-#                 "--remove", output.removal_samples,
-#                 "--out", outTrunk ,
-#                 "--make-bed"])
-    
-
-#         dropouts = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [0,1], sanityCheck = "removal", fullList = True) 
-#         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-#         dropouts["Treshold"] = params.treshold
-#         dropouts["Rule"] = rule
-#         mqc.saveYamlResults(output.results, dropouts)
-
-
+            lastTrunk = outTrunk
+        
+ 
 # 		# CYCLE 1
 #               NB! This guy fails so no plots were done (28.10.19)
 # 		report_plots \

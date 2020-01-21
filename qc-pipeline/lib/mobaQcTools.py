@@ -681,8 +681,6 @@ def missing_genotype_rate(rule,
     
     The bedset are truncs and not files: For example for in_bedset=foo and sample=True, 
     plink --mind will be used, and exclusion results will be related to foo.fam
-
-    sample could have been pulled from the rule["tule type"]. Maybe laters ...
     
     """
     print (plink)
@@ -695,7 +693,7 @@ def missing_genotype_rate(rule,
     
     subprocess.run([plink,
                 "--bfile",in_bedset,
-                    plink_switch, str(treshold),
+                plink_switch, str(treshold),
                 "--out", out_bedset,               
                 "--make-bed"
         ])

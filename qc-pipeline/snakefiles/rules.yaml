@@ -362,6 +362,16 @@ ibd_prune:
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
+
+geno_rates:   
+  QC test: Remove missing genotype rates (samples and markers)
+  Description: multiple iterations of  using --geno and --mind 
+  Rule order: mod2.2e
+  rule type: samples/markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
     
     
 merge_foundersoffspring:
