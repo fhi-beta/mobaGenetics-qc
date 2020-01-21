@@ -107,7 +107,7 @@ def saveYamlResults(files, yamlStruct):
     Side effect: Deletes yamlStruct["xitems"]
                  Sets Timestamp in yamlStruct
     """
-    yamlStruct["Timestamp"] = datetime.utcnow().strftime("%Y%m%d %H:%M")+"(UTC)"
+    yamlStruct["Timestamp"] = datetime.utcnow().strftime("%Y.%m.%d %H:%M")+"(UTC)"
     files = Path(files)
     fullFile = files.with_suffix(".yaml.details")
     with open(fullFile, 'w') as file:
@@ -671,10 +671,11 @@ def exclude_strand_ambigious_markers(input, output, plink):
     
 def missing_genotype_rate(rule,
                           in_bedset, out_bedset, sample=True, treshold=0.1,
-                          result_file='/dev/null'):
+                          result_file='/dev/null', plot_file=False):
     """ Runs plink --geno or --mind and produces output
 
-    Wrapper around plink and saveYamlResults.
+    Wrapper around plink and saveYamlResults as well as plots showing what gets removed
+    If plot_file is False, 
     Returns a 'dropouts' structure that contains info about the dropped samples/markers 
     (but only summaries).
     rule is the calling rule, and will be added to the result_file/dropouts
@@ -685,11 +686,15 @@ def missing_genotype_rate(rule,
     """
     print (plink)
     if sample:
+        kindof = "sample"
         extension = ".fam"
         plink_switch = "--mind"
+        miss_ext = ".imiss"   # if plotting, .imiss is for samples, .lmiss for markers
     else: # marker
+        kindof = "marker"
         extension = ".bim"
         plink_switch = "--geno"
+        miss_ext = ".lmiss"
     
     subprocess.run([plink,
                 "--bfile",in_bedset,
@@ -703,7 +708,18 @@ def missing_genotype_rate(rule,
     dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
     dropouts["Treshold"] = treshold
     dropouts["Rule"] = rule
+    dropouts["rule type"] = kindof # rule says sample/marker - we know what is really is
     saveYamlResults(result_file, dropouts)
+    # A plot might be ordered
+    if plot_file:
+        # call rates for markers/samples before they got removed
+        subprocess.run([plink,
+                "--bfile", in_bedset,
+                "--missing",
+                "--out", in_bedset ])
+        plot_point_and_line(dropouts, in_bedset+miss_ext, plot_file,
+                                column="F_MISS",ylabel="1 - missingness")
+
     return dropouts
 
 def exclude_strand_ambigious_markers(input, output, plink):
