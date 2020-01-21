@@ -139,15 +139,8 @@ rule missing_genotype_markers:
 
         dropouts = mqc.missing_genotype_rate(rule,
                         inTrunk, outTrunk, sample=False, treshold=params.treshold,
-                        result_file=output.results)
-
-        # call rates for markers before they got removed
-        subprocess.run([plinklocal,
-                "--bfile", inTrunk,
-                "--missing",
-                "--out", inTrunk ])
-        mqc.plot_point_and_line(dropouts, inTrunk+".lmiss", output.plot,
-                                column="F_MISS",ylabel="1 - missingness")
+                        result_file=output.results,
+                        plot_file=output.plot)
 
         
 rule_stem = 'tmp_exclude_non-autosomal+unplaced_markers' # used for outputfilenames        
