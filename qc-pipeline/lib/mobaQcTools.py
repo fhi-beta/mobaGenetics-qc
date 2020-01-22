@@ -21,7 +21,9 @@ from shutil import copyfile
 # This is kinda ugly
 cwd = Path.cwd()
 snake_dir = cwd/"../snakefiles"
-# Grab the same conifgfiles as snakefile has
+# snake_dir = Path("/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/snakefiles")
+# print (f"DDDDDDDDEEEEBUG!  {snake_dir}   xxx")
+# Grab the same configfiles as snakefile has
 try: 
     with open(snake_dir/"rules.yaml", 'r') as stream:
         rule_info = yaml.safe_load(stream)
@@ -775,20 +777,28 @@ def fix_rsid_map(mapfile, newmap):
             # Save
             out.write(f"{row['from']} {to}\n")
 
-def intersect_rsid(bim1, bim2, intersection):
-    """ Assumes bim files, that is tab-serarated plink with rsID in second column
-    """
-    my_name = inspect.stack()[0][3]      # Generic way of find this functions name        
-    try: 
-        s1 = pd.read_csv(bim1, usecols=[1], delim_whitespace=True, squeeze = True).astype(str)
-        s2 = pd.read_csv(bim2, usecols=[1], delim_whitespace=True, squeeze = True).astype(str)
-    except Exception as e:
-        print(f"{my_name}: {str(e)}")        
-        return
-    with open(intersection,'w') as f:
-        for s in list(set(s1) & set(s2)):
-            f.write(f"{s}\n")
 
+def intersect_rsid(bim_small, bim_big, intersection):
+    """ Assumes bim files, that is tab-serarated plink with rsID in second column
+
+    intersection is a file to be created
+    If one of the files are large, pass that as bim_big for efficiency
+    
+    could have been more general checking any column
+
+    """
+    my_name = inspect.stack()[0][3]      # Generic way of find this functions name
+    m = 0   # max hits
+    try: 
+        (smallDict,m) = dict_count_items(bim_small, [1], warn=False) # what do we have
+        with open(intersection, "w") as out:
+            for line in open(bim_big):
+                rsid = line.split()[1]
+                if smallDict.get(rsid,0) > 0 :  out.write(f"{rsid}\n")
+
+    except Exception as e:
+        print(f"{my_name} Exception caught:  {str(e)}")        
+        
             
 def copy_file(f,ext=".bak"):
     """ makes a .bak file

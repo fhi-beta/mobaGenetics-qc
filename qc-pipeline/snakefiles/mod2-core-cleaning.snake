@@ -448,7 +448,9 @@ rule pedigree_fix_pruned:
         problems = (tmpMod2/rule_stem).with_suffix(".prblm"),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                     category="Module 2 Core samples and infere pedigree",
-                    caption=(resultPath/rule_stem).with_suffix(".rst")),       
+                    caption=(resultPath/rule_stem).with_suffix(".rst")),
+    benchmark:
+        (tmpMod2/rule_stem).with_suffix(".benchmark")
         
     run:
         item_type = rule_info[rule]["rule type"]
@@ -489,6 +491,9 @@ rule common_markers_moba_ref:
         results_moba = report((resultPath/"pca_moba").with_suffix(".yaml"),
                               category="Module 2 1000Genomes prep",
                               caption=(resultPath/"pca_moba").with_suffix(".rst")),
+    benchmark:
+        (tmpMod2/rule_stem).with_suffix(".benchmark")
+        
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -610,6 +615,8 @@ rule pca_both:
     output:
         bedset = expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
         pcs=tmpMod2/(rule_stem+".pcs"),
+    benchmark:
+        (tmpMod2/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -694,7 +701,8 @@ rule plot_pca_both:
                       caption=(resultPath/rule_stem).with_suffix(".rst"))
 
     params: "Legend on https://www.internationalgenome.org/faq/which-populations-are-part-your-study/"
-                      
+    benchmark:
+        (tmpMod2/rule_stem).with_suffix(".benchmark")
     run:
         # To remove when this goes to mobaQcTools
         pc = pd.read_csv(input.pcs, usecols=['IID','PC1','PC2'],delim_whitespace=True)
@@ -744,7 +752,8 @@ rule extract_pca_outliers:
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
     params:
         treshold = -0.05752391   # Stupid and visual - for now
-
+    benchmark:
+        (tmpMod2/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -780,7 +789,6 @@ rule extract_pca_outliers:
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
         
-        
 rule_stem = "split"
 rule split_founder_offspring:
     input:
@@ -794,6 +802,8 @@ rule split_founder_offspring:
         results_offspring = report(str(resultPath/rule_stem)+"_offspring.yaml",
                          category="Module 2 Core samples and infere pedigree",                      
                          caption=str(resultPath/rule_stem)+"_offspring.rst")
+    benchmark:
+        (tmpMod2/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -833,7 +843,8 @@ rule ibd_prep:
         genome = (tmpMod2/"{role}"/rule_stem).with_suffix(".genome"),
         ibd_reduced_genome = tmpMod2/"{role}"/"ibd_reduced.genome",   #input for R laters, 3 columns of genome file
         preplot = (resultPath/"{role}"/rule_stem).with_suffix(".png")
-
+    benchmark:
+        (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -869,32 +880,28 @@ rule ibd_exclusion:
     params:
         pihat_thr = str(config["ibd_pihat_thr"]),
         hard_thr = str(config["ibd_hard_thr"])
+    benchmark:
+        (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")     
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
         inTrunk =  mqc.plinkBase(input.fam)
         outTrunk =  mqc.plinkBase(output.bedset)
         plotdir = os.path.dirname(output.plot) + "/"  # The R script is sensible to this ...
-        print(f"{output.plot} became {plotdir}")
-
         # for now, the below is not ported and lives it's own life
         subprocess.run(["Rscript",
-                        f"{libdir}/accumPIHAT.R", 
-                        input.ibd_reduced_genome,
-                        input.fam,
-                        output.exclusion,
-                        plotdir,  
-                        params.pihat_thr,
-                        params.hard_thr ])
-
-        
+                    f"{libdir}/accumPIHAT.R", 
+                    input.ibd_reduced_genome,
+                    input.fam,
+                    output.exclusion,
+                    plotdir,  
+                    params.pihat_thr,
+                    params.hard_thr ])
         subprocess.run([plinklocal,
                         "--bfile", inTrunk,
                         "--remove", output.exclusion,
                         "--make-bed",
                         "--out", outTrunk ])
-
-                       
         dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam",cols = [1],
                                     sanityCheck = "removal", fullList = True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -916,6 +923,8 @@ rule ibd_prune:
         removal_samples = (tmpMod2/"{role}"/rule_stem).with_suffix(".samples.txt"),
     params:
         treshold = config['ibd_straight_thr']
+    benchmark:
+        (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -1012,6 +1021,8 @@ rule geno_rates:        # part of earlier markerclean
         mind2 = config["geno_rate.mind2"],
         geno3 = config["geno_rate.geno3"],
         mind3 = config["geno_rate.mind3"]
+    benchmark:
+        (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")      
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
