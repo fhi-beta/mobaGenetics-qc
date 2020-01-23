@@ -288,7 +288,7 @@ function report_plots {
 	# Final 5 R-plots arguments are thresholds for LMISS, IMISS, HET, HWE, MAF.
 	# There is a lot dirty code to ignore errors here - must be cleaned up later....
 	case $4 in 
-	    L)
+	    L)  # python-version: done see mqc.missing_genotype_rate
 		if ! $($plinklocal \
 			   --bfile $infile --missing --out $2/summary-stats
 		       ); then
@@ -302,6 +302,7 @@ function report_plots {
 			$5 NA NA NA NA
 		  ;;
 	    I)  #Note that the plink command is identical to the one in L) ...
+		# python-version: done see mqc.missing_genotype_rate
 		if ! $($plinklocal \
 			   --bfile $infile --missing --out $2/summary-stats
 		       ); then
