@@ -321,6 +321,16 @@ extract_pca_outliers:
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
+
+extract_pca_samples_from_full_markerset:
+  QC test: Back to old bedset, all markers, but pca-filtered
+  Description: The same samples are removed as in various pca-rules
+  Rule order: mod2.1h
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
     
 split_founder_offspring:
   QC test: Split child/parent
@@ -368,6 +378,16 @@ geno_rates:
   Description: multiple iterations of  using --geno and --mind 
   Rule order: mod2.2e
   rule type: samples/markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+hwe_autos_geno:   
+  QC test: hwe + autosomal het + geno
+  Description: multiple iterations. creates multiple resultfiles
+  Rule order: mod2.2f
+  rule type: checkItOut
   rule action: remove
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry

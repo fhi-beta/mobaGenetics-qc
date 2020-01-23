@@ -73,6 +73,14 @@ geno_rate.geno2: 0.05
 geno_rate.mind2: 0.03
 geno_rate.geno3: 0.02
 geno_rate.mind3: 0.02
+# Rule that works with hwe/autosomatic-het/geno - 2 cycles
+hwe1: 0.0000001
+maf1: 0.01
+sd_het1: 4
+hwe2: 0.000001
+maf2: 0.01
+sd_het2: 4
+geno_rare: 0.020
 
 hrc_sites: "/mnt/archive/helgeland/refdata/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
 

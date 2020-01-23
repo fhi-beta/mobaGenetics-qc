@@ -789,10 +789,46 @@ rule extract_pca_outliers:
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
         
+rule_stem = "extracted_pca_samples_from_full_markerset"
+rule extract_pca_samples_from_full_markerset:
+    input:
+        samples = rules.extract_pca_outliers.output.bedset,
+        markers = rules.pedigree_fu_detector_solver.output.inferped_all,
+    output:
+        bedset=expand(str(tmpMod2/rule_stem)
+                          + '{ext}', ext=['.bed','.bim','.fam']),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+        
+    benchmark:
+        (tmpMod2/rule_stem).with_suffix(".benchmark")
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        mqc.log(runlog, "PCA exlude {item_type} ({params.treshold})\n")
+
+        inTrunk =  mqc.plinkBase(input.markers[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
+        sample_list = mqc.plinkBase(input.samples[0]) + ".fam"
+        print (f"using {inTrunk} to make {outTrunk} using {sample_list}")
+        subprocess.run([plinklocal,
+                "--bfile", inTrunk,
+                        "--keep", sample_list,
+                "--out", outTrunk,  
+                "--make-bed" ])
+        dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam",cols = [0,1],
+                                    sanityCheck = "removal", fullList = True)
+
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+
+        
 rule_stem = "split"
 rule split_founder_offspring:
     input:
-        bedset = rules.extract_pca_outliers.output.bedset
+        bedset = rules.extract_pca_samples_from_full_markerset.output.bedset
     output:
         bedset_founder =expand(str(tmpMod2/"founders"/"start_clean") + '{ext}', ext=['.bed','.bim','.fam']),
         bedset_offspring =expand(str(tmpMod2/"offspring"/"start_clean") + '{ext}', ext=['.bed','.bim','.fam']),
@@ -952,16 +988,6 @@ rule ibd_prune:
 
         
         
-# rule ibd:
-# 	input:
-#       	base + '{role}/tmp/' + 'starting_clean.bed',
-# 		cleansnps = base + 'both/tmp/' + 'prune_markers_tmp.prune.in'
-# 	output:
-#                 base + '{role}/tmp/' + 'ibdpruned.bed', # for marker clean
-#                 stvars = base + '{role}/rep/' + 'storedvars_ibd.txt',
-#                 exclinds = base + '{role}/rep/' + 'exclusions_ibd_ind.txt',
-#                 exclsnps = base + '{role}/rep/' + 'exclusions_ibd_snp.txt'
-
 # rule markerclean:
 # 	input:
 # 		base + '{role}/tmp/' + 'ibdpruned.bed' # CORE samples after IBD, ALL markers
@@ -984,28 +1010,12 @@ rule ibd_prune:
 #                 EXCLUSIONSS={output.exclsnps}
 #                 PLOTDIR={params.plotdir}
 
-# 		report_nsnps {params.instem} "INTO_CLEAN"
-
-# 		samples_begin_clean=`wc -l {params.instem}.fam | cut -d ' ' -f1`
-
-# 		# 3 cycles of GENO+MIND
-# 		# FIRST - make plots for initial incoming data
-# 		# Args:
-# 		# 1. input dataset
-# 		# 2. dir for temp summary storage
-# 		# 3. stage name
-# 		# 4. next exclusion filter
-# 		# 5. threshold
-# 		# [6. optional: MAF cutoff for HET]
-# 		# THEN - remove samples/markers with more than X% missingness
-# 		# 1. Input bedset
-# 		# 2. Sample/marker missingness threshold
-# 		# 3. Output bedset
 rule_stem = 'geno_rates_mind3' # last iteration - keep <= 9 or fix code below
 rule geno_rates:        # part of earlier markerclean
     input:
         bedset = rules.ibd_prune.output.bedset,
     output:
+        # Result for every iteration, below is only the last
         bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),
         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree"),                         
@@ -1035,6 +1045,8 @@ rule geno_rates:        # part of earlier markerclean
         # We might have just as well off with cut'n paste here - the code is somewhat
         # hard to read - 
         for i in [1,2,3]:      # last number must max must match rule all:
+            mqc.log(runlog, f'{rule_info[rule]["QC test"]}: Iteration {i}')
+            print(f'{rule_info[rule]["QC test"]}: Iteration {i}')
             file_name= rule + "_geno" + str(i)
             outTrunk =  str(out_dir/file_name)
             res_file =  str(res_dir/file_name)+".yaml"
@@ -1056,63 +1068,64 @@ rule geno_rates:        # part of earlier markerclean
                         plot_file=plot_file)
 
             lastTrunk = outTrunk
-        
- 
-# 		# CYCLE 1
-#               NB! This guy fails so no plots were done (28.10.19)
-# 		report_plots \
-# 		        {params.instem} {params.repdir} \
-# 		        "CLEANGENO1" L 0.1
-# 		plink_remove_above_geno \
-# 		        {params.instem} \
-# 		        0.10 \
-# 		        {params.outdir}/clean_geno
 
-# 		report_plots \
-# 		        {params.instem} {params.repdir} \
-# 		        "CLEANMIND1" I 0.05
-# 		plink_remove_above_mind \
-# 		        {params.outdir}/clean_geno \
-# 		        0.05 \
-# 		        {params.outdir}/clean_mind
-		
-# 		# CYCLE 2
-# 		report_plots \
-# 		        {params.outdir}/clean_mind \
-# 			{params.repdir} \
-# 		        "CLEANGENO2" L 0.05
-# 		plink_remove_above_geno \
-# 		        {params.outdir}/clean_mind \
-# 		        0.05 \
-# 		        {params.outdir}/clean_geno
+rule_stem = 'hwe_autos_geno' # called clean_marker previously
+rule hwe_autos_geno:        # part of earlier markerclean
+    input:
+        bedset = rules.geno_rates.output.bedset,
+    output:
+        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".hwe"),
+        #bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),
+        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree"),                         
+                         # caption=(resultPath/rule_stem).with_suffix(".rst")),
+        #plots = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
+#                         category="Module 2 Core samples and infere pedigree"),                         
+                         # caption=(resultPath/rule_stem).with_suffix(".rst")),                         
+    params:
+        #2 cycle hew/maf + a geno 
+        hwe1 = config["hwe1"],
+        maf1 = config["maf1"],
+        sd_het1 = config["sd_het1"],
+        hwe2 = config["hwe2"],
+        maf2 = config["maf2"],
+        sd_het2 = config["sd_het2"],
+        geno_rare = config["geno_rare"]
+    benchmark:
+        (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")      
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
 
-# 		report_plots \
-# 		        {params.outdir}/clean_geno \
-# 			{params.repdir} \
-# 		        "CLEANMIND2" I 0.03
-# 		plink_remove_above_mind \
-# 		        {params.outdir}/clean_geno \
-# 		        0.03 \
-# 		        {params.outdir}/clean_mind
+        inTrunk =  mqc.plinkBase(input.bedset)
+        out_dir = Path(output.bedset).parent    # Directory according to output.bedset
+        res_dir = Path(output.results).parent   # and corresponding for results
+        lastTrunk = inTrunk
+        # Iterate 2 times, greating a chain of geno1->mind1->geno2->mind2 etc files
+        # We might have just as well off with cut'n paste here - the code is somewhat
+        # hard to read - 
+        for i in [1]:
+            file_name= rule + "_hwe" + str(i)
+            outTrunk =  str(out_dir/file_name)
+            res_file =  str(res_dir/file_name)+".yaml"
+            plot_file =  str(res_dir/file_name)+".png"
+            # Plink for both marker and samples, slightly different names for the params
+            mqc.low_hwe_autosomal_rate(rule, lastTrunk, outTrunk, sample=False,  
+                                 treshold=getattr(params,f"hwe{i}"),
+                                      result_file=res_file,
+                                      plot_file=plot_file)                                      
 
-# 		# CYCLE 3
-# 		report_plots \
-# 		        {params.outdir}/clean_mind \
-# 			{params.repdir} \
-# 		        "CLEANGENO3" L 0.02
-# 		plink_remove_above_geno \
-# 		        {params.outdir}/clean_mind \
-# 		        0.02 \
-# 		        {params.outdir}/clean_geno
+            # lastTrunk = outTrunk
+            # file_name= rule + "_het" + str(i)
+            # outTrunk =  str(out_dir/file_name)
+            # res_file =  str(res_dir/file_name)+".yaml"
+            # plot_file =  str(res_dir/file_name)+".png"
+            # mqc.missing_genotype_rate(rule, lastTrunk, outTrunk, sample=True,
+            #             treshold=getattr(params,f"mind{i}"),
+            #             result_file=res_file,
+            #             plot_file=plot_file)
 
-# 		report_plots \
-# 		        {params.outdir}/clean_geno \
-# 			{params.repdir} \
-# 		        "CLEANMIND3" I 0.02
-# 		plink_remove_above_mind \
-# 		        {params.outdir}/clean_geno \
-# 		        0.02 \
-# 		        {params.outdir}/clean_mind-geno
+            # lastTrunk = outTrunk
 
 # 		# Remove markers below HWE P-value threshold
 # 		# 1. Input bedset

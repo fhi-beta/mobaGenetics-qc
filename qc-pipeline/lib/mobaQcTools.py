@@ -372,7 +372,7 @@ def extractSampleList(innFile, sampleFile, threshold_doc_file = '/dev/null',
     * a file whith the  numbered columns (cols) that also contains colName (see below)
 
     colName is a numerical column that will be compared to given threshold according to the
-    wished threshould (using the condition parameter)
+    wished threshold (using the condition parameter)
     For sample retrievel by plink, you will typically need the two first columns (fam/iid)
     while for marker extract you will typically need the first column (markerid)
 
@@ -677,7 +677,7 @@ def missing_genotype_rate(rule,
     """ Runs plink --geno or --mind and produces output
 
     Wrapper around plink and saveYamlResults as well as plots showing what gets removed
-    If plot_file is False, 
+    If plot_file is False, no plot is produced
     Returns a 'dropouts' structure that contains info about the dropped samples/markers 
     (but only summaries).
     rule is the calling rule, and will be added to the result_file/dropouts
@@ -686,7 +686,6 @@ def missing_genotype_rate(rule,
     plink --mind will be used, and exclusion results will be related to foo.fam
     
     """
-    print (plink)
     if sample:
         kindof = "sample"
         extension = ".fam"
@@ -723,6 +722,64 @@ def missing_genotype_rate(rule,
                                 column="F_MISS",ylabel="1 - missingness")
 
     return dropouts
+
+def low_hwe_autosomal_rate(rule,
+                          in_bedset, out_bedset, sample=True, treshold=0.1, #remove sample?
+                          result_file='/dev/null', plot_file=False):
+    """ Runs plink plink autosomal produces output, including plot
+
+    Wrapper around plink and saveYamlResults as well as plots showing what gets removed
+    If plot_file is False, no plot is produced
+    Returns a 'dropouts' structure that contains info about the dropped samples/markers 
+    (but only summaries).
+    rule is the calling rule, and will be added to the result_file/dropouts
+    
+    The bedset are truncs and not files: For example for in_bedset=foo and sample=True, 
+    plink --mind will be used, and exclusion results will be related to foo.fam
+    
+    """
+    print ("DEBUGGGGGGGGGGGGG Clean up sample mess")
+    if sample:
+        kindof = "sample"
+        extension = ".fam"
+        plink_switch = "--mind"
+        miss_ext = ".imiss"   # if plotting, .imiss is for samples, .lmiss for markers
+    else: # marker
+        kindof = "marker"
+        extension = ".bim"
+        plink_switch = "--geno"
+        miss_ext = ".lmiss"
+    
+    subprocess.run([plink,
+                "--bfile",in_bedset,
+                "--autosome",
+                "--hardy", "midp",
+                "--out", out_bedset,               
+        ])
+    # We here have a .hwe file where low p-falues are to be removed
+    extractSampleList(out_bedset+".hwe", out_bedset+".exclude",
+                      threshold_doc_file=out_bedset+".details",
+                      colName="^P$", condition="<", treshold=treshold, cols={1})
+
+    
+    # dropouts = checkUpdates(in_bedset+extension, out_bedset+extension, cols = [0,1],
+    #                         sanityCheck = "removal", fullList = True) 
+    # dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+    # dropouts["Treshold"] = treshold
+    # dropouts["Rule"] = rule
+    # dropouts["rule type"] = kindof # rule says sample/marker - we know what is really is
+    # saveYamlResults(result_file, dropouts)
+    # # A plot might be ordered
+    # if plot_file:
+    #     # call rates for markers/samples before they got removed
+    #     subprocess.run([plink,
+    #             "--bfile", in_bedset,
+    #             "--missing",
+    #             "--out", in_bedset ])
+    #     plot_point_and_line(dropouts, in_bedset+miss_ext, plot_file,
+    #                             column="F_MISS",ylabel="1 - missingness")
+
+#    return dropouts
 
 def exclude_strand_ambigious_markers(input, output, plink):
     """ Runs plink to exlucde A/T and C/G SNPs
