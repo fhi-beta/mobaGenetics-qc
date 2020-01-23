@@ -941,4 +941,3 @@ rule generate_lists:
         Rscript {libdir}/format_excl_table.R {params.input_dir}
 
         """
-
