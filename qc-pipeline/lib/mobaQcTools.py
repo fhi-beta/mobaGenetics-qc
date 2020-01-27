@@ -2,6 +2,7 @@
 import pandas as pd
 import numpy as np
 from pandas.api.types import CategoricalDtype
+import math
 from plotnine import *
 # While plotting in a non-interactive environment (xterm ...) we need this:
 import matplotlib
@@ -63,11 +64,11 @@ def plotHist(dataFile, resultFile, column="name of the column", title="no legend
 
 def plot_point_and_line(qc_results, dataFile, resultFile, column="name of the column", separator='\s+',
                      ylabel="no label given", invert=True):
-    """ plots and saves a plot of sample/markers probabilities - probsabilities on y-axis
+    """ plots and saves a plot of sample/markers probabilities - probabilities on y-axis
 
     Prints out lots of warning, but see https://stackoverflow.com/questions/55805431/is-there-a-way-to-prevent-plotnine-from-printing-user-warnings-when-saving-ggplo
     Default separator is whitespace, but it needs to be overriden every now and then ... (typically by pure tab '\t')
-    Probabiliits are found as specified by dataFuke and column, with the separator given
+    Probabiliits are found as specified by dataFile and column, with the separator given
     qc_results is a dictionary containing values that will be used for labels etc.
     If invert=True, will plot 1-probabilities . Default is True as this is often used to plot missingess/call rates.
 
@@ -730,7 +731,7 @@ def low_hwe_autosomal_rate(rule,
 
     Wrapper around plink and saveYamlResults as well as plots showing what gets removed
     If plot_file is False, no plot is produced
-    Returns a 'dropouts' structure that contains info about the dropped samples/markers 
+    Returns a 'dropouts' structure that contains info about the dropped markers 
     (but only summaries).
     rule is the calling rule, and will be added to the result_file/dropouts
     
@@ -749,37 +750,38 @@ def low_hwe_autosomal_rate(rule,
         extension = ".bim"
         plink_switch = "--geno"
         miss_ext = ".lmiss"
-    
+
     subprocess.run([plink,
                 "--bfile",in_bedset,
                 "--autosome",
                 "--hardy", "midp",
                 "--out", out_bedset,               
         ])
-    # We here have a .hwe file where low p-falues are to be removed
+    # We here have a .hwe file where low p-values for markers are to be removed
     extractSampleList(out_bedset+".hwe", out_bedset+".exclude",
                       threshold_doc_file=out_bedset+".details",
                       colName="^P$", condition="<", treshold=treshold, cols={1})
 
+    subprocess.run([plink,
+                    "--bfile",in_bedset,
+                    "--exclude", out_bedset+".exclude",
+                    "--out", out_bedset,                                   
+                    "--make-bed"  ])
     
-    # dropouts = checkUpdates(in_bedset+extension, out_bedset+extension, cols = [0,1],
-    #                         sanityCheck = "removal", fullList = True) 
-    # dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-    # dropouts["Treshold"] = treshold
-    # dropouts["Rule"] = rule
-    # dropouts["rule type"] = kindof # rule says sample/marker - we know what is really is
-    # saveYamlResults(result_file, dropouts)
-    # # A plot might be ordered
-    # if plot_file:
-    #     # call rates for markers/samples before they got removed
-    #     subprocess.run([plink,
-    #             "--bfile", in_bedset,
-    #             "--missing",
-    #             "--out", in_bedset ])
-    #     plot_point_and_line(dropouts, in_bedset+miss_ext, plot_file,
-    #                             column="F_MISS",ylabel="1 - missingness")
-
-#    return dropouts
+    dropouts = checkUpdates(in_bedset+".bim", out_bedset+".bim", cols = [0,1],
+                            sanityCheck = "removal", fullList = True) 
+    dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+    dropouts["Treshold"] = treshold
+    dropouts["Rule"] = rule
+    saveYamlResults(result_file, dropouts)
+    p = hweg_qq_plot("/mnt/work/gutorm/qcTest/qcrot2/fullNewOutput/mod2-data-preparation/tmp/offspring/hwe_autos_geno_hwe1.hwe",prec=2,x='P')
+    # QQish plot with tresholds returned in p. Add, threshold, title and save
+    t_line = geom_hline(yintercept=treshold, color='red')
+    p += t_line    # treshold
+    title = f'HWE > {treshold} \n{dropouts.get("actionTakenCount")} outside treshold\n{dropouts.get("Timestamp")}'
+    p += labs(title=title)
+    ggsave(plot=p, filename=plot_file, dpi=600)
+    return 
 
 def exclude_strand_ambigious_markers(input, output, plink):
     """ Runs plink to exlucde A/T and C/G SNPs
@@ -870,7 +872,7 @@ def copy_file(f,ext=".bak"):
 def dotplot(genomedata,prec=2,x='x',y='y',c='c'):
     """ Returns a plotnine object ready to be printet, but where extra lines can be added
 
-    Assumes x and y are numbers, these will be rounded to precision decimals
+    Assumes x and y are names of columns containing numbers, these will be rounded to precision decimals
     The preicision is there to not cluster set plot when there are two many points to be seen
     c is used for colouring and shaping - a colourblind palette will be used
     The data is found in a whitespace separated file where they x,y and c are headers
@@ -886,6 +888,37 @@ def dotplot(genomedata,prec=2,x='x',y='y',c='c'):
     p = ggplot(data=df.round(prec).drop_duplicates(), mapping=aes(x=x,y=y,color=c, shape=c))
     p += scale_colour_brewer(type="qual", palette="Set1")  # better for colourblind
     p += geom_point()
+    
+    return p
+
+def hweg_qq_plot(pfile,prec=3,x='x'):
+    """ Returns a plotnine object ready to be printed, but where extra labels etc can be added
+
+
+    Values in column named x from file are picked up, and the plot will consist of 
+    -log(10) on the Y axis, and expected -log10 of a uniform distribution on the X axis
+    The numbers will be rounded to prec(ision) and made unique before the plot is made.
+    The preicision is there to not cluster set plot when there are two many points to be seen
+    The data is found in a whitespace separated pfile where they x denotes the header
+    
+    """
+    my_name = inspect.stack()[0][3]      # Generic way of find this functions name        
+    try: 
+        df = pd.read_csv(pfile, usecols=[x], 
+             delim_whitespace=True).sort_values(by=[x],na_position='first',ascending=False)
+    except Exception as e:
+        print(f"{my_name}: {str(e)}")        
+        return
+    df = -1*np.log10(df)
+    df.rename(columns={x:"-log"+x}, inplace=True)
+    df['-logP_expected'] = -1*np.log10(np.random.uniform(0,1,len(df.index)))
+    df['-logP_expected'] = df['-logP_expected'].sort_values(ascending=True).values
+    
+    
+    p = ggplot(data=df.round(prec).drop_duplicates(), mapping=aes(y='-logP',x='-logP_expected'))
+    #p += scale_colour_brewer(type="qual", palette="Set1")  # better for colourblind
+    p += geom_point()
+    p += geom_abline(slope=1, intercept=0, color='blue') # expexted hwe distibution 
     
     return p
 

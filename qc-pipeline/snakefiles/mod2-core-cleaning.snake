@@ -1074,7 +1074,7 @@ rule hwe_autos_geno:        # part of earlier markerclean
     input:
         bedset = rules.geno_rates.output.bedset,
     output:
-        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".hwe"),
+        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".hwe"),   #WRRRRRRROOOONG
         #bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),
         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree"),                         
@@ -1109,7 +1109,7 @@ rule hwe_autos_geno:        # part of earlier markerclean
             outTrunk =  str(out_dir/file_name)
             res_file =  str(res_dir/file_name)+".yaml"
             plot_file =  str(res_dir/file_name)+".png"
-            # Plink for both marker and samples, slightly different names for the params
+            # Filters and plots
             mqc.low_hwe_autosomal_rate(rule, lastTrunk, outTrunk, sample=False,  
                                  treshold=getattr(params,f"hwe{i}"),
                                       result_file=res_file,
