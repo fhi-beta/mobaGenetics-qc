@@ -385,9 +385,9 @@ geno_rates:
 
 hwe_autos_geno:   
   QC test: hwe + autosomal het + geno
-  Description: multiple iterations. creates multiple resultfiles
+  Description: multiple iterations. creates multiple resultfiles. Two pass of hwe/het + on geno marker
   Rule order: mod2.2f
-  rule type: checkItOut
+  rule type: samples/markers
   rule action: remove
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry

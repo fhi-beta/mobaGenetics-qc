@@ -22,8 +22,8 @@ from shutil import copyfile
 # This is kinda ugly
 cwd = Path.cwd()
 snake_dir = cwd/"../snakefiles"
-# snake_dir = Path("/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/snakefiles")
-# print (f"DDDDDDDDEEEEBUG!  {snake_dir}   xxx")
+#snake_dir = Path("/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/snakefiles")
+#print (f"DDDDDDDDEEEEBUG!  {snake_dir}   xxx")
 # Grab the same configfiles as snakefile has
 try: 
     with open(snake_dir/"rules.yaml", 'r') as stream:
@@ -35,9 +35,9 @@ except Exception as e:
 
 plink=config["plinklocal"]
 
-def plotHist(dataFile, resultFile, column="name of the column", title="no legend??", separator='\s+',
+def plot_hist(dataFile, resultFile, column="name of the column", title="no legend??", separator='\s+',
              treshold=0, logx=False):
-    """ plots and saves a historgram - can probably be removed as plot_point_and_line is now used
+    """ plots and saves a historgram 
 
     Very basic Histogram. Could be prettied up a lot
     Prints out lots of warning, but see https://stackoverflow.com/questions/55805431/is-there-a-way-to-prevent-plotnine-from-printing-user-warnings-when-saving-ggplo
@@ -54,7 +54,8 @@ def plotHist(dataFile, resultFile, column="name of the column", title="no legend
 
     df = df.sort_values(column)
     p = ggplot(data=df, mapping=aes(x=column))
-    hist = p + geom_histogram(binwidth=0.01) + labs(title=title)
+    hist = p + geom_histogram()
+    hist += labs(title=title, x=column)
     if treshold != 0:
         hist += geom_vline(xintercept=treshold, color='red')
     if logx:
@@ -725,31 +726,16 @@ def missing_genotype_rate(rule,
     return dropouts
 
 def low_hwe_autosomal_rate(rule,
-                          in_bedset, out_bedset, sample=True, treshold=0.1, #remove sample?
+                          in_bedset, out_bedset, treshold=0.1, 
                           result_file='/dev/null', plot_file=False):
-    """ Runs plink plink autosomal produces output, including plot
+    """ Runs plink hwe  autosomal produces output, including plot
 
-    Wrapper around plink and saveYamlResults as well as plots showing what gets removed
-    If plot_file is False, no plot is produced
-    Returns a 'dropouts' structure that contains info about the dropped markers 
-    (but only summaries).
-    rule is the calling rule, and will be added to the result_file/dropouts
-    
-    The bedset are truncs and not files: For example for in_bedset=foo and sample=True, 
-    plink --mind will be used, and exclusion results will be related to foo.fam
-    
+    Wrapper around plink to do Hardy Weinberg Equilibrium tests and plot distribution. 
+    Saves results with  saveYamlResults as well.
+
+    Has a potentional to wrap more --plink commands
+
     """
-    print ("DEBUGGGGGGGGGGGGG Clean up sample mess")
-    if sample:
-        kindof = "sample"
-        extension = ".fam"
-        plink_switch = "--mind"
-        miss_ext = ".imiss"   # if plotting, .imiss is for samples, .lmiss for markers
-    else: # marker
-        kindof = "marker"
-        extension = ".bim"
-        plink_switch = "--geno"
-        miss_ext = ".lmiss"
 
     subprocess.run([plink,
                 "--bfile",in_bedset,
@@ -758,7 +744,8 @@ def low_hwe_autosomal_rate(rule,
                 "--out", out_bedset,               
         ])
     # We here have a .hwe file where low p-values for markers are to be removed
-    extractSampleList(out_bedset+".hwe", out_bedset+".exclude",
+    hwe_p_values = out_bedset+".hwe"
+    extractSampleList(hwe_p_values, out_bedset+".exclude",
                       threshold_doc_file=out_bedset+".details",
                       colName="^P$", condition="<", treshold=treshold, cols={1})
 
@@ -774,13 +761,102 @@ def low_hwe_autosomal_rate(rule,
     dropouts["Treshold"] = treshold
     dropouts["Rule"] = rule
     saveYamlResults(result_file, dropouts)
-    p = hweg_qq_plot("/mnt/work/gutorm/qcTest/qcrot2/fullNewOutput/mod2-data-preparation/tmp/offspring/hwe_autos_geno_hwe1.hwe",prec=2,x='P')
+    p = hweg_qq_plot(hwe_p_values, prec=2, x='P')
     # QQish plot with tresholds returned in p. Add, threshold, title and save
-    t_line = geom_hline(yintercept=treshold, color='red')
-    p += t_line    # treshold
-    title = f'HWE > {treshold} \n{dropouts.get("actionTakenCount")} outside treshold\n{dropouts.get("Timestamp")}'
+    t_line = geom_hline(yintercept=-1*math.log10(treshold), color='red')
+    p += t_line    # treshold. Note that plot removed above 
+    title = f'HWE > -log({treshold}) \n{dropouts.get("actionTakenCount")} outside treshold\n{dropouts.get("Timestamp")}'
     p += labs(title=title)
     ggsave(plot=p, filename=plot_file, dpi=600)
+    return 
+
+def het_extract(het_file, out_file, sd):
+    """ Remove samples with HET excess 
+
+    Based on het_file and a number of standard deviation sd,
+    Creates three files: 
+         out_file contains samples (family, iid) to be removed becase they have --het excess 
+         too large (comparing het_rate (se code) to sd*standard deviations) . 
+         This file is intented to be used by plink 
+         to remove these samples and has no headers
+         
+         out_files.details contains information on how they actually were removed. This
+         file has headers
+
+         out_files.total contains .het file + more metrics that caused remival. This
+         file has headers
+    """
+    my_name = inspect.stack()[0][3]      # Generic way of find this functions name        
+    try: 
+        df = pd.read_csv(het_file,delim_whitespace=True)
+    except Exception as e:
+        print(f"{my_name}: {str(e)}")        
+        return
+    # Columns defined in https://www.cog-genomics.org/plink/1.9/formats#het
+    df['het_rate'] = (df['N(NM)'] - df['O(HOM)'])/df['N(NM)']
+    failed = df[df.het_rate > df.het_rate.mean() + sd*df.het_rate.std()].copy()
+    failed['het_dst'] = (failed['het_rate'] - df['het_rate'].mean())/ df['het_rate'].std()
+    # output - the .total file is used for plotting later
+    df.to_csv(out_file+".total",sep=" ", index=False)
+    # file to be used by plink to remove samples
+    failed[['FID','IID']].to_csv(out_file,sep=" ", index=False, header=False)
+    # Documentation of the actual metrics  of the removed samples
+    failed.to_csv(out_file+".details",sep=" ", index=False) 
+
+    
+
+def excess_het(rule, autosomal,
+               in_bedset, out_bedset, treshold=0.1, sd=2,
+               result_file='/dev/null', plot_file=False):
+    """ Runs plink het maf autosomal and produces output, including plot
+
+    Wrapper around plink to do check sample heterozygosity and  plot distribution. 
+    If autosomal = "common", we deal with common autosomal markers. The alternative is "rare"
+    (this is reflected in the plink parameters --maf vs --max-maf)
+    
+    Saves results with saveYamlResults as well, and creates plots and various
+    backgroundfiles on the tmp-area.
+
+    """
+
+    if   autosomal == "common": maf = "--maf"
+    elif autosomal == "rare":   maf = "--max-maf"
+    else:
+        print(f"ERROR, Unexpected autosomal rarity {autosomal}. Everything is wrong from now")
+        return
+   
+    subprocess.run([plink,
+                "--bfile",in_bedset,
+                "--autosome",
+                maf, str(treshold),
+                "--het",
+                "--out", out_bedset,               
+        ])
+    # We here have a .het file where low p-values for markers are to be removed
+    het_p_values = out_bedset+".het"
+    het_extract(het_p_values, out_bedset+".exclude", sd)
+    # het_extract found .exclude for removal and .total for historgram
+
+    subprocess.run([plink,
+                    "--bfile",in_bedset,
+                    "--remove", out_bedset+".exclude",
+                    "--out", out_bedset,                                   
+                    "--make-bed"  ])
+    
+    dropouts = checkUpdates(in_bedset+".fam", out_bedset+".fam", cols = [0,1],
+                            sanityCheck = "removal", fullList = True) 
+    dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+    dropouts["Treshold"] = f"{treshold} using distance {sd} standard deviations"
+    dropouts["Rule"] = rule
+    dropouts["Details"] = f"{out_bedset}.exclude with extension .details (filtered) and .total (all)"
+    saveYamlResults(result_file, dropouts)
+    title = (f'Sample heterozygosity ({autosomal} markes)\n'
+             f'{dropouts.get("actionTakenCount")} outside treshold\n'
+             f'--maf > {treshold} HET exceeds {sd} std.dev\n{dropouts.get("Timestamp")}')
+    plot_hist(out_bedset+".exclude.total", plot_file, 
+             column="het_rate", title=title, separator='\s+',
+             treshold=0, logx=False)
+
     return 
 
 def exclude_strand_ambigious_markers(input, output, plink):
@@ -922,4 +998,7 @@ def hweg_qq_plot(pfile,prec=3,x='x'):
     
     return p
 
+
+    
+# het_extract("foo.het","gaz",2)
 

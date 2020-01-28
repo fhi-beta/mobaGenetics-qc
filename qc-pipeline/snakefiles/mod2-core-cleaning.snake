@@ -1069,21 +1069,21 @@ rule geno_rates:        # part of earlier markerclean
 
             lastTrunk = outTrunk
 
+
 rule_stem = 'hwe_autos_geno' # called clean_marker previously
 rule hwe_autos_geno:        # part of earlier markerclean
     input:
         bedset = rules.geno_rates.output.bedset,
     output:
-        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".hwe"),   #WRRRRRRROOOONG
-        #bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),
+        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),
         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree"),                         
                          # caption=(resultPath/rule_stem).with_suffix(".rst")),
-        #plots = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
-#                         category="Module 2 Core samples and infere pedigree"),                         
+        plots = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
+                         category="Module 2 Core samples and infere pedigree"),                         
                          # caption=(resultPath/rule_stem).with_suffix(".rst")),                         
     params:
-        #2 cycle hew/maf + a geno 
+        #2 cycles hwe/maf + a geno 
         hwe1 = config["hwe1"],
         maf1 = config["maf1"],
         sd_het1 = config["sd_het1"],
@@ -1103,29 +1103,48 @@ rule hwe_autos_geno:        # part of earlier markerclean
         lastTrunk = inTrunk
         # Iterate 2 times, greating a chain of geno1->mind1->geno2->mind2 etc files
         # We might have just as well off with cut'n paste here - the code is somewhat
-        # hard to read - 
-        for i in [1]:
+        # hard to read -
+        autosomal = "common"
+        for i in [1,2]:    # common_het logic not suited for more than 2 iterations
             file_name= rule + "_hwe" + str(i)
             outTrunk =  str(out_dir/file_name)
             res_file =  str(res_dir/file_name)+".yaml"
             plot_file =  str(res_dir/file_name)+".png"
             # Filters and plots
-            mqc.low_hwe_autosomal_rate(rule, lastTrunk, outTrunk, sample=False,  
-                                 treshold=getattr(params,f"hwe{i}"),
-                                      result_file=res_file,
-                                      plot_file=plot_file)                                      
+            mqc.low_hwe_autosomal_rate(rule, lastTrunk, outTrunk,  
+                            treshold=getattr(params,f"hwe{i}"),
+                            result_file=res_file,
+                            plot_file=plot_file)                                      
 
-            # lastTrunk = outTrunk
-            # file_name= rule + "_het" + str(i)
-            # outTrunk =  str(out_dir/file_name)
-            # res_file =  str(res_dir/file_name)+".yaml"
-            # plot_file =  str(res_dir/file_name)+".png"
-            # mqc.missing_genotype_rate(rule, lastTrunk, outTrunk, sample=True,
-            #             treshold=getattr(params,f"mind{i}"),
-            #             result_file=res_file,
-            #             plot_file=plot_file)
 
-            # lastTrunk = outTrunk
+            lastTrunk = outTrunk
+            file_name= rule + "_het" + str(i)
+            outTrunk =  str(out_dir/file_name)
+            res_file =  str(res_dir/file_name)+".yaml"
+            plot_file =  str(res_dir/file_name)+".png"
+            mqc.excess_het(rule, autosomal, lastTrunk, outTrunk,  
+                            treshold=getattr(params,f"maf{i}"),
+                            sd=getattr(params,f"sd_het{i}"),
+                            result_file=res_file,
+                            plot_file=plot_file)
+            # dirty, but with two iterations only this works ...
+            autosomal = "rare"
+            lastTrunk = outTrunk
+
+        # a last round of marker removal
+        outTrunk =  mqc.plinkBase(output.bedset)
+        mqc.missing_genotype_rate(rule, lastTrunk, outTrunk, sample=False,
+                        treshold=params.geno_rare,
+                        result_file=output.results,
+                        plot_file=output.plots)                                      
+
+
+# 		plink_remove_above_geno \
+# 		        {params.outdir}/clean_het-rare \
+# 		        0.020 \
+# 		        {params.outdir}/clean_autosomes
+            
+       
 
 # 		# Remove markers below HWE P-value threshold
 # 		# 1. Input bedset
