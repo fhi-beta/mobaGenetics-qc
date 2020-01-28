@@ -725,10 +725,11 @@ def missing_genotype_rate(rule,
 
     return dropouts
 
-def low_hwe_autosomal_rate(rule,
-                          in_bedset, out_bedset, treshold=0.1, 
-                          result_file='/dev/null', plot_file=False):
-    """ Runs plink hwe  autosomal produces output, including plot
+def low_hwe_rate(rule, in_bedset, out_bedset,
+                 treshold=0.1,
+                 hwe_switches = ["--autosome", "--hardy", "midp"],
+                 result_file='/dev/null', plot_file='/dev/null'):
+    """ Runs plink hwe and removes low p-values produces output, including plot
 
     Wrapper around plink to do Hardy Weinberg Equilibrium tests and plot distribution. 
     Saves results with  saveYamlResults as well.
@@ -736,13 +737,10 @@ def low_hwe_autosomal_rate(rule,
     Has a potentional to wrap more --plink commands
 
     """
-
     subprocess.run([plink,
-                "--bfile",in_bedset,
-                "--autosome",
-                "--hardy", "midp",
-                "--out", out_bedset,               
-        ])
+                "--bfile", in_bedset,
+                "--out", out_bedset]
+                + hwe_switches)        # adding a list to another ...
     # We here have a .hwe file where low p-values for markers are to be removed
     hwe_p_values = out_bedset+".hwe"
     extractSampleList(hwe_p_values, out_bedset+".exclude",
@@ -985,6 +983,7 @@ def hweg_qq_plot(pfile,prec=3,x='x'):
     except Exception as e:
         print(f"{my_name}: {str(e)}")        
         return
+    # could/should have tested for 0 values here, avoiding log(0) problems
     df = -1*np.log10(df)
     df.rename(columns={x:"-log"+x}, inplace=True)
     df['-logP_expected'] = -1*np.log10(np.random.uniform(0,1,len(df.index)))

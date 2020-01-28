@@ -180,7 +180,10 @@ rule hardy_weinberg_filtered_markers:
         bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/rule_stem).with_suffix(".png"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))        
     params:
         treshold = config['hwe_thr']
     run:
@@ -189,18 +192,21 @@ rule hardy_weinberg_filtered_markers:
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk = mqc.plinkBase(output.bedset[0])
 
-        subprocess.run([plinklocal,
-                "--bfile",inTrunk,
-                "--hwe", str(params.treshold),          # identifies markers
-                "--out", outTrunk,               # called superclean_autosomal_hwe before
-                "--make-bed" ])
+        mqc.low_hwe_rate(rule, inTrunk, outTrunk, treshold=params.treshold,
+                     hwe_switches = ["--hardy"],
+                     result_file = output.results, plot_file=output.plot)
+        # subprocess.run([plinklocal,
+        #         "--bfile",inTrunk,
+        #         "--hwe", str(params.treshold),          # identifies markers
+        #         "--out", outTrunk,               # called superclean_autosomal_hwe before
+        #         "--make-bed" ])
 
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
-        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Treshold"] = params.treshold
-        dropouts["Rule"] = rule
+        # dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
+        # dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        # dropouts["Treshold"] = params.treshold
+        # dropouts["Rule"] = rule
 
-        mqc.saveYamlResults(output.results, dropouts)
+        # mqc.saveYamlResults(output.results, dropouts)
 
 rule_stem = 'tmp_excluded_strand_amb_markers' # used for outputfilenames
 rule exclude_strand_ambigious_markers:
@@ -1111,8 +1117,9 @@ rule hwe_autos_geno:        # part of earlier markerclean
             res_file =  str(res_dir/file_name)+".yaml"
             plot_file =  str(res_dir/file_name)+".png"
             # Filters and plots
-            mqc.low_hwe_autosomal_rate(rule, lastTrunk, outTrunk,  
+            mqc.low_hwe_rate(rule, lastTrunk, outTrunk,  
                             treshold=getattr(params,f"hwe{i}"),
+                            hwe_switches = ["--autosome", "--hardy", "midp"],
                             result_file=res_file,
                             plot_file=plot_file)                                      
 
@@ -1139,72 +1146,6 @@ rule hwe_autos_geno:        # part of earlier markerclean
                         plot_file=output.plots)                                      
 
 
-# 		plink_remove_above_geno \
-# 		        {params.outdir}/clean_het-rare \
-# 		        0.020 \
-# 		        {params.outdir}/clean_autosomes
-            
-       
-
-# 		# Remove markers below HWE P-value threshold
-# 		# 1. Input bedset
-# 		# 2. P-value threshold
-# 		# 3. Output bedset
-# 		# 4. TMP path for storing output
-# 		# note 1: all samples are now marked as FOUNDERS (no need for "--nonfounders" flag)
-# 		# note 2: all samples have missing phenotype (no need for "include-nonctrl" flag)
-# 		# CYCLE 1
-# 		report_plots \
-# 		        {params.outdir}/clean_mind-geno \
-# 			{params.repdir} \
-# 		        "CLEANHWE1" E -7
-# 		remove_below_hwe_pval_autosomal \
-# 		        {params.outdir}/clean_mind-geno \
-# 		        0.0000001 \
-# 		        {params.outdir}/clean_mind-geno-hwe \
-# 		        {params.outdir}
-
-# 		# Remove samples with excess heterozygosity. Markers are split to common and rare
-# 		# by given MAF threshold. Samples outside given SD threshold are removed.
-# 		# Only autosomal markers are evaluated.
-# 		# Args:
-# 		# 1. Input bedset
-# 		# 2. MAF-value for common variants
-# 		# 3. SD-threshold for excess het removal
-# 		# 4. Output bedset
-# 		# 5. TMP folder
-# 		report_plots \
-# 		        {params.outdir}/clean_mind-geno-hwe \
-# 			{params.repdir} \
-# 		        "CLEANHET1" H 4 0.01
-# 		plink_remove_excess_het_common \
-# 		        {params.outdir}/clean_mind-geno-hwe \
-# 		        0.01 \
-# 		        4 \
-# 		        {params.outdir}/clean_het-common \
-# 		        {params.outdir}
-
-# 		# CYCLE 2
-# 		report_plots \
-# 		        {params.outdir}/clean_het-common \
-# 			{params.repdir} \
-# 		        "CLEANHWE2" E -6
-# 		remove_below_hwe_pval_autosomal \
-# 		        {params.outdir}/clean_het-common \
-# 		        0.000001 \
-# 		        {params.outdir}/clean_hwe-strict \
-# 		        {params.outdir}
-		
-# 		report_plots \
-# 		        {params.outdir}/clean_hwe-strict \
-# 			{params.repdir} \
-# 		        "CLEANHET2" H 4 0.01
-# 		plink_remove_excess_het_rare \
-# 		        {params.outdir}/clean_hwe-strict \
-# 		        0.01 \
-# 		        4 \
-# 		        {params.outdir}/clean_het-rare \
-# 		        {params.outdir}
 
 # 		# additional run of marker missingness at 2%
 # 		report_plots \

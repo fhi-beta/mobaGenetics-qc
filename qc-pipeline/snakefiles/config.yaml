@@ -58,7 +58,7 @@ infer_badids: "/mnt/archive/ROTTERDAM2/delivery-fhi/documentation/inferred-pedig
 #hapmap,stem: /mnt/archive/helgeland/refdata/hapmap/hapmap_b36/hapmapb36"
 #hapmap_pop: "/mnt/archive/helgeland/refdata/hapmap/relationships_w_pops_121708.txt"
 
-
+# needed? CHECK!
 pca_thr: "6 0.015 NA 0.0355 NA"
 
 # ibd thresholds
