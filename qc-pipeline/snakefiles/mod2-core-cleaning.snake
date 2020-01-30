@@ -195,18 +195,6 @@ rule hardy_weinberg_filtered_markers:
         mqc.low_hwe_rate(rule, inTrunk, outTrunk, treshold=params.treshold,
                      hwe_switches = ["--hardy"],
                      result_file = output.results, plot_file=output.plot)
-        # subprocess.run([plinklocal,
-        #         "--bfile",inTrunk,
-        #         "--hwe", str(params.treshold),          # identifies markers
-        #         "--out", outTrunk,               # called superclean_autosomal_hwe before
-        #         "--make-bed" ])
-
-        # dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
-        # dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        # dropouts["Treshold"] = params.treshold
-        # dropouts["Rule"] = rule
-
-        # mqc.saveYamlResults(output.results, dropouts)
 
 rule_stem = 'tmp_excluded_strand_amb_markers' # used for outputfilenames
 rule exclude_strand_ambigious_markers:
@@ -993,29 +981,6 @@ rule ibd_prune:
         mqc.saveYamlResults(output.results, dropouts)
 
         
-        
-# rule markerclean:
-# 	input:
-# 		base + '{role}/tmp/' + 'ibdpruned.bed' # CORE samples after IBD, ALL markers
-# 	output:
-# 		base + '{role}/tmp/' + 'clean_autosomes.bed', # FINAL MARKERS for autosomes
-# 		stvars = base + '{role}/rep/' + 'storedvars_clean.txt',
-#                 exclinds = base + '{role}/rep/' + 'exclusions_clean_ind.txt',
-#                 exclsnps = base + '{role}/rep/' + 'exclusions_clean_snp.txt'
-# 	params:
-#                 instem = base + '{role}/tmp/' + 'ibdpruned',
-#                 outdir = base + '{role}/tmp/',
-#                 repdir = base + '{role}/rep/',
-#                 plotdir = base + '{role}/rep/' + 'plots_clean/'
-# 	shell:
-# 		"""
-# 		set -e
-#                 PIPELINELOG={runlog}
-#                 STOREDVARS={output.stvars}
-#                 EXCLUSIONSI={output.exclinds}
-#                 EXCLUSIONSS={output.exclsnps}
-#                 PLOTDIR={params.plotdir}
-
 rule_stem = 'geno_rates_mind3' # last iteration - keep <= 9 or fix code below
 rule geno_rates:        # part of earlier markerclean
     input:
@@ -1146,6 +1111,34 @@ rule hwe_autos_geno:        # part of earlier markerclean
                         plot_file=output.plots)                                      
 
 
+rule_stem = 'sex_check'
+rule sex_check:
+    input:
+        bedset = rules.hwe_autos_geno.output.bedset,
+    output:
+        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),
+        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree"),                         
+                         # caption=(resultPath/rule_stem).with_suffix(".rst")),
+        # in addition to the removal list, a removal.samples.txt is produced, sporting only the sample-list
+        removal= (tmpMod2/"{role}"/rule_stem).with_suffix(".txt"),
+        removal_samples = (tmpMod2/"{role}"/rule_stem).with_suffix(".samples.txt"),
+    params:
+        female_treshold = config['sex_check_female'],
+        male_treshold = config['sex_check_male']
+    benchmark:
+        (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+
+        inTrunk =  mqc.plinkBase(input.bedset)
+        outTrunk =  mqc.plinkBase(output.bedset)
+
+        mqc.sex_check(rule, input.bedset, output.bedset, f_treshold=0.2, m_treshold=0.8,
+                  result_file=output.results)
+
+        
 
 # 		# additional run of marker missingness at 2%
 # 		report_plots \

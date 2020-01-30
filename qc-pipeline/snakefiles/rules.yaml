@@ -392,6 +392,16 @@ hwe_autos_geno:
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
+
+sex_check:   
+  QC test: Check sample sex (declared vs. genotyped) and remove (miss)matches
+  Description: 
+  Rule order: mod2.2e
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
     
     
 merge_foundersoffspring:

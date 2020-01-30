@@ -998,6 +998,59 @@ def hweg_qq_plot(pfile,prec=3,x='x'):
     return p
 
 
+def sex_check(rule, 
+               in_bed, out_bed, f_treshold=0.2, m_treshold=0.8,
+               result_file='/dev/null', plot_file=False):
+    """ Checks if sex according to .fam-file matches genotype. Removes mismatches
+
+    Wrapper around several plink commands. in/out_bedset are plink .bed-files.
     
-# het_extract("foo.het","gaz",2)
+    Saves results with saveYamlResults as well, and creates plots and various
+    backgroundfiles on the tmp-area.
+
+    """
+    
+    tmpPath = Path(out_bed).parent
+    inTrunk =  plinkBase(in_bed)
+    outTrunk = plinkBase(out_bed)
+
+    # prime/chr23
+    subprocess.run([plink,
+                "--bfile",inTrunk,
+                "-chr", "23",
+                "--indep-pairphase", "20000", "2000", "0.5",
+                "--out", tmpPath/"pruned_sex_markers"
+        ])
+
+    subprocess.run([plink,
+                    "--bfile",inTrunk,
+                    "--extract", tmpPath/"pruned_sex_markers.prune.in",
+                    "--out", tmpPath/"pruned_for_sexcheck",               
+                    "--make-bed"  ])
+
+    #check sex with plink
+    subprocess.run([plink,
+                    "--bfile",tmpPath/"pruned_for_sexcheck",
+                    "--check-sex", str(f_treshold), str(m_treshold), 
+                    "--out", tmpPath/"sexcheck_report",               
+                    ])
+    
+    
+    # dropouts = checkUpdates(in_bedset+".fam", out_bedset+".fam", cols = [0,1],
+    #                         sanityCheck = "removal", fullList = True) 
+    # dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+    # dropouts["Treshold"] = f"{treshold} using distance {sd} standard deviations"
+    # dropouts["Rule"] = rule
+    # dropouts["Details"] = f"{out_bedset}.exclude with extension .details (filtered) and .total (all)"
+    # saveYamlResults(result_file, dropouts)
+    # title = (f'Sample heterozygosity ({autosomal} markes)\n'
+    #          f'{dropouts.get("actionTakenCount")} outside treshold\n'
+    #          f'--maf > {treshold} HET exceeds {sd} std.dev\n{dropouts.get("Timestamp")}')
+    # plot_hist(out_bedset+".exclude.total", plot_file, 
+    #          column="het_rate", title=title, separator='\s+',
+    #          treshold=0, logx=False)
+
+    return 
+
+    
 
