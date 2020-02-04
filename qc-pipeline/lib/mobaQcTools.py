@@ -36,7 +36,7 @@ except Exception as e:
 plink=config["plinklocal"]
 
 def plot_hist(dataFile, resultFile, column="name of the column", title="no legend??", separator='\s+',
-             treshold=0, logx=False):
+              treshold=0, logx=False, bins=100):
     """ plots and saves a historgram 
 
     Very basic Histogram. Could be prettied up a lot
@@ -54,7 +54,7 @@ def plot_hist(dataFile, resultFile, column="name of the column", title="no legen
 
     df = df.sort_values(column)
     p = ggplot(data=df, mapping=aes(x=column))
-    hist = p + geom_histogram()
+    hist = p + geom_histogram(bins=bins)
     hist += labs(title=title, x=column)
     if treshold != 0:
         hist += geom_vline(xintercept=treshold, color='red')
@@ -800,21 +800,33 @@ def sex_check(rule,
                     "--out", tmpPath/"sexcheck_report",               
                     ])
     
-    
-    # dropouts = checkUpdates(in_bedset+".fam", out_bedset+".fam", cols = [0,1],
-    #                         sanityCheck = "removal", fullList = True) 
-    # dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-    # dropouts["Treshold"] = f"{treshold} using distance {sd} standard deviations"
-    # dropouts["Rule"] = rule
-    # dropouts["Details"] = f"{out_bedset}.exclude with extension .details (filtered) and .total (all)"
-    # saveYamlResults(result_file, dropouts)
-    # title = (f'Sample heterozygosity ({autosomal} markes)\n'
-    #          f'{dropouts.get("actionTakenCount")} outside treshold\n'
-    #          f'--maf > {treshold} HET exceeds {sd} std.dev\n{dropouts.get("Timestamp")}')
-    # plot_hist(out_bedset+".exclude.total", plot_file, 
-    #          column="het_rate", title=title, separator='\s+',
-    #          treshold=0, logx=False)
-
+    # find famid/id of the ones failing sexheck
+    extract_list(tmpPath/"sexcheck_report.sexcheck",
+             tmpPath/"sexcheck_report.remove", tmpPath/"sexcheck_report.details", 
+             colName="^STATUS$",
+             sep=None, condition='==', treshold="PROBLEM",
+             key_cols=[0,1], doc_cols=[0,1,5])
+    # remove these 
+    subprocess.run([plink,
+                    "--bfile", inTrunk,
+                    "--remove", tmpPath/"sexcheck_report.remove",
+                    "--out", outTrunk,
+                    "--make-bed"
+                    ])
+     
+    dropouts = checkUpdates(inTrunk+".fam", outTrunk+".fam", cols = [0,1],
+                            sanityCheck = "removal", fullList = True) 
+    dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+    dropouts["Treshold"] = f"Female={f_treshold} Male={m_treshold}"
+    dropouts["Rule"] = rule
+    saveYamlResults(result_file, dropouts)
+    title = (f'Sex Check\n'
+             f'{dropouts.get("actionTakenCount")} outside treshold\n'
+             f'Treshold {dropouts.get("Treshold")}\n'
+             f'{dropouts.get("Timestamp")}')
+    plot_hist(tmpPath/"sexcheck_report.sexcheck", plot_file, 
+             column="F", title=title, separator='\s+',
+              treshold=0, logx=False, bins=100)
     return 
 
     

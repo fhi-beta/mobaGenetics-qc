@@ -1050,7 +1050,7 @@ rule hwe_autos_geno:        # part of earlier markerclean
         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree"),                         
                          # caption=(resultPath/rule_stem).with_suffix(".rst")),
-        plots = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
+        plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
                          category="Module 2 Core samples and infere pedigree"),                         
                          # caption=(resultPath/rule_stem).with_suffix(".rst")),                         
     params:
@@ -1081,7 +1081,7 @@ rule hwe_autos_geno:        # part of earlier markerclean
             outTrunk =  str(out_dir/file_name)
             res_file =  str(res_dir/file_name)+".yaml"
             plot_file =  str(res_dir/file_name)+".png"
-            # Filters and plots
+            # Filters and plot
             mqc.low_hwe_rate(rule, lastTrunk, outTrunk,  
                             treshold=getattr(params,f"hwe{i}"),
                             hwe_switches = ["--autosome", "--hardy", "midp"],
@@ -1108,7 +1108,7 @@ rule hwe_autos_geno:        # part of earlier markerclean
         mqc.missing_genotype_rate(rule, lastTrunk, outTrunk, sample=False,
                         treshold=params.geno_rare,
                         result_file=output.results,
-                        plot_file=output.plots)                                      
+                        plot_file=output.plot)                                      
 
 
 rule_stem = 'sex_check'
@@ -1121,8 +1121,10 @@ rule sex_check:
                          category="Module 2 Core samples and infere pedigree"),                         
                          # caption=(resultPath/rule_stem).with_suffix(".rst")),
         # in addition to the removal list, a removal.samples.txt is produced, sporting only the sample-list
-        removal= (tmpMod2/"{role}"/rule_stem).with_suffix(".txt"),
-        removal_samples = (tmpMod2/"{role}"/rule_stem).with_suffix(".samples.txt"),
+        plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
+                         category="Module 2 Core samples and infere pedigree"),                         
+                         # caption=(resultPath/rule_stem).with_suffix(".rst")),                         
+        
     params:
         female_treshold = config['sex_check_female'],
         male_treshold = config['sex_check_male']
@@ -1136,7 +1138,7 @@ rule sex_check:
         outTrunk =  mqc.plinkBase(output.bedset)
 
         mqc.sex_check(rule, input.bedset, output.bedset, f_treshold=0.2, m_treshold=0.8,
-                  result_file=output.results)
+                      result_file=output.results, plot_file=output.plot)
 
         
 

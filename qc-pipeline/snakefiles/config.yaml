@@ -2,7 +2,7 @@
 
 dataSet: "Rotterdam2"
 chip: "illumina GSA-MD 24 v1.0"
-output_base: "/mnt/work/gutorm/qcTest/qcrot2/fullNewOutput"
+output_base: "/mnt/work2/gutorm/pipeOut"
 plinklocal: "/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/bin/plink-1.90b5.4/plink"
 
 
