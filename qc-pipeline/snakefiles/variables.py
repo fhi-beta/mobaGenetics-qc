@@ -20,8 +20,8 @@ flashpca = Path(os.path.dirname(workflow.basedir)) / 'bin/flashpca_x86-64'
 tmp_path = os.path.join(config['output_base'],'tmp')
 runlog = Path(config['output_base']) / 'runlog.txt'
 base = Path(config['output_base'])
-tmpMod1 = base/'mod1-data-preparation/tmp/'
-tmpMod2 = base/'mod2-data-preparation/tmp/'
+tmpMod1 = base/'mod1-data-preparation/'
+tmpMod2 = base/'mod2-data-preparation/'
 resultPath = base / "results/"
 
 ### workflow settings ##################################

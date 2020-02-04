@@ -498,7 +498,7 @@ rule common_markers_moba_ref:
         triallelesTrunk =  mqc.plinkBase(output.tri_alleles) 
 
         # Common markers found in marker_list
-        mqc.intersect_rsid(inTrunk_ref+".bim", inTrunk_moba+".bim", output.marker_list)
+        mqc.intersect_rsid(inTrunk_moba+".bim", inTrunk_ref+".bim",  output.marker_list)
         # Reduce both sets to the common markers
         subprocess.run([plinklocal,
                 "--bfile", inTrunk_ref,
@@ -962,10 +962,10 @@ rule ibd_prune:
         inTrunk =  mqc.plinkBase(input.bedset)
         outTrunk =  mqc.plinkBase(output.bedset)
         # identify samples forremoval due to high PI_HAT
-        (removed,total) = mqc.extractSampleList(input.genome, 
+        (removed,total) = mqc.extract_list(input.genome, 
                 output.removal_samples, output.removal, 
-                colName="PI_HAT", condition = ">", treshold = params.treshold, 
-                cols = {0,1} )
+                colName="PI_HAT", sep=None, condition=">", treshold=params.treshold, 
+                key_cols=[0,1], doc_cols=[0,1] )
 
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,

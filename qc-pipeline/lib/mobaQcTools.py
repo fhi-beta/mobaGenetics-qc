@@ -144,11 +144,23 @@ def plinkBase(path):
 
 
 def lt(a,b):
-    return a < b
+    try:
+        result = (a < b)
+    except Exception as e:
+        print(f"Could not compare '{a}' < '{b}', {str(e)}") 
+    return result
 def eq(a,b):
-    return a == b
+    try:
+        result = (a == b)
+    except Exception as e:
+        print(f"Could not compare '{a}' == '{b}', {str(e)}") 
+    return result
 def gt(a,b):
-    return a > b
+    try:
+        result = (a > b)
+    except Exception as e:
+        print(f"Could not compare '{a}' > '{b}', {str(e)}") 
+    return result
 def unknownComp(a,b):
     print ("Unknown compare operation")
     return 
@@ -158,54 +170,68 @@ def unknownComp(a,b):
 # used to map symbols to actual comparision functions defined previously
 compOperands = {
     "<": lt,
-    "=": eq,
+    "==": eq,
     ">": gt
 }
 
 
-def extractSampleList(innFile, sampleFile, threshold_doc_file="/dev/null", 
-                      colName="none", sep='\t', condition="<", treshold=0, cols={1}, ):
-    """ A typical preprocessor to utilities like plink.
+def extract_list(innFile, outFile, threshold_doc_file="/dev/null", 
+                 colName="none", sep='\t', condition="<", treshold=0,
+                 key_cols=[0], doc_cols=[0,1] ):
+    """ A typical preprocessor to utilities like plink, extracts relevant samples/markers
 
-    Efficient in the sense that it 
-    is not reading the (huge) files into memory.
-    Takes a csv file innFile (first line with headers, seperator is paramneter "sep") and produces 
-    * a sample list on sampleFile (one columun, for now hardcoded to column 0)
-    * a threshold_doc_file with at set of numbered columns (cols) that also contains colName (see below)
+    Efficient in the sense that it is not reading the (huge) files into memory.
+    Takes a csv file innFile (first line with headers, 
+    separator is parameter "sep", use None for whitespaces) 
+    Produces 
+    * a  list on outFile of the columns indicated by key_cols. 
+    * a threshold_doc_file with at set of numbered columns (doc_cols). 
+      The contents of colName will always be added
     
-    Only columns were the column colName matches the condition of treshold will be written
+    Only columns were the column colName (regexp) matches the condition of treshold will be written
+    treshold can be a string, this is testet only for condition '=='
     Returns (number of sample extracted, total samples)
     Restrictions: 
-    * Assuming the first column in innFile is samplenumber - Only the first column will be written to sampleFile
-    * Assumes only one match for the regExp colName
-    * Columns are ordered in the same way as the innFile : {0,1} is identical to {1,0,0,1}
-    * Outputfiles use the same separator as used for innFile
-    """ 
+    * Prints error and returns unless only one columns matches
+    * Outputfiles use the same separator as used for innFile. If 'none' was used ' ' is used
+    """
+    my_name = inspect.stack()[0][3]      # Generic way of find this functions name        
     with open(innFile) as fp:
         
         # Identifying header column 
         line = fp.readline()
         allcols = line.split(sep)
+        outsep = sep
+        if outsep==None: outsep = " "
         regex = re.compile(colName)
         indx = [i for i, item in enumerate(allcols) if re.search(regex, item)]
-        # print(f"{colName} is column {indx}")
+        if len(indx) != 1:
+            print(f"ERROR in {my_name}: regexp {colName}  found {len(indx)} times in {innFile}. First line was {allcols}")
+            return
+        indx = indx[0]
+        # print(f"{colName} has index {indx}")
         matches = 0
         compare = compOperands.get(condition, unknownComp)
         if compare == unknownComp :
             print (f"Cannot compare using: '{condition}'")
             return
         # These lines are data, indx[0] is the index  of the column we found interesting
-        sample = open(sampleFile,"w+")
+        sample = open(outFile,"w+")
         subset = open(threshold_doc_file,"w+")
         for line in enumerate(fp):
             allcols = line[1].split(sep)
-            if compare(float(allcols[indx[0]]) , treshold): 
-                # File with only sample number
-                sample.write(allcols[0] + "\n")
+            val = allcols[indx]
+            try: val = float(val)  # hack to avoid errors if we want to compare strings
+            except: pass
+            
+            if compare(val , treshold): 
+                # File with only keys, create the relevant subset first
+                subsetc = [allcols[index] for index in key_cols]                
+                sample.write(f"{outsep.join(map(str,subsetc))}\n")
                 # File with more columns, and always include the treshold column
                 # subsetc is a relevant subset of the columns 
-                subsetc = [allcols[index] for index in cols]                
-                subset.write(sep.join(map(str,subsetc)) + sep + allcols[indx[0]] + "\n" )
+                subsetc = [allcols[index] for index in doc_cols]                
+                subset.write(f"{outsep.join(map(str,subsetc))} {val}\n")
                 matches += 1
     totalLines = line[0] + 1 # enumerates from 0, and we read a line manually
     sample.close()
@@ -248,211 +274,6 @@ def dict_count_items(fil, cols=[0,1], warn=True):
             sample = i
     if len(countDict) == 0 : print("ERROR: 0 sized dictionary after reading ",fil)
     if maxHits>1 and warn: print(f"WARNING: sample/marker {sample} found {maxHits} times in {fil}. Might not be the only nonunique ...")
-    return countDict, maxHits
-
-def lookupDict(fil, indx=1):
-    """ Creates a lookup dictionary from fil, width column indx as index
-
-    fil is a whitespice separated csv
-    indx is the column that you will lookup on later, 0 is the first column
-    """
-    try: 
-        all = pd.read_csv(fil, delim_whitespace=True, header=None).astype(str)
-    except Exception as e:
-        print(f"Could not open mapping file {fil}, {str(e)}")
-        return
-    indexCol = all[indx]  # get the index column
-    # all = all.drop([indx], axis=1) # drop it - figured out it gave confusing output
-    all = all.apply(" ".join, axis=1) # make each row a single string
-    return dict(zip(indexCol,all))
-
-
-def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
-                 fullList=False,  mapFile="", mapIndx=1):
-    """
-    Return number of updates due to a QC-test as well as a structure suited for a export as a yaml-file
-    The scenario is that a QC method/step had a dataset (file indData) and produced outData.
-    Some items got filtered out/changed
-    pre/postQC are tab-serparated csv-files with the same amount of columns
-    The optional sanityCheck parameter will give error message as follows, depending to its value
-       removal: Number of elements taken action on (removed) = size of preQc-postQc
-       updated: size of preQc = postQc  
-       anything different from the above): No tests performed
-    Only columns passed by cols are used to compare input/and output.
-    indx is only necessary if fullList is True. indx is used to genereate a list (usually of samples/markers)
-    from column nr indx
-    indx is sample-id/marker-id. indx=0 is the first column, default is second column. 
-    mapFile is relevant when fullList=True and is the file that mapped values from preQc to postQc 
-    and is used to show what the missing/renamed elements were named before
-    mapIndx indicates the column of the mapFile that corresponds to indx in the datafile
-    
-    The yaml-structure will always contain the number of input samples/markers as well as sample/markers removed/remaining.
-    
-    """
-    # dictionaly with only relevant columns
-    (outDict,m) = dict_count_items(postQc, cols)
-    result = {
-        "in":   0,        # will count lines from the 'in' file
-        "out": len(outDict), 
-        "xitems": [],    # poplulated later by samples/markers if fullList is True
-        "actionTakenCount": 0 # Not found in dictionary, so it is the effect of the qc-rule on the inputfile
-        }
-    haveDict = False
-    if mapFile != "":     # Setting up a dictionary 'lookup' to 
-                          # lookup the original value if postQc has changed
-        lookup = lookupDict(mapFile, mapIndx)
-        haveDict = True
-        result["mapFile"] = mapFile
-        #import json
-        #print ("Saving lookupdict to lookup.json")
-        #json.dump(lookup, open("lookup.json", 'w' ) )
-        
-    for line in open(preQc):
-        result["in"] += 1 
-        allcols = line.split()
-        subsetc = [allcols[index] for index in cols]
-        # concatenating so we can look up the strings with corresponding field from postQc file
-        key = " ".join(map(str,subsetc))
-        if (outDict.get(key,0) == 0):
-            result["actionTakenCount"] += 1 
-            item = str(allcols[indx])    # being the sample or the marker
-            if fullList:
-                changed = f"{item} - had {key}"  # This item was not found in preQc
-                if haveDict:
-                    mappingRule = lookup.get(item, 'ooops: missing')
-                    changed = f'{changed} changed by mapping {mappingRule}'
-                result["xitems"].append(changed)    # sample/marker id(s)
-                
-    if sanityCheck == 'updated':  # for updates, we dont't want to loose samples
-        if (result["out"]) != result["in"] : 
-            print(f"Warning: {preQc} -> {postQc}: Update expected, but number of unique items have changed "
-                  f"from {result['in']} to {result['out']}" ) 
-    elif sanityCheck == 'removal':       # for removals, we want out + removed = in
-        if (result["actionTakenCount"] + result["out"]) != result["in"] : 
-            print(f"Warning: {preQc} -> {postQc}: remaining + removed samples != original number")
-    return result
-    
-def plinkBase(path):
-    """ part of the file without the last extention (such as .fam .bed .bim)
-
-    plink often works on a trunk and creates extra files: a becomes a.fam, a.bed, a.bid
-    This function reates this trunk, so /foo/bar/gazonk.fam becomes /foo/bar/gazonk
-    The resulting trunk is typically used as input to plink
-    Only the last '.' is removed so /foo.foo/bar/gazonk.x.fam will become /foo.foo/bar/gazonk.x
-    """
-    return  re.sub(r"\.\w*$","",path)
-
-
-def lt(a,b):
-    return a < b
-def eq(a,b):
-    return a == b
-def gt(a,b):
-    return a > b
-def unknownComp(a,b):
-    print ("Unknown compare operation")
-    return 
-
-
-
-# used to map symbols to actual comparision functions defined previously
-compOperands = {
-    "<": lt,
-    "=": eq,
-    ">": gt
-}
-
-
-def extractSampleList(innFile, sampleFile, threshold_doc_file = '/dev/null',
-                      colName="none", condition="<", treshold=0, cols={1}, sep=None ):
-    """ A typical preprocessor to utilities like plink.
-
-    Despite the name, this also handles markers. Efficient in the sense that it 
-    is not reading the (huge) files into memory.
-    Takes a csv file innFile (first line with headers, seperator whitespace) and produces 
-    * a sample list on sampleFile showing the numbered columns (cols)
-    * a file whith the  numbered columns (cols) that also contains colName (see below)
-
-    colName is a numerical column that will be compared to given threshold according to the
-    wished threshold (using the condition parameter)
-    For sample retrievel by plink, you will typically need the two first columns (fam/iid)
-    while for marker extract you will typically need the first column (markerid)
-
-    A seprator can be forced through sep, if not set one or more whitespaces is assumed to sperate columns
-    
-    Returns (number of sample extracted, total samples)
-    Restrictions: 
-    * Assumes only one match for the regExp colName
-    * Columns are ordered in the same way as the innFile : {0,1} is identical to {1,0,0,1}
-    * Outputfiles always have space as separator. They have no headers. 
-    """ 
-    with open(innFile) as fp:
-        
-        # Identifying header column 
-        line = fp.readline()
-        allcols = line.split(sep)
-        regex = re.compile(colName)
-        indx = [i for i, item in enumerate(allcols) if re.search(regex, item)]
-        # print(f"{colName} is column {indx}")
-        matches = 0
-        compare = compOperands.get(condition, unknownComp)
-        if compare == unknownComp :
-            print (f"Cannot compare using: '{condition}'")
-            return
-        # These lines are data, indx[0] is the index  of the column we found interesting
-        sample = open(sampleFile,"w+")
-        extra_info = open(threshold_doc_file,"w+")
-        for line in enumerate(fp):
-            allcols = line[1].split(sep)
-            if compare(float(allcols[indx[0]]) , treshold): 
-                # File without threshold
-                subsetc = [allcols[index] for index in cols]
-                sample.write(' '.join(map(str,subsetc)) + "\n" )
-                # File with more columns, and always include the treshold column
-                # subsetc is a relevant subset of the columns 
-                extra_info.write(' '.join(map(str,subsetc)) + " " + allcols[indx[0]] + "\n" )
-                matches += 1
-    totalLines = line[0] + 1 # enumerates from 0, and we read a line manually
-    sample.close()
-    extra_info.close()
-    return (matches,totalLines)
-
-    
-
-    
-def dict_count_items(fil, cols=[0,1], warn=True):
-    """
-    Creates a dictionary with as key concatenation of the strings of the columns found in fil.
-    Values are the number of times that key is found
-    Returns the dictionary and the largest key value. In many scenarios, 1 is wanted here,
-    meaning no duplicates. 
-    if warn=True, will warn about key value > 1
-    fil is expected to be a csv file with whitespace as delimiters
-    First Column in the file is number 0 (standar Python)
-    (Hint for when this is used to compare the columns of two files: You can reduce memory usage by 
-    making a dictionary of the smallest file and searchin/iterating for matches through the largest
-
-    Will print error/warning if dictionary is empty or if replicates found
-    """
-    # pandas is overkill here, but since we will use it anyway ...
-    # Grab the relevant columns only
-    try: 
-        df = pd.read_csv(fil, usecols=cols, delim_whitespace=True, header=None)
-    except Exception as e:
-        print(f"Could not open file {fil}, {str(e)}")
-        return
-    # concat them as strings, handling NA
-    df = pd.Series(df.fillna('NA').values.tolist()).map(lambda x: ' '.join(map(str,x)))
-    # ... and finally make a dictionary. Note that we will here also count identical lines.
-    countDict = dict()
-    maxHits = 0
-    for i in df:  
-        countDict[i] = countDict.get(i,0) + 1
-        if ( countDict[i]) > maxHits : 
-            maxHits = countDict[i]
-            sample = i
-    if len(countDict) == 0 : print("ERROR: 0 sized dictionary after reading ",fil)
-    if maxHits>1 and warn: print(f"WARNING: marker (or sample) identified by '{sample}' found {maxHits} times in {fil}. Might not be the only nonunique ...")
     return countDict, maxHits
 
 def lookupDict(fil, indx=1):
@@ -615,63 +436,6 @@ def create_exclude_list(duplicates, callRates, resultfile, excludelist):
     print ("**** .... and we should make a yaml file with summary in it")
     
 
-def exclude_strand_ambigious_markers(input, output, plink):
-    """ Runs plink to exlucde A/T and C/G SNPs
-
-
-    input is the trunk of a .bed/.bim/.fam triplet
-    ouput will be the corresponding set, without excluded markers 
-    The list over exluded markers can be found in ouput.excl
-    plink will produce the output-bedset
-
-    """
-    try: 
-        df = pd.read_csv(input+".bim", delim_whitespace=True, header=None).astype(str)
-    except Exception as e:
-        print(f"Could not open .bim-file of bedset {input}, {str(e)}")
-        return
-    mask = ((df[4] == 'G') & (df[5] == 'C') |
-           (df[4] == 'C') & (df[5] == 'G') |
-           (df[4] == 'A') & (df[5] == 'T') |
-           (df[4] == 'T') & (df[5] == 'A'))
-    (df[mask])[1].to_csv(output+".excl",index=False, header=False)
-
-    subprocess.run([plink,
-                "--bfile",input,
-                "--exclude", output+".excl",                     
-                "--out", output,               
-                "--make-bed"
-        ])
-
-
-def exclude_strand_ambigious_markers(input, output, plink):
-    """ Runs plink to exlucde A/T and C/G SNPs
-
-
-    input is the trunk of a .bed/.bim/.fam triplet
-    ouput will be the corresponding set, without excluded markers 
-    The list over exluded markers can be found in ouput.excl
-    plink will produce the output-bedset
-
-    """
-    try: 
-        df = pd.read_csv(input+".bim", delim_whitespace=True, header=None).astype(str)
-    except Exception as e:
-        print(f"Could not open .bim-file of bedset {input}, {str(e)}")
-        return
-    mask = ((df[4] == 'G') & (df[5] == 'C') |
-           (df[4] == 'C') & (df[5] == 'G') |
-           (df[4] == 'A') & (df[5] == 'T') |
-           (df[4] == 'T') & (df[5] == 'A'))
-    (df[mask])[1].to_csv(output+".excl",index=False, header=False)
-
-    subprocess.run([plink,
-                "--bfile",input,
-                "--exclude", output+".excl",                     
-                "--out", output,               
-                "--make-bed"
-        ])
-    
     
 def missing_genotype_rate(rule,
                           in_bedset, out_bedset, sample=True, treshold=0.1,
@@ -743,9 +507,10 @@ def low_hwe_rate(rule, in_bedset, out_bedset,
                 + hwe_switches)        # adding a list to another ...
     # We here have a .hwe file where low p-values for markers are to be removed
     hwe_p_values = out_bedset+".hwe"
-    extractSampleList(hwe_p_values, out_bedset+".exclude",
-                      threshold_doc_file=out_bedset+".details",
-                      colName="^P$", condition="<", treshold=treshold, cols={1})
+    extract_list(hwe_p_values, out_bedset+".exclude",
+                      threshold_doc_file=out_bedset+".details", sep=None,
+                      colName="^P$", condition="<", treshold=treshold,
+                      key_cols=[1], doc_cols=[0,1])
 
     subprocess.run([plink,
                     "--bfile",in_bedset,
@@ -1053,4 +818,7 @@ def sex_check(rule,
     return 
 
     
-
+# extract_list('/mnt/work/gutorm/qcTest/qcrot2/fullNewOutput/mod2-data-preparation/tmp/founders/sexcheck_report.sexcheck',
+#              'foo','foo.details', colName="^STATUS$",
+#              sep=None,condition='==', treshold="PROBLEM",
+#              key_cols=[0,1], doc_cols=[1,0])
