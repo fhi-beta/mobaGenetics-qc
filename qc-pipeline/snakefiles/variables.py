@@ -5,6 +5,10 @@ from shutil import copyfile
 import pandas as pd
 import plotnine as p9
 import matplotlib
+import math
+import sys
+import yaml
+import io
 matplotlib.use('Agg')  
 
 # These global variables can be shared only between Snakefiles 

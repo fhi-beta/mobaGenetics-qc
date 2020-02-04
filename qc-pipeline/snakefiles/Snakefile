@@ -1,7 +1,4 @@
 # Config files containing hard coded variables
-import sys
-import yaml
-import io
 sys.path.append('../lib')  # in order to find our local packages
 import mobaQcTools as mqc  # local moba package
 
@@ -32,6 +29,7 @@ rule all:
         expand(str(tmpMod2) + "/{role}/ibd_pruned.txt", role=ROLES),
         expand(str(resultPath) + "/{role}/geno_rates_mind3.yaml", role=ROLES),
         expand(str(resultPath) + "/{role}/hwe_autos_geno.yaml", role=ROLES),
+        expand(str(resultPath) + "/{role}/sex_check.yaml", role=ROLES),
         # For now: this is needed to force the plots into the report. Fix later
         resultPath/"plot_pca_both.png",
         expand(str(resultPath/"{role}/ibd_prep.png"), role=ROLES),

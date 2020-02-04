@@ -489,16 +489,13 @@ def missing_genotype_rate(rule,
 
     return dropouts
 
-def low_hwe_rate(rule, in_bedset, out_bedset,
-                 treshold=0.1,
-                 hwe_switches = ["--autosome", "--hardy", "midp"],
-                 result_file='/dev/null', plot_file='/dev/null'):
-    """ Runs plink hwe and removes low p-values produces output, including plot
+def detect_low_hwe_rate(in_bedset, out_bedset, treshold=0.1,
+                 hwe_switches = ["--autosome", "--hardy", "midp"]):
+    """ Runs plink hwe and computes p-values but doesnt change .bed file
 
-    Wrapper around plink to do Hardy Weinberg Equilibrium tests and plot distribution. 
-    Saves results with  saveYamlResults as well.
-
-    Has a potentional to wrap more --plink commands
+    P-values will end up in out_bedset.hwe
+    A subset below treshold will be found in out_bedset.exclude and
+    out_bedset.details will contains details including p-values
 
     """
     subprocess.run([plink,
@@ -511,7 +508,24 @@ def low_hwe_rate(rule, in_bedset, out_bedset,
                       threshold_doc_file=out_bedset+".details", sep=None,
                       colName="^P$", condition="<", treshold=treshold,
                       key_cols=[1], doc_cols=[0,1])
+    return
 
+def low_hwe_rate(rule, in_bedset, out_bedset,
+                 treshold=0.1,
+                 hwe_switches = ["--autosome", "--hardy", "midp"],
+                 result_file='/dev/null', plot_file='/dev/null'):
+    """ Runs plink hwe and removes low p-values produces output, including plot
+
+    Wrapper around plink to do Hardy Weinberg Equilibrium tests and plot distribution. 
+    Saves results with  saveYamlResults as well.
+
+    Has a potentional to wrap more --plink commands
+
+    """
+    detect_low_hwe_rate(in_bedset, out_bedset, treshold,
+                 hwe_switches)
+    hwe_p_values = out_bedset+".hwe"
+    # low values detected, now extract, make results and plot
     subprocess.run([plink,
                     "--bfile",in_bedset,
                     "--exclude", out_bedset+".exclude",
@@ -524,6 +538,7 @@ def low_hwe_rate(rule, in_bedset, out_bedset,
     dropouts["Treshold"] = treshold
     dropouts["Rule"] = rule
     saveYamlResults(result_file, dropouts)
+
     p = hweg_qq_plot(hwe_p_values, prec=2, x='P')
     # QQish plot with tresholds returned in p. Add, threshold, title and save
     t_line = geom_hline(yintercept=-1*math.log10(treshold), color='red')

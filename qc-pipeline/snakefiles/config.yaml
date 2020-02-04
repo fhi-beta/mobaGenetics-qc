@@ -85,6 +85,8 @@ geno_rare: 0.020
 sex_check_female: 0.2
 sex_check_male: 0.8  # which are the default of plink 1.9 btw
 
+female_xmarkers_clean: 0.000001
+
 hrc_sites: "/mnt/archive/helgeland/refdata/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
 
 

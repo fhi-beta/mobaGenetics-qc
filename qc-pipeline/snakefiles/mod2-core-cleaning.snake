@@ -1116,7 +1116,7 @@ rule sex_check:
     input:
         bedset = rules.hwe_autos_geno.output.bedset,
     output:
-        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),
+        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),  # called removed_failing_sexcheck
         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree"),                         
                          # caption=(resultPath/rule_stem).with_suffix(".rst")),
@@ -1141,21 +1141,43 @@ rule sex_check:
                       result_file=output.results, plot_file=output.plot)
 
         
+rule_stem = 'female_xmarkers'
+rule female_xmarkers:
+    input:
+        bedset = rules.sex_check.output.bedset,
+    output:
+        excludes = (tmpMod2/"{role}"/rule_stem).with_suffix(".exclude"),
+        plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
+                         category="Module 2 Core samples and infere pedigree"),                         
+                         # caption=(resultPath/rule_stem).with_suffix(".rst")),                         
+    params:
+        treshold = config['female_xmarkers_clean'],
+    benchmark:
+        (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")
+    run:
+ 	# note 1: all samples are now marked as FOUNDERS (no need for "--nonfounders" flag)
+ 	# note 2: all samples have missing phenotype (no need for "include-nonctrl" flag)
+                
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
 
-# 		# additional run of marker missingness at 2%
-# 		report_plots \
-# 		        {params.outdir}/clean_het-rare \
-# 			{params.repdir} \
-# 		        "CLEANGENO4" L 0.02
-# 		plink_remove_above_geno \
-# 		        {params.outdir}/clean_het-rare \
-# 		        0.020 \
-# 		        {params.outdir}/clean_autosomes
+        inTrunk =  mqc.plinkBase(input.bedset)
+        outTrunk =  mqc.plinkBase(output.excludes)
 
-# 		samples_end_clean=`wc -l {params.outdir}/clean_autosomes.fam | cut -d ' ' -f1`
-# 	        log "samples_begin: $samples_begin_clean, samples end: $samples_end_clean"
-# 		"""
-
+        mqc.detect_low_hwe_rate(inTrunk, outTrunk,  
+                         treshold=params.treshold,
+                         hwe_switches = ["--filter-females", "--chr", "23",
+                                         "--hardy", "midp"])
+        hwe_p_values = outTrunk+".hwe"
+        p = mqc.hweg_qq_plot(hwe_p_values, prec=2, x='P')
+        # QQish plot with tresholds returned in p. Add, threshold, title and save
+        t_line = p9.geom_hline(yintercept=-1*math.log10(params.treshold), color='red')
+        p += t_line    # treshold  added to the plot
+        title = f'HWE female x-markers> -log({params.treshold})'
+        p += p9.labs(title=title)
+        p9.ggsave(plot=p, filename=output.plot, dpi=600)
+    
+        
 # rule sexclean:
 # 	input:
 # 		base + '{role}/tmp/' + 'clean_autosomes.bed'
