@@ -405,14 +405,24 @@ sex_check:
 
 female_xmarkers:
   QC test: Detect female markers with low hwe, only chr23
-  Description: No removal her, results will be used laters
+  Description: No removal here, results will be used laters
   Rule order: mod2.2f
   rule type: markers
   rule action: detect
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
-    
+
+par_regions:
+  QC test: Cleaning par-region for both genders
+  Description: No removal here, results will be used laters
+  Rule order: mod2.2g
+  rule type: markers
+  rule action: detect
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+  
     
 merge_foundersoffspring:
   QC test:

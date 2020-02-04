@@ -1151,7 +1151,7 @@ rule female_xmarkers:
                          category="Module 2 Core samples and infere pedigree"),                         
                          # caption=(resultPath/rule_stem).with_suffix(".rst")),                         
     params:
-        treshold = config['female_xmarkers_clean'],
+        treshold = config['xmarkers_clean'],
     benchmark:
         (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")
     run:
@@ -1173,11 +1173,47 @@ rule female_xmarkers:
         # QQish plot with tresholds returned in p. Add, threshold, title and save
         t_line = p9.geom_hline(yintercept=-1*math.log10(params.treshold), color='red')
         p += t_line    # treshold  added to the plot
-        title = f'HWE female x-markers> -log({params.treshold})'
+        title = f'HWE female chr23 markers> -log({params.treshold})'
         p += p9.labs(title=title)
         p9.ggsave(plot=p, filename=output.plot, dpi=600)
-    
+
+rule_stem = 'par_regions'
+rule par_regions:
+    input:
+        bedset = rules.sex_check.output.bedset,
+    output:
+        excludes = (tmpMod2/"{role}"/rule_stem).with_suffix(".exclude"),
+        plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
+                         category="Module 2 Core samples and infere pedigree"),                         
+                         # caption=(resultPath/rule_stem).with_suffix(".rst")),                         
+    params:
+        treshold = config['xmarkers_clean'],
+    benchmark:
+        (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")
+    run:
+ 	# note 1: all samples are now marked as FOUNDERS (no need for "--nonfounders" flag)
+ 	# note 2: all samples have missing phenotype (no need for "include-nonctrl" flag)
+                
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+
+        inTrunk =  mqc.plinkBase(input.bedset)
+        outTrunk =  mqc.plinkBase(output.excludes)
+
+        mqc.detect_low_hwe_rate(inTrunk, outTrunk,  
+                         treshold=params.treshold,
+                         hwe_switches = ["--chr", "25",
+                                         "--hardy", "midp"])
+        hwe_p_values = outTrunk+".hwe"
+        p = mqc.hweg_qq_plot(hwe_p_values, prec=2, x='P')
+        # QQish plot with tresholds returned in p. Add, threshold, title and save
+        t_line = p9.geom_hline(yintercept=-1*math.log10(params.treshold), color='red')
+        p += t_line    # treshold  added to the plot
+        title = f'HWE chr25 x-markers> -log({params.treshold})'
+        p += p9.labs(title=title)
+        p9.ggsave(plot=p, filename=output.plot, dpi=600)
         
+
 # rule sexclean:
 # 	input:
 # 		base + '{role}/tmp/' + 'clean_autosomes.bed'

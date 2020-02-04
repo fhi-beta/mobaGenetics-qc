@@ -691,22 +691,22 @@ def fix_rsid_map(mapfile, newmap):
             out.write(f"{row['from']} {to}\n")
 
 
-def intersect_rsid(bim_small, bim_big, intersection):
-    """ Assumes bim files, that is tab-serarated plink with rsID in second column
+def intersect_rsid(bim_small, bim_big, intersection, small_col=1, big_col=1):
+    """ Default assumes bim files, that is tab-serarated plink with rsID in second column
 
     intersection is a file to be created
     If one of the files are large, pass that as bim_big for efficiency
+    bim-files have rsid in 2. column (1, default). If you files containing rsid
+    but on an other format, pas the column number (0 is firs column)
     
-    could have been more general checking any column
-
     """
     my_name = inspect.stack()[0][3]      # Generic way of find this functions name
     m = 0   # max hits
     try: 
-        (smallDict,m) = dict_count_items(bim_small, [1], warn=False) # what do we have
+        (smallDict,m) = dict_count_items(bim_small, [small_col], warn=False) # what do we have
         with open(intersection, "w") as out:
             for line in open(bim_big):
-                rsid = line.split()[1]
+                rsid = line.split()[big_col]
                 if smallDict.get(rsid,0) > 0 :  out.write(f"{rsid}\n")
 
     except Exception as e:
@@ -844,8 +844,15 @@ def sex_check(rule,
               treshold=0, logx=False, bins=100)
     return 
 
-    
-# extract_list('/mnt/work/gutorm/qcTest/qcrot2/fullNewOutput/mod2-data-preparation/tmp/founders/sexcheck_report.sexcheck',
-#              'foo','foo.details', colName="^STATUS$",
-#              sep=None,condition='==', treshold="PROBLEM",
-#              key_cols=[0,1], doc_cols=[1,0])
+def egrep(pattern, in_file, out_file, switches=""):
+    """
+    egrep wrapper. Lazy. Prone to path errors. It is pretty bad tbh.
+    """
+    subprocess.call(f'egrep {switches} {pattern} {in_file} > {out_file}', shell=True)
+    return
+
+
+#dir="/mnt/work2/gutorm/pipeOut/mod2-data-preparation/founders/"
+#intersect_rsid("/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/snakefiles/foo", dir+"23", "bar", small_col=0, big_col=1)
+
+
