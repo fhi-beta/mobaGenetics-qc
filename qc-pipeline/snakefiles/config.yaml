@@ -9,10 +9,6 @@ plinklocal: "/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/bin/plink-1.90b5.4
 # Lab QC report: /mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/lab-report/GSA2017_246_QC_report.pdf
 raw_bed_stem: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/plink/GSA2017_246_025_ReRun"
 
-# old recode_rsid: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-rsid.txt"
-# recode based on https://support.illumina.com/array/array_kits/infinium-global-screening-array/downloads.html (GSA v1.0)
-recode_rsid: "/mnt/archive/chip-support-files/GSAMD24-v1.0/GSA-24v1-0_C1_b150_rsids.txt"
-
 # MOBA info
 recode_ids: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-ids-rotterdam2.txt"
 recode_parents: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-parents-rotterdam2.txt"

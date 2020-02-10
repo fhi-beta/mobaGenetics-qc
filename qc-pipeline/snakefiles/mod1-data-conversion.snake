@@ -35,13 +35,69 @@ rule remove_chr0:
 
         mqc.saveYamlResults(output.results, dropouts)
         mqc.log(runlog, f'(NSNP_CHR0_LOST) Removed {dropouts["actionTakenCount"]} chromosone 0 out of {dropouts["in"]}, leaving {dropouts["out"]} markers\n')
+        
 
+# Check for duplicate markers, and remove all but one (keep best callrate)
+# The code here is copied and reused in remove_dup_markers_1kg
+# This rule could be smarter in the case no duplicate markers are found
+rule_stem = 'remove_duplicate_markers'
+rule remove_duplicate_markers:
+    input:
+        bedset= rules.remove_chr0.output.bedset
+    output:
+        bedset=expand(str(tmpMod1/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        excludeList = (tmpMod1/rule_stem).with_suffix(".txt"),
+        resultDetails = (resultPath/rule_stem).with_suffix(".csv"),
+        plink_dup_list = (tmpMod1/rule_stem).with_suffix(".plinkdups"),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 1 Data preparation",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+    run:
+        item_type = rule_info[rule]["rule type"]
+        inTrunk = mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
+        callRateTrunk = mqc.plinkBase(output.excludeList)
+        # Create a plink.dupvar file
+        subprocess.run([plinklocal,
+                        "--bfile",inTrunk,
+                        "--list-duplicate-vars"
+        ])
+        # Unfortunately, the result is placed in cwd, we want it with the other tmp files
+        dup_file_old = Path(os.getcwd())/'plink.dupvar'
+        # Python 3.7.5 . The blow fails when not on the same mountpoint (bug)?
+        # dup_file_old.rename(output.plink_dup_list)
+        shutil.move(dup_file_old, output.plink_dup_list)
+        dup_file = output.plink_dup_list
+        
+        subprocess.run([plinklocal,
+                        "--bfile", inTrunk,
+                        "--out", callRateTrunk,
+                        "--missing"
+        ])
+
+        mqc.create_exclude_list(dup_file, callRateTrunk+".lmiss",
+                                output.resultDetails, output.excludeList)
+
+        subprocess.run([plinklocal,
+                        "--bfile",inTrunk,
+                        "--exclude", output.excludeList,
+                        "--out", outTrunk,
+                        "--make-bed"
+        ])
+        # We are here checking only the snp-id. It should be unique
+        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [1], sanityCheck = "removal",
+                                    fullList = False) 
+        dropouts["Detailed results"] = output.resultDetails
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+        mqc.log(runlog, f'Due to duplicate markers, removed {dropouts["actionTakenCount"]} markers out of {dropouts["in"]}, leaving {dropouts["out"]} markers\n')
 
 
 rule_stem ='sampleIdUpdated'
 rule update_sample_ids:
     input:
-        bedset=rules.remove_chr0.output.bedset,
+        bedset=rules.remove_duplicate_markers.output.bedset,
         recode=config['recode_ids']
     output:
         bedset=expand(str(tmpMod1/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
@@ -132,66 +188,11 @@ rule update_sex:
         mqc.log(runlog,f'Sex updated: Updated {updated["actionTakenCount"]} samples (NIND_NOTUPDATEDPAR) out of {updated["in"]} (NIND_TOUPDATEPAR)\n')
 
 
-# Check for duplicate markers, and remove all but one (keep best callrate)
-# The code here is copied and reused in remove_dup_markers_1kg
-# This rule could be smarter in the case no duplicate markers are found
-rule_stem = 'remove_duplicate_markers'
-rule remove_duplicate_markers:
-    input:
-        bedset = rules.update_sex.output.bedset,
-    output:
-        bedset=expand(str(tmpMod1/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
-        excludeList = (tmpMod1/rule_stem).with_suffix(".txt"),
-        resultDetails = (resultPath/rule_stem).with_suffix(".csv"),
-        plink_dup_list = (tmpMod1/rule_stem).with_suffix(".plinkdups"),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
-                         category="Module 1 Data preparation",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))
-    run:
-        item_type = rule_info[rule]["rule type"]
-        inTrunk = mqc.plinkBase(input.bedset[0])
-        outTrunk = mqc.plinkBase(output.bedset[0])
-        callRateTrunk = mqc.plinkBase(output.excludeList)
-        # Create a plink.dupvar file
-        subprocess.run([plinklocal,
-                        "--bfile",inTrunk,
-                        "--list-duplicate-vars"
-        ])
-        # Unfortunately, the result is placed in cwd, we want it with the other tmp files 
-        dup_file_old = Path(os.getcwd())/'plink.dupvar'
-        dup_file_old.rename(output.plink_dup_list)
-        dup_file = output.plink_dup_list
-        
-        subprocess.run([plinklocal,
-                        "--bfile", inTrunk,
-                        "--out", callRateTrunk,
-                        "--missing"
-        ])
-
-        mqc.create_exclude_list(dup_file, callRateTrunk+".lmiss",
-                                output.resultDetails, output.excludeList)
-
-        subprocess.run([plinklocal,
-                        "--bfile",inTrunk,
-                        "--exclude", output.excludeList,
-                        "--out", outTrunk,
-                        "--make-bed"
-        ])
-        # We are here checking only the snp-id. It should be unique
-        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [1], sanityCheck = "removal",
-                                    fullList = False) 
-        dropouts["Detailed results"] = output.resultDetails
-        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Rule"] = rule
-        mqc.saveYamlResults(output.results, dropouts)
-        mqc.log(runlog, f'Due to duplicate markers, removed {dropouts["actionTakenCount"]} markers out of {dropouts["in"]}, leaving {dropouts["out"]} markers\n')
-
-
 # Remove markers on snp table metrics
 rule_stem = 'clustersep_removal'
 rule remove_markers_cluster_sep:
     input:
-        bedset = rules.remove_duplicate_markers.output.bedset,
+        bedset = rules.update_sex.output.bedset,
         snptable=config['snptable']
     output:
         bedset=expand(str(tmpMod1/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
@@ -215,9 +216,9 @@ rule remove_markers_cluster_sep:
         # identify markers for removal on cluster separation
         (removed,total) = mqc.extract_list(input.snptable, 
                 output.removal_markers, output.removal, 
-                colName=config['cluster_sep_col_name'],
+                                colName=config['cluster_sep_col_name'], sep='\t',
                                 condition="<", treshold=params.treshold, 
-                                key_cols=[0], doc_cols=[0], sep='\t' )
+                                key_cols=[0], doc_cols=[0])
 
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
@@ -266,9 +267,9 @@ rule remove_markers_gc_score:
         # identify markers for removal 
         (removed,total) = mqc.extract_list(input.snptable, 
                 output.removal_markers, output.removal, 
-                colName=config["10%_GC_score_col_name"],
+                            colName=config["10%_GC_score_col_name"], sep='\t',
                             condition = "<", treshold = params.treshold, 
-                            key_cols=[0], doc_cols=[0], sep ='\t' )
+                            key_cols=[0], doc_cols=[0] )
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
                 "--exclude", output.removal_markers,
@@ -315,9 +316,9 @@ rule remove_markers_aa_theta_dev:
         # identify markers for removal 
         (removed,total) = mqc.extract_list(input.snptable, 
                 output.removal_markers, output.removal, 
-                colName=config["aa_theta_dev_col_name"],
+                                colName=config["aa_theta_dev_col_name"], sep='\t',
                                 condition = ">", treshold=params.treshold, 
-                                key_cols=[0], doc_cols=[0],  sep ='\t')
+                                key_cols=[0], doc_cols=[0])
 
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
@@ -341,41 +342,3 @@ rule remove_markers_aa_theta_dev:
 
 
 
-# Note that for historical reason, this is placed at the end of module1, since we earlier could not do this
-# due to the 'duplicate marker' being a list. The list used old ids.
-# It would be clearner now -after testing, to do this early in the pipe ...
-# Should you move this, make sure the first mod2 rule gets new input ...
-rule_stem ='update_rsids'
-rule update_rsids:
-    input:
-        bedset=rules.remove_markers_aa_theta_dev.output.bedset,
-        recode=config['recode_rsid']   # some business logic will be imposed here, producing ouput.recode
-    output:
-        recode = (tmpMod1/rule_stem).with_suffix(".txt"),
-        bedset=expand(str(tmpMod1/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
-                         category="Module 1 Data preparation",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))
-    run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, "*** Module 1 Data preparation ***\n")
-        mqc.log(runlog, "Updating rsids: \n")
-        inTrunk = mqc.plinkBase(input.bedset[0])
-        outTrunk = mqc.plinkBase(output.bedset[0])
-
-        mqc.fix_rsid_map(input.recode, output.recode)
-        # Note: We don't care about whether there is a header or not in the recode file as
-        # long as the headers do not match ids ...
-        subprocess.run([plinklocal,
-                "--bfile",inTrunk,
-                "--update-name", output.recode, 
-                "--out", outTrunk ,
-                "--make-bed" ])
-        # Comparing only the rsid field, it will not be unique after the remap
-        # See rules.yaml for more info
-        updated = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols=[1], indx=1,
-                                   sanityCheck="none", fullList=True, mapFile=output.recode, mapIndx=1) 
-        updated.update(rule_info[rule])   # Metainfo and documentation about the rule
-        updated["Rule"] = rule
-        mqc.saveYamlResults(output.results, updated)
-        mqc.log(runlog,f'Marker id: Updated {updated["actionTakenCount"]} markers (RSID_UPDATE) out of {updated["in"]} (NIND_TOUPDATEID)\n')
