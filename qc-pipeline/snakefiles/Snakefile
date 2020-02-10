@@ -30,6 +30,7 @@ rule all:
         expand(str(resultPath) + "/{role}/geno_rates_mind3.yaml", role=ROLES),
         expand(str(resultPath) + "/{role}/hwe_autos_geno.yaml", role=ROLES),
         expand(str(resultPath) + "/{role}/sex_check.yaml", role=ROLES),
+        expand(str(resultPath) + "/{role}/par_regions.yaml", role=ROLES),
         # For now: this is needed to force the plots into the report. Fix later
         resultPath/"plot_pca_both.png",
         expand(str(resultPath/"{role}/ibd_prep.png"), role=ROLES),

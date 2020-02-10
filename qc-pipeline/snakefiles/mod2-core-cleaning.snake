@@ -1,7 +1,7 @@
 rule_stem = 'maf_removal_markers'
 rule maf_removal_markers:   #Minor allele frequencies removal
     input:
-        bedset = rules.update_rsids.output.bedset
+        bedset = rules.remove_markers_aa_theta_dev.output.bedset
     output:
         bedset=expand(str(tmpMod2/rule_stem)
                           + '{ext}', ext=['.bed','.bim','.fam']),
@@ -1146,7 +1146,10 @@ rule female_xmarkers:
     input:
         bedset = rules.sex_check.output.bedset,
     output:
-        excludes = (tmpMod2/"{role}"/rule_stem).with_suffix(".exclude"),
+        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"), 
+        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree"),                         
+        # caption=(resultPath/rule_stem).with_suffix(".rst")),
         plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
                          category="Module 2 Core samples and infere pedigree"),                         
                          # caption=(resultPath/rule_stem).with_suffix(".rst")),                         
@@ -1162,27 +1165,23 @@ rule female_xmarkers:
         mqc.log(runlog, rule_info[rule]["QC test"])
 
         inTrunk =  mqc.plinkBase(input.bedset)
-        outTrunk =  mqc.plinkBase(output.excludes)
+        outTrunk =  mqc.plinkBase(output.bedset)
 
-        mqc.detect_low_hwe_rate(inTrunk, outTrunk,  
+        mqc.low_hwe_rate(rule, inTrunk, outTrunk,  
                          treshold=params.treshold,
                          hwe_switches = ["--filter-females", "--chr", "23",
-                                         "--hardy", "midp"])
-        hwe_p_values = outTrunk+".hwe"
-        p = mqc.hweg_qq_plot(hwe_p_values, prec=2, x='P')
-        # QQish plot with tresholds returned in p. Add, threshold, title and save
-        t_line = p9.geom_hline(yintercept=-1*math.log10(params.treshold), color='red')
-        p += t_line    # treshold  added to the plot
-        title = f'HWE female chr23 markers> -log({params.treshold})'
-        p += p9.labs(title=title)
-        p9.ggsave(plot=p, filename=output.plot, dpi=600)
+                                         "--hardy", "midp"],
+                         result_file=output.results, plot_file=output.plot)
 
 rule_stem = 'par_regions'
 rule par_regions:
     input:
-        bedset = rules.sex_check.output.bedset,
+        bedset = rules.female_xmarkers.output.bedset,
     output:
-        excludes = (tmpMod2/"{role}"/rule_stem).with_suffix(".exclude"),
+        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"), 
+        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree"),                         
+        # caption=(resultPath/rule_stem).with_suffix(".rst")),
         plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
                          category="Module 2 Core samples and infere pedigree"),                         
                          # caption=(resultPath/rule_stem).with_suffix(".rst")),                         
@@ -1198,21 +1197,14 @@ rule par_regions:
         mqc.log(runlog, rule_info[rule]["QC test"])
 
         inTrunk =  mqc.plinkBase(input.bedset)
-        outTrunk =  mqc.plinkBase(output.excludes)
+        outTrunk =  mqc.plinkBase(output.bedset)
 
-        mqc.detect_low_hwe_rate(inTrunk, outTrunk,  
+        mqc.low_hwe_rate(rule, inTrunk, outTrunk,  
                          treshold=params.treshold,
                          hwe_switches = ["--chr", "25",
-                                         "--hardy", "midp"])
-        hwe_p_values = outTrunk+".hwe"
-        p = mqc.hweg_qq_plot(hwe_p_values, prec=2, x='P')
-        # QQish plot with tresholds returned in p. Add, threshold, title and save
-        t_line = p9.geom_hline(yintercept=-1*math.log10(params.treshold), color='red')
-        p += t_line    # treshold  added to the plot
-        title = f'HWE chr25 x-markers> -log({params.treshold})'
-        p += p9.labs(title=title)
-        p9.ggsave(plot=p, filename=output.plot, dpi=600)
-        
+                                         "--hardy", "midp"],
+                         result_file=output.results, plot_file=output.plot)
+                         
 
 # rule sexclean:
 # 	input:
