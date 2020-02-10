@@ -14,10 +14,11 @@ import re
 import datetime
 from pathlib import Path
 import subprocess
-import inspect    # to find stack-info, such as the functions name
 import os
 from datetime import datetime
 from shutil import copyfile
+import inspect    # to find stack-info, such as the functions name
+
 
 # This is kinda ugly
 cwd = Path.cwd()
@@ -44,7 +45,8 @@ def plot_hist(dataFile, resultFile, column="name of the column", title="no legen
     Default separator is whitespace, but it needs to be overriden every now and then ... (typically by pure tab '\t')
     If (optional) logx is True, x-values are log10 transformed.
     """
-    my_name = inspect.stack()[0][3]      # Generic way of find this functions name
+    my_name = inspect.currentframe().f_code.co_name      # Generic way of find this functions name
+    #my_name = "plot_hist"
     try: 
         df = pd.read_csv(dataFile, sep=separator, 
                  usecols=[column] )
@@ -74,7 +76,8 @@ def plot_point_and_line(qc_results, dataFile, resultFile, column="name of the co
     If invert=True, will plot 1-probabilities . Default is True as this is often used to plot missingess/call rates.
 
     """
-    my_name = inspect.stack()[0][3]      # Generic way of find this functions name. Use 
+    my_name = inspect.currentframe().f_code.co_name      # Generic way of find this functions name. Use
+    #my_name = "plot_point_and_line"
     try: 
         df = pd.read_csv(dataFile, sep=separator, 
                  usecols=[column] )
@@ -177,7 +180,7 @@ compOperands = {
 
 def extract_list(innFile, outFile, threshold_doc_file="/dev/null", 
                  colName="none", sep='\t', condition="<", treshold=0,
-                 key_cols=[0], doc_cols=[0,1] ):
+                 key_cols=[0], doc_cols=[0,1]):
     """ A typical preprocessor to utilities like plink, extracts relevant samples/markers
 
     Efficient in the sense that it is not reading the (huge) files into memory.
@@ -195,7 +198,8 @@ def extract_list(innFile, outFile, threshold_doc_file="/dev/null",
     * Prints error and returns unless only one columns matches
     * Outputfiles use the same separator as used for innFile. If 'none' was used ' ' is used
     """
-    my_name = inspect.stack()[0][3]      # Generic way of find this functions name        
+    my_name = inspect.currentframe().f_code.co_name      # Generic way of find this functions name
+    #my_name = "extract_list"
     with open(innFile) as fp:
         
         # Identifying header column 
@@ -273,7 +277,9 @@ def dict_count_items(fil, cols=[0,1], warn=True):
             maxHits = countDict[i]
             sample = i
     if len(countDict) == 0 : print("ERROR: 0 sized dictionary after reading ",fil)
-    if maxHits>1 and warn: print(f"WARNING: sample/marker {sample} found {maxHits} times in {fil}. Might not be the only nonunique ...")
+    if maxHits>1 and warn:
+        print(f"WARNING: sample/marker {sample} found {maxHits} times in {fil}. Might not be the only nonunique ...")
+    # print (f"**********   counted {fil} and got {len(countDict)} unique items")
     return countDict, maxHits
 
 def lookupDict(fil, indx=1):
@@ -493,7 +499,7 @@ def detect_low_hwe_rate(in_bedset, out_bedset, treshold=0.1,
                  hwe_switches = ["--autosome", "--hardy", "midp"]):
     """ Runs plink hwe and computes p-values but doesnt change .bed file
 
-    P-values will end up in out_bedset.hwe
+    P-values for markers will end up in out_bedset.hwe
     A subset below treshold will be found in out_bedset.exclude and
     out_bedset.details will contains details including p-values
 
@@ -514,10 +520,11 @@ def low_hwe_rate(rule, in_bedset, out_bedset,
                  treshold=0.1,
                  hwe_switches = ["--autosome", "--hardy", "midp"],
                  result_file='/dev/null', plot_file='/dev/null'):
-    """ Runs plink hwe and removes low p-values produces output, including plot
+    """ Runs plink hwe and removes low p-values markers.  Produces output, including plot
 
     Wrapper around plink to do Hardy Weinberg Equilibrium tests and plot distribution. 
     Saves results with  saveYamlResults as well.
+    bedsets are 'trunks'
 
     Has a potentional to wrap more --plink commands
 
@@ -564,7 +571,8 @@ def het_extract(het_file, out_file, sd):
          out_files.total contains .het file + more metrics that caused remival. This
          file has headers
     """
-    my_name = inspect.stack()[0][3]      # Generic way of find this functions name        
+    my_name = inspect.currentframe().f_code.co_name      # Generic way of find this functions name
+    #my_name = "het_extract"
     try: 
         df = pd.read_csv(het_file,delim_whitespace=True)
     except Exception as e:
@@ -700,7 +708,8 @@ def intersect_rsid(bim_small, bim_big, intersection, small_col=1, big_col=1):
     but on an other format, pas the column number (0 is firs column)
     
     """
-    my_name = inspect.stack()[0][3]      # Generic way of find this functions name
+    my_name = inspect.currentframe().f_code.co_name      # Generic way of find this functions name
+    #my_name = "intersect_rsid"
     m = 0   # max hits
     try: 
         (smallDict,m) = dict_count_items(bim_small, [small_col], warn=False) # what do we have
@@ -732,7 +741,8 @@ def dotplot(genomedata,prec=2,x='x',y='y',c='c'):
     The data is found in a whitespace separated file where they x,y and c are headers
     
     """
-    my_name = inspect.stack()[0][3]      # Generic way of find this functions name        
+    my_name = inspect.currentframe().f_code.co_name      # Generic way of find this functions name
+    #my_name = "dotplot"
     try: 
         df = pd.read_csv(genomedata, usecols=[c,x,y], delim_whitespace=True)
     except Exception as e:
@@ -756,7 +766,8 @@ def hweg_qq_plot(pfile,prec=3,x='x'):
     The data is found in a whitespace separated pfile where they x denotes the header
     
     """
-    my_name = inspect.stack()[0][3]      # Generic way of find this functions name        
+    my_name = inspect.currentframe().f_code.co_name      # Generic way of find this functions name
+    #my_name = "hweg_qq_plot"
     try: 
         df = pd.read_csv(pfile, usecols=[x], 
              delim_whitespace=True).sort_values(by=[x],na_position='first',ascending=False)
