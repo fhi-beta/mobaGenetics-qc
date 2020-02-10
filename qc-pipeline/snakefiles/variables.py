@@ -9,6 +9,7 @@ import math
 import sys
 import yaml
 import io
+import shutil
 matplotlib.use('Agg')  
 
 # These global variables can be shared only between Snakefiles 
