@@ -456,7 +456,7 @@ common_founders_offspring_markers:
     
 core_missingness:
   QC test: Start of Core set creation. Missingness 
-  Description: Starts with result of 
+  Description: Starts with result earlier of split_founder_offspring and will continue tuning after this rule. Also reduces makers to the common good markers found for founders/offspring
   Rule order: mod2.3a
   rule type: samples
   rule action: remove

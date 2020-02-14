@@ -1262,12 +1262,13 @@ rule sex_clean:
 
         inTrunk =  mqc.plinkBase(input.bedset)
         outTrunk =  mqc.plinkBase(output.bedset)
-
+        
+        # Make a list of all earlier fails
         subprocess.call(f'cat {input.excl_failed_hwe_female_x}'
                         f' {input.excl_failed_hwe_par_regions}'
                         f' {input.excl_male_x_markers} > {output.exclude_markers}', shell=True)
 
-        
+        # and remove them
         subprocess.run([plinklocal,
                         "--bfile",inTrunk,
                         "--exclude", output.exclude_markers,
@@ -1292,45 +1293,48 @@ rule common_founders_offspring_markers:
         mqc.intersect_rsid(input.markers[1], input.markers[0], output.markers, small_col=1, big_col=1)
         
         
-# rule_stem = 'core_missingness'
-# rule core_missingness: 
-#     input:
-#         bedset = (tmpMod2/"{role}"/"start_clean").with_suffix(".bed") 
-#         excl_failed_hwe_female_x = rules.female_xmarkers.output.exclude_markers,
-#         excl_failed_hwe_par_regions = rules.par_regions.output.exclude_markers,
-#         excl_male_x_markers = rules.clean_male_x.output.exclude_markers,
-#     output:
-#         bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"), # clean_markers earlier
-#         exclude_markers = report((tmpMod2/"{role}"/rule_stem).with_suffix(".exclude"),
-#                          category="Module 2 Core samples and infere pedigree"),
-#         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
-#                          category="Module 2 Core samples and infere pedigree"),        
-#         # caption=(resultPath/rule_stem).with_suffix(".rst")),
-#     benchmark:
-#         (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")
-#     run:
-#         item_type = rule_info[rule]["rule type"]
-#         mqc.log(runlog, rule_info[rule]["QC test"])
+rule_stem = 'core_missingness'
+rule core_missingness: 
+    input:
+        bedset = (tmpMod2/"{role}"/"start_clean").with_suffix(".bed"), # from split_founder_offspring
+        prunedsnps = rules.prune_markers.output.exclude_list,
+        common_markers = rules.common_founders_offspring_markers.output.markers 
+    output:
+        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"), 
+        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree"),        
+        # caption=(resultPath/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
+                         category="Module 2 Core samples and infere pedigree"),        
+        # caption=(resultPath/rule_stem).with_suffix(".rst")),
+    params:
+        mind = config['core_mind'],
+    benchmark:
+        (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
 
-#         inTrunk =  mqc.plinkBase(input.bedset)
-#         outTrunk =  mqc.plinkBase(output.bedset)
+        inTrunk =  mqc.plinkBase(input.bedset)
+        outTrunk =  mqc.plinkBase(output.bedset)
 
-#         subprocess.call(f'cat {input.excl_failed_hwe_female_x}'
-#                         f' {input.excl_failed_hwe_par_regions}'
-#                         f' {input.excl_male_x_markers} > {output.exclude_markers}', shell=True)
+        subprocess.run([plinklocal,
+                        "--bfile",inTrunk,
+                        "--extract", input.common_markers,
+                        "--out", outTrunk,                                   
+                        "--make-bed"  ])
 
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim", cols = [0,1],
+                                sanityCheck = "removal", fullList = True) 
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule + " (common markers)"
+        mqc.saveYamlResults(output.results+".common", dropouts)
         
-#         subprocess.run([plinklocal,
-#                         "--bfile",inTrunk,
-#                         "--exclude", output.exclude_markers,
-#                         "--out", outTrunk,                                   
-#                         "--make-bed"  ])
-        
-#         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim", cols = [0,1],
-#                                 sanityCheck = "removal", fullList = True) 
-#         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-#         dropouts["Rule"] = rule
-#         mqc.saveYamlResults(output.results, dropouts)
+        mqc.missing_genotype_rate(rule, inTrunk, outTrunk, sample=True,
+                        treshold=params.mind,
+                        result_file=output.results,
+                        plot_file=output.plot)                                      
+
 
 
         
