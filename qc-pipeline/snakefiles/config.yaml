@@ -86,6 +86,9 @@ xmarkers_clean: 0.000001
 
 # parameters to finalize core
 core_mind: 0.02
+# Same limits for common/rare
+core_maf: 0.01
+core_sd_het: 4
 
 hrc_sites: "/mnt/archive/helgeland/refdata/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
 

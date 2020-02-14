@@ -464,6 +464,16 @@ core_missingness:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
+core_het:
+  QC test: sample heterozygosity for the core set 
+  Description: Creates plots and logs for both common and rare autosomal markers
+  Rule order: mod2.3b
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+    
 set_mendelian_errors_missing:
   QC test:
   Description:

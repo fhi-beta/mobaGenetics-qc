@@ -1100,7 +1100,7 @@ rule hwe_autos_geno:        # part of earlier markerclean
                             sd=getattr(params,f"sd_het{i}"),
                             result_file=res_file,
                             plot_file=plot_file)
-            # dirty, but with two iterations only this works ...
+            # dirty, but with only two iterations this works ...
             autosomal = "rare"
             lastTrunk = outTrunk
 
@@ -1297,7 +1297,7 @@ rule_stem = 'core_missingness'
 rule core_missingness: 
     input:
         bedset = (tmpMod2/"{role}"/"start_clean").with_suffix(".bed"), # from split_founder_offspring
-        prunedsnps = rules.prune_markers.output.exclude_list,
+        # prunedsnps = rules.prune_markers.output.exclude_list,
         common_markers = rules.common_founders_offspring_markers.output.markers 
     output:
         bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"), 
@@ -1336,7 +1336,50 @@ rule core_missingness:
                         plot_file=output.plot)                                      
 
 
+rule_stem = 'core_het'
+rule core_het: 
+    input:
+        bedset = rules.core_missingness.output.bedset
+    output:
+        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"), 
+        results_rare = report((resultPath/"{role}"/rule_stem).with_suffix(".rare.yaml"),
+                         category="Module 2 Core samples and infere pedigree"),        
+        # caption=(resultPath/rule_stem).with_suffix(".rst")),
+        plot_rare = report((resultPath/"{role}"/rule_stem).with_suffix(".rare.png"),
+                         category="Module 2 Core samples and infere pedigree"),        
+        # caption=(resultPath/rule_stem).with_suffix(".rst")),
+        # These commin are for common autosome, a tmp result
+        results_common = report((resultPath/"{role}"/rule_stem).with_suffix(".common.yaml"),
+                         category="Module 2 Core samples and infere pedigree"),        
+        # caption=(resultPath/rule_stem).with_suffix(".rst")),
+        plot_common = report((resultPath/"{role}"/rule_stem).with_suffix(".common.png"),
+                         category="Module 2 Core samples and infere pedigree"),        
+        # caption=(resultPath/rule_stem).with_suffix(".rst")),
+    params:
+        mind = config['core_mind'],
+        maf = config['core_maf'],
+        sd = config['core_sd_het'],        
+    benchmark:
+        (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
 
+        inTrunk =  mqc.plinkBase(input.bedset)
+        tmpTrunk = inTrunk + ".common"
+        outTrunk =  mqc.plinkBase(output.bedset)
+        # Filter common sample heterozygosity
+        mqc.excess_het(rule, "common", inTrunk, tmpTrunk,  
+                       treshold=params.maf,
+                       sd=params.sd,
+                       result_file=output.results_common,
+                       plot_file=output.plot_common)
+        # ... and use results as start for rare sample heterozygosity
+        mqc.excess_het(rule, "rare", tmpTrunk, outTrunk,  
+                       treshold=params.maf,
+                       sd=params.sd,
+                       result_file=output.results_rare,
+                       plot_file=output.plot_rare)
         
 
 # rule makecore:
