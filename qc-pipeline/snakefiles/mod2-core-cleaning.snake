@@ -1150,6 +1150,9 @@ rule female_xmarkers:
         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree"),                         
         # caption=(resultPath/rule_stem).with_suffix(".rst")),
+        exclude_markers = report((tmpMod2/"{role}"/rule_stem).with_suffix(".exclude"),
+                         category="Module 2 Core samples and infere pedigree"),                         
+        # caption=(resultPath/rule_stem).with_suffix(".rst")),
         plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
                          category="Module 2 Core samples and infere pedigree"),                         
                          # caption=(resultPath/rule_stem).with_suffix(".rst")),                         
@@ -1176,10 +1179,13 @@ rule female_xmarkers:
 rule_stem = 'par_regions'
 rule par_regions:
     input:
-        bedset = rules.sex_check.output.bedset,
+        bedset = rules.female_xmarkers.output.bedset,  # not same pipe as rot2, but ok since different chr
     output:
         bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"), 
         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree"),        
+        # caption=(resultPath/rule_stem).with_suffix(".rst")),
+        exclude_markers = report((tmpMod2/"{role}"/rule_stem).with_suffix(".exclude"),
                          category="Module 2 Core samples and infere pedigree"),                         
         # caption=(resultPath/rule_stem).with_suffix(".rst")),
         plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
@@ -1204,8 +1210,37 @@ rule par_regions:
                          hwe_switches = ["--chr", "25",
                                          "--hardy", "midp"],
                          result_file=output.results, plot_file=output.plot)
-                         
 
+rule_stem = 'clean_male_x'
+rule clean_male_x:
+    input:
+        bedset = rules.par_regions.output.bedset, 
+        bim = (tmpMod2/"{role}"/"sex_check").with_suffix(".bim"),
+        hh = (tmpMod2/"{role}"/"sex_check").with_suffix(".hh")
+    output:
+        #bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"), 
+        #results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+        #                 category="Module 2 Core samples and infere pedigree"),        
+        # caption=(resultPath/rule_stem).with_suffix(".rst")),
+        exclude_markers = report((tmpMod2/"{role}"/rule_stem).with_suffix(".exclude"),
+                         category="Module 2 Core samples and infere pedigree"),
+        # caption=(resultPath/rule_stem).with_suffix(".rst")),
+        chr23 =  (tmpMod2/"{role}"/"sex_check").with_suffix(".bim23") # chr23 version of input.bim
+
+    benchmark:
+        (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+
+        inTrunk =  mqc.plinkBase(input.bedset)
+        # outTrunk =  mqc.plinkBase(output.bedset)
+        mqc.egrep('^23', input.bim, output.chr23)  # a file with only chr23 rsid in second column
+        # the .hh file as multiples, so we pass it as param 1
+        mqc.intersect_rsid(input.hh, output.chr23, output.exclude_markers, small_col=2, big_col=1)
+
+
+        
 # rule sexclean:
 # 	input:
 # 		base + '{role}/tmp/' + 'clean_autosomes.bed'

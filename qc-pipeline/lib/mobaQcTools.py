@@ -499,8 +499,8 @@ def detect_low_hwe_rate(in_bedset, out_bedset, treshold=0.1,
                  hwe_switches = ["--autosome", "--hardy", "midp"]):
     """ Runs plink hwe and computes p-values but doesnt change .bed file
 
-    P-values for markers will end up in out_bedset.hwe
-    A subset below treshold will be found in out_bedset.exclude and
+    P-values for markers will end up in out_bedset.hwe - a file suitable for extract_list but not for plink.
+    A subset below treshold will be found in out_bedset.exclude (suitable for plink exclude) and
     out_bedset.details will contains details including p-values
 
     """
@@ -700,10 +700,11 @@ def fix_rsid_map(mapfile, newmap):
 
 
 def intersect_rsid(bim_small, bim_big, intersection, small_col=1, big_col=1):
-    """ Default assumes bim files, that is tab-serarated plink with rsID in second column
+    """ Default assumes bim-ish files, that is tab-serarated columns. 
 
     intersection is a file to be created
-    If one of the files are large, pass that as bim_big for efficiency
+    Will create duplicate rsid if bim_big contains such
+    If one of the files is large, pass that as bim_big for efficiency
     bim-files have rsid in 2. column (1, default). If you files containing rsid
     but on an other format, pas the column number (0 is firs column)
     

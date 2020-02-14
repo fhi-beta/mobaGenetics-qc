@@ -423,7 +423,17 @@ par_regions:
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
-  
+
+clean_male_x:
+  QC test: Getting marker names on all markers with any heterozygous calls
+  Description: Remove offending markers
+  Rule order: mod2.2h
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+    
     
 merge_foundersoffspring:
   QC test:
