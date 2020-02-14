@@ -823,7 +823,7 @@ rule_stem = "split"
 rule split_founder_offspring:
     input:
         bedset = rules.extract_pca_samples_from_full_markerset.output.bedset
-    output:
+    output:  # bedsets earlier called starting_clean , will be picked up again later
         bedset_founder =expand(str(tmpMod2/"founders"/"start_clean") + '{ext}', ext=['.bed','.bim','.fam']),
         bedset_offspring =expand(str(tmpMod2/"offspring"/"start_clean") + '{ext}', ext=['.bed','.bim','.fam']),
         results_founder = report(str(resultPath/rule_stem)+"_founder.yaml",
@@ -1044,9 +1044,9 @@ rule geno_rates:        # part of earlier markerclean
 rule_stem = 'hwe_autos_geno' # called clean_marker previously
 rule hwe_autos_geno:        # part of earlier markerclean
     input:
-        bedset = rules.geno_rates.output.bedset,
+        bedset = rules.geno_rates.output.bedset, 
     output:
-        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),
+        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),  # called clean_autosomes before
         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree"),                         
                          # caption=(resultPath/rule_stem).with_suffix(".rst")),
@@ -1176,7 +1176,7 @@ rule female_xmarkers:
 rule_stem = 'par_regions'
 rule par_regions:
     input:
-        bedset = rules.female_xmarkers.output.bedset,
+        bedset = rules.sex_check.output.bedset,
     output:
         bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"), 
         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
