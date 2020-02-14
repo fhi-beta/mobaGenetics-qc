@@ -254,7 +254,7 @@ rule prune_markers:
         bedset = rules.exclude_high_ld_markers.output.bedset,
     output:
         bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
-        exclude_list = (tmpMod2/rule_stem).with_suffix(".prune.in"),  #called prune_markers_tmp.prune.in before
+        exclude_list = (tmpMod2/rule_stem).with_suffix(".prune.in"),  # called prune_markers_tmp.prune.in before
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
@@ -819,16 +819,17 @@ rule extract_pca_samples_from_full_markerset:
         mqc.saveYamlResults(output.results, dropouts)
 
         
-rule_stem = "split"
-rule split_founder_offspring:
+rule_stem = "split" 
+rule split_founder_offspring: 
     input:
         bedset = rules.extract_pca_samples_from_full_markerset.output.bedset
     output:  # bedsets earlier called starting_clean , will be picked up again later
-        bedset_founder =expand(str(tmpMod2/"founders"/"start_clean") + '{ext}', ext=['.bed','.bim','.fam']),
+             # note that start_clean is hardcoded here and in core_missingness
+        bedset_founders =expand(str(tmpMod2/"founders"/"start_clean") + '{ext}', ext=['.bed','.bim','.fam']),
         bedset_offspring =expand(str(tmpMod2/"offspring"/"start_clean") + '{ext}', ext=['.bed','.bim','.fam']),
-        results_founder = report(str(resultPath/rule_stem)+"_founder.yaml",
+        results_founders = report(str(resultPath/rule_stem)+"_founders.yaml",
                          category="Module 2 Core samples and infere pedigree",                      
-                         caption=str(resultPath/rule_stem)+"_founder.rst"),
+                         caption=str(resultPath/rule_stem)+"_founders.rst"),
         results_offspring = report(str(resultPath/rule_stem)+"_offspring.yaml",
                          category="Module 2 Core samples and infere pedigree",                      
                          caption=str(resultPath/rule_stem)+"_offspring.rst")
@@ -838,19 +839,19 @@ rule split_founder_offspring:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
         inTrunk =  mqc.plinkBase(input.bedset[0])
-        founderTrunk =  mqc.plinkBase(output.bedset_founder[0])
+        foundersTrunk =  mqc.plinkBase(output.bedset_founders[0])
         offspringTrunk =  mqc.plinkBase(output.bedset_offspring[0])
 
         subprocess.run([plinklocal,
                         "--bfile", inTrunk,
                         "--filter-founders",
-                        "--out", founderTrunk,
+                        "--out", foundersTrunk,
                         "--make-bed"  ])
         
-        dropouts = mqc.checkUpdates(inTrunk+".fam", founderTrunk+".fam",cols = [1], sanityCheck = "removal", fullList = True) 
+        dropouts = mqc.checkUpdates(inTrunk+".fam", foundersTrunk+".fam",cols = [1], sanityCheck = "removal", fullList = True) 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
-        mqc.saveYamlResults(output.results_founder, dropouts)
+        mqc.saveYamlResults(output.results_founders, dropouts)
 
         subprocess.run([plinklocal,
                         "--bfile", inTrunk,
@@ -1247,7 +1248,7 @@ rule sex_clean:
         excl_failed_hwe_par_regions = rules.par_regions.output.exclude_markers,
         excl_male_x_markers = rules.clean_male_x.output.exclude_markers,
     output:
-        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),
+        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"), # clean_markers earlier
         exclude_markers = report((tmpMod2/"{role}"/rule_stem).with_suffix(".exclude"),
                          category="Module 2 Core samples and infere pedigree"),
         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
@@ -1279,140 +1280,60 @@ rule sex_clean:
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
 
+rule_stem = 'common_founders_offspring_markers'
+rule common_founders_offspring_markers: 
+    input:
+        markers = expand(str(tmpMod2/'{role}')+'/sex_clean.bim', role=ROLES) # Final markerlists
+    output:
+        markers = (tmpMod2/rule_stem).with_suffix(".txt")  # called shared_markers.txt before
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        mqc.intersect_rsid(input.markers[1], input.markers[0], output.markers, small_col=1, big_col=1)
         
-# rule sexclean:
-# 	input:
-# 		base + '{role}/tmp/' + 'clean_autosomes.bed'
-# 	output:
-# 		base + '{role}/tmp/' + 'clean_markers.bim', # FINAL MARKERS
-# 		stvars = base + '{role}/rep/' + 'storedvars_cleansex.txt',
-#                 exclinds = base + '{role}/rep/' + 'exclusions_cleansex_ind.txt',
-#                 exclsnps = base + '{role}/rep/' + 'exclusions_cleansex_snp.txt'
-# 	params:
-#                 plotdir = base + '{role}/rep/' + 'plots_cleansex/',
-#                 instem = base + '{role}/tmp/' + 'clean_autosomes',
-#                 outdir = base + '{role}/tmp/'
-# 	shell:
-# 		"""
-# 		set -e
+        
+# rule_stem = 'core_missingness'
+# rule core_missingness: 
+#     input:
+#         bedset = (tmpMod2/"{role}"/"start_clean").with_suffix(".bed") 
+#         excl_failed_hwe_female_x = rules.female_xmarkers.output.exclude_markers,
+#         excl_failed_hwe_par_regions = rules.par_regions.output.exclude_markers,
+#         excl_male_x_markers = rules.clean_male_x.output.exclude_markers,
+#     output:
+#         bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"), # clean_markers earlier
+#         exclude_markers = report((tmpMod2/"{role}"/rule_stem).with_suffix(".exclude"),
+#                          category="Module 2 Core samples and infere pedigree"),
+#         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+#                          category="Module 2 Core samples and infere pedigree"),        
+#         # caption=(resultPath/rule_stem).with_suffix(".rst")),
+#     benchmark:
+#         (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")
+#     run:
+#         item_type = rule_info[rule]["rule type"]
+#         mqc.log(runlog, rule_info[rule]["QC test"])
 
-# 		source {libdir}/functions.sh
-# 		source {libdir}/plink_wrapper_functions.sh
-# 		libdir={libdir}
-# 		plinklocal={plinklocal}
+#         inTrunk =  mqc.plinkBase(input.bedset)
+#         outTrunk =  mqc.plinkBase(output.bedset)
 
-#                 PIPELINELOG={runlog}
-#                 STOREDVARS={output.stvars}
-#                 EXCLUSIONSI={output.exclinds}
-#                 EXCLUSIONSS={output.exclsnps}
-#                 PLOTDIR={params.plotdir}
+#         subprocess.call(f'cat {input.excl_failed_hwe_female_x}'
+#                         f' {input.excl_failed_hwe_par_regions}'
+#                         f' {input.excl_male_x_markers} > {output.exclude_markers}', shell=True)
 
-#                 log "--- CLEAN CORE SEX ---"
-#                 mkdir -p $PLOTDIR
-# 		clear_store
-		
-# 		report_ninds {params.instem} "INTO_SEXCLEAN"
-# 		report_nsnps {params.instem} "INTO_SEXCLEAN"
+        
+#         subprocess.run([plinklocal,
+#                         "--bfile",inTrunk,
+#                         "--exclude", output.exclude_markers,
+#                         "--out", outTrunk,                                   
+#                         "--make-bed"  ])
+        
+#         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim", cols = [0,1],
+#                                 sanityCheck = "removal", fullList = True) 
+#         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+#         dropouts["Rule"] = rule
+#         mqc.saveYamlResults(output.results, dropouts)
 
-# 		store "INTO_SEXCLEAN_X" `grep -c ^23 {params.instem}.bim`
-# 		store "INTO_SEXCLEAN_Y" `grep -c ^24 {params.instem}.bim`
-# 		store "INTO_SEXCLEAN_PAR" `grep -c ^25 {params.instem}.bim`
-# 		store "INTO_SEXCLEAN_MT" `grep -c ^26 {params.instem}.bim`
 
-# 		# Check sample sex (declared vs. genotyped)
-# 	        # 1. Input bedset (all or only sex-markers)
-# 	        # 2. Female max Fstat (PLINK default 0.20)
-# 	        # 3. Male min Fstat (PLINK default 0.80)
-# 	        # 4. Full path to list of samples with PROBLEM according to PLINK check-sex
-# 	        # 5. TMP folder
-# 	        plink_checksex \
-# 	                {params.instem} \
-# 	                0.20 \
-# 	                0.80 \
-# 	                {params.outdir}/checksex_exclude \
-# 	                {params.outdir}
-
-# 	        # Remove samples failing sex-check
-# 	        # 1. Input bedset stem
-# 	        # 2. List of samples to remove (2 cols: PID IID)
-# 	        # 3. Output bedset stem
-# 	        # 4. Exclusion filter
-# 	        plink_remove_samples \
-# 	                {params.instem} \
-# 	                {params.outdir}/checksex_exclude \
-# 	                {params.outdir}/removed_failing_sexcheck \
-# 	                "SEXCHECK"
-	
-# 	        ###--- CLEANING FEMALE X MARKERS ---###
-# 	        # - Only chr. X/23
-# 	        # note 1: all samples are now marked as FOUNDERS (no need for "--nonfounders" flag)
-# 	        # note 2: all samples have missing phenotype (no need for "include-nonctrl" flag)
-# 	        {plinklocal} \
-# 	                --bfile {params.outdir}/removed_failing_sexcheck \
-# 	                --filter-females \
-# 	                --chr 23 \
-# 	                --hardy midp \
-# 	                --out {params.outdir}/females_x_hardy
-
-# 	        # Getting the female X-markers below HWE threshold to be excluded
-# 	        # NOTE: This step will generate a list of markers to remove in the final step
-# 	        Rscript {libdir}/hwe_fail.R \
-# 	                {params.outdir}/females_x_hardy.hwe \
-# 	                0.000001 \
-# 	                {params.outdir}/hwe_failed_female_x_markers \
-# 	                ${{PLOTDIR}}hwe_x_chr.png
-# 		store "TOREMOVE_HWE_X" `wc -l {params.outdir}/hwe_failed_female_x_markers`
-	
-# 	        ###--- CLEANING PAR-REGION IN BOTH GENDERS ---###
-# 	        # - Using both males and females
-# 	        # note: this could have beed done at autosomal stage by using "--autosome-xy"
-# 	        {plinklocal} \
-# 	                --bfile {params.outdir}/removed_failing_sexcheck \
-# 	                --chr 25 \
-# 	                --hardy midp \
-# 	                --out {params.outdir}/par_hardy
-	
-# 	        Rscript {libdir}/hwe_fail.R \
-# 	                {params.outdir}/par_hardy.hwe \
-# 	                0.000001 \
-# 	                {params.outdir}/hwe_failed_par_markers NA
-# 		store "TOREMOVE_HWE_PAR" `wc -l {params.outdir}/hwe_failed_par_markers`
-	
-# 	        ###--- CLEANING MALE X ---###
-# 	        # - Getting marker names on all markers with any heterozygous calls
-# 	        touch {params.outdir}/male_x_exclusion_markers
-# 	        awk 'FNR==NR{{if($1~/23/) x[$2]; next}} {{d[$3]++}}
-# 	                END{{ for (s in d){{ if (d[s]>1 && s in x) print s }}}}' \
-# 	                {params.outdir}/removed_failing_sexcheck.bim \
-# 	                {params.outdir}/removed_failing_sexcheck.hh > {params.outdir}/male_x_exclusion_markers
-	
-# 	        ###--- REMOVE IDENTIFIED MARKERS FROM CORE ---###
-# 	        cat {params.outdir}/hwe_failed_female_x_markers \
-# 	            {params.outdir}/hwe_failed_par_markers > {params.outdir}/hwe_x_and_par_exclusions
-	
-# 	        #1. Input bedstem
-# 	        #2. List of markers to exclude
-# 	        #3. Output bedstem
-# 	        #4. Exclusion filter
-# 	        plink_exclude_markers \
-# 	                {params.instem} \
-# 	                {params.outdir}/hwe_x_and_par_exclusions \
-# 	                {params.outdir}/sex_markers_removed_hwe \
-# 	                "sex_marker_removal"
-# 		store "AFTER_HWE_X" `grep -c ^23 {params.outdir}/sex_markers_removed_hwe.bim`
-# 		store "AFTER_HWE_PAR" `grep -c ^25 {params.outdir}/sex_markers_removed_hwe.bim`
-
-# 	        plink_exclude_markers \
-# 	                {params.outdir}/sex_markers_removed_hwe \
-# 	                {params.outdir}/male_x_exclusion_markers \
-# 	                {params.outdir}/clean_markers \
-# 	                "male_x_het"
-
-# 		store "AFTER_SEXCLEAN_X" `grep -c ^23 {params.outdir}/clean_markers.bim`
-# 		store "AFTER_SEXCLEAN_Y" `grep -c ^24 {params.outdir}/clean_markers.bim`
-# 		store "AFTER_SEXCLEAN_PAR" `grep -c ^25 {params.outdir}/clean_markers.bim`
-# 		store "AFTER_SEXCLEAN_MT" `grep -c ^26 {params.outdir}/clean_markers.bim`
-# 		"""
+        
 
 # rule makecore:
 # 	input:

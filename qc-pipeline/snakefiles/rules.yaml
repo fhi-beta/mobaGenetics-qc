@@ -443,11 +443,21 @@ sex_clean:
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
+
+common_founders_offspring_markers:    
+  QC test: Find good markers common to founders/offspring 
+  Description: Earlier tests were split, we want only the markers good in both
+  Rule order: mod2.2j
+  rule type: markers
+  rule action: intersect
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
     
-merge_foundersoffspring:
-  QC test:
-  Description:
-  Rule order: mod5-a
+core_missingness:
+  QC test: Start of Core set creation. Missingness 
+  Description: Starts with result of 
+  Rule order: mod2.3a
   rule type: samples
   rule action: remove
   # Placeholders that the pipeline will fill in
