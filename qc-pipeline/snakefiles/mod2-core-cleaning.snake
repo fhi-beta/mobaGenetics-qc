@@ -1142,7 +1142,7 @@ rule sex_check:
 
         
 rule_stem = 'female_xmarkers'
-rule female_xmarkers:
+rule female_xmarkers: 
     input:
         bedset = rules.sex_check.output.bedset,
     output:
@@ -1239,6 +1239,45 @@ rule clean_male_x:
         # the .hh file as multiples, so we pass it as param 1
         mqc.intersect_rsid(input.hh, output.chr23, output.exclude_markers, small_col=2, big_col=1)
 
+rule_stem = 'sex_clean'
+rule sex_clean:
+    input:
+        bedset = rules.hwe_autos_geno.output.bedset, # clean_autosomes earlier
+        excl_failed_hwe_female_x = rules.female_xmarkers.output.exclude_markers,
+        excl_failed_hwe_par_regions = rules.par_regions.output.exclude_markers,
+        excl_male_x_markers = rules.clean_male_x.output.exclude_markers,
+    output:
+        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),
+        exclude_markers = report((tmpMod2/"{role}"/rule_stem).with_suffix(".exclude"),
+                         category="Module 2 Core samples and infere pedigree"),
+        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree"),        
+        # caption=(resultPath/rule_stem).with_suffix(".rst")),
+    benchmark:
+        (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+
+        inTrunk =  mqc.plinkBase(input.bedset)
+        outTrunk =  mqc.plinkBase(output.bedset)
+
+        subprocess.call(f'cat {input.excl_failed_hwe_female_x}'
+                        f' {input.excl_failed_hwe_par_regions}'
+                        f' {input.excl_male_x_markers} > {output.exclude_markers}', shell=True)
+
+        
+        subprocess.run([plinklocal,
+                        "--bfile",inTrunk,
+                        "--exclude", output.exclude_markers,
+                        "--out", outTrunk,                                   
+                        "--make-bed"  ])
+        
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim", cols = [0,1],
+                                sanityCheck = "removal", fullList = True) 
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
 
         
 # rule sexclean:

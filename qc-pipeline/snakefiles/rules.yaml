@@ -429,11 +429,20 @@ clean_male_x:
   Description: Remove offending markers
   Rule order: mod2.2h
   rule type: markers
+  rule action: document
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+sex_clean:    
+  QC test: Create a plink bedset based on earlier sex-rules
+  Description: Aggregation of marker info from sex_check, female_xmarkers, par_regions and clean_male_x. One result for each of founders/offspring
+  Rule order: mod2.2i
+  rule type: markers
   rule action: remove
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
-    
     
 merge_foundersoffspring:
   QC test:
