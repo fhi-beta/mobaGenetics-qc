@@ -1290,13 +1290,24 @@ rule common_founders_offspring_markers:
     input:
         markers = expand(str(tmpMod2/'{role}')+'/sex_clean.bim', role=ROLES) # Final markerlists
     output:
-        markers = (tmpMod2/rule_stem).with_suffix(".txt")  # called shared_markers.txt before
+        markers = (tmpMod2/rule_stem).with_suffix(".txt"),  # called shared_markers.txt before
+        results = report((resultPath/rule_stem).with_suffix(".rst"),  
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+                         
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
         mqc.intersect_rsid(input.markers[1], input.markers[0], output.markers, small_col=1, big_col=1)
+        in1 = mqc.line_count(input.markers[0])
+        in2 = mqc.line_count(input.markers[1])
+        common = mqc.line_count(output.markers)
         
-        
+        with open(output.results, 'w') as file:
+            file.write(f'Rule {rule_info[rule]["Rule order"]} ({item_type})\n\n')
+            file.write(f'- Markers in {in1}/{in2}\n')
+            file.write(f'- Common markers {common}\n')
+
 rule_stem = 'core_missingness'
 rule core_missingness: 
     input:
