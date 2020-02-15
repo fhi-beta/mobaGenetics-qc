@@ -1252,6 +1252,7 @@ rule sex_clean:
         excl_male_x_markers = rules.clean_male_x.output.exclude_markers,
     output:
         bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"), # clean_markers earlier
+        bedsetbim = (tmpMod2/"{role}"/rule_stem).with_suffix(".bim"), # clean_markers earlier
         exclude_markers = report((tmpMod2/"{role}"/rule_stem).with_suffix(".exclude"),
                          category="Module 2 Core samples and infere pedigree"),
         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
