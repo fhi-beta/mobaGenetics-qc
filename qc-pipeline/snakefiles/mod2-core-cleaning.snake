@@ -254,7 +254,7 @@ rule prune_markers:
         bedset = rules.exclude_high_ld_markers.output.bedset,
     output:
         bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
-        exclude_list = (tmpMod2/rule_stem).with_suffix(".prune.in"),  # called prune_markers_tmp.prune.in before
+        exclude_list = (tmpMod2/rule_stem).with_suffix(".prune.in"),  # called prune_markers_tmp.prune.in before. Will be used both in a temporary pass, but also during final core-set generation
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
@@ -866,7 +866,7 @@ rule split_founder_offspring:
         mqc.saveYamlResults(output.results_offspring, dropouts)
 
 rule_stem = "ibd_prep"
-rule ibd_prep:
+rule ibd_prep:  # code is more or less copied to core_ibd_prep
     input:
         bedset = tmpMod2/"{role}/start_clean.bed",
         clean_snps = rules.prune_markers.output.exclude_list
@@ -887,25 +887,25 @@ rule ibd_prep:
                         "--extract", input.clean_snps,
                         "--genome",
                         "--out", outTrunk ])
-        # create a plot for this
-        p = mqc.dotplot(output.genome,prec=3, x='Z0',y='Z1', c='RT')
+        # create a plot for this - corresponds to the old draw-pihat-plots.R 
+        p = mqc.dotplot(output.genome,prec=3, x='Z0',y='Z1', c='RT') 
         p9.ggsave(plot=p, filename=output.preplot, dpi=600)
         df = pd.read_csv(output.genome, delim_whitespace=True, 
             usecols=["IID1", "IID2", "PI_HAT"] )
         df.to_csv(output.ibd_reduced_genome, index=False, sep=" ")
 
 rule_stem = "ibd_exclusion"
-rule ibd_exclusion:
+rule ibd_exclusion:  # code is more or less copied to core_ibd_exclusion 
     input:
-        fam = tmpMod2/"{role}/start_clean.fam",
+        bed = rules.ibd_prep.input.bedset,
         ibd_reduced_genome = rules.ibd_prep.output.ibd_reduced_genome
     output:
         exclusion = (tmpMod2/"{role}"/rule_stem).with_suffix(".txt"),
-        bedset = (tmpMod2/"{role}"/"allmarkers_pihat_accum").with_suffix(".bed"),
-        plot = report((resultPath/"{role}"/"pihat_accum").with_suffix(".png"), # a hack as R produces the plot
+        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),
+        plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"), 
                          category="Module 2 Core samples and infere pedigree"),
                          #, caption=str(resultPath/rule_stem)+"_{role}.rst"),
-        results = report(str(resultPath/rule_stem)+"_{role}.yaml",
+        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree")
                          #, caption=str(resultPath/rule_stem)+"_{role}.rst"),
     params:
@@ -916,18 +916,21 @@ rule ibd_exclusion:
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
-        inTrunk =  mqc.plinkBase(input.fam)
+        inTrunk =  mqc.plinkBase(input.bed)  # bed is not a .fam file, we need it
+        famFile = inTrunk + ".fam"
         outTrunk =  mqc.plinkBase(output.bedset)
-        plotdir = os.path.dirname(output.plot) + "/"  # The R script is sensible to this ...
+        plotdir = os.path.dirname(output.plot)
+        
         # for now, the below is not ported and lives it's own life
         subprocess.run(["Rscript",
                     f"{libdir}/accumPIHAT.R", 
                     input.ibd_reduced_genome,
-                    input.fam,
+                    famFile,
                     output.exclusion,
                     plotdir,  
                     params.pihat_thr,
-                    params.hard_thr ])
+                    params.hard_thr,
+                    rule])   # a little dirty, but the R rutine wants a filename that it will add .png, .pdf .txt2
         subprocess.run([plinklocal,
                         "--bfile", inTrunk,
                         "--remove", output.exclusion,
@@ -940,7 +943,7 @@ rule ibd_exclusion:
         mqc.saveYamlResults(output.results, dropouts)
 
 rule_stem = 'ibd_pruned'
-rule ibd_prune:
+rule ibd_prune: # code is more or less copied to core_ibd_prune
     input:
         bedset = rules.ibd_exclusion.output.bedset,
         genome = rules.ibd_prep.output.genome
@@ -1297,7 +1300,6 @@ rule_stem = 'core_missingness'
 rule core_missingness: 
     input:
         bedset = (tmpMod2/"{role}"/"start_clean").with_suffix(".bed"), # from split_founder_offspring
-        # prunedsnps = rules.prune_markers.output.exclude_list,
         common_markers = rules.common_founders_offspring_markers.output.markers 
     output:
         bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"), 
@@ -1341,7 +1343,7 @@ rule core_het:
     input:
         bedset = rules.core_missingness.output.bedset
     output:
-        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"), 
+        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),  #called core-lmm, 'related core'
         results_rare = report((resultPath/"{role}"/rule_stem).with_suffix(".rare.yaml"),
                          category="Module 2 Core samples and infere pedigree"),        
         # caption=(resultPath/rule_stem).with_suffix(".rst")),
@@ -1381,7 +1383,128 @@ rule core_het:
                        result_file=output.results_rare,
                        plot_file=output.plot_rare)
         
+rule_stem = "core_ibd_prep"
+rule core_ibd_prep:  # code is more or less copied from ibd_prep
+    input:
+        bedset = rules.core_het.output.bedset,
+        prunedsnps = rules.prune_markers.output.exclude_list,
+    output:
+        genome = (tmpMod2/"{role}"/rule_stem).with_suffix(".genome"),
+        verify_ibd_reduced_genome = tmpMod2/"{role}"/"verify_ibd_reduced.genome",   #input for R laters, 3 columns of genome file
+        plot = (resultPath/"{role}"/rule_stem).with_suffix(".png")
+    benchmark:
+        (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk =  mqc.plinkBase(input.bedset)
+        outTrunk =  mqc.plinkBase(output.genome)
 
+        subprocess.run([plinklocal,
+                        "--bfile", inTrunk,
+                        "--extract", input.prunedsnps,
+                        "--genome",
+                        "--out", outTrunk ])
+        # create a plot for this - corresponds to the old draw-pihat-plots.R 
+        p = mqc.dotplot(output.genome,prec=3, x='Z0',y='Z1', c='RT') 
+        p9.ggsave(plot=p, filename=output.plot, dpi=600)
+        df = pd.read_csv(output.genome, delim_whitespace=True, 
+            usecols=["IID1", "IID2", "PI_HAT"] )
+        df.to_csv(output.verify_ibd_reduced_genome, index=False, sep=" ")
+
+
+rule_stem = "core_ibd_exclusion"
+rule core_ibd_exclusion:  # code is more or less copied to core_ibd_exclusion 
+    input:
+        bed = rules.core_ibd_prep.input.bedset,
+        ibd_reduced_genome = rules.core_ibd_prep.output.verify_ibd_reduced_genome
+    output:
+        exclusion = (tmpMod2/"{role}"/rule_stem).with_suffix(".txt"),
+        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),
+        plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"), 
+                         category="Module 2 Core samples and infere pedigree"),
+                         #, caption=str(resultPath/rule_stem)+"_{role}.rst"),
+        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree")
+                         #, caption=str(resultPath/rule_stem)+"_{role}.rst"),
+    params:
+        pihat_thr = str(config["ibd_pihat_thr"]),
+        hard_thr = str(config["ibd_hard_thr"])
+    benchmark:
+        (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")     
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk =  mqc.plinkBase(input.bed)  # bed is not a .fam file, we need it
+        famFile = inTrunk + ".fam"
+        outTrunk =  mqc.plinkBase(output.bedset)
+        plotdir = os.path.dirname(output.plot)
+        
+        # for now, the below is not ported and lives it's own life
+        subprocess.run(["Rscript",
+                    f"{libdir}/accumPIHAT.R", 
+                    input.ibd_reduced_genome,
+                    famFile,
+                    output.exclusion,
+                    plotdir,  
+                    params.pihat_thr,
+                    params.hard_thr,
+                    rule])   # a little dirty, but the R rutine wants a filename that it will add .png, .pdf .txt2
+        subprocess.run([plinklocal,
+                        "--bfile", inTrunk,
+                        "--remove", output.exclusion,
+                        "--make-bed",
+                        "--out", outTrunk ])
+        dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam",cols = [1],
+                                    sanityCheck = "removal", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+
+
+rule_stem = 'core_ibd_pruned'
+rule core_ibd_prune: # code is more or less copied from ibd_prune
+    input:
+        bedset = rules.core_ibd_exclusion.output.bedset,
+        genome = rules.core_ibd_prep.output.genome
+    output:
+        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),  #called core_supreme earlier
+        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree"),                         
+                         # caption=(resultPath/rule_stem).with_suffix(".rst")),
+        # in addition to the removal list, a removal.samples.txt is produced, sporting only the sample-list
+        removal= (tmpMod2/"{role}"/rule_stem).with_suffix(".txt"),
+        removal_samples = (tmpMod2/"{role}"/rule_stem).with_suffix(".samples.txt"),
+    params:
+        treshold = config['ibd_straight_thr']
+    benchmark:
+        (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+
+        inTrunk =  mqc.plinkBase(input.bedset)
+        outTrunk =  mqc.plinkBase(output.bedset)
+        # identify samples forremoval due to high PI_HAT
+        (removed,total) = mqc.extract_list(input.genome, 
+                output.removal_samples, output.removal, 
+                colName="PI_HAT", sep=None, condition=">", treshold=params.treshold, 
+                key_cols=[0,1], doc_cols=[0,1] )
+
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--remove", output.removal_samples,
+                "--out", outTrunk ,
+                "--make-bed"])
+    
+
+        dropouts = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [0,1], sanityCheck = "removal", fullList = True) 
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Treshold"] = params.treshold
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+
+        
 # rule makecore:
 # 	input:
 # 		base + '{role}/tmp/' + 'starting_clean.bed', # PCA pass, split, all markers

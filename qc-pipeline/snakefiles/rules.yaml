@@ -193,8 +193,8 @@ exclude_high_ld_markers:
   Timestamp: 
 
 prune_markers:
-  QC test: Temporary prune markers due to  linkage disequilibrium
-  Description: Uses plink --make-founders  indep-pairwise 
+  QC test: Temporary prune markers due to linkage disequilibrium
+  Description: Uses plink --make-founders  indep-pairwise . Produces a list of markers that will be used during final core generation as well
   Rule order: mod2-h
   rule type: markers
   rule action: remove
@@ -349,7 +349,7 @@ ibd_prep:
   Description: The Djenghis Khan effect is computed  through R in a isolated/separate step
   Rule order: mod2.2b
   rule type: samples
-  rule action: remove
+  rule action: plot
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
@@ -468,6 +468,36 @@ core_het:
   QC test: sample heterozygosity for the core set 
   Description: Creates plots and logs for both common and rare autosomal markers
   Rule order: mod2.3b
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+core_ibd_prep:   
+  QC test: Prepare for accumulated relateness check
+  Description: The Djenghis Khan effect is computed  through R in a isolated/separate step
+  Rule order: mod2.3c
+  rule type: samples
+  rule action: plot
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+core_ibd_exclusion:   
+  QC test: Remove samples that are too closely related
+  Description: Djenghis Khan effect is done through R with handset thresholds
+  Rule order: mod2.3d
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+core_ibd_prune:   
+  QC test: Remove samples that's straightforward related in addidtion to closely related
+  Description: --genome above a pihat threshold in addition to what ibd_exclusion produced
+  Rule order: mod2.3e
   rule type: samples
   rule action: remove
   # Placeholders that the pipeline will fill in
