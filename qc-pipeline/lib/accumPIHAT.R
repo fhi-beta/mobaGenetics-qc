@@ -33,9 +33,11 @@ args = commandArgs(trailingOnly=TRUE)
 ibd_file        = args[1]
 fam_file        = args[2]
 out_file        = args[3]
-report_dir      = args[4]
+report_dir      = args[4]  # pass no slash 
 pih_thr         = as.numeric(args[5])
-hard_thr          = as.numeric(args[6])
+hard_thr        = as.numeric(args[6])
+res_files       = args[7]   #  .png, .pdf. and .txt will be added to this trunk
+		# Note that out_file and report_dir/res_files.txt should not be the same file ...
 
 library(dplyr)
 library(ggplot2)
@@ -43,9 +45,9 @@ library(ggplot2)
 # load fam file (to get famIDs)
 fam = read.table(fam_file,h=F,stringsAsFactors = F)
 
-plot_report = paste(report_dir, "pihat_accum.png", sep="")
-pdf_report = paste(report_dir, "pihat_accum.pdf", sep="")
-txt_report = paste(report_dir, "pihat_accum.txt", sep="")
+plot_report = paste(report_dir, paste(res_files,".png",sep=""), sep="/")
+pdf_report = paste(report_dir, paste(res_files,".pdf",sep=""), sep="/")
+txt_report = paste(report_dir, paste(res_files,".txt2",sep=""), sep="/")
 
 # load the genetic-relatedness matrix/dataframe
 a = read.table(ibd_file,h=T,stringsAsFactors = F)
