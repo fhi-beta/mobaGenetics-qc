@@ -33,6 +33,7 @@ rule all:
         expand(str(resultPath) + "/{role}/par_regions.yaml", role=ROLES),
         expand(str(tmpMod2) + "/common_founders_offspring_markers.txt"),        
         expand(str(resultPath) + "/{role}/core_ibd_pruned.yaml", role=ROLES),
+        expand(str(resultPath) + "/{role}/core_pca.png", role=ROLES),
         # For now: this is needed to force the plots into the report. Fix later
         resultPath/"plot_pca_both.png",
         expand(str(resultPath/"{role}/ibd_prep.png"), role=ROLES),

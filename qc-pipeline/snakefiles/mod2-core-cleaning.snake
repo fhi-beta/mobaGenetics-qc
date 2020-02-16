@@ -1516,6 +1516,51 @@ rule core_ibd_prune: # code is more or less copied from ibd_prune
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
 
+rule_stem = "core_pca"
+rule core_pca:
+    input:
+        bedset = rules.core_ibd_prune.output.bedset,
+        prunedsnps = rules.prune_markers.output.exclude_list, # markers for pca on, found way back
+
+    output: 
+        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),  #called pcadir/pruned before
+        pcs = (tmpMod2/"{role}"/rule_stem).with_suffix(".pcs"),
+        results = report((resultPath/"{role}"/rule_stem).with_suffix(".rst"),
+                         category="Module 2 Core samples and infere pedigree"),                         
+                         # caption=(resultPath/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
+                         category="Module 2 Core samples and infere pedigree"),                         
+                         # caption=(resultPath/rule_stem).with_suffix(".rst")),
+
+        
+    benchmark:
+        (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk =  mqc.plinkBase(input.bedset)  
+        outTrunk =  mqc.plinkBase(output.bedset) 
+
+        subprocess.run([plinklocal,
+                        "--bfile", inTrunk,
+                        "--extract", input.prunedsnps,
+                        "--out", outTrunk,
+                        "--make-bed"    ])
+
+        subprocess.run([flashpca,
+                        "--bfile", outTrunk,
+                        "--outpc", output.pcs,
+                        ])
+        # Skipping the "PLINK covariate files with PCs only" until I see the need
+        pc = pd.read_csv(output.pcs, usecols=['IID','PC1','PC2'],delim_whitespace=True)
+        p = p9.ggplot(data=pc, mapping=p9.aes(x='PC1',y='PC2'))
+        p +=  p9.geom_point()
+        p9.ggsave(plot=p, filename=output.plot, dpi=600)
+        # create the caption usually made by saveYamlResults
+        with open(output.results, 'w') as file:
+             file.write(f'Rule {rule_info[rule]["Rule order"]} ({rule_info[rule]["rule action"]})\n')
+
+        # Skipping screeplot for now
         
 # rule makecore:
 # 	input:

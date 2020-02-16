@@ -455,7 +455,7 @@ common_founders_offspring_markers:
   Timestamp: 
     
 core_missingness:
-  QC test: Start of Core set creation. Missingness 
+  QC test: Start of Core set creation. Remove high missingness 
   Description: Starts with result earlier of split_founder_offspring and will continue tuning after this rule. Also reduces makers to the common good markers found for founders/offspring
   Rule order: mod2.3a
   rule type: samples
@@ -465,7 +465,7 @@ core_missingness:
   Timestamp: 
 
 core_het:
-  QC test: sample heterozygosity for the core set 
+  QC test: remove sample heterozygosity for the core set using common and rare autosomal markers. 
   Description: Creates plots and logs for both common and rare autosomal markers
   Rule order: mod2.3b
   rule type: samples
@@ -486,7 +486,7 @@ core_ibd_prep:
 
 core_ibd_exclusion:   
   QC test: Remove samples that are too closely related
-  Description: Djenghis Khan effect is done through R with handset thresholds
+  Description: Djenghis Khan effect is done through R with handset thresholds. Remove samples with excess accumulated PI_HAT
   Rule order: mod2.3d
   rule type: samples
   rule action: remove
@@ -503,13 +503,23 @@ core_ibd_prune:
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
+
+core_pca:   
+  QC test: PCA on the same subset of markers we did PCA on earlier
+  Description: 
+  Rule order: mod2.4a
+  rule type: markers
+  rule action: pca/plot (on a subset of markers)
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
     
 set_mendelian_errors_missing:
   QC test:
   Description:
   Rule order: mod5-b
   rule type: markers
-  rule action: remove
+  rule action: plot (on subest of markers)
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
