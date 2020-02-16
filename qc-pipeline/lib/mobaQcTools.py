@@ -36,6 +36,21 @@ except Exception as e:
 
 plink=config["plinklocal"]
 
+def make_rule_caption(rule,dir):
+    """ Creates a caption for rule
+
+    Rule is the calling rule, dir is a path object where the file rule.rst is to be created
+
+    Note that this is a hack because founder/offspring construction for now (feb 2020) has
+    proven difficutlt to make good role-dependent caption for.
+    Since captions are used for sorting the html report produced by snakemake --report, 
+    this function creates one based on the global rule_info[] structure.
+    It will typically be called twice.
+    Warning: Assumes that rule and rule_stem are identical where this is used.
+    """
+    with open(str(dir/rule)+".rst",'w') as file:
+        file.write(f'Rule {rule_info[rule]["Rule order"]} ({rule_info[rule]["rule action"]})\n')    
+
 def plot_hist(dataFile, resultFile, column="name of the column", title="no legend??", separator='\s+',
               treshold=0, logx=False, bins=100):
     """ plots and saves a historgram 

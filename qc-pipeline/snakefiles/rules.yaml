@@ -374,9 +374,9 @@ ibd_prune:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-geno_rates:   
+geno_rates_mind3:   
   QC test: Remove missing genotype rates (samples and markers)
-  Description: multiple iterations of  using --geno and --mind 
+  Description: "multiple iterations of  using --geno and --mind --mind3 is the last and the only one reported. Not that this is a little confusing as only very few lost samples are reported (2.2020) in the html report"
   Rule order: mod2.2e
   rule type: samples/markers
   rule action: remove
@@ -386,7 +386,7 @@ geno_rates:
 
 hwe_autos_geno:   
   QC test: hwe + autosomal het + geno
-  Description: multiple iterations. creates multiple resultfiles. Two pass of hwe/het + on geno marker
+  Description: multiple iterations. creates multiple resultfiles. Two pass of hwe/het + on geno marker. REsults in html report are not complete
   Rule order: mod2.2f
   rule type: samples/markers
   rule action: remove
