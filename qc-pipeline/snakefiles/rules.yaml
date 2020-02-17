@@ -513,13 +513,23 @@ core_pca:
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
-    
-set_mendelian_errors_missing:
-  QC test:
-  Description:
-  Rule order: mod5-b
+
+mendelian_errors_prep:
+  QC test: From cleaned markers, get only the ones common to founder/offspring
+  Description: 
+  Rule order: mod5-a
   rule type: markers
-  rule action: plot (on subest of markers)
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+    
+mendelian_errors_missing:
+  QC test: From cleaned markers, set any mendelian errors obtained from trios (and duos) to missing 
+  Description: Remove markers above chr 23 as these are eliglible for imputation
+  Rule order: mod5-a
+  rule type: markers
+  rule action: remove
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
