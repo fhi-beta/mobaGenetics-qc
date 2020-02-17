@@ -1,6 +1,4 @@
 # Get cleaned markers
-# Set any mendelian errors obtained from trios (and duos) to missing    
-# Remove markers above chr 23 as these are eliglible for imputation
 rule_stem = "mendelian_errors_prep"
 rule mendelian_errors_prep:
     input:
@@ -17,7 +15,6 @@ rule mendelian_errors_prep:
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
-        mqc.log(runlog, "PCA exlude {item_type} ({params.treshold})\n")
 
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk = mqc.plinkBase(output.bedset[0])
@@ -33,6 +30,80 @@ rule mendelian_errors_prep:
         mqc.saveYamlResults(output.results, dropouts)
 
 
+# Remove markers above chr 23 as these are eliglible for imputation
+rule_stem = "chr1_23"
+rule chr1_23:
+    input:
+        bedset = rules.mendelian_errors_prep.output.bedset,
+    output:
+        bedset=expand(str(tmpMod5/rule_stem)
+                          + '{ext}', ext=['.bed','.bim','.fam']),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 5 Shaping preparation",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+    benchmark:
+        (tmpMod5/rule_stem).with_suffix(".benchmark")
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
+        subprocess.run([plinklocal,
+                        "--bfile", inTrunk,
+                        "--chr", "1-23",
+                        "--out", outTrunk,
+                        "--make-bed" ])
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
+                                    sanityCheck = "removal", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+
+# Set any mendelian errors obtained from trios (and duos) to missing
+rule_stem = "mendelian_errors"
+rule mendelian_errors:
+    input:
+        bedset = rules.chr1_23.output.bedset,
+    output:
+        bedset=expand(str(tmpMod5/rule_stem)
+                          + '{ext}', ext=['.bed','.bim','.fam']),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 5 Shaping preparation",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+    benchmark:
+        (tmpMod5/rule_stem).with_suffix(".benchmark")
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
+        subprocess.run([plinklocal,
+                        "--bfile", inTrunk,
+                        "--set-me-missing",
+                        "--mendel-duos",
+                        "--out", outTrunk,
+                        "--make-bed" ])
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
+                                    sanityCheck = "updated", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        # we are not happy about the yaml-file since it does not reflect the missings state
+        # mendelian errors set to missing are here reported on the logfile
+        # and will patch drpouts[actionTakenCount"]
+        miss_file = outTrunk+".me_miss"
+        mqc.egrep("set-me-missing:",outTrunk+".log",miss_file) # not really necessary, but nice for later debug
+        try:
+            with open(miss_file, 'r') as miss:
+                res = miss.read()
+            n = int(re.search(r"--set-me-missing:\s+(\d+)",res).group(1))
+        except Exception as e:
+            print(f"Error. Did not find a set-me-missing number in {miss_file}', {str(e)}")
+
+        # here n is the number of 'replaced by missing' reported by plink, so we patch dropouts...
+        dropouts["actionTakenCount"] = n
+        mqc.saveYamlResults(output.results, dropouts)
 
 
 # # Get cleaned markers

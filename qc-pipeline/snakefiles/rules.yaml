@@ -515,7 +515,7 @@ core_pca:
   Timestamp: 
 
 mendelian_errors_prep:
-  QC test: From cleaned markers, get only the ones common to founder/offspring
+  QC test: From cleaned markers, reduce the ones common to founder/offspring
   Description: 
   Rule order: mod5-a
   rule type: markers
@@ -524,12 +524,22 @@ mendelian_errors_prep:
   Rule: Will be the same as the key of this entry
   Timestamp: 
     
-mendelian_errors_missing:
-  QC test: From cleaned markers, set any mendelian errors obtained from trios (and duos) to missing 
-  Description: Remove markers above chr 23 as these are eliglible for imputation
-  Rule order: mod5-a
+chr1_23:
+  QC test: Remove markers above chr 23 as these are eliglible for imputation
+  Description: 
+  Rule order: mod5-b
   rule type: markers
   rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+mendelian_errors:
+  QC test: Set any mendelian errors obtained from trios (and duos) to missing 
+  Description: Remove markers above chr 23 as these are eliglible for imputation
+  Rule order: mod5-c
+  rule type: markers
+  rule action: mendel errors set to missing
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 

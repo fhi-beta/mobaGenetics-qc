@@ -145,7 +145,7 @@ def saveYamlResults(files, yamlStruct):
     with open(rstFile, 'w') as file:
         file.write(f'Rule {yamlStruct["Rule order"]} ({yamlStruct["rule type"]})\n\n')
         file.write(f'- {yamlStruct["in"]} in\n')
-        file.write(f'- {yamlStruct["actionTakenCount"]} ({percentDropped:.1%}) {yamlStruct["rule action"]}d\n') # 
+        file.write(f'- {yamlStruct["actionTakenCount"]} ({percentDropped:.1%}) {yamlStruct["rule action"]}\n') # 
         file.write(f'- {yamlStruct["out"]} left\n\n')
         file.write(f'{yamlStruct["Timestamp"]}\n')
 
