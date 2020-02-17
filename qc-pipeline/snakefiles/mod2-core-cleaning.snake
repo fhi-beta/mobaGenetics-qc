@@ -867,6 +867,7 @@ rule split_founder_offspring:
 
 rule_stem = "ibd_prep"
 rule ibd_prep:  # code is more or less copied to core_ibd_prep
+    threads: 2
     input:
         bedset = tmpMod2/"{role}/start_clean.bed",
         clean_snps = rules.prune_markers.output.exclude_list
@@ -900,6 +901,7 @@ rule ibd_prep:  # code is more or less copied to core_ibd_prep
 
 rule_stem = "ibd_exclusion"
 rule ibd_exclusion:  # code is more or less copied to core_ibd_exclusion
+    threads: 2
     input:
         bed = rules.ibd_prep.input.bedset,
         ibd_reduced_genome = rules.ibd_prep.output.ibd_reduced_genome
@@ -949,6 +951,7 @@ rule ibd_exclusion:  # code is more or less copied to core_ibd_exclusion
 
 rule_stem = 'ibd_prune'
 rule ibd_prune: # code is more or less copied to core_ibd_prune
+    threads: 2
     input:
         bedset = rules.ibd_exclusion.output.bedset,
         genome = rules.ibd_prep.output.genome
@@ -992,6 +995,7 @@ rule ibd_prune: # code is more or less copied to core_ibd_prune
 rule_stem = 'geno_rates_mind3' # last iteration - keep <= 9 or fix code below
 rule geno_rates_mind3:         # part of earlier markerclean
     # This rule is poorly documented in the html-report, should have made 6 result files
+    threads: 2
     input:
         bedset = rules.ibd_prune.output.bedset,
     output:
@@ -1054,6 +1058,7 @@ rule geno_rates_mind3:         # part of earlier markerclean
 
 rule_stem = 'hwe_autos_geno' # called clean_marker previously
 rule hwe_autos_geno:        # part of earlier markerclean
+    threads: 2
     input:
         bedset = rules.geno_rates_mind3.output.bedset,
     output:
@@ -1122,8 +1127,10 @@ rule hwe_autos_geno:        # part of earlier markerclean
                         plot_file=output.plot)
         # and set a common caption
         mqc.make_rule_caption(rule, resultPath)
+
 rule_stem = 'sex_check'
 rule sex_check:
+    threads: 2
     input:
         bedset = rules.hwe_autos_geno.output.bedset,
     output:
@@ -1154,6 +1161,7 @@ rule sex_check:
 
 rule_stem = 'female_xmarkers'
 rule female_xmarkers:
+    threads: 2
     input:
         bedset = rules.sex_check.output.bedset,
     output:
@@ -1187,9 +1195,10 @@ rule female_xmarkers:
                                          "--hardy", "midp"],
                          result_file=output.results, plot_file=output.plot)
         mqc.make_rule_caption(rule, resultPath)
-        
+
 rule_stem = 'par_regions'
 rule par_regions:
+    threads: 2
     input:
         bedset = rules.female_xmarkers.output.bedset,  # not same pipe as rot2, but ok since different chr
     output:
@@ -1226,6 +1235,7 @@ rule par_regions:
 
 rule_stem = 'clean_male_x'
 rule clean_male_x:
+    threads: 2
     input:
         bedset = rules.par_regions.output.bedset,
         bim = (tmpMod2/"{role}"/"sex_check").with_suffix(".bim"),
@@ -1251,6 +1261,7 @@ rule clean_male_x:
 
 rule_stem = 'sex_clean'
 rule sex_clean:
+    threads: 2
     input:
         bedset = rules.hwe_autos_geno.output.bedset, # clean_autosomes earlier
         excl_failed_hwe_female_x = rules.female_xmarkers.output.exclude_markers,
@@ -1295,6 +1306,7 @@ rule sex_clean:
 
 rule_stem = 'common_founders_offspring_markers'
 rule common_founders_offspring_markers:
+    threads: 2
     input:
         markers = expand(str(tmpMod2/'{role}')+'/sex_clean.bim', role=ROLES) # Final markerlists
     output:
@@ -1318,6 +1330,7 @@ rule common_founders_offspring_markers:
 
 rule_stem = 'core_missingness'
 rule core_missingness:
+    threads: 2
     input:
         bedset = (tmpMod2/"{role}"/"start_clean").with_suffix(".bed"), # from split_founder_offspring
         common_markers = rules.common_founders_offspring_markers.output.markers
@@ -1360,6 +1373,7 @@ rule core_missingness:
 
 rule_stem = 'core_het'
 rule core_het:
+    threads: 2
     input:
         bedset = rules.core_missingness.output.bedset
     output:
@@ -1406,6 +1420,7 @@ rule core_het:
 
 rule_stem = "core_ibd_prep"
 rule core_ibd_prep:  # code is more or less copied from ibd_prep
+    threads: 2
     input:
         bedset = rules.core_het.output.bedset,
         prunedsnps = rules.prune_markers.output.exclude_list,
@@ -1438,6 +1453,7 @@ rule core_ibd_prep:  # code is more or less copied from ibd_prep
 
 rule_stem = "core_ibd_exclusion"
 rule core_ibd_exclusion:  # code is more or less copied to core_ibd_exclusion
+    threads: 2
     input:
         bed = rules.core_ibd_prep.input.bedset,
         ibd_reduced_genome = rules.core_ibd_prep.output.verify_ibd_reduced_genome
@@ -1487,6 +1503,7 @@ rule core_ibd_exclusion:  # code is more or less copied to core_ibd_exclusion
 
 rule_stem = 'core_ibd_prune'
 rule core_ibd_prune: # code is more or less copied from ibd_prune
+    threads: 2
     input:
         bedset = rules.core_ibd_exclusion.output.bedset,
         genome = rules.core_ibd_prep.output.genome
