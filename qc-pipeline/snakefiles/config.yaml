@@ -90,6 +90,7 @@ core_mind: 0.02
 core_maf: 0.01
 core_sd_het: 4
 
+# from http://www.haplotype-reference-consortium.org/ ?
 hrc_sites: "/mnt/archive/helgeland/refdata/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
 
 

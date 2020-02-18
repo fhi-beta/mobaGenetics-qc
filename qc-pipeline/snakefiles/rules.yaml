@@ -535,8 +535,8 @@ chr1_23:
   Timestamp: 
 
 mendelian_errors:
-  QC test: Set any mendelian errors obtained from trios (and duos) to missing 
-  Description: Remove markers above chr 23 as these are eliglible for imputation
+  QC test: Set any mendelian errors obtained from trios (and duos) to missing in .bed file
+  Description: 
   Rule order: mod5-c
   rule type: markers
   rule action: mendel errors set to missing
@@ -544,12 +544,12 @@ mendelian_errors:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-hrc_verification_check:
-  QC test:
-  Description:
-  Rule order: mod5-c
+rayner_verification:
+  QC test: Will Rayner verification (with HRC or 1000G) and update bedset
+  Description: Big Perl Script needing 20-30Gb memory 
+  Rule order: mod5-d
   rule type: markers
-  rule action: remove
+  rule action: update?
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 

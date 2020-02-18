@@ -105,67 +105,106 @@ rule mendelian_errors:
         dropouts["actionTakenCount"] = n
         mqc.saveYamlResults(output.results, dropouts)
 
+rule_stem = "hrc_verification"
+rule rayner_verification:
+    input:
+        bedset = rules.mendelian_errors.output.bedset,
+        hrc_sites=config['hrc_sites']
+    output:
+        touch(tmpMod5/"RaynerVerificationNotDone")
+        # bedset=expand(str(tmpMod5/rule_stem)
+        #                   + '{ext}', ext=['.bed','.bim','.fam']),
+        # results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        #                  category="Module 5 Shaping preparation",
+        #                  caption=(resultPath/rule_stem).with_suffix(".rst"))
+    benchmark:
+        (tmpMod5/rule_stem).with_suffix(".benchmark")
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
 
-# # Get cleaned markers
-# # Set any mendelian errors obtained from trios (and duos) to missing    
-# # Remove markers above chr 23 as these are eliglible for imputation
-# rule set_mendelian_errors_missing:
-# 	input: 
-# 		in_bedset = base + 'both/tmp/' + 'inferped_all.bed',
-# 		markerlist = base + 'both/tmp/' + 'shared_markers.txt'
-# 	output:
-# 		out_bedset = expand(base + 'mod5-shaping-preparation/tmp/me-errors-set-missing' + '{ext}', ext=['.bed','.bim','.fam']),
-# 		out_genotyped = base + 'genotyped.bed',
-# 		stvars = base + 'mod5-shaping-preparation/rep/' + 'storedvars_me.txt',
-# 		exclsnps = base + 'mod5-shaping-preparation/rep/' + 'exclusions_me_snp.txt'
-# 	params:
-# 		outdir = base + 'mod5-shaping-preparation/tmp/',
-# 		in_bedset = base + 'both/tmp/inferped_all',
-# 		out_bedset = base + 'mod5-shaping-preparation/tmp/me-errors-set-missing',
-# 		out_genotyped = base + 'genotyped'
-# 	shell:
-# 		"""
-# 		set -e
-# 		libdir={libdir}
-# 		plinklocal={plinklocal}
+        # inTrunk =  mqc.plinkBase(input.bedset[0])
+        # outTrunk = mqc.plinkBase(output.bedset[0])
+        # freqTrunk = outTrunk + ".freq4hrc"
+        # # generate required frequency file for HRC check perl script
+        # subprocess.run([plinklocal,
+        #                 "--bfile", inTrunk,
+        #                 "--freq",
+        #                 "--out", freqTrunk])
+        # in order not to confuse/change perl-script we cd there so results end up where they should
+        #os.chdir(tmpMod5)
+        # assumes perl found in path
+        # 18.2.2020: This should have been a subprocess.run but it crashes due to not enough memory
+        # subprocess.run(["perl",
+        #             f"{libdir}/HRC-1000G-check-bim.pl",
+        #             "-b", inTrunk+".bim",
+        #             "-f", freqTrunk+".freq",
+        #             "-r", input.hrc_sites,
+        #             "-h"]) # -h indicates HRC as refset
+        print ("**** hrc_verification not done due to to little memory. Should have done: ")
+        print(["perl",
+                    f"{libdir}/HRC-1000G-check-bim.pl",
+                    "-b", "inTrunk.bim",
+                    "-f", "freqTrunk.freq",
+                    "-r", input.hrc_sites,
+                    "-h"])
+        print ("**** While at it, get the neweset version 4.2.11: ")
+        # dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
+        #                             sanityCheck = "updated", fullList = True)
+        # dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        # dropouts["Rule"] = rule
+        # mqc.saveYamlResults(output.results, dropouts)
 
-# 		source {libdir}/functions.sh
+rule_stem = "split_by_chr"
+rule split_by_chr:
+    input:
+        bedset = rules.mendelian_errors.output.bedset,
+        hrc_sites=config['hrc_sites']
+    output:
+        touch(tmpMod5/"RaynerVerificationNotDone")
+        # bedset=expand(str(tmpMod5/rule_stem)
+        #                   + '{ext}', ext=['.bed','.bim','.fam']),
+        # results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        #                  category="Module 5 Shaping preparation",
+        #                  caption=(resultPath/rule_stem).with_suffix(".rst"))
+    benchmark:
+        (tmpMod5/rule_stem).with_suffix(".benchmark")
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
 
-# 		PIPELINELOG={runlog}
-# 		STOREDVARS={output.stvars}
-# 		EXCLUSIONSS={output.exclsnps}
-
-# 		# remove markers above chr 23
-# 		log "----- MODULE 3 START -----"
-# 		log "----EXTRACT QC-ed DATASET----"
-# 		$plinklocal \
-# 			--bfile {params.in_bedset} \
-# 			--extract {input.markerlist} \
-# 			--make-bed \
-# 			--out {params.out_genotyped}
-# 		report_ninds {params.in_bedset} "INTO_shared_and_chr23"
-# 		report_nsnps {params.in_bedset} "INTO_shared_and_chr23"
-# 		store "NSNPS_shared" `wc -l {input.markerlist}`
-# 		report_lostsnps {params.in_bedset} {params.out_genotyped} "shared"
-
-# 		log "----SHAPING PREPARATION----"
-# 		$plinklocal \
-# 			--bfile {params.out_genotyped} \
-# 			--chr 1-23 \
-# 			--make-bed \
-# 			--out {params.outdir}/chr1-23only
-# 		report_lostsnps {params.out_genotyped} {params.outdir}/chr1-23only "shared_and_chr23"
-# 		report_nsnps {params.outdir}/chr1-23only "AFTER_shared_and_chr23"
-
-# 		log "Set Mendelian errors to missing"
-# 		$plinklocal \
-# 			--bfile {params.outdir}/chr1-23only \
-# 			--set-me-missing \
-# 			--mendel-duos \
-# 			--make-bed \
-# 			--out {params.out_bedset}
-# 		store "MES_MASKED" `awk '$0~/errors addressed/{{print $2}}' {params.out_bedset}.log`
-# 		"""
+        # inTrunk =  mqc.plinkBase(input.bedset[0])
+        # outTrunk = mqc.plinkBase(output.bedset[0])
+        # freqTrunk = outTrunk + ".freq4hrc"
+        # # generate required frequency file for HRC check perl script
+        # subprocess.run([plinklocal,
+        #                 "--bfile", inTrunk,
+        #                 "--freq",
+        #                 "--out", freqTrunk])
+        # in order not to confuse/change perl-script we cd there so results end up where they should
+        #os.chdir(tmpMod5)
+        # assumes perl found in path
+        # 18.2.2020: This should have been a subprocess.run but it crashes due to not enough memory
+        # subprocess.run(["perl",
+        #             f"{libdir}/HRC-1000G-check-bim.pl",
+        #             "-b", inTrunk+".bim",
+        #             "-f", freqTrunk+".freq",
+        #             "-r", input.hrc_sites,
+        #             "-h"]) # -h indicates HRC as refset
+        print ("**** hrc_verification not done due to to little memory. Should have done: ")
+        print(["perl",
+                    f"{libdir}/HRC-1000G-check-bim.pl",
+                    "-b", "inTrunk.bim",
+                    "-f", "freqTrunk.freq",
+                    "-r", input.hrc_sites,
+                    "-h"])
+        print ("**** While at it, get the neweset version 4.2.11: ")
+        # dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
+        #                             sanityCheck = "updated", fullList = True)
+        # dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        # dropouts["Rule"] = rule
+        # mqc.saveYamlResults(output.results, dropouts)
+        
 
 # rule hrc_verification_check:
 # 	input:
