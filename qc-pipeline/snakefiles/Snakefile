@@ -39,6 +39,7 @@ rule all:
         expand(str(resultPath/"{role}/ibd_prep.png"), role=ROLES),
         expand(str(resultPath/"{role}/pihat_accum.png"), role=ROLES),
         expand(str(tmpMod5)+"/split_by_chr{chromo}"+'{ext}', ext=['.bed','.bim','.fam'], chromo=chrom),
+        expand(str(tmpMod5)+"/wr_check{chromo}"+'{ext}', ext=['.bed','.bim','.fam'], chromo=chrom),
 	# final output:
         #expand(config['output_base'] + 'mod5-shaping-preparation/tmp/hrc-update-complete-{chr}' + '{ext}', ext=['.bed','.bim','.fam'], chr=chrom),
 	# expand(config['output_base'] + '{role}/pca/final_pca_covars.txt', role=ROLES),

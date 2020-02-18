@@ -138,7 +138,7 @@ rule rayner_verification:
         # subprocess.run(["perl",
         #             f"{libdir}/HRC-1000G-check-bim.pl",
         #             "-b", inTrunk+".bim",
-        #             "-f", freqTrunk+".freq",
+        #             "-f", freqTrunk+".frq",
         #             "-r", input.hrc_sites,
         #             "-h"]) # -h indicates HRC as refset
         print ("**** hrc_verification not done due to to little memory. Should have done: ")
@@ -162,9 +162,6 @@ rule split_by_chr:
     output:
         bedset = expand(str(tmpMod5/rule_stem)
                           +'{{chromo}}'+'{ext}', ext=['.bed','.bim','.fam']),
-        # results = report((resultPath/rule_stem).with_suffix(".rst"),
-        #                  category="Module 5 Shaping preparation",
-        #                  caption=(resultPath/rule_stem).with_suffix(".rst"))
     benchmark:
         str(tmpMod5/rule_stem)+f"{{chromo}}.benchmark"
     message: "Splitting verified dataset by chromosome: chromosome {wildcards.chromo}/23"
@@ -212,6 +209,81 @@ rule split_by_chr_report:
                 file.write(f'Rule {rule_info[rule]["Rule order"]} ({rule_info[rule]["rule action"]})\n\n'
                            f'Total snps {total} split chromosone-wise like this:\n\n'
                            f'{res}\n')
+# Pretty hardcoded to HRC as reference set
+rule_stem = "wr_check"
+rule wr_check:
+    input:
+        bedset = rules.split_by_chr.output.bedset,
+        hrc_sites=config['hrc_sites']
+    output:
+        bedset = expand(str(tmpMod5/rule_stem)
+                          +'{{chromo}}'+'{ext}', ext=['.bed','.bim','.fam']),
+        # results = report((resultPath/rule_stem).with_suffix(".rst"),
+        #                  category="Module 5 Shaping preparation",
+        #                  caption=(resultPath/rule_stem).with_suffix(".rst"))
+    benchmark:
+        str(tmpMod5/rule_stem)+f"{{chromo}}.benchmark"
+    message: "Running Will Rayner perl script for {wildcards.chromo}/23"
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        basename = Path(inTrunk).name # perl-script will use this to denote tweak-files for plink
+        print(basename)
+        outTrunk = mqc.plinkBase(output.bedset[0])
+        freqTrunk = outTrunk + ".freq4wr"
+        # generate required frequency file for HRC check perl script
+        subprocess.run([plinklocal,
+                        "--bfile", inTrunk,
+                        "--freq",
+                        "--out", freqTrunk])
+        # in order not to confuse/change perl-script we cd there so results end up where they should
+        os.chdir(tmpMod5)
+        # reducing the reference set to this chromosoe
+        hrc_subset = "hrc." + wildcards.chromo
+        mqc.egrep(f"'^\#CHROM|^{wildcards.chromo}\s'",input.hrc_sites, hrc_subset)
+        if wildcards.chromo == '23' :    # denoted as X in the hrc ref.set
+            mqc.egrep(f"'^\#CHROM|^X\s'",input.hrc_sites, hrc_subset)
+        
+        # assumes perl found in path
+        subprocess.run(["perl",
+                    f"{libdir}/HRC-1000G-check-bim.pl",
+                    "-b", inTrunk+".bim",
+                    "-f", freqTrunk+".frq",
+                    "-r", hrc_subset,
+                    "-c",  # indicate that we are not using the full chromosoe   
+                    "-h"]) # -h indicates HRC as refset
+        # log found in  str(tmpMod5)+f"/LOG-{basename}-HRC.txt"
+        subprocess.run([plinklocal,
+                        "--bfile", inTrunk,
+                        "--exclude", str(tmpMod5)+f"/Exclude-{basename}-HRC.txt",
+                        "--out", outTrunk,
+                        "--make-bed"])
+        # Update chromosone
+        subprocess.run([plinklocal,
+                        "--bfile", outTrunk,
+                        "--update-chr", str(tmpMod5)+f"/Chromosome-{basename}-HRC.txt",
+                        "--out", outTrunk,
+                        "--make-bed"])
+        # Update map
+        subprocess.run([plinklocal,
+                        "--bfile", outTrunk,
+                        "--update-map", str(tmpMod5)+f"/Position-{basename}-HRC.txt",
+                        "--out", outTrunk,
+                        "--make-bed"])
+        # update strand
+        subprocess.run([plinklocal,
+                        "--bfile", outTrunk,
+                        "--flip", str(tmpMod5)+f"/Strand-Flip-{basename}-HRC.txt",
+                        "--out", outTrunk,
+                        "--make-bed"])
+        # finally
+        subprocess.run([plinklocal,
+                        "--bfile", outTrunk,
+                        "--reference-allele", str(tmpMod5)+f"/Force-Allele1-{basename}-HRC.txt",
+                        "--out", outTrunk,
+                        "--make-bed"])
+        
 
 # rule hrc_verification_check:
 # 	input:
