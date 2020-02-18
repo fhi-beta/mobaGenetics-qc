@@ -555,11 +555,21 @@ rayner_verification:
   Timestamp: 
 
 split_by_chr:
-  QC test:
+  QC test: split dataset by chromosome before phasing
   Description:
-  Rule order: mod5-d
+  Rule order: mod5-e
   rule type: markers
-  rule action: remove
+  rule action: split
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+split_by_chr_report:
+  QC test: Document the number of chromsones
+  Description: The work is done in the rule split_by_chr
+  Rule order: mod5-f
+  rule type: markers
+  rule action: split
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 

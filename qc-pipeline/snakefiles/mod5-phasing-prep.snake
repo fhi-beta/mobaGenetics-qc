@@ -159,52 +159,59 @@ rule_stem = "split_by_chr"
 rule split_by_chr:
     input:
         bedset = rules.mendelian_errors.output.bedset,
-        hrc_sites=config['hrc_sites']
     output:
-        touch(tmpMod5/"RaynerVerificationNotDone")
-        # bedset=expand(str(tmpMod5/rule_stem)
-        #                   + '{ext}', ext=['.bed','.bim','.fam']),
-        # results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        bedset = expand(str(tmpMod5/rule_stem)
+                          +'{{chromo}}'+'{ext}', ext=['.bed','.bim','.fam']),
+        # results = report((resultPath/rule_stem).with_suffix(".rst"),
         #                  category="Module 5 Shaping preparation",
         #                  caption=(resultPath/rule_stem).with_suffix(".rst"))
     benchmark:
-        (tmpMod5/rule_stem).with_suffix(".benchmark")
+        str(tmpMod5/rule_stem)+f"{{chromo}}.benchmark"
+    message: "Splitting verified dataset by chromosome: chromosome {wildcards.chromo}/23"
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
+        print("****** Get bedset from Rayner verification!!! *****")
+        subprocess.run([plinklocal,
+                        "--bfile", inTrunk,
+                        "--chr", str(wildcards.chromo),
+                        "--out", outTrunk,
+                        "--make-bed"])
 
-        # inTrunk =  mqc.plinkBase(input.bedset[0])
-        # outTrunk = mqc.plinkBase(output.bedset[0])
-        # freqTrunk = outTrunk + ".freq4hrc"
-        # # generate required frequency file for HRC check perl script
-        # subprocess.run([plinklocal,
-        #                 "--bfile", inTrunk,
-        #                 "--freq",
-        #                 "--out", freqTrunk])
-        # in order not to confuse/change perl-script we cd there so results end up where they should
-        #os.chdir(tmpMod5)
-        # assumes perl found in path
-        # 18.2.2020: This should have been a subprocess.run but it crashes due to not enough memory
-        # subprocess.run(["perl",
-        #             f"{libdir}/HRC-1000G-check-bim.pl",
-        #             "-b", inTrunk+".bim",
-        #             "-f", freqTrunk+".freq",
-        #             "-r", input.hrc_sites,
-        #             "-h"]) # -h indicates HRC as refset
-        print ("**** hrc_verification not done due to to little memory. Should have done: ")
-        print(["perl",
-                    f"{libdir}/HRC-1000G-check-bim.pl",
-                    "-b", "inTrunk.bim",
-                    "-f", "freqTrunk.freq",
-                    "-r", input.hrc_sites,
-                    "-h"])
-        print ("**** While at it, get the neweset version 4.2.11: ")
-        # dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
-        #                             sanityCheck = "updated", fullList = True)
-        # dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        # dropouts["Rule"] = rule
-        # mqc.saveYamlResults(output.results, dropouts)
-        
+
+rule_stem = "split_by_chr_report"
+rule split_by_chr_report:
+    input:
+        bedset = rules.mendelian_errors.output.bedset,
+        chrfiles =  expand(str(tmpMod5/"split_by_chr")
+                          +'{chrom}'+".bim", chrom=range(1,24)),
+    output:
+        results = report((resultPath/rule_stem).with_suffix(".rst"),
+                          category="Module 5 Shaping preparation",
+                          caption=(resultPath/rule_stem).with_suffix(".rst"))
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        print("****** Get bedset from Rayner verification!!! *****")
+        bimfile =  mqc.plinkBase(input.bedset[0]) + ".bim"
+        total = mqc.line_count(bimfile)  # number of snps before split
+        sum = 0 # total snps in chr files created previously
+        regx = re.compile('(\d+).bim')  # assuming that the chromosone number is just before .bim
+        res = ""  # String that contains chromosone counts.
+        for f in input.chrfiles:
+            c = re.search(regx,f).group(1)  # this chromosone
+            n = mqc.line_count(f)           # number of snsps for this chromosone
+            res += f"{c}:{n} "
+            sum += n
+        if total != sum :
+            print("Error: {bimfile} had {total} snps while the 23 chromosone files had {sum}")
+
+        with open(output.results,'w') as file:
+                file.write(f'Rule {rule_info[rule]["Rule order"]} ({rule_info[rule]["rule action"]})\n\n'
+                           f'Total snps {total} split chromosone-wise like this:\n\n'
+                           f'{res}\n')
 
 # rule hrc_verification_check:
 # 	input:
@@ -300,42 +307,5 @@ rule split_by_chr:
 # 		report_nsnps {params.out_bedset} "AFTER_WR"
 # 		"""
 
-# # split dataset by chromosome before phasing
-# rule split_by_chr:
-# 	input:
-# 		in_bedset=expand(base + 'mod5-shaping-preparation/tmp/hrc-update-complete' + '{ext}', ext=['.bed','.bim','.fam'])
-# 	output:
-# 		out_bedset=expand(base + 'mod5-shaping-preparation/tmp/hrc-update-complete-{{chr}}' + '{ext}', ext=['.bed','.bim','.fam']),
-# 		stvars=base + 'mod5-shaping-preparation/rep/' + 'storedvars_splitchr{chr}.txt'
-# 	params:
-# 		in_bedset=base + 'mod5-shaping-preparation/tmp/hrc-update-complete',
-# 		out_bedset=base + 'mod5-shaping-preparation/tmp/hrc-update-complete-{chr}'
-# 	threads: 23
-# 	message: "Splitting HRC verified dataset by chromosome: chromosome {wildcards.chr}/23"
-# 	log:
-# 		out=base + 'mod5-shaping-preparation/rep/split_by_chr-{chr}.out',
-# 		err=base + 'mod5-shaping-preparation/rep/split_by_chr-{chr}.err'
-# 	shell:
-# 		"""
-# 		set -e
-# 		libdir={libdir}
-# 		plinklocal={plinklocal}
-
-# 		source {libdir}/functions.sh
-
-# 		PIPELINELOG={runlog}
-# 		STOREDVARS={output.stvars}
-
-# 		log "SPLITTING BY CHROMOSOME"
-
-# 		$plinklocal \
-# 			--bfile {params.in_bedset} \
-# 			--chr {wildcards.chr} \
-# 			--make-bed \
-# 			--out {params.out_bedset} 2> {log.err} 1> {log.out}
-
-# 		# logging for final report
-# 		report_nsnps {params.out_bedset} TO_PHASING_CHR{wildcards.chr}
-# 		"""
 
 rule_stem  = "rule_stem is only to be used in snakemake directives - have you used it in other code?"

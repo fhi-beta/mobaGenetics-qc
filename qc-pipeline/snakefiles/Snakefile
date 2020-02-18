@@ -38,8 +38,9 @@ rule all:
         resultPath/"plot_pca_both.png",
         expand(str(resultPath/"{role}/ibd_prep.png"), role=ROLES),
         expand(str(resultPath/"{role}/pihat_accum.png"), role=ROLES),
+        expand(str(tmpMod5)+"/split_by_chr{chromo}"+'{ext}', ext=['.bed','.bim','.fam'], chromo=chrom),
 	# final output:
-        # expand(config['output_base'] + 'mod5-shaping-preparation/tmp/hrc-update-complete-{chr}' + '{ext}', ext=['.bed','.bim','.fam'], chr=chrom),
+        #expand(config['output_base'] + 'mod5-shaping-preparation/tmp/hrc-update-complete-{chr}' + '{ext}', ext=['.bed','.bim','.fam'], chr=chrom),
 	# expand(config['output_base'] + '{role}/pca/final_pca_covars.txt', role=ROLES),
 	# config['output_base'] + 'sample_flag_list.txt'
 
