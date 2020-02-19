@@ -36,6 +36,17 @@ except Exception as e:
 
 plink=config["plinklocal"]
 
+def test_me():
+    """ For random tests
+
+    """
+    subprocess.run([plink,
+                    "--bfile","foo",
+                    "--chr", "23",
+                    "--out", "bar",
+                    "--indep-pairphase"] + config["sex_check_indep_pairwise"].split()
+    )
+
 def make_rule_caption(rule,dir):
     """ Creates a caption for rule
 
@@ -824,11 +835,10 @@ def sex_check(rule,
     # prime/chr23
     subprocess.run([plink,
                 "--bfile",inTrunk,
-                "-chr", "23",
-                "--indep-pairphase", "20000", "2000", "0.5",
-                "--out", tmpPath/"pruned_sex_markers"
-        ])
-
+                "--chr", "23",
+                "--out", tmpPath/"pruned_sex_markers",
+                "--indep-pairphase"] + config["sex_check_indep_pairwise"].split()
+        )
     subprocess.run([plink,
                     "--bfile",inTrunk,
                     "--extract", tmpPath/"pruned_sex_markers.prune.in",

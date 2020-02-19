@@ -466,7 +466,7 @@ rule pedigree_fix_pruned:
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
 
-# Reduce 1000 genome markers to the one already pruned and sorted out for moba
+# Reduce 1000 genome markers to the one allready pruned and sorted out for moba
 rule_stem = 'common_markers_moba_ref'
 rule common_markers_moba_ref:
     input:

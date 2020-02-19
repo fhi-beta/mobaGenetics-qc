@@ -105,6 +105,8 @@ rule mendelian_errors:
         dropouts["actionTakenCount"] = n
         mqc.saveYamlResults(output.results, dropouts)
 
+# Not used for now - due to memory problem this was rewritten to work on one chromosome at the time
+# See wr_check and tidy up the names if needed.
 rule_stem = "hrc_verification"
 rule rayner_verification:
     input:
@@ -191,7 +193,6 @@ rule split_by_chr_report:
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
-        print("****** Get bedset from Rayner verification!!! *****")
         bimfile =  mqc.plinkBase(input.bedset[0]) + ".bim"
         total = mqc.line_count(bimfile)  # number of snps before split
         sum = 0 # total snps in chr files created previously

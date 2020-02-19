@@ -50,3 +50,11 @@ rule all:
 include: "mod1-data-conversion.snake"
 include: "mod2-core-cleaning.snake"
 include: "mod5-phasing-prep.snake"
+
+# for small tests. 
+rule test:
+    output: touch("foo")
+    run:
+        print(config["plinklocal"])
+        mqc.test_me()
+
