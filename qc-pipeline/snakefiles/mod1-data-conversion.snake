@@ -23,7 +23,7 @@ rule remove_chr0:
                 "--not-chr", "0", 
                 "--out", outTrunk,
                 "--make-bed"
-        ])
+        ], check=True)
 
         # Checking how many markers/chromosone 0 we removed  on this step
         # We turn of warning here as we know there might be duplicate markers to check for later
@@ -61,7 +61,7 @@ rule remove_duplicate_markers:
         subprocess.run([plinklocal,
                         "--bfile",inTrunk,
                         "--list-duplicate-vars"
-        ])
+        ], check=True)
         # Unfortunately, the result is placed in cwd, we want it with the other tmp files
         dup_file_old = Path(os.getcwd())/'plink.dupvar'
         # Python 3.7.5 . The blow fails when not on the same mountpoint (bug)?
@@ -73,7 +73,7 @@ rule remove_duplicate_markers:
                         "--bfile", inTrunk,
                         "--out", callRateTrunk,
                         "--missing"
-        ])
+        ], check=True)
 
         mqc.create_exclude_list(dup_file, callRateTrunk+".lmiss",
                                 output.resultDetails, output.excludeList)
@@ -83,7 +83,7 @@ rule remove_duplicate_markers:
                         "--exclude", output.excludeList,
                         "--out", outTrunk,
                         "--make-bed"
-        ])
+        ], check=True)
         # We are here checking only the snp-id. It should be unique
         dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [1], sanityCheck = "removal",
                                     fullList = False) 
@@ -116,7 +116,7 @@ rule update_sample_ids:
                 "--bfile",inTrunk,
                 "--update-ids", input.recode,
                 "--out", outTrunk ,
-                "--make-bed"        ])
+                "--make-bed"], check=True)
         updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols=[0,1], indx=1,
                                    sanityCheck="updated", fullList=True, mapFile=input.recode, mapIndx=1) 
         updated.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -144,7 +144,7 @@ rule update_parents:
                 "--update-parents", input.recode,
                 "--out", outTrunk ,
                 "--make-bed"
-        ])
+        ], check=True)
         updated= mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols=[1,2,3], sanityCheck = "updated",
                                    fullList = True, mapFile=input.recode)
         updated.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -176,7 +176,7 @@ rule update_sex:
                 "--update-sex", input.recode,
                 "--out", outTrunk ,
                 "--make-bed"
-        ])
+        ], check=True)
         # Checking how many of the original samples we still have
         updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [1,4], indx=1, sanityCheck = "updated",
                                    fullList = True, mapFile=input.recode, mapIndx=1)
@@ -225,7 +225,7 @@ rule remove_markers_cluster_sep:
                 "--exclude", output.removal_markers,
                 "--out", outTrunk ,
                 "--make-bed"
-        ])
+        ], check=True)
 
         dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1],
                                     sanityCheck = "removal", fullList = True)
@@ -274,8 +274,7 @@ rule remove_markers_gc_score:
                 "--bfile",inTrunk,
                 "--exclude", output.removal_markers,
                 "--out", outTrunk ,
-                "--make-bed"])
-    
+                "--make-bed"], check=True)
 
         dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -325,8 +324,7 @@ rule remove_markers_aa_theta_dev:
                 "--exclude", output.removal_markers,
                 "--out", outTrunk ,
                 "--make-bed"
-        ])
-
+        ], check=True)
 
         dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule

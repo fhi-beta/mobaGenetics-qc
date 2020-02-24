@@ -22,7 +22,7 @@ rule mendelian_errors_prep:
                         "--bfile", inTrunk,
                         "--extract", input.markers,
                         "--out", outTrunk,
-                        "--make-bed" ])
+                        "--make-bed" ], check=True)
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
                                     sanityCheck = "removal", fullList = True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -53,7 +53,7 @@ rule chr1_23:
                         "--bfile", inTrunk,
                         "--chr", "1-23",
                         "--out", outTrunk,
-                        "--make-bed" ])
+                        "--make-bed" ], check=True)
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
                                     sanityCheck = "removal", fullList = True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -84,7 +84,7 @@ rule mendelian_errors:
                         "--set-me-missing",
                         "--mendel-duos",
                         "--out", outTrunk,
-                        "--make-bed" ])
+                        "--make-bed" ], check=True)
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
                                     sanityCheck = "updated", fullList = True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -177,8 +177,7 @@ rule split_by_chr:
                         "--bfile", inTrunk,
                         "--chr", str(wildcards.chromo),
                         "--out", outTrunk,
-                        "--make-bed"])
-
+                        "--make-bed"], check=True)
 
 rule_stem = "split_by_chr_report"
 rule split_by_chr_report:
@@ -237,9 +236,8 @@ rule wr_check:
         subprocess.run([plinklocal,
                         "--bfile", inTrunk,
                         "--freq",
-                        "--out", freqTrunk])
-        # in order not to confuse/change perl-script we cd there so results end up where they should
-        os.chdir(tmpMod5)
+                        "--out", freqTrunk], check=True)
+
         # reducing the reference set to this chromosoe
         hrc_subset = "hrc." + wildcards.chromo
         mqc.egrep(f"'^\#CHROM|^{wildcards.chromo}\s'",input.hrc_sites, hrc_subset)
@@ -253,37 +251,38 @@ rule wr_check:
                     "-f", freqTrunk+".frq",
                     "-r", hrc_subset,
                     "-c",  # indicate that we are not using the full chromosoe   
-                    "-h"]) # -h indicates HRC as refset
+                    "-h"], # -h indicates HRC as refset
+                    check=True, cwd=tmpMod5) # cwd so perl-script drops results on 'our' tmp dir
         # log found in  str(tmpMod5)+f"/LOG-{basename}-HRC.txt"
         subprocess.run([plinklocal,
                         "--bfile", inTrunk,
                         "--exclude", str(tmpMod5)+f"/Exclude-{basename}-HRC.txt",
                         "--out", outTrunk,
-                        "--make-bed"])
+                        "--make-bed"], check=True)
         # Update chromosone
         subprocess.run([plinklocal,
                         "--bfile", outTrunk,
                         "--update-chr", str(tmpMod5)+f"/Chromosome-{basename}-HRC.txt",
                         "--out", outTrunk,
-                        "--make-bed"])
+                        "--make-bed"], check=True)
         # Update map
         subprocess.run([plinklocal,
                         "--bfile", outTrunk,
                         "--update-map", str(tmpMod5)+f"/Position-{basename}-HRC.txt",
                         "--out", outTrunk,
-                        "--make-bed"])
+                        "--make-bed"], check=True)
         # update strand
         subprocess.run([plinklocal,
                         "--bfile", outTrunk,
                         "--flip", str(tmpMod5)+f"/Strand-Flip-{basename}-HRC.txt",
                         "--out", outTrunk,
-                        "--make-bed"])
+                        "--make-bed"], check=True)
         # finally
         subprocess.run([plinklocal,
                         "--bfile", outTrunk,
                         "--reference-allele", str(tmpMod5)+f"/Force-Allele1-{basename}-HRC.txt",
                         "--out", outTrunk,
-                        "--make-bed"])
+                        "--make-bed"], check=True)
         
 
 # rule hrc_verification_check:

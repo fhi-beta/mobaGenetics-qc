@@ -54,7 +54,9 @@ include: "mod5-phasing-prep.snake"
 # for small tests. 
 rule test:
     output: touch("foo")
+    log: "test.log"
     run:
         print(config["plinklocal"])
         mqc.test_me()
+        print(config["plinklocal"])
 

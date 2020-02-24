@@ -18,7 +18,7 @@ import os
 from datetime import datetime
 from shutil import copyfile
 import inspect    # to find stack-info, such as the functions name
-
+import logging
 
 # This is kinda ugly
 cwd = Path.cwd()
@@ -36,7 +36,9 @@ except Exception as e:
 
 plink=config["plinklocal"]
 
-def test_me():
+
+
+def test_me(foo="bar"):
     """ For random tests
 
     """
@@ -45,8 +47,19 @@ def test_me():
                     "--chr", "23",
                     "--out", "bar",
                     "--indep-pairphase"] + config["sex_check_indep_pairwise"].split()
-    )
+                    , check=True)
 
+
+    print(inspect.getdoc(make_rule_caption))
+    #print(inspect.signature(test_me))
+    #print(inspect.currentframe())
+    #logging.warning("ooops")
+    # logging.warning(getattr(logging, loglevel.upper()))
+    # print (inspect.stack()[0])
+    
+    
+    
+    
 def make_rule_caption(rule,dir):
     """ Creates a caption for rule
 
@@ -500,7 +513,7 @@ def missing_genotype_rate(rule,
                 plink_switch, str(treshold),
                 "--out", out_bedset,               
                 "--make-bed"
-        ])
+        ], check=True)
     
     dropouts = checkUpdates(in_bedset+extension, out_bedset+extension, cols = [0,1],
                             sanityCheck = "removal", fullList = True) 
@@ -515,7 +528,7 @@ def missing_genotype_rate(rule,
         subprocess.run([plink,
                 "--bfile", in_bedset,
                 "--missing",
-                "--out", in_bedset ])
+                "--out", in_bedset ], check=True)
         plot_point_and_line(dropouts, in_bedset+miss_ext, plot_file,
                                 column="F_MISS",ylabel="1 - missingness")
 
@@ -533,7 +546,7 @@ def detect_low_hwe_rate(in_bedset, out_bedset, treshold=0.1,
     subprocess.run([plink,
                 "--bfile", in_bedset,
                 "--out", out_bedset]
-                + hwe_switches)        # adding a list to another ...
+                   + hwe_switches, check=True)        # adding a list to another ...
     # We here have a .hwe file where low p-values for markers are to be removed
     hwe_p_values = out_bedset+".hwe"
     extract_list(hwe_p_values, out_bedset+".exclude",
@@ -563,7 +576,7 @@ def low_hwe_rate(rule, in_bedset, out_bedset,
                     "--bfile",in_bedset,
                     "--exclude", out_bedset+".exclude",
                     "--out", out_bedset,                                   
-                    "--make-bed"  ])
+                    "--make-bed"  ], check=True)
     
     dropouts = checkUpdates(in_bedset+".bim", out_bedset+".bim", cols = [0,1],
                             sanityCheck = "removal", fullList = True) 
@@ -643,7 +656,7 @@ def excess_het(rule, autosomal,
                 maf, str(treshold),
                 "--het",
                 "--out", out_bedset,               
-        ])
+        ], check=True)
     # We here have a .het file where low p-values for markers are to be removed
     het_p_values = out_bedset+".het"
     het_extract(het_p_values, out_bedset+".exclude", sd)
@@ -653,7 +666,7 @@ def excess_het(rule, autosomal,
                     "--bfile",in_bedset,
                     "--remove", out_bedset+".exclude",
                     "--out", out_bedset,                                   
-                    "--make-bed"  ])
+                    "--make-bed"  ], check=True)
     
     dropouts = checkUpdates(in_bedset+".fam", out_bedset+".fam", cols = [0,1],
                             sanityCheck = "removal", fullList = True) 
@@ -694,7 +707,7 @@ def exclude_strand_ambigious_markers(input, output, plink):
                 "--exclude", output+".excl",                     
                 "--out", output,               
                 "--make-bed"
-        ])
+        ], check=True)
 def fix_rsid_map(mapfile, newmap):
     """ Create a rsid mapping based on som Moba business-logic
     Map of the rsid given in mapfile needs tweeking. newmap is produced
@@ -838,7 +851,7 @@ def sex_check(rule,
                 "--chr", "23",
                 "--out", tmpPath/"pruned_sex_markers",
                 "--indep-pairphase"] + config["sex_check_indep_pairwise"].split()
-        )
+                   , check=True)
     subprocess.run([plink,
                     "--bfile",inTrunk,
                     "--extract", tmpPath/"pruned_sex_markers.prune.in",
@@ -850,7 +863,7 @@ def sex_check(rule,
                     "--bfile",tmpPath/"pruned_for_sexcheck",
                     "--check-sex", str(f_treshold), str(m_treshold), 
                     "--out", tmpPath/"sexcheck_report",               
-                    ])
+                    ], check=True)
     
     # find famid/id of the ones failing sexheck
     extract_list(tmpPath/"sexcheck_report.sexcheck",
@@ -864,7 +877,7 @@ def sex_check(rule,
                     "--remove", tmpPath/"sexcheck_report.remove",
                     "--out", outTrunk,
                     "--make-bed"
-                    ])
+                    ], check=True)
      
     dropouts = checkUpdates(inTrunk+".fam", outTrunk+".fam", cols = [0,1],
                             sanityCheck = "removal", fullList = True) 
@@ -893,3 +906,8 @@ def egrep(pattern, in_file, out_file, switches=""):
 #intersect_rsid("/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/snakefiles/foo", dir+"23", "bar", small_col=0, big_col=1)
 
 
+def main():
+    print("Main called")
+
+if __name__ == "__main__":
+    main()

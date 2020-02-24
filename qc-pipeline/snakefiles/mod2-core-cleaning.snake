@@ -27,7 +27,7 @@ rule maf_removal_markers:   #Minor allele frequencies removal
                 "--bfile",inTrunk,
                 "--maf", str(params.treshold),
                 "--out", outTrunk,      # previously named superclean_maf
-                "--make-bed" ])
+                "--make-bed" ], check=True)
         dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1],
                                     sanityCheck = "removal", fullList = True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -40,7 +40,7 @@ rule maf_removal_markers:   #Minor allele frequencies removal
         subprocess.run([plinklocal,
                 "--bfile", outTrunk,
                 "--missing",
-                "--out", outTrunk ])
+                "--out", outTrunk ], check=True)
 
         mqc.plot_point_and_line(dropouts, outTrunk+".lmiss", output.plot,
                                 column="F_MISS",ylabel="1 - missingness")
@@ -102,7 +102,7 @@ rule clean_samples:
                 "--bfile",oldPermTrunk,
                 "--keep",inTrunk + ".fam", # keeping those samples that just passed the --mind threshold
                 "--out", permTrunk,        # earlier called full_mind
-                "--make-bed" ])
+                "--make-bed" ], check=True)
         dropouts = mqc.checkUpdates(oldPermTrunk+".fam", permTrunk+".fam",cols = [0,1],
                                     sanityCheck = "removal", fullList = True)
 
@@ -162,7 +162,7 @@ rule exclude_unplaced_and_non_autosomal_markers:
                 "--bfile",inTrunk,
                 "--autosome",                     # identifies markers
                 "--out", outTrunk,                # called superclean_autosomal
-                "--make-bed" ])
+                "--make-bed" ], check=True)
 
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
                                     sanityCheck = "removal", fullList = True)
@@ -240,7 +240,7 @@ rule exclude_high_ld_markers:
                 "--bfile",inTrunk,
                 "--exclude", "range", input.high_ld_regions_hg19,    # identifies markers
                 "--out", outTrunk,                                   # called superclean_no_ag_ct_ld before
-                "--make-bed"  ])
+                "--make-bed"  ], check=True)
 
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -270,15 +270,15 @@ rule prune_markers:
         subprocess.run([plinklocal,
                 "--bfile", inTrunk,
                 "--make-founders",
-                 "--out", outTrunk]    # no bed-file prodused, just .prune.in (exclude_list)
-                 + params.prune_cmd )  # note that we here add a list to another list ...
+                "--out", outTrunk]    # no bed-file prodused, just .prune.in (exclude_list)
+                + params.prune_cmd , check=True)  # note that we here add a list to another list ...
 
 
         subprocess.run([plinklocal,
                 "--bfile", inTrunk,
                 "--extract", output.exclude_list,
                 "--out", outTrunk,                  # called superclean_pruned before
-                "--make-bed" ])
+                "--make-bed" ], check=True)
 
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
                                     sanityCheck = "removal", fullList = True)
@@ -311,7 +311,7 @@ rule pedigree_inconsistence_prep:
         subprocess.run([plinklocal,
                 "--bfile", inGenoTrunk,
                 "--check-sex", "ycount",
-                "--out", mqc.plinkBase(output.inferpedx)  ]) # local stem: don't want to overwrite logfiles
+                "--out", mqc.plinkBase(output.inferpedx)  ], check=True) # local stem: don't want to overwrite logfiles
 
         # get PIHAT estimates
         subprocess.run([plinklocal,
@@ -319,7 +319,7 @@ rule pedigree_inconsistence_prep:
                 "--extract", input.clean_snps,
                 "--genome", "--min", "0.10",                 # not parametrized for now
                 "--out", outTrunk,                           # called inferped_pruned before
-                "--make-bed" ])
+                "--make-bed" ], check=True)
 
         dropouts = mqc.checkUpdates(inGenoTrunk+".bim", outTrunk+".bim",cols = [0,1],
                                     sanityCheck = "remove", fullList = True)
@@ -459,7 +459,7 @@ rule pedigree_fix_pruned:
         subprocess.run([plinklocal,
                 "--bfile", inTrunk,
                 "--remove", output.problems,
-                "--out", outTrunk, "--make-bed"  ])  # used to be called no_inferped_problems
+                "--out", outTrunk, "--make-bed"  ], check=True)  # used to be called no_inferped_problems
         dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam",cols = [0,1],
                                     sanityCheck = "remove", fullList = True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -505,31 +505,31 @@ rule common_markers_moba_ref:
                 "--extract", output.marker_list,
                 "--out", outTrunk_ref,
                 "--allow-extra-chr",  # such as PAR1 ...
-                "--make-bed" ])
+                "--make-bed" ], check=True)
         subprocess.run([plinklocal,
                 "--bfile", inTrunk_moba,
                 "--extract", output.marker_list,
                 "--out", outTrunk_moba,
-                "--make-bed" ])
+                "--make-bed" ], check=True)
         # alas these two are not identical enough -
         # discover tri-allele  problems by dummy-merging
         subprocess.run([plinklocal,
-                 "--bfile", outTrunk_ref,
-                 "--bmerge", outTrunk_moba,
-                 "--out", triallelesTrunk ])
+                "--bfile", outTrunk_ref,
+                "--bmerge", outTrunk_moba,
+                "--out", triallelesTrunk ], check=True)
         # ... And then remove these markers from both sets
         # fyi: plink will append inputfiles  by ~ ... since input/output have same name
         subprocess.run([plinklocal,
                 "--bfile", outTrunk_ref,
                 "--exclude", output.tri_alleles,
                 "--out", outTrunk_ref,
-                "--make-bed" ])
+                "--make-bed" ], check=True)
 
         subprocess.run([plinklocal,
                 "--bfile", outTrunk_moba,
                 "--exclude", output.tri_alleles,
                 "--out", outTrunk_moba,
-                "--make-bed" ])
+                "--make-bed" ], check=True)
 
         # Document the reduction for ref (1000 genomes)
         dropouts = mqc.checkUpdates(inTrunk_ref+".bim", outTrunk_ref+".bim",cols = [0,1],
@@ -622,12 +622,12 @@ rule pca_both:
                         "--bfile", inTrunk_ref,
                         "--bmerge", inTrunk_moba,
                         "--out", outTrunk,
-                        "--make-bed"    ])
+                        "--make-bed"    ], check=True)
 
         subprocess.run([flashpca,
                         "--bfile", outTrunk,
                         "--outpc", output.pcs,
-                        ])
+                        ], check=True)
 
 
 # plots a projection, does not work well 7.1.2020 Delete or fix later, see plot_pca_both below
@@ -774,7 +774,7 @@ rule extract_pca_outliers:
                 "--bfile",inTrunk,
                 "--remove", output.exclude_list,
                 "--out", outTrunk,
-                "--make-bed" ])
+                "--make-bed" ], check=True)
 
         dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam",cols = [0,1],
                                     sanityCheck = "removal", fullList = True)
@@ -808,9 +808,9 @@ rule extract_pca_samples_from_full_markerset:
         print (f"using {inTrunk} to make {outTrunk} using {sample_list}")
         subprocess.run([plinklocal,
                 "--bfile", inTrunk,
-                        "--keep", sample_list,
+                "--keep", sample_list,
                 "--out", outTrunk,
-                "--make-bed" ])
+                "--make-bed" ], check=True)
         dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam",cols = [0,1],
                                     sanityCheck = "removal", fullList = True)
 
@@ -846,7 +846,7 @@ rule split_founder_offspring:
                         "--bfile", inTrunk,
                         "--filter-founders",
                         "--out", foundersTrunk,
-                        "--make-bed"  ])
+                        "--make-bed"  ], check=True)
 
         dropouts = mqc.checkUpdates(inTrunk+".fam", foundersTrunk+".fam",cols = [1], sanityCheck = "removal", fullList = True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -858,7 +858,7 @@ rule split_founder_offspring:
                         "--filter-nonfounders",
                         "--make-founders",
                         "--out", offspringTrunk,
-                        "--make-bed"  ])
+                        "--make-bed"  ], check=True)
 
         dropouts = mqc.checkUpdates(inTrunk+".fam", offspringTrunk+".fam", cols=[1], sanityCheck="removal", fullList=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -890,7 +890,7 @@ rule ibd_prep:  # code is more or less copied to core_ibd_prep
                         "--bfile", inTrunk,
                         "--extract", input.clean_snps,
                         "--genome",
-                        "--out", outTrunk ])
+                        "--out", outTrunk ], check=True)
         # create a plot for this - corresponds to the old draw-pihat-plots.R
         p = mqc.dotplot(output.genome,prec=3, x='Z0',y='Z1', c='RT')
         p9.ggsave(plot=p, filename=output.preplot, dpi=600)
@@ -936,12 +936,12 @@ rule ibd_exclusion:  # code is more or less copied to core_ibd_exclusion
                     plotdir,
                     params.pihat_thr,
                     params.hard_thr,
-                    rule])   # a little dirty, but the R rutine wants a filename that it will add .png, .pdf .txt2
+                    rule], check=True)   # a little dirty, but the R rutine wants a filename that it will add .png, .pdf .txt2
         subprocess.run([plinklocal,
                         "--bfile", inTrunk,
                         "--remove", output.exclusion,
                         "--make-bed",
-                        "--out", outTrunk ])
+                        "--out", outTrunk ], check=True)
         dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam",cols = [1],
                                     sanityCheck = "removal", fullList = True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -983,7 +983,7 @@ rule ibd_prune: # code is more or less copied to core_ibd_prune
                 "--bfile",inTrunk,
                 "--remove", output.removal_samples,
                 "--out", outTrunk ,
-                "--make-bed"])
+                "--make-bed"], check=True)
 
         dropouts = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [0,1], sanityCheck = "removal", fullList = True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -1295,7 +1295,7 @@ rule sex_clean:
                         "--bfile",inTrunk,
                         "--exclude", output.exclude_markers,
                         "--out", outTrunk,
-                        "--make-bed"  ])
+                        "--make-bed"  ], check=True)
 
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim", cols = [0,1],
                                 sanityCheck = "removal", fullList = True)
@@ -1357,7 +1357,7 @@ rule core_missingness:
                         "--bfile",inTrunk,
                         "--extract", input.common_markers,
                         "--out", outTrunk,
-                        "--make-bed"  ])
+                        "--make-bed"  ], check=True)
 
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim", cols = [0,1],
                                 sanityCheck = "removal", fullList = True)
@@ -1442,7 +1442,7 @@ rule core_ibd_prep:  # code is more or less copied from ibd_prep
                         "--bfile", inTrunk,
                         "--extract", input.prunedsnps,
                         "--genome",
-                        "--out", outTrunk ])
+                        "--out", outTrunk ], check=True)
         # create a plot for this - corresponds to the old draw-pihat-plots.R
         p = mqc.dotplot(output.genome,prec=3, x='Z0',y='Z1', c='RT')
         p9.ggsave(plot=p, filename=output.plot, dpi=600)
@@ -1488,12 +1488,12 @@ rule core_ibd_exclusion:  # code is more or less copied to core_ibd_exclusion
                     plotdir,
                     params.pihat_thr,
                     params.hard_thr,
-                    rule])   # a little dirty, but the R rutine wants a filename that it will add .png, .pdf .txt2
+                    rule], check=True)   # a little dirty, but the R rutine wants a filename that it will add .png, .pdf .txt2
         subprocess.run([plinklocal,
                         "--bfile", inTrunk,
                         "--remove", output.exclusion,
                         "--make-bed",
-                        "--out", outTrunk ])
+                        "--out", outTrunk ], check=True)
         dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam",cols = [1],
                                     sanityCheck = "removal", fullList = True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -1535,7 +1535,7 @@ rule core_ibd_prune: # code is more or less copied from ibd_prune
                 "--bfile",inTrunk,
                 "--remove", output.removal_samples,
                 "--out", outTrunk ,
-                "--make-bed"])
+                "--make-bed"], check=True)
 
         dropouts = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [0,1], sanityCheck = "removal", fullList = True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -1572,12 +1572,12 @@ rule core_pca:
                         "--bfile", inTrunk,
                         "--extract", input.prunedsnps,
                         "--out", outTrunk,
-                        "--make-bed"    ])
+                        "--make-bed"    ], check=True)
 
         subprocess.run([flashpca,
                         "--bfile", outTrunk,
                         "--outpc", output.pcs,
-                        ])
+                        ], check=True)
         # Skipping the "PLINK covariate files with PCs only" until I see the need
         pc = pd.read_csv(output.pcs, usecols=['IID','PC1','PC2'],delim_whitespace=True)
         p = p9.ggplot(data=pc, mapping=p9.aes(x='PC1',y='PC2'))
