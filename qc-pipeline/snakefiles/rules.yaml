@@ -30,7 +30,7 @@ remove_chr0:
 
 remove_duplicate_markers:
   QC test: Remove duplicate markers
-  Description: When duplicate markers are found, only the one with best call rating is kept
+  Description: When duplicate markers are found, only the one with best call-rating is kept
   Rule order: mod1-b
   rule type: markers
   rule action: remove
@@ -40,7 +40,7 @@ remove_duplicate_markers:
 
 update_sample_ids:
   QC test: Update sample ids
-  Description: Mapping lab ids to sentrix ids
+  Description: Mapping sample ids to sentrix ids.  
   Rule order: mod1-c
   rule type: samples
   rule action: update
@@ -49,8 +49,8 @@ update_sample_ids:
   Timestamp: 
 
 update_parents:
-  QC test: Update parents
-  Description: Parents updated based on moba information
+  QC test: Update offspring so they are have parents (all sentrix-ids)
+  Description: 
   Rule order: mod1-d
   rule type: samples
   rule action: update

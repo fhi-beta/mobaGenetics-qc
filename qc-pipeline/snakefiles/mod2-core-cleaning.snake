@@ -223,7 +223,7 @@ rule exclude_high_ld_markers:
     input:
         # This is based on earlier temporary filters
         bedset = rules.exclude_strand_ambigious_markers.output.bedset,
-        high_ld_regions_hg19 = "../resources/high-ld-regions-hg19"
+        high_ld_regions_hg19 = config["high_ld_regions_hg19"]
     output:
         bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),

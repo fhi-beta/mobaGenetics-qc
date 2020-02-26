@@ -16,6 +16,8 @@ recode_sex: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-f
 
 # GenomeStudio produced. Note that headers here are chip-dependent.
 snptable: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/snptable/snp_table_rotterdam2.txt"
+# See https://genome.sph.umich.edu/wiki/Regions_of_high_linkage_disequilibrium_(LD)
+high_ld_regions_hg19: "/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/resources/high-ld-regions-hg19"
 
 # Thresholds and names of the columns in snptable-file
 cluster_sep_thr: 0.40
@@ -94,6 +96,7 @@ core_maf: 0.01
 core_sd_het: 4
 
 # from http://www.haplotype-reference-consortium.org/ ?
+# 2.8Gig
 hrc_sites: "/mnt/archive/helgeland/refdata/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
 
 
