@@ -214,8 +214,8 @@ pedigree_inconsistence_prep:
     
 pedigree_fu_detector_solver:
   QC test: Tries to fix triads/missplaced sample
-  Description: A R-script inferped_FuckupDetectorAndSolver.R is run and it's result will be used as two new bedset.
-    Both will be earlier pruned/full sets, but with a new .fam(ily) file
+  Description: "A R-script inferped_FuckupDetectorAndSolver.R is run and it's result will be used as two new bedset.
+    Both will be earlier pruned/full sets, but with a new .fam(ily) file. There will be left traces of probematics families/triads in the .fam files."
   Rule order: mod2-j
   rule type: samples
   rule action: update
@@ -234,8 +234,8 @@ document_pedigree_fu_detector_solver:
   Timestamp:
 
 pedigree_fix_pruned:
-  QC test: Removes pedigree-problematic samples form the pruned set based on earlier steps
-  Description: Some of these steps have been manual (2019)
+  QC test: Removes pedigree-problematic samples form the pruned set detected in pedigree_fu_detector_solver
+  Description: Some of these detection steps have been manual (2019).
   Rule order: mod2-l
   rule type: samples
   rule action: remove
@@ -314,7 +314,7 @@ plot_pca_both:
 #   Timestamp: 
 
 extract_pca_outliers:
-  QC test: Exclude csamples where there is too much diversity in pca
+  QC test: Exclude samples where there is too much diversity in pca
   Description: Consider only the two first principal components. 2020.1. Criteria to be improved
   Rule order: mod2.1g
   rule type: samples
@@ -324,8 +324,8 @@ extract_pca_outliers:
   Timestamp: 
 
 extract_pca_samples_from_full_markerset:
-  QC test: Back to old bedset, all markers, but pca-filtered
-  Description: The same samples are removed as in various pca-rules
+  QC test: Back to old bedset, all markers, but samples corrected for pedigree & pca
+  Description: The same samples are removed as in various pca-rules (pedigree from fu_detector_solver as well a pca-outliers)
   Rule order: mod2.1h
   rule type: samples
   rule action: remove

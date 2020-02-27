@@ -328,7 +328,8 @@ rule pedigree_inconsistence_prep:
         mqc.saveYamlResults(output.results, dropouts)
 
 
-# This rule is still in shell-syntax.
+# This rule is still in shell-syntax as we have not decided what the final solution should be.
+# We would like to automate the triad-patching
 rule pedigree_fu_detector_solver:
     input:
         in_geno = rules.missing_genotype_markers.output.bedset,
@@ -452,9 +453,8 @@ rule pedigree_fix_pruned:
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
 
-        # Somewhere earlier, we left trace about problematic triads naming the families *prblm
-        with open(output.problems, "w") as fil:
-            subprocess.run(["grep", "prblm", inTrunk+".fam"], stdout=fil)
+        # During fu_detector, we left trace about problematic triads naming the families *prblm
+        mqc.egrep('prblm', inTrunk+".fam", output.problems)  
 
         subprocess.run([plinklocal,
                 "--bfile", inTrunk,
@@ -574,7 +574,7 @@ rule common_markers_moba_ref:
 #                         "--outpve", output.ref_var_explained ])
 
 # This projection does not work (7.1.2020). Must look at this laters
-# instead we rune one pca on a merged file, see below
+# instead we run one single pca on a merged file, see pca_both below
 # rule_stem = "pca_moba"
 # rule pca_moba:
 #     input:
@@ -598,39 +598,12 @@ rule common_markers_moba_ref:
 #                         "--project",
 #                         "--inmeansd", input.ref_meansd,
 #                         "--outproj", output.moba_projection,
-#                         "--inload", input.ref_loadings
-#         ])
-
-rule_stem = "pca_both"
-rule pca_both:
-    input:
-        bedset_ref = rules.common_markers_moba_ref.output.bedset_ref,
-        bedset_moba = rules.common_markers_moba_ref.output.bedset_moba,
-    output:
-        bedset = expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
-        pcs=tmpMod2/(rule_stem+".pcs"),
-    benchmark:
-        (tmpMod2/rule_stem).with_suffix(".benchmark")
-    run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])
-        inTrunk_ref =  mqc.plinkBase(input.bedset_ref[0])
-        inTrunk_moba =  mqc.plinkBase(input.bedset_moba[0])
-        outTrunk =  mqc.plinkBase(output.bedset[0])
-
-        subprocess.run([plinklocal,
-                        "--bfile", inTrunk_ref,
-                        "--bmerge", inTrunk_moba,
-                        "--out", outTrunk,
-                        "--make-bed"    ], check=True)
-
-        subprocess.run([flashpca,
-                        "--bfile", outTrunk,
-                        "--outpc", output.pcs,
-                        ], check=True)
-
+#                         "--inload", input.ref_loadings,
+#                         check=True])
 
 # plots a projection, does not work well 7.1.2020 Delete or fix later, see plot_pca_both below
+# Note that on https://github.com/gabraham/flashpca/blob/master/README.md it says to use
+# plink --reference-allele , but that is a plink2 command
 # rule_stem = "plot_pca"
 # rule plot_pca:
 #     input:
@@ -681,6 +654,36 @@ rule pca_both:
 #         p += p9.scale_colour_brewer(type="qual", palette="Set1")  # better for colourblind
 #         p9.ggsave(plot=p, filename=output.plot, dpi=600)
 
+rule_stem = "pca_both"
+rule pca_both:
+    input:
+        bedset_ref = rules.common_markers_moba_ref.output.bedset_ref,
+        bedset_moba = rules.common_markers_moba_ref.output.bedset_moba,
+    output:
+        bedset = expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        pcs=tmpMod2/(rule_stem+".pcs"),
+    benchmark:
+        (tmpMod2/rule_stem).with_suffix(".benchmark")
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk_ref =  mqc.plinkBase(input.bedset_ref[0])
+        inTrunk_moba =  mqc.plinkBase(input.bedset_moba[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+
+        subprocess.run([plinklocal,
+                        "--bfile", inTrunk_ref,
+                        "--bmerge", inTrunk_moba,
+                        "--out", outTrunk,
+                        "--make-bed"    ], check=True)
+
+        subprocess.run([flashpca,
+                        "--bfile", outTrunk,
+                        "--outpc", output.pcs,
+                        ], check=True)
+
+
+
 
 rule_stem = "plot_pca_both"
 rule plot_pca_both:
@@ -699,7 +702,7 @@ rule plot_pca_both:
         (tmpMod2/rule_stem).with_suffix(".benchmark")
     run:
         # To remove when this goes to mobaQcTools
-        pc = pd.read_csv(input.pcs, usecols=['IID','PC1','PC2'],delim_whitespace=True)
+        pc = pd.read_csv(input.pcs, usecols=['IID','PC1','PC2'], delim_whitespace=True)
         # Populations for colouring -
         pop = pd.read_csv(input.pop_map,usecols=['#IID','SuperPop','Population'],delim_whitespace=True)
         # Simulate population for Moba, read 2-column in fam-file
@@ -713,7 +716,7 @@ rule plot_pca_both:
         # Explode Europe to Countries in Population
         merged.loc[merged['SuperPop'] == 'EUR', 'SuperPop'] = 'EUR_'+merged['Population']
         legend_info = params[0]
-        # Set up colours   - no using this - did not get it right and dont want to spend time on it
+        # Set up colours   - not using this - did not get it right and dont want to spend time on it
         # colours = {'EUR': 'red',
         #            'EAS': 'darkblue',
         #            'AMR': 'violet',
@@ -736,7 +739,7 @@ rule extract_pca_outliers:
     input:
         bedset = rules.common_markers_moba_ref.output.bedset_moba,
         pcs = rules.pca_both.output.pcs,            # principal components
-        moba = rules.plot_pca_both.input.moba,           # moba samples
+        moba = rules.plot_pca_both.input.moba,      # moba samples
     output:
         bedset=expand(str(tmpMod2/rule_stem)
                           + '{ext}', ext=['.bed','.bim','.fam']),
@@ -764,7 +767,7 @@ rule extract_pca_outliers:
         # keep just moba-samples
         moba_pca = pd.merge(left=pc, right=mobasamples, left_on='IID', right_on='IID')
 
-        # This is a superdirty hack to exclude the same number as samples as
+        # This is a superdirty hack to exclude the same number of samples as
         # was excluded by the hapmap pca. Must be replace by a sensible function
         # Samples to exclude found put in output.excludelist
         moba_pca.loc[(moba_pca.PC1 > params.treshold)].to_csv(output.exclude_list,
