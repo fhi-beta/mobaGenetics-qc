@@ -901,6 +901,28 @@ def egrep(pattern, in_file, out_file, switches=""):
     subprocess.call(f'egrep {switches} {pattern} {in_file} > {out_file}', shell=True)
     return
 
+def find_moba_pca_outlier(df):
+    """ NOT IN USE/WORKING!
+
+    df is a dataframe containing 
+    * "PC1" and "PC2" columns (pca components, float values'
+    * "SuperPop" and "Population" columns. Will be edited for outliers adding "(outlier")
+    A list of outliers will be produced to ... (file)
+
+    """
+    #print(df.head(40))
+    # need copy for this to work
+    df.loc[df["PC1"]>0, 'SuperPop'] = df['SuperPop'] + "(outlier)"
+    df.loc[df["PC1"]>0, 'Population'] = df['Population'] + "(outlier)"
+    
+    p = p9.ggplot(data=df.head(400), mapping=p9.aes(x='PC1',y='PC2',color="Population"))
+    p += p9.stat_ellipse() # sounds like a good idea, but didnt work for large samples, but harvest server was overloaded. If this works, we could use the corresponding test to remove outliers.
+    p += p9.geom_point()
+    p9.ggsave(plot=p, filename="foo.png", dpi=300)
+    
+
+    
+
 
 #dir="/mnt/work2/gutorm/pipeOut/mod2-data-preparation/founders/"
 #intersect_rsid("/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/snakefiles/foo", dir+"23", "bar", small_col=0, big_col=1)

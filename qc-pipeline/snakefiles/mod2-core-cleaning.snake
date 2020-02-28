@@ -466,7 +466,7 @@ rule pedigree_fix_pruned:
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
 
-# Reduce 1000 genome markers to the one allready pruned and sorted out for moba
+# Reduce 1000 genome markers to the one already pruned and sorted out for moba
 rule_stem = 'common_markers_moba_ref'
 rule common_markers_moba_ref:
     input:
@@ -513,10 +513,11 @@ rule common_markers_moba_ref:
                 "--make-bed" ], check=True)
         # alas these two are not identical enough -
         # discover tri-allele  problems by dummy-merging
+        # Note that we dont want to abort on plink-failure (as this will be)
         subprocess.run([plinklocal,
                 "--bfile", outTrunk_ref,
                 "--bmerge", outTrunk_moba,
-                "--out", triallelesTrunk ], check=True)
+                        "--out", triallelesTrunk ], check=False)
         # ... And then remove these markers from both sets
         # fyi: plink will append inputfiles  by ~ ... since input/output have same name
         subprocess.run([plinklocal,
@@ -696,7 +697,7 @@ rule plot_pca_both:
         plot = report((resultPath/rule_stem).with_suffix(".png"),
                       category="Module 2 Core samples and infere pedigree",
                       caption=(resultPath/rule_stem).with_suffix(".rst"))
-
+    # force this url into the report
     params: "Legend on https://www.internationalgenome.org/faq/which-populations-are-part-your-study/"
     benchmark:
         (tmpMod2/rule_stem).with_suffix(".benchmark")
@@ -709,10 +710,12 @@ rule plot_pca_both:
         popmoba = pd.read_csv(input.moba,usecols=[1], header=None,
                               delim_whitespace=True)
         popmoba.columns = ["#IID"]  # rename to match earlier pop
-        popmoba['SuperPop'] = '->MoBa'
-        popmoba['Population'] = '->MoBa'
+        moba_legend = '->MoBa'
+        popmoba['SuperPop'] = moba_legend
+        popmoba['Population'] = moba_legend
         all_pop = pd.concat([pop,popmoba],ignore_index=True)
         merged = pd.merge(left=pc, right=all_pop, left_on='IID', right_on='#IID')
+        # does not work for now:  mqc.find_moba_pca_outlier(merged[merged.Population=='->MoBa'].co
         # Explode Europe to Countries in Population
         merged.loc[merged['SuperPop'] == 'EUR', 'SuperPop'] = 'EUR_'+merged['Population']
         legend_info = params[0]
@@ -724,8 +727,13 @@ rule plot_pca_both:
         #            'AFR': 'yellow',
         #            'Moba':'black'}
         popc = "SuperPop"
+        # Visualize what will be excluded
+        print("SUPERDIRTY PCA EXCLUSION!!!! (visualization for now ...)")
+        # rename moba-samples above cut-off
+        merged.loc[
+            (merged["PC1"]>rules.extract_pca_outliers.params.treshold) &
+            (merged[popc]==moba_legend), popc]  +=  "(outlier)"
         p = p9.ggplot(data=merged, mapping=p9.aes(x='PC1',y='PC2',color=popc, shape=popc))
-        #looks = p9.aes(color=popc, shape=popc)
         p +=  p9.geom_point()
         p += p9.scale_colour_brewer(type="qual", palette="Set1")  # better for colourblind
         p9.ggsave(plot=p, filename=output.plot, dpi=600)
@@ -770,6 +778,7 @@ rule extract_pca_outliers:
         # This is a superdirty hack to exclude the same number of samples as
         # was excluded by the hapmap pca. Must be replace by a sensible function
         # Samples to exclude found put in output.excludelist
+        print("SUPERDIRTY PCA EXCLUSION!!!!")
         moba_pca.loc[(moba_pca.PC1 > params.treshold)].to_csv(output.exclude_list,
                 columns=['FID','IID'],index=False, header=False, sep = ' ')
 
