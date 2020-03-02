@@ -3,10 +3,9 @@ rule maf_removal_markers:   #Minor allele frequencies removal
     input:
         bedset = rules.remove_markers_aa_theta_dev.output.bedset
     output:
-        bedset=expand(str(tmpMod2/rule_stem)
-                          + '{ext}', ext=['.bed','.bim','.fam']),
-        callrates = expand(str(tmpMod2/rule_stem)
-                          + '{ext}', ext=['.lmiss','.imiss']),
+        bedset = multiext(str(tmpMod2/rule_stem), '.bed','.bim','.fam'),
+        callrates = multiext(str(tmpMod2/rule_stem)
+                             ,'.lmiss','.imiss'),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
@@ -51,8 +50,8 @@ rule missing_genotype_samples:
     input:
         bedset = rules.maf_removal_markers.output.bedset
     output:
-        bedset=expand(str(tmpMod2/rule_stem)
-                          + '{ext}', ext=['.bed','.bim','.fam']),  # earlier called superclean_maf_mind
+        bedset=multiext(str(tmpMod2/rule_stem)
+                          ,'.bed','.bim','.fam'),  # earlier called superclean_maf_mind
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
@@ -81,8 +80,8 @@ rule clean_samples:
         # While this is callrates we computed at the --maf stage
         callrates = rules.maf_removal_markers.output.callrates
     output:
-        perm_bedset=expand(str(tmpMod2/'missing_genotype_samples')
-                          + '{ext}', ext=['.bed','.bim','.fam']),
+        perm_bedset=multiext(str(tmpMod2/'missing_genotype_samples')
+                             ,'.bed','.bim','.fam'),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
@@ -121,8 +120,8 @@ rule missing_genotype_markers:
         # This is based on earlier temporary filters - the same that we used to remember samples permanently
         bedset = rules.missing_genotype_samples.output.bedset
     output:
-        bedset=expand(str(tmpMod2/rule_stem)
-                          + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=multiext(str(tmpMod2/rule_stem)
+                          ,'.bed','.bim','.fam'),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
@@ -149,7 +148,7 @@ rule exclude_unplaced_and_non_autosomal_markers:
         # This is based on earlier temporary filters - the same that we used to remember samples permanently
         bedset = rules.missing_genotype_markers.output.bedset
     output:
-        bedset = expand(str(tmpMod2/rule_stem)+'{ext}', ext=['.bed','.bim','.fam']),
+        bedset = multiext(str(tmpMod2/rule_stem),'.bed','.bim','.fam'),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
@@ -177,7 +176,7 @@ rule hardy_weinberg_filtered_markers:
         # This is based on earlier temporary filters - the same that we used to remember samples permanently
         bedset = rules.exclude_unplaced_and_non_autosomal_markers.output.bedset
     output:
-        bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=multiext(str(tmpMod2/rule_stem) ,'.bed','.bim','.fam'),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
@@ -202,7 +201,7 @@ rule exclude_strand_ambigious_markers:
         # This is based on earlier temporary filters
         bedset = rules.hardy_weinberg_filtered_markers.output.bedset
     output:
-        bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=multiext(str(tmpMod2/rule_stem) ,'.bed','.bim','.fam'),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
@@ -225,7 +224,7 @@ rule exclude_high_ld_markers:
         bedset = rules.exclude_strand_ambigious_markers.output.bedset,
         high_ld_regions_hg19 = config["high_ld_regions_hg19"]
     output:
-        bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=multiext(str(tmpMod2/rule_stem) ,'.bed','.bim','.fam'),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
@@ -253,7 +252,7 @@ rule prune_markers:
         # This is based on earlier temporary filters
         bedset = rules.exclude_high_ld_markers.output.bedset,
     output:
-        bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=multiext(str(tmpMod2/rule_stem) ,'.bed','.bim','.fam'),
         exclude_list = (tmpMod2/rule_stem).with_suffix(".prune.in"),  # called prune_markers_tmp.prune.in before. Will be used both in a temporary pass, but also during final core-set generation
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
@@ -294,7 +293,7 @@ rule pedigree_inconsistence_prep:
         in_all= rules.clean_samples.output.perm_bedset,
         clean_snps = rules.prune_markers.output.exclude_list
     output:
-        bedset=expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=multiext(str(tmpMod2/rule_stem) ,'.bed','.bim','.fam'),
         genome = (tmpMod2/rule_stem).with_suffix(".genome"),
         inferpedx = tmpMod2/"inferpedx.sexcheck",
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
@@ -340,9 +339,9 @@ rule pedigree_fu_detector_solver:
     output:
         pheno_ok_flags = tmpMod2/'phenotypesOK.txt',  # A list of samples that have passed sanitycheck?
         # Under: INFERRED family info, SUPERCLEAN markers
-  	inferped_pruned = expand(str(tmpMod2/'inferped_pruned') + '{ext}', ext=['.bed','.bim','.fam']) ,
+  	inferped_pruned = multiext(str(tmpMod2/'inferped_pruned') ,'.bed','.bim','.fam') ,
         # Under  INFERRED family info, ALL markers
-       	inferped_all = expand(str(tmpMod2/'inferped_all') + '{ext}', ext=['.bed','.bim','.fam']) ,
+       	inferped_all = multiext(str(tmpMod2/'inferped_all') ,'.bed','.bim','.fam') ,
         Rfixed_fam = tmpMod2/"inferped_updated.fam",
     params:
         outdir = tmpMod2,
@@ -439,7 +438,7 @@ rule pedigree_fix_pruned:
     input:
         bedset = rules.pedigree_fu_detector_solver.output.inferped_pruned,
     output:
-        bedset = expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset = multiext(str(tmpMod2/rule_stem) ,'.bed','.bim','.fam'),
         problems = (tmpMod2/rule_stem).with_suffix(".prblm"),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                     category="Module 2 Core samples and infere pedigree",
@@ -470,11 +469,11 @@ rule pedigree_fix_pruned:
 rule_stem = 'common_markers_moba_ref'
 rule common_markers_moba_ref:
     input:
-        bedset_ref = expand(config["1000_genomes_stem"] +'{ext}', ext=['.bed','.bim','.fam']),
+        bedset_ref = multiext(config["1000_genomes_stem"] ,'.bed','.bim','.fam'),
         bedset_moba = rules.pedigree_fix_pruned.output.bedset
     output:
-        bedset_ref = expand(str(tmpMod2/"pca_ref") + '{ext}', ext=['.bed','.bim','.fam']),
-        bedset_moba = expand(str(tmpMod2/"pca_moba") + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset_ref = multiext(str(tmpMod2/"pca_ref") ,'.bed','.bim','.fam'),
+        bedset_moba = multiext(str(tmpMod2/"pca_moba") ,'.bed','.bim','.fam'),
         marker_list = (tmpMod2/rule_stem).with_suffix(".txt"),
         tri_alleles = report((tmpMod2/rule_stem).with_suffix(".missnp"),
                              category="Module 2 1000Genomes prep",
@@ -661,7 +660,7 @@ rule pca_both:
         bedset_ref = rules.common_markers_moba_ref.output.bedset_ref,
         bedset_moba = rules.common_markers_moba_ref.output.bedset_moba,
     output:
-        bedset = expand(str(tmpMod2/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset = multiext(str(tmpMod2/rule_stem) ,'.bed','.bim','.fam'),
         pcs=tmpMod2/(rule_stem+".pcs"),
     benchmark:
         (tmpMod2/rule_stem).with_suffix(".benchmark")
@@ -749,8 +748,8 @@ rule extract_pca_outliers:
         pcs = rules.pca_both.output.pcs,            # principal components
         moba = rules.plot_pca_both.input.moba,      # moba samples
     output:
-        bedset=expand(str(tmpMod2/rule_stem)
-                          + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=multiext(str(tmpMod2/rule_stem)
+                          ,'.bed','.bim','.fam'),
         exclude_list = (tmpMod2/rule_stem).with_suffix(".txt"),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
@@ -801,8 +800,8 @@ rule extract_pca_samples_from_full_markerset:
         samples = rules.extract_pca_outliers.output.bedset,
         markers = rules.pedigree_fu_detector_solver.output.inferped_all,
     output:
-        bedset=expand(str(tmpMod2/rule_stem)
-                          + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=multiext(str(tmpMod2/rule_stem)
+                          ,'.bed','.bim','.fam'),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
@@ -837,8 +836,8 @@ rule split_founder_offspring:
         bedset = rules.extract_pca_samples_from_full_markerset.output.bedset
     output:  # bedsets earlier called starting_clean , will be picked up again later
              # note that start_clean is hardcoded here and in core_missingness
-        bedset_founders =expand(str(tmpMod2/"founders"/"start_clean") + '{ext}', ext=['.bed','.bim','.fam']),
-        bedset_offspring =expand(str(tmpMod2/"offspring"/"start_clean") + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset_founders =multiext(str(tmpMod2/"founders"/"start_clean") ,'.bed','.bim','.fam'),
+        bedset_offspring =multiext(str(tmpMod2/"offspring"/"start_clean") ,'.bed','.bim','.fam'),
         results_founders = report(str(resultPath/rule_stem)+"_founders.yaml",
                          category="Module 2 Core samples and infere pedigree",
                          caption=str(resultPath/rule_stem)+"_founders.rst"),

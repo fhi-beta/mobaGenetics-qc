@@ -4,10 +4,9 @@
 rule_stem ='remove_chr0'
 rule remove_chr0:
     input:
-        bedset=expand(config['raw_bed_stem'] + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=multiext(config['raw_bed_stem'],'.bed','.bim','.fam'),
     output:
-        bedset=expand(str(tmpMod1/rule_stem)
-                          + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=multiext(str(tmpMod1/rule_stem),'.bed','.bim','.fam'),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
@@ -45,7 +44,7 @@ rule remove_duplicate_markers:
     input:
         bedset= rules.remove_chr0.output.bedset
     output:
-        bedset=expand(str(tmpMod1/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=multiext(str(tmpMod1/rule_stem),'.bed','.bim','.fam'),
         excludeList = (tmpMod1/rule_stem).with_suffix(".txt"),
         resultDetails = (resultPath/rule_stem).with_suffix(".csv"),
         plink_dup_list = (tmpMod1/rule_stem).with_suffix(".plinkdups"),
@@ -100,7 +99,7 @@ rule update_sample_ids:
         bedset=rules.remove_duplicate_markers.output.bedset,
         recode=config['recode_ids']
     output:
-        bedset=expand(str(tmpMod1/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=multiext(str(tmpMod1/rule_stem) ,'.bed','.bim','.fam'),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
@@ -130,7 +129,7 @@ rule update_parents:
         bedset=rules.update_sample_ids.output.bedset,
         recode=config['recode_parents']
     output:
-        bedset=expand(str(tmpMod1/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=multiext(str(tmpMod1/rule_stem) ,'.bed','.bim','.fam'),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
@@ -160,7 +159,7 @@ rule update_sex:
         bedset=rules.update_parents.output.bedset,
         recode = config['recode_sex']
     output:
-        bedset = expand(str(tmpMod1/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset = multiext(str(tmpMod1/rule_stem),'.bed','.bim','.fam'),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
                          caption=(resultPath/rule_stem).with_suffix(".rst"))        
@@ -195,7 +194,7 @@ rule remove_markers_cluster_sep:
         bedset = rules.update_sex.output.bedset,
         snptable=config['snptable']
     output:
-        bedset=expand(str(tmpMod1/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=multiext(str(tmpMod1/rule_stem),'.bed','.bim','.fam'),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
@@ -247,7 +246,7 @@ rule remove_markers_gc_score:
         bedset = rules.remove_markers_cluster_sep.output.bedset,
         snptable=config['snptable']
     output:
-        bedset=expand(str(tmpMod1/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=multiext(str(tmpMod1/rule_stem),'.bed','.bim','.fam'),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
@@ -295,7 +294,7 @@ rule remove_markers_aa_theta_dev:
         bedset = rules.remove_markers_gc_score.output.bedset,
         snptable=config['snptable']
     output:
-        bedset=expand(str(tmpMod1/rule_stem) + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=multiext(str(tmpMod1/rule_stem),'.bed','.bim','.fam'),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),

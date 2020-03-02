@@ -57,6 +57,12 @@ rule test:
     log: "test.log"
     run:
         print(config["plinklocal"])
-        mqc.test_me()
+        #mqc.test_me()
         print(config["plinklocal"])
+
+# This can be ued to check/log stuff (like available memory). Is run once. 
+# onstart:
+#     print("NOT Starting the baby")
+#     print(rules.test.log)
+
 

@@ -5,8 +5,8 @@ rule mendelian_errors_prep:
         bedset = rules.pedigree_fu_detector_solver.output.inferped_all,
         markers = rules.common_founders_offspring_markers.output.markers,
     output:
-        bedset=expand(str(tmpMod5/rule_stem)
-                          + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=multiext(str(tmpMod5/rule_stem)
+                          ,'.bed','.bim','.fam'),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 5 Shaping preparation",
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
@@ -36,8 +36,8 @@ rule chr1_23:
     input:
         bedset = rules.mendelian_errors_prep.output.bedset,
     output:
-        bedset=expand(str(tmpMod5/rule_stem)
-                          + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=multiext(str(tmpMod5/rule_stem)
+                          ,'.bed','.bim','.fam'),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 5 Shaping preparation",
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
@@ -66,8 +66,7 @@ rule mendelian_errors:
     input:
         bedset = rules.chr1_23.output.bedset,
     output:
-        bedset=expand(str(tmpMod5/rule_stem)
-                          + '{ext}', ext=['.bed','.bim','.fam']),
+        bedset=multiext(str(tmpMod5/rule_stem),'.bed','.bim','.fam'),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 5 Shaping preparation",
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
@@ -229,7 +228,6 @@ rule wr_check:
         mqc.log(runlog, rule_info[rule]["QC test"])
         inTrunk =  mqc.plinkBase(input.bedset[0])
         basename = Path(inTrunk).name # perl-script will use this to denote tweak-files for plink
-        print(basename)
         outTrunk = mqc.plinkBase(output.bedset[0])
         freqTrunk = outTrunk + ".freq4wr"
         # generate required frequency file for HRC check perl script
@@ -238,8 +236,8 @@ rule wr_check:
                         "--freq",
                         "--out", freqTrunk], check=True)
 
-        # reducing the reference set to this chromosoe
-        hrc_subset = "hrc." + wildcards.chromo
+        # reducing the reference set to this chromosome
+        hrc_subset = tmpMod5/("hrc." + wildcards.chromo)
         mqc.egrep(f"'^\#CHROM|^{wildcards.chromo}\s'",input.hrc_sites, hrc_subset)
         if wildcards.chromo == '23' :    # denoted as X in the hrc ref.set
             mqc.egrep(f"'^\#CHROM|^X\s'",input.hrc_sites, hrc_subset)
@@ -250,7 +248,7 @@ rule wr_check:
                     "-b", inTrunk+".bim",
                     "-f", freqTrunk+".frq",
                     "-r", hrc_subset,
-                    "-c",  # indicate that we are not using the full chromosoe   
+                    "-c",  # indicate that we are not using the full chromosome set   
                     "-h"], # -h indicates HRC as refset
                     check=True, cwd=tmpMod5) # cwd so perl-script drops results on 'our' tmp dir
         # log found in  str(tmpMod5)+f"/LOG-{basename}-HRC.txt"
