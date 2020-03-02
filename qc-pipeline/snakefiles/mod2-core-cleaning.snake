@@ -715,7 +715,7 @@ rule plot_pca_both:
         popmoba['Population'] = moba_legend
         all_pop = pd.concat([pop,popmoba],ignore_index=True)
         merged = pd.merge(left=pc, right=all_pop, left_on='IID', right_on='#IID')
-        # does not work for now:  mqc.find_moba_pca_outlier(merged[merged.Population=='->MoBa'].co
+        # mqc.find_moba_pca_outlier(merged[merged.Population=='->MoBa'])
         # Explode Europe to Countries in Population
         merged.loc[merged['SuperPop'] == 'EUR', 'SuperPop'] = 'EUR_'+merged['Population']
         legend_info = params[0]

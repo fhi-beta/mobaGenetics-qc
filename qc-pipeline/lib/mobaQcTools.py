@@ -904,6 +904,9 @@ def egrep(pattern, in_file, out_file, switches=""):
 def find_moba_pca_outlier(df):
     """ NOT IN USE/WORKING!
 
+    Actually this seems to work when memory is available.
+    The idea is to use stat_ellipse() with good parameters to draw an ellipse/circle around
+    the center - and remove them with at corresponing pandas test
     df is a dataframe containing 
     * "PC1" and "PC2" columns (pca components, float values'
     * "SuperPop" and "Population" columns. Will be edited for outliers adding "(outlier")
@@ -915,10 +918,10 @@ def find_moba_pca_outlier(df):
     df.loc[df["PC1"]>0, 'SuperPop'] = df['SuperPop'] + "(outlier)"
     df.loc[df["PC1"]>0, 'Population'] = df['Population'] + "(outlier)"
     
-    p = p9.ggplot(data=df.head(400), mapping=p9.aes(x='PC1',y='PC2',color="Population"))
-    p += p9.stat_ellipse() # sounds like a good idea, but didnt work for large samples, but harvest server was overloaded. If this works, we could use the corresponding test to remove outliers.
-    p += p9.geom_point()
-    p9.ggsave(plot=p, filename="foo.png", dpi=300)
+    p = ggplot(data=df, mapping=aes(x='PC1',y='PC2',color="Population"))
+    p += stat_ellipse() # sounds like a good idea, but didnt work for large samples, but harvest server was overloaded. If this works, we could use the corresponding test to remove outliers.
+    p += geom_point()
+    ggsave(plot=p, filename="foo.png", dpi=300)
     
 
     
