@@ -1,0 +1,434 @@
+rule_stem = 'maf_removal_markers'
+rule maf_removal_markers:   #Minor allele frequencies removal
+    input:
+        bedset = rules.remove_markers_aa_theta_dev.output.bedset
+    output:
+        bedset = multiext(str(tmpMod2/rule_stem), '.bed','.bim','.fam'),
+        callrates = multiext(str(tmpMod2/rule_stem)
+                             ,'.lmiss','.imiss'),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/rule_stem).with_suffix(".png"),
+                      category="Module 2 Core samples and infere pedigree",
+                      caption=(resultPath/rule_stem).with_suffix(".rst"))
+
+    params:
+        treshold = config['maf_thr']
+
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, "Initial cleaning: Low minor allele frequencies removal(--maf)\n")
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--maf", str(params.treshold),
+                "--out", outTrunk,      # previously named superclean_maf
+                "--make-bed" ], check=True)
+        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1],
+                                    sanityCheck = "removal", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Treshold"] = params.treshold
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+
+        # call rates for maf will be maf_removal_markers.output.bedset imiss and lmiss
+        # these will be reused later
+        subprocess.run([plinklocal,
+                "--bfile", outTrunk,
+                "--missing",
+                "--out", outTrunk ], check=True)
+
+        mqc.plot_point_and_line(dropouts, outTrunk+".lmiss", output.plot,
+                                column="F_MISS",ylabel="1 - missingness")
+
+
+rule_stem = 'tmp_missing_genotype_samples'
+rule missing_genotype_samples:
+    input:
+        bedset = rules.maf_removal_markers.output.bedset
+    output:
+        bedset=multiext(str(tmpMod2/rule_stem)
+                          ,'.bed','.bim','.fam'),  # earlier called superclean_maf_mind
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+    params:
+        treshold = config['mind_thr']
+
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, "Missing genotype {item_type} (--mind)\n")
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+        # First extract temporary samples based on earlier filtered markers (maf_removal_markers)
+        # Later these will be used to extract samples permanently (rule clean_samples:)
+        mqc.missing_genotype_rate(rule,
+                        inTrunk, outTrunk, sample=True, treshold=params.treshold,
+                        result_file=output.results)
+
+
+rule_stem = "perm_after_mind"
+rule clean_samples:
+    input:
+        # This is for permanent removal - as it was wayback before sevaral removals
+        perm_bedset = rules.maf_removal_markers.input.bedset,
+        # This is based on earlier temporary filters
+        bedset = rules.missing_genotype_samples.output.bedset,
+        # While this is callrates we computed at the --maf stage
+        callrates = rules.maf_removal_markers.output.callrates
+    output:
+        perm_bedset=multiext(str(tmpMod2/'missing_genotype_samples')
+                             ,'.bed','.bim','.fam'),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/rule_stem).with_suffix(".png"),
+                      category="Module 2 Core samples and infere pedigree",
+                      caption=(resultPath/rule_stem).with_suffix(".rst"))
+
+    run:
+        oldPermTrunk =  mqc.plinkBase(input.perm_bedset[0])   # what we had
+        callRateTrunk = mqc.plinkBase(input.callrates[0])
+
+        inTrunk =  mqc.plinkBase(input.bedset[0])             # what we temporary filtered
+        permTrunk =  mqc.plinkBase(output.perm_bedset[0])     # what we are making
+
+        # PERMANENT removal of very-missing individuals from FULL dataset
+        subprocess.run([plinklocal,
+                "--bfile",oldPermTrunk,
+                "--keep",inTrunk + ".fam", # keeping those samples that just passed the --mind threshold
+                "--out", permTrunk,        # earlier called full_mind
+                "--make-bed" ], check=True)
+        dropouts = mqc.checkUpdates(oldPermTrunk+".fam", permTrunk+".fam",cols = [0,1],
+                                    sanityCheck = "removal", fullList = True)
+
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+
+        # call rates for samples were previously computed, we now know how many actually got cut
+        mqc.plot_point_and_line(dropouts, callRateTrunk+".imiss", output.plot,
+                                column="F_MISS",ylabel="1 - missingness")
+
+
+rule_stem = 'tmp_missing_genotype_markers' # used for outputfilenames
+rule missing_genotype_markers:
+    input:
+        # This is based on earlier temporary filters - the same that we used to remember samples permanently
+        bedset = rules.missing_genotype_samples.output.bedset
+    output:
+        bedset=multiext(str(tmpMod2/rule_stem)
+                          ,'.bed','.bim','.fam'),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/rule_stem).with_suffix(".png"),
+                      category="Module 2 Core samples and infere pedigree",
+                      caption=(resultPath/rule_stem).with_suffix(".rst"))
+    params:
+        treshold = config['geno_thr']
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, "Missing genotype {item_type} (--geno)\n")
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+
+        dropouts = mqc.missing_genotype_rate(rule,
+                        inTrunk, outTrunk, sample=False, treshold=params.treshold,
+                        result_file=output.results,
+                        plot_file=output.plot)
+
+
+rule_stem = 'tmp_exclude_non-autosomal+unplaced_markers' # used for outputfilenames
+rule exclude_unplaced_and_non_autosomal_markers:
+    input:
+        # This is based on earlier temporary filters - the same that we used to remember samples permanently
+        bedset = rules.missing_genotype_markers.output.bedset
+    output:
+        bedset = multiext(str(tmpMod2/rule_stem),'.bed','.bim','.fam'),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, "Excluded unplaced and non-autosomal {item_type} (--autosome)\n")
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--autosome",                     # identifies markers
+                "--out", outTrunk,                # called superclean_autosomal
+                "--make-bed" ], check=True)
+
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
+                                    sanityCheck = "removal", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+
+        mqc.saveYamlResults(output.results, dropouts)
+
+rule_stem = 'tmp_hwe_filtered_markers' # used for outputfilenames
+rule hardy_weinberg_filtered_markers:
+    input:
+        # This is based on earlier temporary filters - the same that we used to remember samples permanently
+        bedset = rules.exclude_unplaced_and_non_autosomal_markers.output.bedset
+    output:
+        bedset=multiext(str(tmpMod2/rule_stem) ,'.bed','.bim','.fam'),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/rule_stem).with_suffix(".png"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+    params:
+        treshold = config['hwe_thr']
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, "Missing Hardy-Weinberg filtering {item_type} (--hwe)\n")
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
+
+        mqc.low_hwe_rate(rule, inTrunk, outTrunk, treshold=params.treshold,
+                     hwe_switches = ["--hardy"],
+                     result_file = output.results, plot_file=output.plot)
+
+rule_stem = 'tmp_excluded_strand_amb_markers' # used for outputfilenames
+rule exclude_strand_ambigious_markers:
+    input:
+        # This is based on earlier temporary filters
+        bedset = rules.hardy_weinberg_filtered_markers.output.bedset
+    output:
+        bedset=multiext(str(tmpMod2/rule_stem) ,'.bed','.bim','.fam'),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, "Excluding ambigious {item_type} (GC/CG/AT/TA\n")
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+
+        mqc.exclude_strand_ambigious_markers(inTrunk, outTrunk, plinklocal)
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+
+rule_stem = 'tmp_high_ld_excluded_markers' # used for outputfilenames
+rule exclude_high_ld_markers:
+    input:
+        # This is based on earlier temporary filters
+        bedset = rules.exclude_strand_ambigious_markers.output.bedset,
+        high_ld_regions_hg19 = config["high_ld_regions_hg19"]
+    output:
+        bedset=multiext(str(tmpMod2/rule_stem) ,'.bed','.bim','.fam'),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+
+
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--exclude", "range", input.high_ld_regions_hg19,    # identifies markers
+                "--out", outTrunk,                                   # called superclean_no_ag_ct_ld before
+                "--make-bed"  ], check=True)
+
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+
+rule_stem = 'tmp_prune_markers' # used for outputfilenames
+rule prune_markers:
+    input:
+        # This is based on earlier temporary filters
+        bedset = rules.exclude_high_ld_markers.output.bedset,
+    output:
+        bedset=multiext(str(tmpMod2/rule_stem) ,'.bed','.bim','.fam'),
+        exclude_list = (tmpMod2/rule_stem).with_suffix(".prune.in"),  # called prune_markers_tmp.prune.in before. Will be used both in a temporary pass, but also during final core-set generation
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+    params:
+        prune_cmd = config["prune_cmd"].split()    # As plink will want a list
+
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+
+        subprocess.run([plinklocal,
+                "--bfile", inTrunk,
+                "--make-founders",
+                "--out", outTrunk]    # no bed-file prodused, just .prune.in (exclude_list)
+                + params.prune_cmd , check=True)  # note that we here add a list to another list ...
+
+
+        subprocess.run([plinklocal,
+                "--bfile", inTrunk,
+                "--extract", output.exclude_list,
+                "--out", outTrunk,                  # called superclean_pruned before
+                "--make-bed" ], check=True)
+
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
+                                    sanityCheck = "removal", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+
+
+rule_stem = 'ped_incons_prep' # used for outputfilenames
+rule pedigree_inconsistence_prep:
+    input:
+        in_geno = rules.missing_genotype_markers.output.bedset,
+        in_all= rules.clean_samples.output.perm_bedset,
+        clean_snps = rules.prune_markers.output.exclude_list
+    output:
+        bedset=multiext(str(tmpMod2/rule_stem) ,'.bed','.bim','.fam'),
+        genome = (tmpMod2/rule_stem).with_suffix(".genome"),
+        inferpedx = tmpMod2/"inferpedx.sexcheck",
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inGenoTrunk =  mqc.plinkBase(input.in_geno[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+
+  	# plink will recommend sex assignments based on X het and Y calls
+        subprocess.run([plinklocal,
+                "--bfile", inGenoTrunk,
+                "--check-sex", "ycount",
+                "--out", mqc.plinkBase(output.inferpedx)  ], check=True) # local stem: don't want to overwrite logfiles
+
+        # get PIHAT estimates
+        subprocess.run([plinklocal,
+                "--bfile", inGenoTrunk,
+                "--extract", input.clean_snps,
+                "--genome", "--min", "0.10",                 # not parametrized for now
+                "--out", outTrunk,                           # called inferped_pruned before
+                "--make-bed" ], check=True)
+
+        dropouts = mqc.checkUpdates(inGenoTrunk+".bim", outTrunk+".bim",cols = [0,1],
+                                    sanityCheck = "remove", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+
+
+# This rule is still in shell-syntax as we have not decided what the final solution should be.
+# We would like to automate the triad-patching
+rule pedigree_fu_detector_solver:
+    input:
+        in_geno = rules.missing_genotype_markers.output.bedset,
+        in_all = rules.clean_samples.output.perm_bedset,
+        ped_pruned = rules.pedigree_inconsistence_prep.output.bedset,
+        ped_pruned_pihat = rules.pedigree_inconsistence_prep.output.genome,
+        ped_sexcheck = rules.pedigree_inconsistence_prep.output.inferpedx
+    output:
+        pheno_ok_flags = tmpMod2/'phenotypesOK.txt',  # A list of samples that have passed sanitycheck?
+        # Under: INFERRED family info, SUPERCLEAN markers
+  	inferped_pruned = multiext(str(tmpMod2/'inferped_pruned') ,'.bed','.bim','.fam') ,
+        # Under  INFERRED family info, ALL markers
+       	inferped_all = multiext(str(tmpMod2/'inferped_all') ,'.bed','.bim','.fam') ,
+        Rfixed_fam = tmpMod2/"inferped_updated.fam",
+    params:
+        outdir = tmpMod2,
+        resdir = resultPath,
+	inferfam = config['infer_recfam'],
+	inferbad = config['infer_badids']
+    shell:
+        """
+        set -x
+        # lets used trunks to mimic earlier behaviour by extracting truncts from input/output
+        foo={input.in_geno[0]}
+        inGenoTrunk=${{foo%\.*}}
+        foo={input.in_all[0]}
+        inAllTrunk=${{foo%\.*}}
+        foo={input.ped_pruned[0]}
+        pedPrunedTrunk=${{foo%\.*}}
+
+        foo={output.inferped_pruned[0]}
+        outPrunedTrunk=${{foo%\.*}}
+        foo={output.inferped_all[0]}
+        outAllTrunk=${{foo%\.*}}
+
+        # There used to be a column extractor here, but it didn't work so gutorm removed it
+        # the .genome file is not tab-separated). Remove this after test/confirm
+ 	# cut -f 2,4,8,10 input.ped_pruned_pihat > output.ped_pruned_pihat
+        # We use the input.ped_pruned_pihat directlry in the R script later
+
+	# # ERROR if fam files were different for PRUNED and ALL markers (can't update then)
+       	diff $inAllTrunk.fam $pedPrunedTrunk.fam
+
+	# R script for updating fam file
+	# 1. input fam file
+	# 2. pihat file
+	# 3. PLINK's sexcheck results
+	# 4. /media/local-disk2/helgeland/rotterdam1/inferred-pedigree/permanent_reconstruct-fam.txt
+	# 5. /media/local-disk2/helgeland/rotterdam1/inferred-pedigree/permanent_bad-sample-IIDs.txt
+	# 6. inferped_data.RData
+	# 7. updated fam file  - The one we will later use
+	# 8. flag file for individuals/samples
+	Rscript {libdir}/inferped_FuckupDetectorAndSolver.R \
+	    $pedPrunedTrunk.fam \
+	    {input.ped_pruned_pihat} \
+	    {input.ped_sexcheck} \
+	    {params.inferbad} \
+	    {params.inferfam} \
+	    {params.resdir}/inferped_data.RData \
+	    {output.Rfixed_fam} \
+	    {output.pheno_ok_flags}
+
+	# # produce bedset with ALL markers and INFERRED family info
+       	cp $inAllTrunk.bed     $outAllTrunk.bed
+       	cp $inAllTrunk.bim     $outAllTrunk.bim
+	cp {output.Rfixed_fam} $outAllTrunk.fam
+
+	# produce/modify bedset with PRUNED (pruned) markers by replacing earlier .fam file with fixed one
+	# (inferped_pruned.bed and .bim were made by previous rule)
+       	cp $pedPrunedTrunk.bed $outPrunedTrunk.bed
+       	cp $pedPrunedTrunk.bim $outPrunedTrunk.bim
+        cp {output.Rfixed_fam} $outPrunedTrunk.fam
+
+        """
+
+rule document_pedigree_fu_detector_solver:
+    input:
+        in_all = mqc.plinkBase(rules.pedigree_fu_detector_solver.input.in_all[0]) + ".fam",
+        out_all = mqc.plinkBase(rules.pedigree_fu_detector_solver.output.inferped_all[0]) + ".fam",
+        in_pruned = mqc.plinkBase(rules.pedigree_fu_detector_solver.input.ped_pruned[0]) + ".fam",
+        out_pruned = mqc.plinkBase(rules.pedigree_fu_detector_solver.output.inferped_pruned[0]) + ".fam",
+    output:
+        results_all = report((resultPath/"pedigree_fu_detector_solver_all").with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/"pedigree_fu_detector_solver_all").with_suffix(".rst")),
+        results_pruned = report((resultPath/"pedigree_fu_detector_solver_pruned").with_suffix(".yaml"),
+                         category="Module 2 Core samples and infere pedigree",
+                         caption=(resultPath/"pedigree_fu_detector_solver_pruned").with_suffix(".rst")),
+    run:
+        mqc.log(runlog, rule_info[rule]["QC test"])
+
+        dropouts = mqc.checkUpdates(input.in_all, input.out_all,cols = [0,1],
+                                    sanityCheck = "update", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        mqc.saveYamlResults(output.results_all, dropouts)
+
+        dropouts = mqc.checkUpdates(input.in_pruned, input.out_pruned,cols = [0,1],
+                                    sanityCheck = "update", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+
+        mqc.saveYamlResults(output.results_pruned, dropouts)
+

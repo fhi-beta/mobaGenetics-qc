@@ -48,7 +48,9 @@ rule all:
 
 # Include modules
 include: "mod1-data-conversion.snake"
-include: "mod2-core-cleaning.snake"
+include: "mod2-sample-pedigree.snake"
+include: "mod3-good-markers.snake"
+include: "mod4-samples-unrelated.snake"
 include: "mod5-phasing-prep.snake"
 
 # for small tests. 
