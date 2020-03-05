@@ -1,6 +1,7 @@
 # Config files containing hard coded variables
 sys.path.append('../lib')  # in order to find our local packages
 import mobaQcTools as mqc  # local moba package
+from shutil import copyfile
 
 # configfile: "configR3.yaml" # for running rotterdam3 tests
 configfile: "config.yaml" 
@@ -20,25 +21,16 @@ report: "report/qc.rst"
 # rule all
 rule all:
     input:
-        # For now, this is hardly used, but needed for -R. Edit a late result inn here
-        #resultPath/"kgp_x_high_ld_autosome.yaml",
-        #expand(str(resultPath) + "/{role}/ibd_prep.png", role=ROLES),
-        #
+        # Module 1 results
+        (resultPath/"m1_output_report").with_suffix(".markers.yaml"),
+        (resultPath/"m1_output_report").with_suffix(".samples.yaml"),
+        
         # Forcing documentation of fu_detector
         (resultPath/"pedigree_fu_detector_solver_pruned").with_suffix(".yaml"),
-        expand(str(tmpMod2) + "/{role}/ibd_pruned.txt", role=ROLES),
-        expand(str(resultPath) + "/{role}/geno_rates_mind3.yaml", role=ROLES),
-        expand(str(resultPath) + "/{role}/hwe_autos_geno.yaml", role=ROLES),
-        expand(str(resultPath) + "/{role}/sex_check.yaml", role=ROLES),
-        expand(str(resultPath) + "/{role}/par_regions.yaml", role=ROLES),
-        expand(str(tmpMod2) + "/common_founders_offspring_markers.txt"),        
-        expand(str(resultPath) + "/{role}/core_ibd_pruned.yaml", role=ROLES),
-        expand(str(resultPath) + "/{role}/core_pca.png", role=ROLES),
         # For now: this is needed to force the plots into the report. Fix later
-        resultPath/"plot_pca_both.png",
+        expand(str(resultPath) + "/{role}/core_pca.png", role=ROLES),
         expand(str(resultPath/"{role}/ibd_prep.png"), role=ROLES),
-        expand(str(resultPath/"{role}/pihat_accum.png"), role=ROLES),
-        expand(str(tmpMod5)+"/split_by_chr{chromo}"+'{ext}', ext=['.bed','.bim','.fam'], chromo=chrom),
+        expand(str(resultPath/"{role}/ibd_exclusion.png"), role=ROLES),
         expand(str(tmpMod5)+"/wr_check{chromo}"+'{ext}', ext=['.bed','.bim','.fam'], chromo=chrom),
 	# final output:
         #expand(config['output_base'] + 'mod5-shaping-preparation/tmp/hrc-update-complete-{chr}' + '{ext}', ext=['.bed','.bim','.fam'], chr=chrom),

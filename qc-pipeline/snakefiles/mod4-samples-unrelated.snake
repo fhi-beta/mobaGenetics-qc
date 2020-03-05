@@ -4,10 +4,10 @@ rule_stem = 'core_missingness'
 rule core_missingness:
     threads: 2
     input:
-        bedset = (tmpMod2/"{role}"/"start_clean").with_suffix(".bed"), # from split_founder_offspring
+        bedset = (tmpMod3/"{role}"/"start_clean").with_suffix(".bed"), # from split_founder_offspring
         common_markers = rules.common_founders_offspring_markers.output.markers
     output:
-        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),
+        bedset = (tmpMod4/"{role}"/rule_stem).with_suffix(".bed"),
         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
                          category="Module 4 Unrelated samples",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
@@ -17,7 +17,7 @@ rule core_missingness:
     params:
         mind = config['core_mind'],
     benchmark:
-        (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")
+        (tmpMod4/"{role}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -49,7 +49,7 @@ rule core_het:
     input:
         bedset = rules.core_missingness.output.bedset
     output:
-        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),  #called core-lmm, 'related core'
+        bedset = (tmpMod4/"{role}"/rule_stem).with_suffix(".bed"),  #called core-lmm, 'related core'
         results_rare = report((resultPath/"{role}"/rule_stem).with_suffix(".rare.yaml"),
                               category="Module 4 Unrelated samples",
                               caption=(resultPath/rule_stem).with_suffix(".rst")),
@@ -68,7 +68,7 @@ rule core_het:
         maf = config['core_maf'],
         sd = config['core_sd_het'],
     benchmark:
-        (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")
+        (tmpMod4/"{role}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -97,13 +97,13 @@ rule core_ibd_prep:  # code is more or less copied from ibd_prep
         bedset = rules.core_het.output.bedset,
         prunedsnps = rules.prune_markers.output.exclude_list,
     output:
-        genome = (tmpMod2/"{role}"/rule_stem).with_suffix(".genome"),
-        verify_ibd_reduced_genome = tmpMod2/"{role}"/"verify_ibd_reduced.genome",   #input for R laters, 3 columns of genome file
+        genome = (tmpMod4/"{role}"/rule_stem).with_suffix(".genome"),
+        verify_ibd_reduced_genome = tmpMod4/"{role}"/"verify_ibd_reduced.genome",   #input for R laters, 3 columns of genome file
         plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
                            category="Module 4 Unrelated samples",
                            caption=(resultPath/rule_stem).with_suffix(".rst")),
     benchmark:
-        (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")
+        (tmpMod4/"{role}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -130,8 +130,8 @@ rule core_ibd_exclusion:  # code is more or less copied to core_ibd_exclusion
         bed = rules.core_ibd_prep.input.bedset,
         ibd_reduced_genome = rules.core_ibd_prep.output.verify_ibd_reduced_genome
     output:
-        exclusion = (tmpMod2/"{role}"/rule_stem).with_suffix(".txt"),
-        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),
+        exclusion = (tmpMod4/"{role}"/rule_stem).with_suffix(".txt"),
+        bedset = (tmpMod4/"{role}"/rule_stem).with_suffix(".bed"),
         plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
                          category="Module 4 Unrelated samples",
                          caption=str(resultPath/rule_stem)+".rst"),
@@ -142,7 +142,7 @@ rule core_ibd_exclusion:  # code is more or less copied to core_ibd_exclusion
         pihat_thr = str(config["ibd_pihat_thr"]),
         hard_thr = str(config["ibd_hard_thr"])
     benchmark:
-        (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")
+        (tmpMod4/"{role}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -180,17 +180,17 @@ rule core_ibd_prune: # code is more or less copied from ibd_prune
         bedset = rules.core_ibd_exclusion.output.bedset,
         genome = rules.core_ibd_prep.output.genome
     output:
-        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),  #called core_supreme earlier
+        bedset = (tmpMod4/"{role}"/rule_stem).with_suffix(".bed"),  #called core_supreme earlier
         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
                          category="Module 4 Unrelated samples",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
         # in addition to the removal list, a removal.samples.txt is produced, sporting only the sample-list
-        removal= (tmpMod2/"{role}"/rule_stem).with_suffix(".txt"),
-        removal_samples = (tmpMod2/"{role}"/rule_stem).with_suffix(".samples.txt"),
+        removal= (tmpMod4/"{role}"/rule_stem).with_suffix(".txt"),
+        removal_samples = (tmpMod4/"{role}"/rule_stem).with_suffix(".samples.txt"),
     params:
         treshold = config['ibd_straight_thr']
     benchmark:
-        (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")
+        (tmpMod4/"{role}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -224,8 +224,8 @@ rule core_pca:
         prunedsnps = rules.prune_markers.output.exclude_list, # markers for pca on, found way back
 
     output:
-        bedset = (tmpMod2/"{role}"/rule_stem).with_suffix(".bed"),  #called pcadir/pruned before
-        pcs = (tmpMod2/"{role}"/rule_stem).with_suffix(".pcs"),
+        bedset = (tmpMod4/"{role}"/rule_stem).with_suffix(".bed"),  #called pcadir/pruned before
+        pcs = (tmpMod4/"{role}"/rule_stem).with_suffix(".pcs"),
         plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
                          category="Module 4 Unrelated samples",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
@@ -233,7 +233,7 @@ rule core_pca:
 
 
     benchmark:
-        (tmpMod2/"{role}"/rule_stem).with_suffix(".benchmark")
+        (tmpMod4/"{role}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])

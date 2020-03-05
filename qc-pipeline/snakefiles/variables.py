@@ -27,6 +27,8 @@ runlog = Path(config['output_base']) / 'runlog.txt'
 base = Path(config['output_base'])
 tmpMod1 = base/'mod1-data-preparation/'
 tmpMod2 = base/'mod2-data-preparation/'
+tmpMod3 = base/'mod3-good-markers/'
+tmpMod4 = base/'mod4-samples-unrelated/'
 tmpMod5 = base/'mod5-shaping-preparation/'
 resultPath = base / "results/"
 

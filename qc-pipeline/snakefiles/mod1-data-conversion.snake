@@ -13,7 +13,7 @@ rule remove_chr0:
 
     run:
         item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, "Updating techincal markers (Removing chromosome 0)\n")
+        mqc.log(runlog, rule_info[rule]["QC test"])        
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
 
@@ -47,26 +47,23 @@ rule remove_duplicate_markers:
         bedset=multiext(str(tmpMod1/rule_stem),'.bed','.bim','.fam'),
         excludeList = (tmpMod1/rule_stem).with_suffix(".txt"),
         resultDetails = (resultPath/rule_stem).with_suffix(".csv"),
-        plink_dup_list = (tmpMod1/rule_stem).with_suffix(".plinkdups"),
+        # plink hardcodes this
+        plink_dup_list = (tmpMod1/"plink").with_suffix(".dupvar"),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
     run:
         item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])        
         inTrunk = mqc.plinkBase(input.bedset[0])
         outTrunk = mqc.plinkBase(output.bedset[0])
         callRateTrunk = mqc.plinkBase(output.excludeList)
         # Create a plink.dupvar file
+        # Plink-bug (1.90b5.4): Puts plink.dupvar i snakemake directory. so we cwd ...
         subprocess.run([plinklocal,
                         "--bfile",inTrunk,
                         "--list-duplicate-vars"
-        ], check=True)
-        # Unfortunately, the result is placed in cwd, we want it with the other tmp files
-        dup_file_old = Path(os.getcwd())/'plink.dupvar'
-        # Python 3.7.5 . The blow fails when not on the same mountpoint (bug)?
-        # dup_file_old.rename(output.plink_dup_list)
-        shutil.move(dup_file_old, output.plink_dup_list)
-        dup_file = output.plink_dup_list
+        ], check=True, cwd=tmpMod1)
         
         subprocess.run([plinklocal,
                         "--bfile", inTrunk,
@@ -74,7 +71,7 @@ rule remove_duplicate_markers:
                         "--missing"
         ], check=True)
 
-        mqc.create_exclude_list(dup_file, callRateTrunk+".lmiss",
+        mqc.create_exclude_list(output.plink_dup_list, callRateTrunk+".lmiss",
                                 output.resultDetails, output.excludeList)
 
         subprocess.run([plinklocal,
@@ -105,8 +102,7 @@ rule update_sample_ids:
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
     run:
         item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, "*** Module 1 Data preparation ***\n")
-        mqc.log(runlog, "Updating sample ids: \n")
+        mqc.log(runlog, rule_info[rule]["QC test"])        
         inTrunk = mqc.plinkBase(input.bedset[0])
         outTrunk = mqc.plinkBase(output.bedset[0])
 
@@ -134,8 +130,8 @@ rule update_parents:
                          category="Module 1 Data preparation",
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
     run:
-        item_type = rule_info[rule]["rule type"]    
-        mqc.log(runlog, "Update parents: \n")
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])        
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
         subprocess.run([plinklocal,
@@ -166,7 +162,7 @@ rule update_sex:
         
     run:
         item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, "Update sex: \n")
+        mqc.log(runlog, rule_info[rule]["QC test"])        
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
 
@@ -208,7 +204,7 @@ rule remove_markers_cluster_sep:
     message: "mod1 Remove markers by cluster metrics" 
     run:
         item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, "Remove snp table metrics (CLUSTERSEP)\n")
+        mqc.log(runlog, rule_info[rule]["QC test"])        
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
 
@@ -258,8 +254,8 @@ rule remove_markers_gc_score:
     params:
         treshold = config['10%_GC_score_thr']
     run:
-        item_type = rule_info[rule]["rule type"]     
-        mqc.log(runlog, "Removing markers based on 10% GC score\n")
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])        
 
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
@@ -288,8 +284,9 @@ rule remove_markers_gc_score:
                                 ylabel="10% GC Score", invert=False)
 
 
-rule_stem = 'aa_theta_removal'
-rule remove_markers_aa_theta_dev:
+
+rule_stem = 'remove_markers_aa_theta_deviation'
+rule remove_markers_aa_theta_deviation:
     input:
         bedset = rules.remove_markers_gc_score.output.bedset,
         snptable=config['snptable']
@@ -307,7 +304,7 @@ rule remove_markers_aa_theta_dev:
         treshold = config['aa_theta_dev_thr']
     run:
         item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, "Removing markers based on AA theta dev\n")
+        mqc.log(runlog, rule_info[rule]["QC test"])        
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
 
@@ -338,4 +335,51 @@ rule remove_markers_aa_theta_dev:
                                 ylabel="AA-\u03B8 deviation", invert=False)
 
 
+# This is a dummy rule which sole intention is to recap and show what happens in Modules 1,
+# It permits the module to have some 'public' variables, that other rules can
+# refer to.
+# It also ensure that snakemake -- is easer to read.
+rule_stem = 'm1_output_report'
+rule m1_output_report:
+    input:
+        # Start of pipe
+        bedset_first = rules.remove_chr0.input.bedset,
+        # Note that this is actually the output of module 1, this rule is just a report rule
+        bedset_last = rules.remove_markers_aa_theta_deviation.output.bedset,
+    output:
+        bedset = multiext(str(tmpMod1/rule_stem),'.bed','.bim','.fam'),
+        # category is sorted as written below. We use - as prefix to force
+        # final reports to be sorted first ...
+        report_markers = report((resultPath/rule_stem).with_suffix(".markers.yaml"),
+                         category="- Module 1 Final report",
+                         caption=(resultPath/rule_stem).with_suffix(".markers.rst")),
+        report_samples = report((resultPath/rule_stem).with_suffix(".samples.yaml"),
+                         category="- Module 1 Final report",
+                         caption=(resultPath/rule_stem).with_suffix(".samples.rst")),
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])        
+        firstTrunk =  mqc.plinkBase(input.bedset_first[0])
+        lastTrunk =  mqc.plinkBase(input.bedset_last[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+        docs = "For more documentation see https://github.com/folkehelseinstituttet/mobaGenetics-qc/wiki/Module1 . In the html file see info on individual module steps through the section for results of Module 1 Data preparation"
+
+        # Create a dummy bedset we care refer to later that clearly show module1 output
+        for i in ['.bed','.bim','.fam']:
+            copyfile(lastTrunk+i, outTrunk+i)
+        # report markers
+        dropouts = mqc.checkUpdates(firstTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        dropouts["Documentation details"] = docs
+
+        mqc.saveYamlResults(output.report_markers, dropouts)
+
+        # report samples
+        dropouts = mqc.checkUpdates(firstTrunk+".fam",outTrunk+".fam",cols = [0,1], sanityCheck = "update", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        dropouts["Documentation details"] = docs
+
+        mqc.saveYamlResults(output.report_samples, dropouts)
 

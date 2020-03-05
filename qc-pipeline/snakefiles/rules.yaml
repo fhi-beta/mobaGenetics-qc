@@ -20,7 +20,7 @@
 
 remove_chr0:
   QC test: Remove chromosone 0
-  Description:
+  Description: Illumina techincal markers were assigned to chromosone 0
   Rule order: mod1-a
   rule type: markers
   rule action: remove
@@ -29,8 +29,8 @@ remove_chr0:
   Timestamp:
 
 remove_duplicate_markers:
-  QC test: Remove duplicate markers
-  Description: When duplicate markers are found, only the one with best call-rating is kept
+  QC test: Remove duplicate markers. Keep best call rate.
+  Description: Remove duplicate markers. Keep best call rate.
   Rule order: mod1-b
   rule type: markers
   rule action: remove
@@ -39,8 +39,8 @@ remove_duplicate_markers:
   Timestamp: 
 
 update_sample_ids:
-  QC test: Update sample ids
-  Description: Mapping sample ids to sentrix ids.  
+  QC test: Update sample ids to sentrix ids
+  Description: Mapping sample ids to sentrix ids (on the form 203068660094_R01C01)
   Rule order: mod1-c
   rule type: samples
   rule action: update
@@ -50,7 +50,7 @@ update_sample_ids:
 
 update_parents:
   QC test: Update offspring so they are have parents (all sentrix-ids)
-  Description: 
+  Description: Based om MoBa info
   Rule order: mod1-d
   rule type: samples
   rule action: update
@@ -59,7 +59,7 @@ update_parents:
 
 update_sex:
   QC test: Update sex
-  Description: Gender updated using to moba information
+  Description: Gender updated using using MoBa information
   Rule order: mod1-e
   rule type: samples
   rule action: update
@@ -68,8 +68,8 @@ update_sex:
   Timestamp: 
 
 remove_markers_cluster_sep:
-  QC test: Cluster separation
-  Description:
+  QC test: Remove markers with poor cluster separation according to config-file set threshold 
+  Description: Clustering metrics were provided by the SNP table exported from GenomeStudio
   Rule order: mod1-f
   rule type: markers
   rule action: remove
@@ -78,8 +78,8 @@ remove_markers_cluster_sep:
   Timestamp: 
 
 remove_markers_gc_score:
-  QC test: GC 10% score
-  Description:
+  QC test: Remove markers with low GC 10% score
+  Description: Threshold is set in pipelines config-file. 
   Rule order: mod1-g
   rule type: markers
   rule action: remove
@@ -87,9 +87,9 @@ remove_markers_gc_score:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-remove_markers_aa_theta_dev:
-  QC test: AA Theta Deviation
-  Description:
+remove_markers_aa_theta_deviation:
+  QC test: Remove markers with high AA Theta Deviation
+  Description: Threshold is set in pipelines config-file. 
   Rule order: mod1-h
   rule type: markers
   rule action: remove
@@ -97,6 +97,16 @@ remove_markers_aa_theta_dev:
   Rule: Will be the same as the key of this entry
   Timestamp:
 
+m1_output_report:
+  QC test: Recap of module 1. Mostly produces report-info and an interface for later rules.
+  Description: Also makes it easier to read code as other modules can (sort of refer) to module1.output (for example  rules.mod1_output_report.output.bedset)
+  Rule order: mod1-i
+  rule type: markers/samples
+  rule action: updated or removed
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp:
+    
 # Not needed. Can be removed when Rotterdam2 is verified. In the meantime, it documents that
 # last github checksum for Snakefile containing update_sample_ids was e88e25834a54d084f663f9e4339af7e391d5dfeb
 # update_rsids:
@@ -123,7 +133,7 @@ maf_removal_markers:
 
 missing_genotype_samples:
   QC test: Remove samples due to high missing callrates (plink --mind)
-  Description: Input to this is a previously --maf filtered marker set
+  Description: Input to this is a previously --maf reduced marker set
   Rule order: mod2-b
   rule type: samples
   rule action: remove
@@ -132,7 +142,7 @@ missing_genotype_samples:
   Timestamp: 
 
 clean_samples:
-  QC test: Permanently remove samples we don't like
+  QC test: Permanent removal of samples , but keep markers from Module1
   Description: Input to this is a previously --maf --mind filtered marker set
   Rule order: mod2-b1
   rule type: samples
@@ -246,7 +256,7 @@ pedigree_fix_pruned:
 common_markers_moba_ref:
   QC test: Find markers common to both Moba and reference set (1000 Genomes)
   Description: Also extract those markers and creates plink bedsets for them. Pruning has allready be done one moba-set, so that pruning will carry over to the reference set
-  Rule order: mod2.1a
+  Rule order: mod3.1a
   rule type: markers
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -256,7 +266,7 @@ common_markers_moba_ref:
 remove_dup_markers_1kg:
   QC test: Remove duplicte markers in 1000 Genomes
   Description: 
-  Rule order: mod2.1b
+  Rule order: mod3.1b
   rule type: markers
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -266,7 +276,7 @@ remove_dup_markers_1kg:
 pca_1kgp:
   QC test: PCA on reference set 1000 Genomes (without Moba data)
   Description: (flashpca used)
-  Rule order: mod2.1c
+  Rule order: mod3.1c
   rule type: analysis
   rule action: pca/plot
   # Placeholders that the pipeline will fill in
@@ -276,7 +286,7 @@ pca_1kgp:
 pca_moba:
   QC test: Project moba PCA on reference set 1000 Genomes 
   Description: (flashpca used)
-  Rule order: mod2.1d
+  Rule order: mod3.1d
   rule type: analysis
   rule action: pca/plot
   # Placeholders that the pipeline will fill in
@@ -286,7 +296,7 @@ pca_moba:
 pca_both:
   QC test: Merge Moba and reference data (1000g) and do pca
   Description: (flashpca used)
-  Rule order: mod2.1e
+  Rule order: mod3.1e
   rule type: analysis
   rule action: pca/plot
   # Placeholders that the pipeline will fill in
@@ -296,7 +306,7 @@ pca_both:
 plot_pca_both:
   QC test: Plot Moba and reference data (1000g). 
   Description: 1000genomes superpopulations used, except for europe where countries are shown. 
-  Rule order: mod2.1e
+  Rule order: mod3.1e
   rule type: analysis
   rule action: pca/plot
   # Placeholders that the pipeline will fill in
@@ -316,7 +326,7 @@ plot_pca_both:
 extract_pca_outliers:
   QC test: Exclude samples where there is too much diversity in pca
   Description: Consider only the two first principal components. 2020.1. Criteria to be improved
-  Rule order: mod2.1g
+  Rule order: mod3.1g
   rule type: samples
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -326,7 +336,7 @@ extract_pca_outliers:
 extract_pca_samples_from_full_markerset:
   QC test: Back to old bedset, all markers, but samples corrected for pedigree & pca
   Description: The same samples are removed as in various pca-rules (pedigree from fu_detector_solver as well a pca-outliers)
-  Rule order: mod2.1h
+  Rule order: mod3.1h
   rule type: samples
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -336,7 +346,7 @@ extract_pca_samples_from_full_markerset:
 split_founder_offspring:
   QC test: Split child/parent
   Description: Two different plink bedsets made 
-  Rule order: mod2.2a
+  Rule order: mod3.2a
   rule type: samples
   rule action: remove (split)
   # Placeholders that the pipeline will fill in
@@ -347,7 +357,7 @@ split_founder_offspring:
 ibd_prep:   
   QC test: Prepare for accumulated relateness check
   Description: The Djenghis Khan effect is computed  through R in a isolated/separate step
-  Rule order: mod2.2b
+  Rule order: mod3.2b
   rule type: samples
   rule action: plot
   # Placeholders that the pipeline will fill in
@@ -355,9 +365,9 @@ ibd_prep:
   Timestamp: 
 
 ibd_exclusion:   
-  QC test: Remove samples that are too closely related
-  Description: Djenghis Khan effect is done through R with handset thresholds
-  Rule order: mod2.2c
+  QC test: Remove samples that are too closely related (accumulated pi_hat)
+  Description: Djenghis Khan effect is done through R with thresholds set by hand
+  Rule order: mod3.2c
   rule type: samples
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -367,7 +377,7 @@ ibd_exclusion:
 ibd_prune:   
   QC test: Remove samples that's straightforward related in addidtion to closely related
   Description: --genome above a pihat threshold in addition to what ibd_exclusion produced
-  Rule order: mod2.2d
+  Rule order: mod3.2d
   rule type: samples
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -377,7 +387,7 @@ ibd_prune:
 geno_rates_mind3:   
   QC test: Remove missing genotype rates (samples and markers)
   Description: "multiple iterations of  using --geno and --mind --mind3 is the last and the only one reported. Not that this is a little confusing as only very few lost samples are reported (2.2020) in the html report"
-  Rule order: mod2.2e
+  Rule order: mod3.2e
   rule type: samples/markers
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -387,7 +397,7 @@ geno_rates_mind3:
 hwe_autos_geno:   
   QC test: hwe + autosomal het + geno
   Description: multiple iterations. creates multiple resultfiles. Two pass of hwe/het + on geno marker. REsults in html report are not complete
-  Rule order: mod2.2f
+  Rule order: mod3.2f
   rule type: samples/markers
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -397,7 +407,7 @@ hwe_autos_geno:
 sex_check:   
   QC test: Check sample sex (declared vs. genotyped) and remove (miss)matches
   Description: 
-  Rule order: mod2.2e
+  Rule order: mod3.2e
   rule type: samples
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -407,7 +417,7 @@ sex_check:
 female_xmarkers:
   QC test: Detect female markers with low hwe, only chr23
   Description: Remove offending markers
-  Rule order: mod2.2f
+  Rule order: mod3.2f
   rule type: markers
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -417,7 +427,7 @@ female_xmarkers:
 par_regions:
   QC test: Cleaning par-region for both genders
   Description: Remove offending markers
-  Rule order: mod2.2g
+  Rule order: mod3.2g
   rule type: markers
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -427,7 +437,7 @@ par_regions:
 clean_male_x:
   QC test: Getting marker names on all markers with any heterozygous calls
   Description: Remove offending markers
-  Rule order: mod2.2h
+  Rule order: mod3.2h
   rule type: markers
   rule action: document
   # Placeholders that the pipeline will fill in
@@ -437,7 +447,7 @@ clean_male_x:
 sex_clean:    
   QC test: Create a plink bedset based on earlier sex-rules
   Description: Aggregation of marker info from sex_check, female_xmarkers, par_regions and clean_male_x. One result for each of founders/offspring
-  Rule order: mod2.2i
+  Rule order: mod3.2i
   rule type: markers
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -447,7 +457,7 @@ sex_clean:
 common_founders_offspring_markers:    
   QC test: Find good markers common to founders/offspring 
   Description: Earlier tests were split, we want only the markers good in both
-  Rule order: mod2.2j
+  Rule order: mod3.2j
   rule type: markers
   rule action: intersect
   # Placeholders that the pipeline will fill in
@@ -457,7 +467,7 @@ common_founders_offspring_markers:
 core_missingness:
   QC test: Start of Core set creation. Remove high missingness 
   Description: Starts with result earlier of split_founder_offspring and will continue tuning after this rule. Also reduces makers to the common good markers found for founders/offspring
-  Rule order: mod2.3a
+  Rule order: mod4.a
   rule type: samples
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -467,7 +477,7 @@ core_missingness:
 core_het:
   QC test: remove sample heterozygosity for the core set using common and rare autosomal markers. 
   Description: Creates plots and logs for both common and rare autosomal markers
-  Rule order: mod2.3b
+  Rule order: mod4.b
   rule type: samples
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -477,7 +487,7 @@ core_het:
 core_ibd_prep:   
   QC test: Prepare for accumulated relateness check
   Description: The Djenghis Khan effect is computed  through R in a isolated/separate step
-  Rule order: mod2.3c
+  Rule order: mod4.c
   rule type: samples
   rule action: plot
   # Placeholders that the pipeline will fill in
@@ -487,7 +497,7 @@ core_ibd_prep:
 core_ibd_exclusion:   
   QC test: Remove samples that are too closely related
   Description: Djenghis Khan effect is done through R with handset thresholds. Remove samples with excess accumulated PI_HAT
-  Rule order: mod2.3d
+  Rule order: mod4.d
   rule type: samples
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -497,7 +507,7 @@ core_ibd_exclusion:
 core_ibd_prune:   
   QC test: Remove samples that's straightforward related in addidtion to closely related
   Description: --genome above a pihat threshold in addition to what ibd_exclusion produced
-  Rule order: mod2.3e
+  Rule order: mod4.e
   rule type: samples
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -507,7 +517,7 @@ core_ibd_prune:
 core_pca:   
   QC test: PCA on the same subset of markers we did PCA on earlier
   Description: 
-  Rule order: mod2.4a
+  Rule order: mod4.a
   rule type: markers
   rule action: pca/plot (on a subset of markers)
   # Placeholders that the pipeline will fill in

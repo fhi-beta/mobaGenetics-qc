@@ -1,11 +1,11 @@
 rule_stem = 'maf_removal_markers'
 rule maf_removal_markers:   #Minor allele frequencies removal
     input:
-        bedset = rules.remove_markers_aa_theta_dev.output.bedset
+        bedset = rules.m1_output_report.output.bedset,
     output:
         bedset = multiext(str(tmpMod2/rule_stem), '.bed','.bim','.fam'),
-        callrates = multiext(str(tmpMod2/rule_stem)
-                             ,'.lmiss','.imiss'),
+        callrate_sample = (tmpMod2/rule_stem).with_suffix('.imiss'),
+        callrate_marker = (tmpMod2/rule_stem).with_suffix('.lmiss'),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
@@ -41,17 +41,17 @@ rule maf_removal_markers:   #Minor allele frequencies removal
                 "--missing",
                 "--out", outTrunk ], check=True)
 
-        mqc.plot_point_and_line(dropouts, outTrunk+".lmiss", output.plot,
+        mqc.plot_point_and_line(dropouts, output.callrate_marker, output.plot,
                                 column="F_MISS",ylabel="1 - missingness")
 
 
-rule_stem = 'tmp_missing_genotype_samples'
+rule_stem = 'missing_genotype_samples'
 rule missing_genotype_samples:
     input:
         bedset = rules.maf_removal_markers.output.bedset
     output:
-        bedset=multiext(str(tmpMod2/rule_stem)
-                          ,'.bed','.bim','.fam'),  # earlier called superclean_maf_mind
+        # bedset earlier called superclean_maf_mind
+        bedset=multiext(str(tmpMod2/rule_stem),'.bed','.bim','.fam'),  
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
@@ -64,24 +64,24 @@ rule missing_genotype_samples:
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
         # First extract temporary samples based on earlier filtered markers (maf_removal_markers)
-        # Later these will be used to extract samples permanently (rule clean_samples:)
+        # Next these will be used to extract samples permanently (rule clean_samples:)
         mqc.missing_genotype_rate(rule,
                         inTrunk, outTrunk, sample=True, treshold=params.treshold,
                         result_file=output.results)
 
 
-rule_stem = "perm_after_mind"
+rule_stem = "clean_samples"
 rule clean_samples:
     input:
-        # This is for permanent removal - as it was wayback before sevaral removals
-        perm_bedset = rules.maf_removal_markers.input.bedset,
-        # This is based on earlier temporary filters
+        # This is for permanent removal - samples from module1
+        mod1_bedset = rules.m1_output_report.output.bedset,
+        # bedset is samples we removed at last stage, and where markers have been
+        # temorary removed
         bedset = rules.missing_genotype_samples.output.bedset,
-        # While this is callrates we computed at the --maf stage
-        callrates = rules.maf_removal_markers.output.callrates
+        # While this are callrates we computed at the --maf stage, while removing markers
+        callrate_sample = rules.maf_removal_markers.output.callrate_sample
     output:
-        perm_bedset=multiext(str(tmpMod2/'missing_genotype_samples')
-                             ,'.bed','.bim','.fam'),
+        bedset=multiext(str(tmpMod2/rule_stem),'.bed','.bim','.fam'),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
@@ -90,11 +90,9 @@ rule clean_samples:
                       caption=(resultPath/rule_stem).with_suffix(".rst"))
 
     run:
-        oldPermTrunk =  mqc.plinkBase(input.perm_bedset[0])   # what we had
-        callRateTrunk = mqc.plinkBase(input.callrates[0])
-
-        inTrunk =  mqc.plinkBase(input.bedset[0])             # what we temporary filtered
-        permTrunk =  mqc.plinkBase(output.perm_bedset[0])     # what we are making
+        oldPermTrunk =  mqc.plinkBase(input.mod1_bedset[0])   # what we had
+        inTrunk =  mqc.plinkBase(input.bedset[0])        # what we temporary filtered markers on
+        permTrunk =  mqc.plinkBase(output.bedset[0])     # what we are making
 
         # PERMANENT removal of very-missing individuals from FULL dataset
         subprocess.run([plinklocal,
@@ -109,19 +107,19 @@ rule clean_samples:
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
 
-        # call rates for samples were previously computed, we now know how many actually got cut
-        mqc.plot_point_and_line(dropouts, callRateTrunk+".imiss", output.plot,
+        # call rates for samples were previously computed,
+        # we now know how many actually got cut
+        mqc.plot_point_and_line(dropouts, input.callrate_sample, output.plot,
                                 column="F_MISS",ylabel="1 - missingness")
 
 
-rule_stem = 'tmp_missing_genotype_markers' # used for outputfilenames
+rule_stem = 'missing_genotype_markers' # used for outputfilenames
 rule missing_genotype_markers:
     input:
         # This is based on earlier temporary filters - the same that we used to remember samples permanently
         bedset = rules.missing_genotype_samples.output.bedset
     output:
-        bedset=multiext(str(tmpMod2/rule_stem)
-                          ,'.bed','.bim','.fam'),
+        bedset=multiext(str(tmpMod2/rule_stem),'.bed','.bim','.fam'),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
@@ -290,7 +288,7 @@ rule_stem = 'ped_incons_prep' # used for outputfilenames
 rule pedigree_inconsistence_prep:
     input:
         in_geno = rules.missing_genotype_markers.output.bedset,
-        in_all= rules.clean_samples.output.perm_bedset,
+        in_all= rules.clean_samples.output.bedset,
         clean_snps = rules.prune_markers.output.exclude_list
     output:
         bedset=multiext(str(tmpMod2/rule_stem) ,'.bed','.bim','.fam'),
@@ -332,7 +330,7 @@ rule pedigree_inconsistence_prep:
 rule pedigree_fu_detector_solver:
     input:
         in_geno = rules.missing_genotype_markers.output.bedset,
-        in_all = rules.clean_samples.output.perm_bedset,
+        in_all = rules.clean_samples.output.bedset,
         ped_pruned = rules.pedigree_inconsistence_prep.output.bedset,
         ped_pruned_pihat = rules.pedigree_inconsistence_prep.output.genome,
         ped_sexcheck = rules.pedigree_inconsistence_prep.output.inferpedx
@@ -351,7 +349,7 @@ rule pedigree_fu_detector_solver:
     shell:
         """
         set -x
-        # lets used trunks to mimic earlier behaviour by extracting truncts from input/output
+        # lets use trunks to mimic earlier behaviour by extracting truncts from input/output
         foo={input.in_geno[0]}
         inGenoTrunk=${{foo%\.*}}
         foo={input.in_all[0]}

@@ -40,6 +40,7 @@ prune_cmd: --indep-pairwise 200 100 0.1
 #
 # these two files have been produced by Jonas by hand and have better pedigree info than we had
 # We want to automate this - but for now (2019) we are just keeping it as it is
+# These files comes from a PC environment and have ^M in them
 infer_recfam: "/mnt/archive/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_reconstruct-fam.txt"
 infer_badids: "/mnt/archive/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_bad-sample-IIDs.txt"
 
