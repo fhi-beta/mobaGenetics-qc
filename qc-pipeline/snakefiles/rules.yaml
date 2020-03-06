@@ -225,7 +225,7 @@ pedigree_inconsistence_prep:
 pedigree_fu_detector_solver:
   QC test: Tries to fix triads/missplaced sample
   Description: "A R-script inferped_FuckupDetectorAndSolver.R is run and it's result will be used as two new bedset.
-    Both will be earlier pruned/full sets, but with a new .fam(ily) file. There will be left traces of probematics families/triads in the .fam files."
+    Both will be earlier pruned/full sets, but with a new .fam(ily) file. There will be left traces of problematic families/triads in the .fam files: the family id will be changed to prblm*"
   Rule order: mod2-j
   rule type: samples
   rule action: update
@@ -234,8 +234,8 @@ pedigree_fu_detector_solver:
   Timestamp: 
 
 document_pedigree_fu_detector_solver:
-  QC test: Documents changes to bedfiles as a result of the two previous steps
-  Description: Just a comparing of samples/individuals changes
+  QC test: Documents changes to family file after trying to fix pedigree.
+  Description: This file will be used for the rest of the pipeline. Fixed families have _i appended to them, unfixed problems have families named prblm* .
   Rule order: mod2-k
   rule type: samples
   rule action: update
@@ -243,6 +243,16 @@ document_pedigree_fu_detector_solver:
   Rule: Will be the same as the key of this entry
   Timestamp:
 
+m2_output:
+  QC test: Recap of module 2. Replaces pedigrees
+  Description: "There are two outputbedsets: One for module 3 (reduced marker set) and one for module 5 (full markerset). The one with the full markerset is treated as the final results. The reduced markerset will be reduced even more during module3."
+  Rule order: mod2-l
+  rule type: markers/samples
+  rule action: updated or removed
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp:
+    
 pedigree_fix_pruned:
   QC test: Removes pedigree-problematic samples form the pruned set detected in pedigree_fu_detector_solver
   Description: Some of these detection steps have been manual (2019).

@@ -364,7 +364,7 @@ rule m1_output_report:
         outTrunk =  mqc.plinkBase(output.bedset[0])
         docs = "For more documentation see https://github.com/folkehelseinstituttet/mobaGenetics-qc/wiki/Module1 . In the html file see info on individual module steps through the section for results of Module 1 Data preparation"
 
-        # Create a dummy bedset we care refer to later that clearly show module1 output
+        # Create a dummy bedset we can refer to later that clearly show module1 output
         for i in ['.bed','.bim','.fam']:
             copyfile(lastTrunk+i, outTrunk+i)
         # report markers

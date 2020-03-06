@@ -2,7 +2,7 @@
 rule_stem = "mendelian_errors_prep"
 rule mendelian_errors_prep:
     input:
-        bedset = rules.pedigree_fu_detector_solver.output.inferped_all,
+        bedset = rules.m2_output.output.mod5_bedset,
         markers = rules.common_founders_offspring_markers.output.markers,
     output:
         bedset=multiext(str(tmpMod5/rule_stem)

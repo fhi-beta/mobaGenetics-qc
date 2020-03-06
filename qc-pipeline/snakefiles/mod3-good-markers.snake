@@ -3,10 +3,14 @@
 rule_stem = "pedigree_fix_pruned"
 rule pedigree_fix_pruned:
     input:
-        bedset = rules.pedigree_fu_detector_solver.output.inferped_pruned,
+        # This bedset is partyly pruned, this module will continue to find
+        # even better markers
+        bedset = rules.m2_output.output.mod3_bedset,
+        # problematic families
+        problems = rules.m2_output.input.problems
+
     output:
         bedset = multiext(str(tmpMod3/rule_stem) ,'.bed','.bim','.fam'),
-        problems = (tmpMod3/rule_stem).with_suffix(".prblm"),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                     category="Module 3 Good markers",
                     caption=(resultPath/rule_stem).with_suffix(".rst")),
@@ -19,12 +23,9 @@ rule pedigree_fix_pruned:
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
 
-        # During fu_detector, we left trace about problematic triads naming the families *prblm
-        mqc.egrep('prblm', inTrunk+".fam", output.problems)  
-
         subprocess.run([plinklocal,
                 "--bfile", inTrunk,
-                "--remove", output.problems,
+                "--remove", input.problems,
                 "--out", outTrunk, "--make-bed"  ], check=True)  # used to be called no_inferped_problems
         dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam",cols = [0,1],
                                     sanityCheck = "remove", fullList = True)
@@ -365,7 +366,8 @@ rule_stem = "extracted_pca_samples_from_full_markerset"
 rule extract_pca_samples_from_full_markerset:
     input:
         samples = rules.extract_pca_outliers.output.bedset,
-        markers = rules.pedigree_fu_detector_solver.output.inferped_all,
+        # rolling back to the sampleset to be fed into mod5
+        markers = rules.m2_output.output.mod5_bedset,
     output:
         bedset=multiext(str(tmpMod3/rule_stem)
                           ,'.bed','.bim','.fam'),
