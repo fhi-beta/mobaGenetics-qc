@@ -9,7 +9,7 @@ rule core_missingness:
     output:
         bedset = (tmpMod4/"{role}"/rule_stem).with_suffix(".bed"),
         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
-                         category="Module 4 Unrelated s%amples",
+                         category="Module 4 Unrelated samples",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
         plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
                          category="Module 4 Unrelated samples",
