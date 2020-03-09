@@ -343,9 +343,9 @@ extract_pca_outliers:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-extract_pca_samples_from_full_markerset:
-  QC test: Back to old bedset, all markers, but samples corrected for pedigree & pca
-  Description: The same samples are removed as in various pca-rules (pedigree from fu_detector_solver as well a pca-outliers)
+tmp_extract_samples:
+  QC test: On mod2 bedset (all markers), temporarily remove  samples corrected for pedigree & pca
+  Description: When looking for good markers, we avoid pca-outliers and too dependent samples. Samples will not be extracted permanently. For the sake of identifying good markers, we keep them out of the loop for now.
   Rule order: mod3.1h
   rule type: samples
   rule action: remove
@@ -464,12 +464,12 @@ sex_clean:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-common_founders_offspring_markers:    
-  QC test: Find good markers common to founders/offspring 
-  Description: Earlier tests were split, we want only the markers good in both
+m3_output_good_markers:    
+  QC test: Find good markers common to founders/offspring and combine it with module 2 results. 
+  Description: These are the output of module 3, and will be used both in module 4 and 5. The report here is the diff between module 2 and the start of module5
   Rule order: mod3.2j
   rule type: markers
-  rule action: intersect
+  rule action: remove
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 

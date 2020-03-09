@@ -433,8 +433,10 @@ rule m2_output:
         bedset_pruned_markers = rules.pedigree_fu_detector_solver.input.ped_pruned,
         problems = rules.document_pedigree_fu_detector_solver.output.problems
     output:
-        # Tagged to show who these are intended for 
-        mod5_bedset =  multiext(str(tmpMod2/'inferped_all_m2') ,'.bed','.bim','.fam') ,
+        # Tagged to show who these are
+        # This is the real output of mod2. It will be combined with good markers from mod later
+        bedset =  multiext(str(tmpMod2/'inferped_all_m2') ,'.bed','.bim','.fam') ,
+        # This is a party pruned set, that mod3 will continue to prune
         mod3_bedset =  multiext(str(tmpMod2/'inferped_pruned_m2') ,'.bed','.bim','.fam') ,
         # category is sorted as written below. We use - as prefix to force
         # final reports to be sorted first ...
@@ -450,7 +452,7 @@ rule m2_output:
         mqc.log(runlog, rule_info[rule]["QC test"])        
         firstTrunk =  mqc.plinkBase(input.bedset_first[0])
         inTrunk_all_markers = mqc.plinkBase(input.bedset_all_markers[0])
-        outTrunk_all_markers =  mqc.plinkBase(output.mod5_bedset[0])
+        outTrunk_all_markers =  mqc.plinkBase(output.bedset[0])
         inTrunk_pruned_markers = mqc.plinkBase(input.bedset_pruned_markers[0])
         outTrunk_pruned_markers =  mqc.plinkBase(output.mod3_bedset[0])
         docs = "For more documentation see https://github.com/folkehelseinstituttet/mobaGenetics-qc/wiki/Module2 . In the html file see info on individual module steps through the section for results of Module 2"
