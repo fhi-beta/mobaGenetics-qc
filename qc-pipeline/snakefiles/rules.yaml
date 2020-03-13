@@ -203,8 +203,8 @@ exclude_high_ld_markers:
   Timestamp: 
 
 prune_markers:
-  QC test: Temporary prune markers due to linkage disequilibrium
-  Description: Uses plink --make-founders  indep-pairwise . Produces a list of markers that will be used during final core generation as well
+  QC test: Temporary prune markers due to linkage disequilibrium. 
+  Description: Uses plink --make-founders  indep-pairwise . Produces a list of markers that will be used during ibd-estimations later (in modules 3 and 4)
   Rule order: mod2-h
   rule type: markers
   rule action: remove
@@ -212,8 +212,8 @@ prune_markers:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-pedigree_inconsistence_prep:
-  QC test: Prepares for pedigree fix of inconsistent samples
+pedigree_ibd_estimate:
+  QC test: Prepares for pedigree fix of inconsistent samples. Checks sex and estimates ibd
   Description: Plink --sexcheck and --extract --genome
   Rule order: mod2-i
   rule type: markers
@@ -364,9 +364,9 @@ split_founder_offspring:
   Timestamp: 
     
 
-ibd_prep:   
-  QC test: Prepare for accumulated relateness check
-  Description: The Djenghis Khan effect is computed  through R in a isolated/separate step
+ibd_estimate:   
+  QC test: IBD estimation using a reduced set of markers found in module2
+  Description: Used later for extracting too related individuals
   Rule order: mod3.2b
   rule type: samples
   rule action: plot
@@ -374,7 +374,7 @@ ibd_prep:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-ibd_exclusion:   
+ibd_accum_exclusion:
   QC test: Remove samples that are too closely related (accumulated pi_hat)
   Description: Djenghis Khan effect is done through R with thresholds set by hand
   Rule order: mod3.2c
@@ -384,9 +384,9 @@ ibd_exclusion:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-ibd_prune:   
-  QC test: Remove samples that's straightforward related in addidtion to closely related
-  Description: --genome above a pihat threshold in addition to what ibd_exclusion produced
+ibd_direct_exclusion:
+  QC test: Remove samples that are  straightforward related (in addidtion to closely related from earlier)
+  Description: Resulting set has ibd removed accumulated (from core_ibd_accum_exclusion) as well as direct
   Rule order: mod3.2d
   rule type: samples
   rule action: remove
@@ -475,8 +475,8 @@ m3_output_good_markers:
   Timestamp: 
     
 core_missingness:
-  QC test: Start of Core set creation. Remove high missingness 
-  Description: Starts with result earlier of split_founder_offspring and will continue tuning after this rule. Also reduces makers to the common good markers found for founders/offspring
+  QC test: Start of Core sets creation (module 4). Remove samples/indiviuals with high missingness 
+  Description: Starts with result earlier of split_founder_offspring and will continue tuning after this rule. Also reduces markers to the common good marker-set found in module 3
   Rule order: mod4.a
   rule type: samples
   rule action: remove
@@ -485,7 +485,7 @@ core_missingness:
   Timestamp: 
 
 core_het:
-  QC test: remove sample heterozygosity for the core set using common and rare autosomal markers. 
+  QC test: Creates core LMM sets for founders/offspring. Remove samples with high heterozygosity using common and rare autosomal markers. 
   Description: Creates plots and logs for both common and rare autosomal markers
   Rule order: mod4.b
   rule type: samples
@@ -494,9 +494,9 @@ core_het:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-core_ibd_prep:   
-  QC test: Prepare for accumulated relateness check
-  Description: The Djenghis Khan effect is computed  through R in a isolated/separate step
+core_ibd_estimate:
+  QC test: IBD estimation using a reduced set of markers found in module2
+  Description: Used for later for extracting too related individuals. 
   Rule order: mod4.c
   rule type: samples
   rule action: plot
@@ -504,7 +504,7 @@ core_ibd_prep:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-core_ibd_exclusion:   
+core_ibd_accum_exclusion:
   QC test: Remove samples that are too closely related
   Description: Djenghis Khan effect is done through R with handset thresholds. Remove samples with excess accumulated PI_HAT
   Rule order: mod4.d
@@ -514,9 +514,9 @@ core_ibd_exclusion:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-core_ibd_prune:   
-  QC test: Remove samples that's straightforward related in addidtion to closely related
-  Description: --genome above a pihat threshold in addition to what ibd_exclusion produced
+core_ibd_direct_exclusion:   
+  QC test: Remove samples that are straightforward related 
+  Description: Resulting set has ibd removed accumulated (from core_ibd_accum_exclusion) as well as direct
   Rule order: mod4.e
   rule type: samples
   rule action: remove
@@ -527,12 +527,24 @@ core_ibd_prune:
 core_pca:   
   QC test: PCA on the same subset of markers we did PCA on earlier
   Description: 
-  Rule order: mod4.a
+  Rule order: mod4.f
   rule type: markers
   rule action: pca/plot (on a subset of markers)
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
+
+m4_core_individuals:   
+  QC test: Merges founders/offsprint for lmm and unrelated individuals (including covariates)
+  Description: 
+  Rule order: mod4.g
+  rule type: markers
+  rule action: pca/plot (on a subset of markers)
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+
 
 mendelian_errors_prep:
   QC test: From cleaned markers, reduce the ones common to founder/offspring

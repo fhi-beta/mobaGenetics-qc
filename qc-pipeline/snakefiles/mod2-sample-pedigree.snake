@@ -284,8 +284,8 @@ rule prune_markers:
         mqc.saveYamlResults(output.results, dropouts)
 
 
-rule_stem = 'ped_incons_prep' # used for outputfilenames
-rule pedigree_inconsistence_prep:
+rule_stem = 'pedigree_ibd_estimate' # used for outputfilenames
+rule pedigree_ibd_estimate:
     input:
         in_geno = rules.missing_genotype_markers.output.bedset,
         in_all= rules.clean_samples.output.bedset,
@@ -331,9 +331,9 @@ rule pedigree_fu_detector_solver:
     input:
         in_geno = rules.missing_genotype_markers.output.bedset,
         in_all = rules.clean_samples.output.bedset,
-        ped_pruned = rules.pedigree_inconsistence_prep.output.bedset,
-        ped_pruned_pihat = rules.pedigree_inconsistence_prep.output.genome,
-        ped_sexcheck = rules.pedigree_inconsistence_prep.output.inferpedx
+        ped_pruned = rules.pedigree_ibd_estimate.output.bedset,
+        ped_pruned_pihat = rules.pedigree_ibd_estimate.output.genome,
+        ped_sexcheck = rules.pedigree_ibd_estimate.output.inferpedx
     output:
         # A list of samples that have passed sanitycheck
         pheno_ok_flags = tmpMod2/'phenotypesOK.txt',  
@@ -431,7 +431,9 @@ rule m2_output:
         fam_fix = rules.pedigree_fu_detector_solver.output.Rfixed_fam,
         bedset_all_markers = rules.clean_samples.output.bedset,
         bedset_pruned_markers = rules.pedigree_fu_detector_solver.input.ped_pruned,
-        problems = rules.document_pedigree_fu_detector_solver.output.problems
+        problems = rules.document_pedigree_fu_detector_solver.output.problems,
+        # To visualize/formalize that this is a reusable result
+        prunedsnps = rules.prune_markers.output.exclude_list
     output:
         # Tagged to show who these are
         # This is the real output of mod2. It will be combined with good markers from mod later

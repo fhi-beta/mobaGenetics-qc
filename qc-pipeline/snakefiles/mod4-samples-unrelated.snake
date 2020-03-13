@@ -64,7 +64,6 @@ rule core_het:
                              category="Module 4 Unrelated samples",
                              caption=(resultPath/rule_stem).with_suffix(".rst")),
     params:
-        mind = config['core_mind'],
         maf = config['core_maf'],
         sd = config['core_sd_het'],
     benchmark:
@@ -90,8 +89,8 @@ rule core_het:
                        plot_file=output.plot_rare)
         mqc.make_rule_caption(rule, resultPath)
 
-rule_stem = "core_ibd_prep"
-rule core_ibd_prep:  # code is more or less copied from ibd_prep
+rule_stem = "core_ibd_estimate"
+rule core_ibd_estimate:  # code is more or less copied from ibd_estimate
     threads: 2
     input:
         bedset = rules.core_het.output.bedset,
@@ -123,12 +122,12 @@ rule core_ibd_prep:  # code is more or less copied from ibd_prep
         df.to_csv(output.verify_ibd_reduced_genome, index=False, sep=" ")
         mqc.make_rule_caption(rule, resultPath)
 
-rule_stem = "core_ibd_exclusion"
-rule core_ibd_exclusion:  # code is more or less copied to core_ibd_exclusion
+rule_stem = "core_ibd_accum_exclusion"
+rule core_ibd_accum_exclusion:  # code is more or less copied from ibd_accum_exclusion
     threads: 2
     input:
-        bed = rules.core_ibd_prep.input.bedset,
-        ibd_reduced_genome = rules.core_ibd_prep.output.verify_ibd_reduced_genome
+        bed = rules.core_ibd_estimate.input.bedset,
+        ibd_reduced_genome = rules.core_ibd_estimate.output.verify_ibd_reduced_genome
     output:
         exclusion = (tmpMod4/"{role}"/rule_stem).with_suffix(".txt"),
         bedset = (tmpMod4/"{role}"/rule_stem).with_suffix(".bed"),
@@ -173,12 +172,12 @@ rule core_ibd_exclusion:  # code is more or less copied to core_ibd_exclusion
         mqc.saveYamlResults(output.results, dropouts)
         mqc.make_rule_caption(rule, resultPath)
 
-rule_stem = 'core_ibd_prune'
-rule core_ibd_prune: # code is more or less copied from ibd_prune
+rule_stem = 'core_ibd_direct_exclusion'
+rule core_ibd_direct_exclusion: # code is more or less copied from ibd_direct_exclusion
     threads: 2
     input:
-        bedset = rules.core_ibd_exclusion.output.bedset,
-        genome = rules.core_ibd_prep.output.genome
+        bedset = rules.core_ibd_accum_exclusion.output.bedset,
+        genome = rules.core_ibd_estimate.output.genome
     output:
         bedset = (tmpMod4/"{role}"/rule_stem).with_suffix(".bed"),  #called core_supreme earlier
         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
@@ -220,7 +219,7 @@ rule_stem = "core_pca"
 rule core_pca:
     threads: 2
     input:
-        bedset = rules.core_ibd_prune.output.bedset,
+        bedset = rules.core_ibd_direct_exclusion.output.bedset,
         prunedsnps = rules.prune_markers.output.exclude_list, # markers for pca on, found way back
 
     output:
@@ -258,4 +257,18 @@ rule core_pca:
         # create the caption usually made by saveYamlResults. It will be made twice (offspring/founders)
         mqc.make_rule_caption(rule, resultPath)
         # Skipping screeplot for now
+
+rule_stem = 'm4_core_individuals'        
+rule m4_core_individuals:
+    input:
+        bedset_lmm = expand(str((tmpMod4/"{role}"/"core_het.bed")), role=ROLES),  #earlier called core-lmm, 'related core'
+        bedset_unrelated = expand(str((tmpMod4/"{role}"/"core_ibd_direct_exclusion.bed")), role=ROLES),
+    output:
+        #bedset_lmm = multiext(str(tmpMod2/"core_lmm") ,'.bed','.bim','.fam'),
+        #bedset_unlrelated = multiext(str(tmpMod2/"core_unrelated") ,'.bed','.bim','.fam'),
+    run:
+        print ("*** No concatenation done!!! ***")
+        
+    
+    
 

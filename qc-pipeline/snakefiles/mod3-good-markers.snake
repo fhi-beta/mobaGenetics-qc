@@ -404,7 +404,7 @@ rule split_founder_offspring:
     input:
         bedset = rules.tmp_extract_samples.output.bedset
     output:  # bedsets earlier called starting_clean , will be picked up again later
-             # note that "start_clean" is hardcoded here and in core_missingness
+             # note that "start_clean" is hardcoded here and in core_missingness (start of module4)
         bedset_founders =multiext(str(tmpMod3/"founders"/"start_clean") ,'.bed','.bim','.fam'),
         bedset_offspring =multiext(str(tmpMod3/"offspring"/"start_clean") ,'.bed','.bim','.fam'),
         results_founders = report(str(resultPath/rule_stem)+"_founders.yaml",
@@ -445,12 +445,13 @@ rule split_founder_offspring:
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results_offspring, dropouts)
 
-rule_stem = "ibd_prep"
-rule ibd_prep:  # code is more or less copied to core_ibd_prep
+rule_stem = "ibd_estimate"
+rule ibd_estimate:  # code is more or less copied to core_ibd_estimate
     threads: 2
     input:
         bedset = tmpMod3/"{role}/start_clean.bed",
-        clean_snps = rules.prune_markers.output.exclude_list
+        # Used for IBD estimation earlier as well
+        clean_snps = rules.m2_output.input.prunedsnps
     output:
         genome = (tmpMod3/"{role}"/rule_stem).with_suffix(".genome"),
         ibd_reduced_genome = tmpMod3/"{role}"/"ibd_reduced.genome",   #input for R laters, 3 columns of genome file
@@ -479,12 +480,12 @@ rule ibd_prep:  # code is more or less copied to core_ibd_prep
         df.to_csv(output.ibd_reduced_genome, index=False, sep=" ")
         mqc.make_rule_caption(rule, resultPath)
 
-rule_stem = "ibd_exclusion"
-rule ibd_exclusion:  # code is more or less copied to core_ibd_exclusion
+rule_stem = "ibd_accum_exclusion"
+rule ibd_accum_exclusion:  # code is more or less copied to core_ibd_accum_exclusion
     threads: 2
     input:
-        bed = rules.ibd_prep.input.bedset,
-        ibd_reduced_genome = rules.ibd_prep.output.ibd_reduced_genome
+        bed = rules.ibd_estimate.input.bedset,
+        ibd_reduced_genome = rules.ibd_estimate.output.ibd_reduced_genome
     output:
         exclusion = (tmpMod3/"{role}"/rule_stem).with_suffix(".txt"),
         bedset = (tmpMod3/"{role}"/rule_stem).with_suffix(".bed"),
@@ -529,12 +530,12 @@ rule ibd_exclusion:  # code is more or less copied to core_ibd_exclusion
         mqc.saveYamlResults(output.results, dropouts)
         mqc.make_rule_caption(rule, resultPath)
 
-rule_stem = 'ibd_prune'
-rule ibd_prune: # code is more or less copied to core_ibd_prune
+rule_stem = 'ibd_direct_exclusion'
+rule ibd_direct_exclusion: # code is more or less copied to core_ibd_direct_exclusion
     threads: 2
     input:
-        bedset = rules.ibd_exclusion.output.bedset,
-        genome = rules.ibd_prep.output.genome
+        bedset = rules.ibd_accum_exclusion.output.bedset,
+        genome = rules.ibd_estimate.output.genome
     output:
         bedset = (tmpMod3/"{role}"/rule_stem).with_suffix(".bed"),
         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
@@ -577,7 +578,7 @@ rule geno_rates_mind3:         # part of earlier markerclean
     # This rule is poorly documented in the html-report, should have made 6 result files
     threads: 2
     input:
-        bedset = rules.ibd_prune.output.bedset,
+        bedset = rules.ibd_direct_exclusion.output.bedset,
     output:
         # Result for every iteration, below is only the last
         bedset = (tmpMod3/"{role}"/rule_stem).with_suffix(".bed"),
@@ -903,13 +904,15 @@ rule m3_output_good_markers:
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 3 Good markers",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
+        # There is another 'output' that mod4 will use: The founders/offspring bedset just
+        # after the split. See rule split_founder_offspring
 
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk = mqc.plinkBase(output.mod5_input_bedset[0])
-        # find common markers and extract them from original set
+        # Moduel 5: find common markers and extract them from original set
         mqc.intersect_rsid(input.markers[1], input.markers[0],
                            output.good_markers, small_col=1, big_col=1)
         subprocess.run([plinklocal,
@@ -927,4 +930,7 @@ rule m3_output_good_markers:
         common = mqc.line_count(output.good_markers)
         dropouts["Final markers"] = f"founders/offspring/common {founders}/{offspring}/{common}\n"
         mqc.saveYamlResults(output.results, dropouts)
+
+        
+        
 
