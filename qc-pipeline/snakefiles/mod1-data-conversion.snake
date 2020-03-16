@@ -351,10 +351,10 @@ rule m1_output_report:
         # category is sorted as written below. We use - as prefix to force
         # final reports to be sorted first ...
         report_markers = report((resultPath/rule_stem).with_suffix(".markers.yaml"),
-                        category="- Module 1 Data conversion. (executive summary)",
+                        category="- Module 1 Data conversion recap",
                         caption=(resultPath/rule_stem).with_suffix(".markers.rst")),
         report_samples = report((resultPath/rule_stem).with_suffix(".samples.yaml"),
-                        category="- Module 1 Data conversion. (executive summary)",
+                        category="- Module 1 Data conversion recap",
                         caption=(resultPath/rule_stem).with_suffix(".samples.rst")),
     run:
         item_type = rule_info[rule]["rule type"]

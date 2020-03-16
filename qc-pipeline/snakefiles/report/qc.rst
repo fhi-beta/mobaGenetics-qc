@@ -9,18 +9,29 @@ This report has two kind of Results_ (click the header to expand the result sect
 
 The ones that describes the output main modules:
 
-* `- Module 1 Final report`_
+* `- Module 1 Data conversion recap`_
+* `- Module 2 Pedigree fix recap`_
+* `- Module 3 Good markers recap`_
+* `- Module 4 Core individuals recap`_
+* Not ready yet
+
 
 The ones that decribes the intermediate results within a module 
 
 * `Module 1 Data preparation`_
 * `Module 2 Core samples and infere pedigree`_
+* `Module 3 Good markers`_
+* `Module 4 Unrelated samples`_
+* `Module 5 Phasing and imputation preparation`_
 
-And here is the link to a plot `maf_removal_markers.png`_
+
+ Some examples of other types of information:
+  
+  
+Links: A link to a plot: `maf_removal_markers.png`_ 
 
 
-Temporary example that show that we could show parameters here.
-Cut off parameters (not updated yet):
+Table: (note that these values are shown in the result section anyway) ...
 
 ====================  ====================
 Parameter                   Value 

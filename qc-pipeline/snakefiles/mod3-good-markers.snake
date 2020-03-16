@@ -403,12 +403,14 @@ rule tmp_extract_samples:
 # snakemake understand this, and some of the file names will be hardcoded in some rules.
 # And hopefully documented.
 # This rules_stem, is reused on ibd_estimate
+# The results of the split are picked up in module 4, via the input of ibd_estimate due
+# to the way snakemake expands wild-cards. 
 rule_stem = "split_start"
 rule split_founders_offspring:
     input:
         bedset = rules.tmp_extract_samples.output.bedset
-    output:  # bedsets earlier called starting_clean , will be picked up again later
-             # note that this rule_stem is hardcoded here and in ibd_estimate (first place using the split)
+    output:  # bedsets earlier called starting_clean 
+             # note that the rule_stem is hardcoded here and in ibd_estimate (first place using the split)
         bedset_founders =multiext(str(tmpMod3/"founders"/rule_stem) ,'.bed','.bim','.fam'),
         bedset_offspring =multiext(str(tmpMod3/"offspring"/rule_stem) ,'.bed','.bim','.fam'),
         results_founders = report(str(resultPath/rule_stem)+"_founders.yaml",
@@ -453,7 +455,7 @@ rule_stem = "ibd_estimate"
 rule ibd_estimate:  # code is more or less copied to core_ibd_estimate
     threads: 2
     input:
-        bedset = tmpMod3/"{role}/split_start.bed",
+        bedset = tmpMod3/"{role}/split_start.bed",  # will be used by as input to mod4. called starting_clean before
         # Used for IBD estimation earlier as well
         clean_snps = rules.m2_output.input.prunedsnps
     output:
@@ -910,7 +912,7 @@ rule m3_output_good_markers:
         # for module 4, input will be rules.ibd_estimate.input.bedset aka output from split_founders_offspring
         mod5_input_bedset = multiext(str(tmpMod2/rule_stem) ,'.bed','.bim','.fam') ,
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
-                         category="- Module 3 Good markers. (executive summary)",
+                         category="- Module 3 Good markers recap",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
         # There is another 'output' that mod4 will use: The founders/offspring bedset just
         # after the split. See rule split_founders_offspring

@@ -285,7 +285,7 @@ rule m4_output_lmm_samples:
         bedset_done = rules.core_het.output.bedset,
     output:
         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
-                         category="- Module 4 Core indivuals. (executive summary)",
+                         category="- Module 4 Core individuals recap",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
     run:
         item_type = rule_info[rule]["rule type"]
@@ -309,7 +309,7 @@ rule m4_output_unrelated_samples:
         bedset_done = rules.core_het.output.bedset,
     output:
         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
-                         category="- Module 4 Core indivuals. (executive summary)",
+                         category="- Module 4 Core individuals recap",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
     run:
         item_type = rule_info[rule]["rule type"]

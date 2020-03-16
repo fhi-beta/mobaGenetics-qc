@@ -166,6 +166,9 @@ def saveYamlResults(files, yamlStruct):
     # A .rst version used for captions
     rstFile = files.with_suffix(".rst")
     percentDropped = yamlStruct["actionTakenCount"] / yamlStruct["in"]
+    # March 2020; Note that founder/offspring rules, it has been har to declare separate rst-
+    # files for founder/offspring. Instead, we create a common file, overwriting whatever
+    # is made here :-( 
     with open(rstFile, 'w') as file:
         file.write(f'Rule {yamlStruct["Rule order"]} ({yamlStruct["rule type"]})\n\n')
         file.write(f'- {yamlStruct["in"]} in\n')
