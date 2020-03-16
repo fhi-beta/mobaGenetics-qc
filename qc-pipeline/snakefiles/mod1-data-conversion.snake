@@ -351,11 +351,11 @@ rule m1_output_report:
         # category is sorted as written below. We use - as prefix to force
         # final reports to be sorted first ...
         report_markers = report((resultPath/rule_stem).with_suffix(".markers.yaml"),
-                         category="- Module 1 Final report",
-                         caption=(resultPath/rule_stem).with_suffix(".markers.rst")),
+                        category="- Module 1 Data conversion. (executive summary)",
+                        caption=(resultPath/rule_stem).with_suffix(".markers.rst")),
         report_samples = report((resultPath/rule_stem).with_suffix(".samples.yaml"),
-                         category="- Module 1 Final report",
-                         caption=(resultPath/rule_stem).with_suffix(".samples.rst")),
+                        category="- Module 1 Data conversion. (executive summary)",
+                        caption=(resultPath/rule_stem).with_suffix(".samples.rst")),
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])        

@@ -1,10 +1,15 @@
 # <Link do wikidocs>
-# Part of the earlier rule pcawhapmap:
+# Part of the earlier rule pcawhapmap
+# Note that the name of this rule, being the first of the module, is hardcoded into the final report rule
 rule_stem = 'core_missingness'
 rule core_missingness:
     threads: 2
     input:
-        bedset = (tmpMod3/"{role}"/"start_clean").with_suffix(".bed"), # from split_founder_offspring
+        # snamemake issues: didn't manage to use output from mod3 here - due to split/merge.
+        # But to avoid hardcoding of files name, we here use the _input_ of ibd_estomate
+        # that corresponds to the output of split_founder_offspring 
+        # bedset = (tmpMod3/"{role}"/"start_clean").with_suffix(".bed"), # from split_founder_offspring
+        bedset = rules.ibd_estimate.input.bedset,
         common_markers = rules.m3_output_good_markers.output.good_markers
     output:
         bedset = (tmpMod4/"{role}"/rule_stem).with_suffix(".bed"),
@@ -271,4 +276,52 @@ rule m4_core_individuals:
         
     
     
+rule_stem = "m4_output_lmm_samples"
+rule m4_output_lmm_samples:
+    threads: 2
+    input:
+        # first rule in the module. 
+        bedset_in = rules.core_missingness.input.bedset,
+        bedset_done = rules.core_het.output.bedset,
+    output:
+        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+                         category="- Module 4 Core indivuals. (executive summary)",
+                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        # Here, the bedsets are just the .bed-file
+        inTrunk =  mqc.plinkBase(input.bedset_in)
+        outTrunk = mqc.plinkBase(input.bedset_done)
+        dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam", cols=[0,1],
+                                    sanityCheck="removal", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+        mqc.make_rule_caption(rule, resultPath)
+
+rule_stem = "m4_output_unrelated_samples"
+rule m4_output_unrelated_samples:
+    threads: 2
+    input:
+        # first rule in the module. 
+        bedset_in = rules.core_missingness.input.bedset,
+        bedset_done = rules.core_het.output.bedset,
+    output:
+        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+                         category="- Module 4 Core indivuals. (executive summary)",
+                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        # Here, the bedsets are just the .bed-file
+        inTrunk =  mqc.plinkBase(input.bedset_in)
+        outTrunk = mqc.plinkBase(input.bedset_done)
+        dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam", cols=[0,1],
+                                    sanityCheck="removal", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+        mqc.make_rule_caption(rule, resultPath)
+
 

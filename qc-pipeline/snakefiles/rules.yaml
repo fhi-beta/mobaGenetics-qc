@@ -100,7 +100,7 @@ remove_markers_aa_theta_deviation:
 m1_output_report:
   QC test: Recap of module 1. Mostly produces report-info and an interface for later rules.
   Description: Also makes it easier to read code as other modules can (sort of refer) to module1.output (for example  rules.mod1_output_report.output.bedset)
-  Rule order: mod1-i
+  Rule order: mod1Final
   rule type: markers/samples
   rule action: updated or removed
   # Placeholders that the pipeline will fill in
@@ -246,7 +246,7 @@ document_pedigree_fu_detector_solver:
 m2_output:
   QC test: Recap of module 2. Replaces pedigrees
   Description: "There are two outputbedsets: One for module 3 (reduced marker set) and one for module 5 (full markerset). The one with the full markerset is treated as the final results. The reduced markerset will be reduced even more during module3."
-  Rule order: mod2-l
+  Rule order: mod2Final
   rule type: markers/samples
   rule action: updated or removed
   # Placeholders that the pipeline will fill in
@@ -353,7 +353,7 @@ tmp_extract_samples:
   Rule: Will be the same as the key of this entry
   Timestamp: 
     
-split_founder_offspring:
+split_founders_offspring:
   QC test: Split child/parent
   Description: Two different plink bedsets made 
   Rule order: mod3.2a
@@ -467,7 +467,7 @@ sex_clean:
 m3_output_good_markers:    
   QC test: Find good markers common to founders/offspring and combine it with module 2 results. 
   Description: These are the output of module 3, and will be used both in module 4 and 5. The report here is the diff between module 2 and the start of module5
-  Rule order: mod3.2j
+  Rule order: mod3Final
   rule type: markers
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -538,12 +538,32 @@ m4_core_individuals:
   QC test: Merges founders/offsprint for lmm and unrelated individuals (including covariates)
   Description: 
   Rule order: mod4.g
-  rule type: markers
-  rule action: pca/plot (on a subset of markers)
+  rule type: samples
+  rule action: Merge founders/offspring
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
+m4_output_lmm_samples:
+  QC test: Reports the effect of module for as a whole, for individuals (lmm). Split on founders/offspring. 
+  Description: 
+  Rule order: mod4Final.1a
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+m4_output_unrelated_samples:
+  QC test: Reports the effect of module for as a whole, for individuals (unrelated). Split on founders/offspring. 
+  Description: 
+  Rule order: mod4Final.1b
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+    
 
 
 mendelian_errors_prep:

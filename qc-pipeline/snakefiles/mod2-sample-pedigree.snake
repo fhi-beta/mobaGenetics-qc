@@ -444,11 +444,11 @@ rule m2_output:
         # final reports to be sorted first ...
         # We only report for mod5 results (where all markers kept)
         report_markers = report((resultPath/rule_stem).with_suffix(".markers.yaml"),
-                         category="- Module 2 Final report",
-                         caption=(resultPath/rule_stem).with_suffix(".markers.rst")),
+                            category="- Module 2 Pedigree fix. (executive summary)",
+                            caption=(resultPath/rule_stem).with_suffix(".markers.rst")),
         report_samples = report((resultPath/rule_stem).with_suffix(".samples.yaml"),
-                         category="- Module 2 Final report",
-                         caption=(resultPath/rule_stem).with_suffix(".samples.rst")),
+                        category="- Module 2 Pedigree fix. (executive summary)",
+                        caption=(resultPath/rule_stem).with_suffix(".samples.rst")),
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])        

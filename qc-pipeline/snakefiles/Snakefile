@@ -21,20 +21,21 @@ report: "report/qc.rst"
 # rule all
 rule all:
     input:
-        # Module 1 results
-        (resultPath/"m1_output_report").with_suffix(".markers.yaml"),
-        (resultPath/"m1_output_report").with_suffix(".samples.yaml"),
-        
-        # Forcing documentation of fu_detector
+        # Module 4 results
+        expand(str(resultPath/"{role}/m4_output_lmm_samples.yaml"), role=ROLES),
+        expand(str(resultPath/"{role}/m4_output_unrelated_samples.yaml"), role=ROLES),
+        # Module 5 results
+        expand(str(tmpMod5)+"/wr_check{chromo}"+'{ext}', ext=['.bed','.bim','.fam'], chromo=chrom),        
+
+        # Forcing documentation of fu_detector of certain elements 
         (resultPath/"pedigree_fu_detector_solver").with_suffix(".yaml"),
         # For now: this is needed to force the plots into the report. Fix later
         expand(str(resultPath) + "/{role}/core_pca.png", role=ROLES),
         expand(str(resultPath/"{role}/ibd_estimate.png"), role=ROLES),
         expand(str(resultPath/"{role}/ibd_accum_exclusion.png"), role=ROLES),
         expand(str(resultPath/"{role}/core_pca.png"), role=ROLES),        
-        expand(str(tmpMod5)+"/wr_check{chromo}"+'{ext}', ext=['.bed','.bim','.fam'], chromo=chrom),
+
         # remove this when m4 is done
-        "m4_core_individuals"
 	# final output:
         #expand(config['output_base'] + 'mod5-shaping-preparation/tmp/hrc-update-complete-{chr}' + '{ext}', ext=['.bed','.bim','.fam'], chr=chrom),
 	# expand(config['output_base'] + '{role}/pca/final_pca_covars.txt', role=ROLES),

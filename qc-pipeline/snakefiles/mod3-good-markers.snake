@@ -399,14 +399,18 @@ rule tmp_extract_samples:
         mqc.saveYamlResults(output.results, dropouts)
 
 
-rule_stem = "split"
-rule split_founder_offspring:
+# This introduces a split of the dataset. Gutorm has not found a smooth way of making
+# snakemake understand this, and some of the file names will be hardcoded in some rules.
+# And hopefully documented.
+# This rules_stem, is reused on ibd_estimate
+rule_stem = "split_start"
+rule split_founders_offspring:
     input:
         bedset = rules.tmp_extract_samples.output.bedset
     output:  # bedsets earlier called starting_clean , will be picked up again later
-             # note that "start_clean" is hardcoded here and in core_missingness (start of module4)
-        bedset_founders =multiext(str(tmpMod3/"founders"/"start_clean") ,'.bed','.bim','.fam'),
-        bedset_offspring =multiext(str(tmpMod3/"offspring"/"start_clean") ,'.bed','.bim','.fam'),
+             # note that this rule_stem is hardcoded here and in ibd_estimate (first place using the split)
+        bedset_founders =multiext(str(tmpMod3/"founders"/rule_stem) ,'.bed','.bim','.fam'),
+        bedset_offspring =multiext(str(tmpMod3/"offspring"/rule_stem) ,'.bed','.bim','.fam'),
         results_founders = report(str(resultPath/rule_stem)+"_founders.yaml",
                          category="Module 3 Good markers",
                          caption=str(resultPath/rule_stem)+"_founders.rst"),
@@ -449,7 +453,7 @@ rule_stem = "ibd_estimate"
 rule ibd_estimate:  # code is more or less copied to core_ibd_estimate
     threads: 2
     input:
-        bedset = tmpMod3/"{role}/start_clean.bed",
+        bedset = tmpMod3/"{role}/split_start.bed",
         # Used for IBD estimation earlier as well
         clean_snps = rules.m2_output.input.prunedsnps
     output:
@@ -845,6 +849,7 @@ rule clean_male_x:
         mqc.intersect_rsid(input.hh, output.chr23, output.exclude_markers, small_col=2, big_col=1)
         mqc.make_rule_caption(rule, resultPath)
 
+# Note that this rule_stem is hardcoded in m3_output_good_markers
 rule_stem = 'sex_clean'
 rule sex_clean:
     threads: 2
@@ -894,18 +899,21 @@ rule sex_clean:
 
 rule_stem = 'm3_output_good_markers'
 rule m3_output_good_markers:
+# Note that this rule creates and reports a non-split bedset. That's good for module 5,
+# but not so good for module 4 which wants founders/offspring separated
     threads: 2
     input:
         bedset = rules.m2_output.output.bedset,
         markers = expand(str(tmpMod3/'{role}')+'/sex_clean.bim', role=ROLES) # Final markerlists
     output:
         good_markers = (tmpMod3/rule_stem).with_suffix(".txt"),  # called shared_markers.txt before
+        # for module 4, input will be rules.ibd_estimate.input.bedset aka output from split_founders_offspring
         mod5_input_bedset = multiext(str(tmpMod2/rule_stem) ,'.bed','.bim','.fam') ,
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
-                         category="Module 3 Good markers",
+                         category="- Module 3 Good markers. (executive summary)",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
         # There is another 'output' that mod4 will use: The founders/offspring bedset just
-        # after the split. See rule split_founder_offspring
+        # after the split. See rule split_founders_offspring
 
     run:
         item_type = rule_info[rule]["rule type"]
