@@ -601,7 +601,7 @@ rayner_verification:
   Description: Big Perl Script needing 20-30Gb memory 
   Rule order: mod5-d
   rule type: markers
-  rule action: update?
+  rule action: update
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
