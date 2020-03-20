@@ -115,8 +115,8 @@ def plot_point_and_line(qc_results, dataFile, resultFile,
     my_name = inspect.currentframe().f_code.co_name      # Generic way of find this functions name. Use
     try:
         df = pd.read_csv(dataFile, sep=separator,
-                 usecols=[column] )
-        treshold = qc_results.get("Treshold",0)
+                         usecols=[column])
+        treshold = qc_results.get("Treshold", 0)
     except Exception as e:
         print(f"{my_name}: Could not read plotdata {column} from {dataFile} or qc-results, {str(e)}")
         return
@@ -300,7 +300,7 @@ def dict_count_items(fil, cols=[0, 1], warn=True):
     Returns the dictionary and the largest key value. In many
     scenarios, 1 is wanted here, meaning no duplicates.
     if warn=True, will warn about key value > 1
-    fil is expected to be a csv file with whitespace as delimiters
+    fil is expected to be  csv file with whitespace as delimiters
     First Column in the file is number 0 (standar Python)
     (Hint for when this is used to compare the columns of two files:
     You can reduce memory usage by making a dictionary of the smallest
@@ -322,7 +322,7 @@ def dict_count_items(fil, cols=[0, 1], warn=True):
     countDict = dict()
     maxHits = 0
     for i in df:
-        countDict[i] = countDict.get(i,0) + 1
+        countDict[i] = countDict.get(i, 0) + 1
         if (countDict[i]) > maxHits:
             maxHits = countDict[i]
             sample = i
@@ -960,6 +960,33 @@ def egrep(pattern, in_file, out_file, switches=""):
     return
 
 
+def count_families(famfile, regex):
+    """Counts families with tuples in a fam-file (matching a certain pattern)
+
+    Returns a dictionaly with key "nomatch" for the number of families
+    in famfile with an id not matching regex.
+    The keys 1,2,3 represents the number of matching families with 1,2
+    or 3 members
+
+    Writes a warning to stdout if families contain more than 3 memebers
+
+    Use * as wildcard to check everything. This function is used to count
+    the number of remaining families after we have tried to fix the pedigree
+
+    """
+    good_family = re.compile(regex)
+    (all, n) = dict_count_items(famfile, cols=[0], warn=False)
+    if n > 3:
+        print("**** OUCH! We have families with up to {n} members!")
+    counts = dict()   # counting occurences of 1,2,3 and hopefully not more
+    for fam in all:
+        if re.search(good_family, fam):  # For these we count tuples
+            counts[all[fam]] = counts.get(all[fam], 0) + 1
+        else:  # these do not match, but we count them still
+            counts["nomatch"] = counts.get("nomatch", 0) + 1
+    return(counts)
+
+
 def find_moba_pca_outlier(df):
     """NOT IN USE/WORKING!
 
@@ -970,7 +997,8 @@ def find_moba_pca_outlier(df):
     corresponing pandas test df is a dataframe containing
 
     * "PC1" and "PC2" columns (pca components, float values'
-    * "SuperPop" and "Population" columns. Will be edited for outliers adding "(outlier")
+    * "SuperPop" and "Population" columns. Will be edited for outliers
+      adding "(outlier")
     A list of outliers will be produced to ... (file)
 
     """
@@ -994,6 +1022,7 @@ def find_moba_pca_outlier(df):
 
 def main():
     print("Main called")
+    count_families("/mnt/work2/gutorm/pipeOut/mod2-data-preparation/inferped_all_m2.fam","^\d+")
 
    
 if __name__ == "__main__":

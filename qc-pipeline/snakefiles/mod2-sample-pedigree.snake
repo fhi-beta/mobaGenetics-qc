@@ -336,8 +336,11 @@ rule pedigree_fu_detector_solver:
         ped_sexcheck = rules.pedigree_ibd_estimate.output.inferpedx
     output:
         # A list of samples that have passed sanitycheck
+        # TRUE in this file is OK, FALSE is not
         pheno_ok_flags = tmpMod2/'phenotypesOK.txt',  
         # A better family file will be used later
+        # In this file a fixed family has changed ID from n to n_i
+        # Samples with phono_ok_falgs=FALSE, will have family ID prblm<count>
         Rfixed_fam = tmpMod2/"inferped_updated.fam",
     params:
         outdir = tmpMod2,
@@ -347,7 +350,7 @@ rule pedigree_fu_detector_solver:
     shell:
         """
         set -x
-        # lets use trunks to mimic earlier behaviour by extracting truncts from input/output
+        # lets use trunks to mimic earlier behaviour by extracting truncs from input/output
         foo={input.in_geno[0]}
         inGenoTrunk=${{foo%\.*}}
         foo={input.in_all[0]}
@@ -389,33 +392,50 @@ rule document_pedigree_fu_detector_solver:
     input:
         bedset = mqc.plinkBase(rules.pedigree_fu_detector_solver.input.ped_pruned[0]) + ".fam",
         fam_fix = rules.pedigree_fu_detector_solver.output.Rfixed_fam
-    output:
+    output: # Note that rst-path is copied in the run: body
         result = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
-
+        # File with families/samples we didnt manage to fix
         problems = report((resultPath/rule_stem).with_suffix(".prblm"),
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
-
+        # The families we fixed
         fixed = report((resultPath/rule_stem).with_suffix(".fix"),
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
         
     run:
         mqc.log(runlog, rule_info[rule]["QC test"])
-        
+        rst_file = (resultPath/"pedigree_fu_detector_solver").with_suffix(".rst")
         # During fu_detector, we left trace about problematic triads naming the families *prblm
         mqc.egrep('prblm', input.fam_fix, output.problems)  
         mqc.egrep('^[0-9]+_i', input.fam_fix, output.fixed)  
 
-        dropouts = mqc.checkUpdates(input.bedset, input.fam_fix,cols = [0,1],
+        dropouts = mqc.checkUpdates(input.bedset, input.fam_fix, cols = [0,1],
                                     sanityCheck = "update", fullList = True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         dropouts["Description"] += f" Fixed family rows found in {output.fixed} while problems are found in {output.problems}"
 
+        # But we need more info about this strange rule
+        # so we add stuff to it
+        # We count mono, duo and triplets in the fam
+        # file, but only if the family-id starts with a
+        # number. Problematic items are called prblmxxx and wont match
+        probs = mqc.line_count(output.problems)
+        fixes = mqc.line_count(output.fixed)
+        fams = mqc.count_families(input.fam_fix, "^\d+")
+        msg = (f"Of the original {dropouts['in']} samples, {probs} are marked problematic\n"
+               f"{fams[1]} of the families contain 1 member\n"
+               f"{fams[2]} of the families contain 2 members\n"
+               f"{fams[3]} of the families contain 3 members\n"
+               f"Predigree fixed families have _i appended to their family-number file ({fixes} samples)\n")
+        dropouts["Details"] = msg
         mqc.saveYamlResults(output.result, dropouts)
+        # Now append to what saveYamlResults put in rst file
+        with open(rst_file, "a") as f:
+            f.write(msg)
 
 # This is a dummy rule which sole intention is to recap and show what happens in Modules 2,
 # It permits the module to have some 'public' variables, that other rules can
@@ -437,18 +457,18 @@ rule m2_output:
     output:
         # Tagged to show who these are
         # This is the real output of mod2. It will be combined with good markers from mod later
-        bedset =  multiext(str(tmpMod2/'inferped_all_m2') ,'.bed','.bim','.fam') ,
+        bedset =  multiext(str(tmpMod2/'inferped_all_m2'),'.bed','.bim','.fam'),
         # This is a party pruned set, that mod3 will continue to prune
-        mod3_bedset =  multiext(str(tmpMod2/'inferped_pruned_m2') ,'.bed','.bim','.fam') ,
+        mod3_bedset =  multiext(str(tmpMod2/'inferped_pruned_m2'),'.bed','.bim','.fam'),
         # category is sorted as written below. We use - as prefix to force
         # final reports to be sorted first ...
         # We only report for mod5 results (where all markers kept)
         report_markers = report((resultPath/rule_stem).with_suffix(".markers.yaml"),
-                            category="- Module 2 Pedigree fix recap",
-                            caption=(resultPath/rule_stem).with_suffix(".markers.rst")),
+                                category="- Module 2 Pedigree fix recap",
+                                caption=(resultPath/rule_stem).with_suffix(".markers.rst")),
         report_samples = report((resultPath/rule_stem).with_suffix(".samples.yaml"),
-                        category="- Module 2 Pedigree fix recap",
-                        caption=(resultPath/rule_stem).with_suffix(".samples.rst")),
+                                category="- Module 2 Pedigree fix recap",
+                                caption=(resultPath/rule_stem).with_suffix(".samples.rst"))
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])        
@@ -464,7 +484,7 @@ rule m2_output:
 	# produce/modify bedset with PRUNED markers by replacing earlier .fam file with fixed one
 	# (inferped_pruned.bed and .bim were made by previous rule)
 
-        for i in ['.bed','.bim']:
+        for i in ['.bed', '.bim']:
             # the full markerset
             copyfile(inTrunk_all_markers+i, outTrunk_all_markers+i)
             # markers (temporarily removed)
@@ -473,7 +493,7 @@ rule m2_output:
             copyfile(input.fam_fix, outTrunk_all_markers+".fam")
             copyfile(input.fam_fix, outTrunk_pruned_markers+".fam")
 
-        # report markers (we onnly do this for mod5 output aka outTrunk_all_markers
+        # report markers (we only do this for mod5 output aka outTrunk_all_markers
         dropouts = mqc.checkUpdates(firstTrunk+".bim",outTrunk_all_markers+".bim",
                                     cols = [0,1], sanityCheck = "removal", fullList = True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
