@@ -361,7 +361,7 @@ open PL, ">$plotfile" or dir $!;
 open SH, ">Run-plink.sh" or die $!;
 #set plink to use here
 my $plink = 'plink';
-
+my $plink = '/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/bin/plink-1.90b5.4/plink';      
 my $tempcount = 1;
 my $tempfile = 'TEMP'.$tempcount;
 #remove SNPs
