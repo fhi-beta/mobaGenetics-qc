@@ -1,0 +1,647 @@
+# Shows meta-info about the rules - typical documentation and what order they should show up in the documentation
+# Each rule should match a corresponding snakemake rule
+# These will be read into a dictionary and populated with results
+
+# Minidocs for some of the fields (more to come laters)
+#
+# * Rule        : The rulename in the snakemake file.
+# * Rule order  : Sort alphabetically by this to get the documentation/execution order.
+#                 There is no guarantee that they rules are run in that order, but
+#                 this is the normal order they should be documented in
+# * Timetamp    : When the results of this rule was logged (UTC aka GMT)
+# * rule type   : Either sample or marker
+# * rule action : Wht the rule does to the date. Either remove or update
+#
+# Some items are not shown here at all, but will be inserted as results of the QC
+# * in          : Number of markers/sample before rule
+# * out         : Number of markers/sample after rule
+# * actionTakenCount: Number of markers/samples affected by the rul
+
+
+remove_chr0:
+  QC test: Remove chromosone 0
+  Description: Illumina techincal markers were assigned to chromosone 0
+  Rule order: mod1-a
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp:
+
+remove_duplicate_markers:
+  QC test: Remove duplicate markers. Keep best call rate.
+  Description: Remove duplicate markers. Keep best call rate.
+  Rule order: mod1-b
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+update_sample_ids:
+  QC test: Update sample ids to sentrix ids
+  Description: Mapping sample ids to sentrix ids (on the form 203068660094_R01C01)
+  Rule order: mod1-c
+  rule type: samples
+  rule action: update
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+update_parents:
+  QC test: Update offspring so they are have parents (all sentrix-ids)
+  Description: Based om MoBa info
+  Rule order: mod1-d
+  rule type: samples
+  rule action: update
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+
+update_sex:
+  QC test: Update sex
+  Description: Gender updated using using MoBa information
+  Rule order: mod1-e
+  rule type: samples
+  rule action: update
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+remove_markers_cluster_sep:
+  QC test: Remove markers with poor cluster separation according to config-file set threshold 
+  Description: Clustering metrics were provided by the SNP table exported from GenomeStudio
+  Rule order: mod1-f
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+remove_markers_gc_score:
+  QC test: Remove markers with low GC 10% score
+  Description: Threshold is set in pipelines config-file. 
+  Rule order: mod1-g
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+remove_markers_aa_theta_deviation:
+  QC test: Remove markers with high AA Theta Deviation
+  Description: Threshold is set in pipelines config-file. 
+  Rule order: mod1-h
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp:
+
+m1_output_report:
+  QC test: Recap of module 1. Mostly produces report-info and an interface for later rules.
+  Description: Also makes it easier to read code as other modules can (sort of refer) to module1.output (for example  rules.mod1_output_report.output.bedset)
+  Rule order: mod1Final
+  rule type: markers/samples
+  rule action: updated or removed
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp:
+    
+# Not needed. Can be removed when Rotterdam2 is verified. In the meantime, it documents that
+# last github checksum for Snakefile containing update_sample_ids was e88e25834a54d084f663f9e4339af7e391d5dfeb
+# update_rsids:
+#   QC test: Update rsid of markers. After this step, rsIDs can be repeated in the .bim file
+#   Description: "See <url to come?> for info. Basically we use the GSA chip mapping, but ignore . and select an rsid were several are listed (creating fewer unique rsIDs). Also, chip ids on the form .1 .2 etc are not mapped. These would typcailly come from allele alternatives on the same rsID."
+#   Rule order: mod1-i
+#   rule type: markers
+#   rule action: update
+#   # Placeholders that the pipeline will fill in
+#   Rule: Will be the same as the key of this entry
+#   Timestamp:
+
+
+
+maf_removal_markers: 
+  QC test: Low minor allele frequencies of markers temporarily removed
+  Description: plink --maf
+  Rule order: mod2-a
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+missing_genotype_samples:
+  QC test: Remove samples due to high missing callrates (plink --mind)
+  Description: Input to this is a previously --maf reduced marker set
+  Rule order: mod2-b
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+clean_samples:
+  QC test: Permanent removal of samples , but keep markers from Module1
+  Description: Input to this is a previously --maf --mind filtered marker set
+  Rule order: mod2-b1
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+    
+missing_genotype_markers:
+  QC test: Temporary remove markers due high missing callrates (plink --geno)
+  Description: Input is previously --maf and --mind reduced set
+  Rule order: mod2-c
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+exclude_unplaced_and_non_autosomal_markers:
+  QC test: Remove non-autosomal and unplaced markers (plink--autosome)
+  Description: Input is previously --maf --mind --geno reduced set
+  Rule order: mod2-d
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+hardy_weinberg_filtered_markers:
+  QC test: Temporary remove markers due to low Hardy-Weinberg equilibrium (plink --hwe)
+  Description: Input is previously --maf --mind --geno --autosome reduced set
+  Rule order:  mod2-e
+  # Describes what item (samples/markers) the rule works on
+  rule type: markers
+  rule action: remove
+  # A couple of placeholders that will be set in the pipe
+  Rule: Will become the same as the key of this entry
+  Timestamp: 
+
+exclude_strand_ambigious_markers:
+  QC test: Temporary remove alleles GC/CG/AT/TA from markers
+  Description:
+  Rule order: mod2-f
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+exclude_high_ld_markers:
+  QC test: Temporary remove markers in high LD 
+  Description: 
+  Rule order: mod2-g
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+prune_markers:
+  QC test: Temporary prune markers due to linkage disequilibrium. 
+  Description: Uses plink --make-founders  indep-pairwise . Produces a list of markers that will be used during ibd-estimations later (in modules 3 and 4)
+  Rule order: mod2-h
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+pedigree_ibd_estimate:
+  QC test: Prepares for pedigree fix of inconsistent samples. Checks sex and estimates ibd
+  Description: Plink --sexcheck and --extract --genome
+  Rule order: mod2-i
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+    
+pedigree_fu_detector_solver:
+  QC test: Tries to fix triads/missplaced sample
+  Description: "A R-script inferped_FuckupDetectorAndSolver.R is run and it's result will be used as two new bedset.
+    Both will be earlier pruned/full sets, but with a new .fam(ily) file. There will be left traces of problematic families/triads in the .fam files: the family id will be changed to prblm*"
+  Rule order: mod2-j
+  rule type: samples
+  rule action: update
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+document_pedigree_fu_detector_solver:
+  QC test: Documents changes to family file after trying to fix pedigree.
+  Description: This file will be used for the rest of the pipeline. Fixed families have _i appended to them, unfixed problems have families named prblm* .
+  Rule order: mod2-k
+  rule type: samples
+  rule action: update
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp:
+
+m2_output:
+  QC test: Recap of module 2. Replaces pedigrees
+  Description: "There are two outputbedsets: One for module 3 (reduced marker set) and one for module 5 (full markerset). The one with the full markerset is treated as the final results. The reduced markerset will be reduced even more during module3."
+  Rule order: mod2Final
+  rule type: markers/samples
+  rule action: updated or removed
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp:
+    
+pedigree_fix_pruned:
+  QC test: Removes pedigree-problematic samples form the pruned set detected in pedigree_fu_detector_solver
+  Description: Some of these detection steps have been manual (2019).
+  Rule order: mod2-l
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp:
+
+common_markers_moba_ref:
+  QC test: Find markers common to both Moba and reference set (1000 Genomes)
+  Description: Also extract those markers and creates plink bedsets for them. Pruning has allready be done one moba-set, so that pruning will carry over to the reference set
+  Rule order: mod3.1a
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+    
+remove_dup_markers_1kg:
+  QC test: Remove duplicte markers in 1000 Genomes
+  Description: 
+  Rule order: mod3.1b
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+pca_1kgp:
+  QC test: PCA on reference set 1000 Genomes (without Moba data)
+  Description: (flashpca used)
+  Rule order: mod3.1c
+  rule type: analysis
+  rule action: pca/plot
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+pca_moba:
+  QC test: Project moba PCA on reference set 1000 Genomes 
+  Description: (flashpca used)
+  Rule order: mod3.1d
+  rule type: analysis
+  rule action: pca/plot
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+pca_both:
+  QC test: Merge Moba and reference data (1000g) and do pca
+  Description: (flashpca used)
+  Rule order: mod3.1e
+  rule type: analysis
+  rule action: pca/plot
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+plot_pca_both:
+  QC test: Plot Moba and reference data (1000g). 
+  Description: 1000genomes superpopulations used, except for europe where countries are shown. 
+  Rule order: mod3.1e
+  rule type: analysis
+  rule action: pca/plot
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+    
+# plot_pca_moba:
+#   QC test: Plot moba and reference data on the same plot
+#   Description: 
+#   Rule order: mod2.f
+#   rule type: analysis
+#   rule action: plot
+#   # Placeholders that the pipeline will fill in
+#   Rule: Will be the same as the key of this entry
+#   Timestamp: 
+
+extract_pca_outliers:
+  QC test: Exclude samples where there is too much diversity in pca
+  Description: Consider only the two first principal components. 2020.1. Criteria to be improved
+  Rule order: mod3.1g
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+tmp_extract_samples:
+  QC test: On mod2 bedset (all markers), temporarily remove  samples corrected for pedigree & pca
+  Description: When looking for good markers, we avoid pca-outliers and too dependent samples. Samples will not be extracted permanently. For the sake of identifying good markers, we keep them out of the loop for now.
+  Rule order: mod3.1h
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+    
+split_founders_offspring:
+  QC test: Split child/parent
+  Description: Two different plink bedsets made 
+  Rule order: mod3.2a
+  rule type: samples
+  rule action: remove (split)
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+    
+
+ibd_estimate:   
+  QC test: IBD estimation using a reduced set of markers found in module2
+  Description: Used later for extracting too related individuals
+  Rule order: mod3.2b
+  rule type: samples
+  rule action: plot
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+ibd_accum_exclusion:
+  QC test: Remove samples that are too closely related (accumulated pi_hat)
+  Description: Djenghis Khan effect is done through R with thresholds set by hand
+  Rule order: mod3.2c
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+ibd_direct_exclusion:
+  QC test: Remove samples that are  straightforward related (in addidtion to closely related from earlier)
+  Description: Resulting set has ibd removed accumulated (from core_ibd_accum_exclusion) as well as direct
+  Rule order: mod3.2d
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+geno_rates_mind3:   
+  QC test: Remove missing genotype rates (samples and markers)
+  Description: "multiple iterations of  using --geno and --mind --mind3 is the last and the only one reported. Not that this is a little confusing as only very few lost samples are reported (2.2020) in the html report"
+  Rule order: mod3.2e
+  rule type: samples/markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+hwe_autos_geno:   
+  QC test: hwe + autosomal het + geno
+  Description: multiple iterations. creates multiple resultfiles. Two pass of hwe/het + on geno marker. REsults in html report are not complete
+  Rule order: mod3.2f
+  rule type: samples/markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+sex_check:   
+  QC test: Check sample sex (declared vs. genotyped) and remove (miss)matches
+  Description: 
+  Rule order: mod3.2e
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+female_xmarkers:
+  QC test: Detect female markers with low hwe, only chr23
+  Description: Remove offending markers
+  Rule order: mod3.2f
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+par_regions:
+  QC test: Cleaning par-region for both genders
+  Description: Remove offending markers
+  Rule order: mod3.2g
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+clean_male_x:
+  QC test: Getting marker names on all markers with any heterozygous calls
+  Description: Remove offending markers
+  Rule order: mod3.2h
+  rule type: markers
+  rule action: document
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+sex_clean:    
+  QC test: Create a plink bedset based on earlier sex-rules
+  Description: Aggregation of marker info from sex_check, female_xmarkers, par_regions and clean_male_x. One result for each of founders/offspring
+  Rule order: mod3.2i
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+m3_output_good_markers:    
+  QC test: Find good markers common to founders/offspring and combine it with module 2 results. 
+  Description: These are the output of module 3, and will be used both in module 4 and 5. The report here is the diff between module 2 and the start of module5
+  Rule order: mod3Final
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+    
+core_missingness:
+  QC test: Start of Core sets creation (module 4). Remove samples/indiviuals with high missingness 
+  Description: Starts with result earlier of split_founder_offspring and will continue tuning after this rule. Also reduces markers to the common good marker-set found in module 3
+  Rule order: mod4.a
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+core_het:
+  QC test: Creates core LMM sets for founders/offspring. Remove samples with high heterozygosity using common and rare autosomal markers. 
+  Description: Creates plots and logs for both common and rare autosomal markers
+  Rule order: mod4.b
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+core_ibd_estimate:
+  QC test: IBD estimation using a reduced set of markers found in module2
+  Description: Used for later for extracting too related individuals. 
+  Rule order: mod4.c
+  rule type: samples
+  rule action: plot
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+core_ibd_accum_exclusion:
+  QC test: Remove samples that are too closely related
+  Description: Djenghis Khan effect is done through R with handset thresholds. Remove samples with excess accumulated PI_HAT
+  Rule order: mod4.d
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+core_ibd_direct_exclusion:   
+  QC test: Remove samples that are straightforward related 
+  Description: Resulting set has ibd removed accumulated (from core_ibd_accum_exclusion) as well as direct
+  Rule order: mod4.e
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+core_pca:   
+  QC test: PCA on the same subset of markers we did PCA on earlier
+  Description: 
+  Rule order: mod4.f
+  rule type: markers
+  rule action: pca/plot (on a subset of markers)
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+m4_core_individuals:   
+  QC test: Merges founders/offsprint for lmm and unrelated individuals (including covariates)
+  Description: 
+  Rule order: mod4.g
+  rule type: samples
+  rule action: Merge founders/offspring
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+m4_output_lmm_samples:
+  QC test: Reports the effect of module for as a whole, for individuals (lmm). Split on founders/offspring. 
+  Description: 
+  Rule order: mod4Final.1a
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+m4_output_unrelated_samples:
+  QC test: Reports the effect of module for as a whole, for individuals (unrelated). Split on founders/offspring. 
+  Description: 
+  Rule order: mod4Final.1b
+  rule type: samples
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+    
+
+
+mendelian_errors_prep:
+  QC test: From cleaned markers, reduce the ones common to founder/offspring
+  Description: 
+  Rule order: mod5-a
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+    
+chr1_23:
+  QC test: Remove markers above chr 23 as these are eliglible for imputation
+  Description: 
+  Rule order: mod5-b
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+mendelian_errors:
+  QC test: Set any mendelian errors obtained from trios (and duos) to missing in .bed file
+  Description: 
+  Rule order: mod5-c
+  rule type: markers
+  rule action: mendel errors set to missing
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+rayner_verification:
+  QC test: Will Rayner verification (with HRC or 1000G) and update bedset
+  Description: Big Perl Script needing 20-30Gb memory 
+  Rule order: mod5-d
+  rule type: markers
+  rule action: update
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+split_by_chr:
+  QC test: split dataset by chromosome before phasing
+  Description:
+  Rule order: mod5-e
+  rule type: markers
+  rule action: split
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+split_by_chr_report:
+  QC test: Document the split/number of chromsones
+  Description: The work is done in the rule split_by_chr but since it has wildcards it was hard to make a caption file for the record.
+  Rule order: mod5-f
+  rule type: markers
+  rule action: split
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+wr_check:
+  QC test: Try out Will Rayner perl on one chromome
+  Description: 
+  Rule order: mod5-g
+  rule type: markers
+  rule action: tweak
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp: 
+
+prepare_phased_for_imputation:
+  QC test:
+  Description:
+  Rule order: mod5-e
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this
+  Timestamp: 

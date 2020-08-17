@@ -1,1 +1,1 @@
-## QC pipeline for Rotterdam2
+## QC pipeline that hopefully will be common for all mobaGenetics (GWAS) data

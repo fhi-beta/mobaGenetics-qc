@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
 # Script to check plink .bim files against HRC/1000G for strand, id names, positions, alleles, ref/alt assignment
-# W.Rayner 2015 
+# W.Rayner 2015 - 2019
 # wrayner@well.ox.ac.uk
 #
 # Version 4.2
@@ -45,6 +45,12 @@
 #  -v4.2.9
 #  - Added ability to read .bim files with 1,2,3,4 allele coding
 #  - Fixed bug which would give a null entry if no differences were found between the reference and bim file
+#  -v4.2.10
+#  - Added checking to ensure bim and frq filenames and paths are valid
+#  -v4.2.11
+#  - Changed the commands to update and retain the Ref/Alt alleles in the plink conversion commands
+#
+#
 # NOTES:
 # Script is based on release 1 of the HRC, filename HRC.r1.GRCh37.autosomes.mac5.sites.tab, can be overridden with the -r flag
 # in r1 HRC there are only autosomes, so 1-22 only considered by script, others counted in altchr
@@ -70,10 +76,10 @@ my $mid = int($columns/2+0.5);
 print "\n\n";
 printf("%*s", $mid+24, "Script to check plink .bim files against HRC/1000G for\n");
 printf("%*s", $mid+25, "strand, id names, positions, alleles, ref/alt assignment\n");
-printf("%*s", $mid+5, "William Rayner 2015-2017\n");
+printf("%*s", $mid+5, "William Rayner 2015-2018\n");
 printf("%*s", $mid+6, "wrayner\@well.ox.ac.uk\n");
 print "\n";
-printf("%*s", $mid+5, "Version 4.2.8\n\n\n");
+printf("%*s", $mid+5, "Version 4.2.9\n\n\n");
 
 # default input filenames (HRC or 1000G file name)
 my $hrc_file = 'HRC.r1.GRCh37.autosomes.mac5.sites.tab';
@@ -247,8 +253,32 @@ else
  die "exiting\n";
  }
 
-my $bim_count = get_counts($bim_file);
-my $frq_count = get_counts($frq_file);
+my $bim_count = 0;
+my $frq_count = 0;
+
+if (-e $bim_file)
+ {
+ $bim_count = get_counts($bim_file);
+ }
+else
+ {
+ print "ERROR: Unable to open specified bim file: $bim_file\n";
+ print "Please check path and filename and try again\n";
+ exit;
+ }
+ 
+if (-e $frq_file)
+ {
+ $frq_count = get_counts($frq_file);
+ }
+else
+ {
+ print "ERROR: Unable to open specified frequency file: $frq_file\n";
+ print "Please check path and filename and try again\n";
+ exit;
+ }
+
+
 if ($bim_count != ($frq_count-1))
  {
  print "WARNING: The number of variants in the bim and frq files are different\n";
@@ -331,7 +361,7 @@ open PL, ">$plotfile" or dir $!;
 open SH, ">Run-plink.sh" or die $!;
 #set plink to use here
 my $plink = 'plink';
-
+my $plink = '/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/bin/plink-1.90b5.4/plink';      
 my $tempcount = 1;
 my $tempfile = 'TEMP'.$tempcount;
 #remove SNPs
@@ -364,13 +394,14 @@ print SH "$tempfile\n";
 
 #force alleles
 my $newfile = $file_stem.'-updated';
-print SH "$plink --bfile $tempfile --reference-allele $forcefile --make-bed --out $newfile\n";
+print SH "$plink --bfile $tempfile --a2-allele $forcefile --make-bed --out $newfile\n";
 
 #split into per chromosome files
 for (my $i = 1; $i <= 23; $i++)
  {
  my $perchrfile = $newfile.'-chr'.$i;
- print SH "$plink --bfile $newfile --reference-allele $forcefile --make-bed --chr $i --out $perchrfile\n";
+ print SH "$plink --bfile $newfile --real-ref-alleles --make-bed --chr $i --out $perchrfile\n";
+ print SH "$plink --bfile $newfile --real-ref-alleles --recode vcf --chr $i --out $perchrfile\n";
  }
 print SH "rm TEMP*\n";
 
@@ -589,7 +620,7 @@ my $worked_check = $idmatch + $idmismatch + $mismatchpos;
 my $worked_check1 = $strand + $nostrand;
 
 print "Matching to $referenceused\n";
-print "\nPosition Matches\n ID matches $referenceused $idmatch\n ID Doesn't match $referenceused $idmismatch\n Total Position Matches $pos_check\nID Match\n Different position to $referenceused $mismatchpos\nNo Match to $referenceused $nothing\nSkipped (XY, Y, MT) $altchr\nTotal in bim file $total\nTotal processed $check_total\n\n"; 
+print "\nPosition Matches\n ID matches $referenceused $idmatch\n ID Doesn't match $referenceused $idmismatch\n Total Position Matches $pos_check\nID Match\n Position different from $referenceused $mismatchpos\nNo Match to $referenceused $nothing\nSkipped (XY, Y, MT) $altchr\nTotal in bim file $total\nTotal processed $check_total\n\n"; 
 print "Indels $indel\n\n";
 print "SNPs not changed $unchanged\nSNPs to change ref alt $nomatch\nStrand ok $strand\nTotal Strand ok $check_total1\n\n";
 print "Strand to change $nostrand\nTotal checked $worked_check\nTotal checked Strand $worked_check1\n";
@@ -604,7 +635,7 @@ print "Duplicates removed $duplicate\n";
 
 #print L "Total bim File Rows $total\n";
 print L "Matching to $referenceused\n";
-print L "\nPosition Matches\n ID matches $referenceused $idmatch\n ID Doesn't match $referenceused $idmismatch\n Total Position Matches $pos_check\nID Match\n Different position to $referenceused $mismatchpos\nNo Match to $referenceused $nothing\nSkipped (XY, Y, MT) $altchr\nTotal in bim file $total\nTotal processed $check_total\n\n"; 
+print L "\nPosition Matches\n ID matches $referenceused $idmatch\n ID Doesn't match $referenceused $idmismatch\n Total Position Matches $pos_check\nID Match\n Position different from $referenceused $mismatchpos\nNo Match to $referenceused $nothing\nSkipped (XY, Y, MT) $altchr\nTotal in bim file $total\nTotal processed $check_total\n\n"; 
 print L "Indels $indel\n\n";
 print L "SNPs not changed $unchanged\nSNPs to change ref alt $nomatch\nStrand ok $strand\nTotal Strand ok $check_total1\n\n";
 print L "Strand to change $nostrand\nTotal checked $worked_check\nTotal checked Strand $worked_check1\n";

@@ -1,216 +1,385 @@
 # Rule updates raw bedset with biobank provided pedigree information and gender
 # Sample IDs are updated to SentrixIDs
-rule update_bedset_samples:
+
+rule_stem ='remove_chr0'
+rule remove_chr0:
     input:
-        in_bedset=expand(config['raw_bed_stem'] + '{ext}', ext=['.bed','.bim','.fam']),
-        recode_id=config['recode_ids'],
-        recode_parents=config['recode_parents'],
-        recode_sex=config['recode_sex']
+        bedset=multiext(config['raw_bed_stem'],'.bed','.bim','.fam'),
     output:
-        out_bedset=expand(base + 'mod1-data-preparation/tmp/rawbed-id-parents-sex-updated' + '{ext}', ext=['.bed','.bim','.fam']),
-	stvars=base + 'mod1-data-preparation/rep/' + 'storedvars_update.txt'
-    params:
-        in_bedset=config['raw_bed_stem'],
-        tmp_path=base + 'mod1-data-preparation/tmp/',
-        out_bedset=base + 'mod1-data-preparation/tmp/rawbed-id-parents-sex-updated'
-    message: "Updating samples with declared relationships and sentrixIDs as unique identifiers"
-    shell:
-        """
-	set -e
-	plinklocal={plinklocal}
-	
-	PIPELINELOG={runlog}
-	STOREDVARS={output.stvars}
+        bedset=multiext(str(tmpMod1/rule_stem),'.bed','.bim','.fam'),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 1 Data preparation",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
 
-	source {libdir}/functions.sh
-	echo "" > {runlog}
-        chmod 777 {runlog} # dirty, i am ashamed...
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])        
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
 
-        log "---DATA PREPARATION---" 
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--not-chr", "0", 
+                "--out", outTrunk,
+                "--make-bed"
+        ], check=True)
 
-        log "UPDATE SAMPLES"
-        # update sample ids
-        $plinklocal \
-            --bfile {params.in_bedset} \
-            --update-ids {input.recode_id} \
-            --make-bed \
-            --out {params.tmp_path}/rawbed-id-updated
-	same=`awk 'FNR==NR{{c=0; a[$1 " " $2]=1; next}} ($1 " " $2 in a){{ c++}} END{{print c}}' {params.in_bedset}.fam {params.tmp_path}/rawbed-id-updated.fam`
-	total=`wc -l {params.in_bedset}.fam`
-	echo "same is $same, total is $total"
-	store "NIND_TOUPDATEID" $total
-	store "NIND_NOTUPDATEDID" $same
+        # Checking how many markers/chromosone 0 we removed  on this step
+        # We turn of warning here as we know there might be duplicate markers to check for later
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim", cols=[0,1,3,4,5], indx=1,
+                                    sanityCheck="none", fullList=True, ) 
 
-        log "UPDATE PARENTS"
-        # update parents
-        $plinklocal \
-            --bfile {params.tmp_path}/rawbed-id-updated \
-            --update-parents {input.recode_parents} \
-            --make-bed \
-            --out {params.tmp_path}/rawbed-id-parents-updated
-	same=`awk 'FNR==NR{{c=0; a[$2 " " $3 " " $4]=1; next}} ($2 " " $3 " " $4 in a){{ c++}} END{{print c}}' {params.tmp_path}/rawbed-id-updated.fam {params.tmp_path}/rawbed-id-parents-updated.fam`
-	total=`wc -l {params.tmp_path}/rawbed-id-updated.fam`
-	store "NIND_TOUPDATEPAR" $total
-	store "NIND_NOTUPDATEDPAR" $same
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
 
-        log "UPDATE SEX"
-        # update sex
-        $plinklocal \
-            --bfile {params.tmp_path}/rawbed-id-parents-updated \
-            --update-sex {input.recode_sex} \
-            --make-bed \
-            --out {params.out_bedset}
-	same=`awk 'FNR==NR{{c=0; a[$2 " " $5]=1; next}} ($2 " " $5 in a){{ c++}} END{{print c}}' {params.tmp_path}/rawbed-id-parents-updated.fam {params.out_bedset}.fam`
-	total=`wc -l {params.tmp_path}/rawbed-id-parents-updated.fam`
-	store "NIND_TOUPDATESEX" $total
-	store "NIND_NOTUPDATEDSEX" $same
-        """
-
-# Remove markers on snp table metrics
-rule remove_markers_snptable:
-    input:
-        in_bedset=expand(base + 'mod1-data-preparation/tmp/rawbed-id-parents-sex-updated' + '{ext}', ext=['.bed','.bim','.fam']),
-        snptable=config['snptable']
-    output:
-        out_bedset=expand(base + 'mod1-data-preparation/tmp/snptable-markers-excluded' + '{ext}', ext=['.bed','.bim','.fam']),
-        clustersep_removal=base + 'mod1-data-preparation/tmp/clustersep-removal.txt',
-        tenpercent_gc_removal=base + 'mod1-data-preparation/tmp/tenpercent-gc-removal.txt',
-        aa_theta_dev_removal=base + 'mod1-data-preparation/tmp/aa-theta-dev-removal.txt',
-	excl_snps=base + 'mod1-data-preparation/rep/' + 'exclusions_clustering_snp.txt',
-	stvars=base + 'mod1-data-preparation/rep/' + 'storedvars_clustering.txt'
-    params:
-        in_bedset=base + 'mod1-data-preparation/tmp/rawbed-id-parents-sex-updated',
-        out_bedset=base + 'mod1-data-preparation/tmp/snptable-markers-excluded',
-        tmp_path=base + 'mod1-data-preparation/tmp/'
-    message: "Remove markers by cluster metrics"
-    shell:
-        """
-	set -e
-	plinklocal={plinklocal}
-
-	PIPELINELOG={runlog}
-	STOREDVARS={output.stvars}
-	EXCLUSIONSS={output.excl_snps}
-
-	source {libdir}/functions.sh
-	source {libdir}/plink_wrapper_functions.sh
-
-        log "REMOVE MARKERS SNPTABLE"
-	report_nsnps {params.in_bedset} "BEFORE_SNPTABLE"
-
-        # identify markers for removal on cluster separation
-        awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/Cluster Sep/){{ col=i}}}}}} $col<0.4{{print $1, $col}}' {input.snptable} > {output.clustersep_removal}
-        cut -f1 -d' ' {output.clustersep_removal} > {params.tmp_path}/plink_clustersep_removal_list
-	plink_exclude_markers \
-		{params.in_bedset} \
-		{params.tmp_path}/plink_clustersep_removal_list \
-		{params.tmp_path}/snptable_clustersep \
-		"CLUSTERSEP"
-
-        # identify markers for removal on 10% GC score
-        awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/10% GC/){{ col=i}}}}}} $col<0.3{{print $1, $col}}' {input.snptable} > {output.tenpercent_gc_removal}
-        cut -f1 -d' ' {output.tenpercent_gc_removal} > {params.tmp_path}/plink_tenpercent_gc_removal_list
-	plink_exclude_markers \
-		{params.tmp_path}/snptable_clustersep \
-		{params.tmp_path}/plink_tenpercent_gc_removal_list \
-		{params.tmp_path}/snptable_gc \
-		"GC"
+        mqc.saveYamlResults(output.results, dropouts)
+        mqc.log(runlog, f'(NSNP_CHR0_LOST) Removed {dropouts["actionTakenCount"]} chromosone 0 out of {dropouts["in"]}, leaving {dropouts["out"]} markers\n')
         
-        # identify markers for removal on AA theta dev
-        awk -F '\t' 'NR==1{{for(i=1; i<=NF; i++){{ if($i~/AA T Dev/){{ col=i}}}}}} $col>0.04{{print $1, $col}}' {input.snptable} > {output.aa_theta_dev_removal}
-        cut -f1 -d' ' {output.aa_theta_dev_removal} > {params.tmp_path}/aa_theta_dev_removal_list
-	plink_exclude_markers \
-		{params.tmp_path}/snptable_gc \
-		{params.tmp_path}/aa_theta_dev_removal_list \
-		{params.out_bedset} \
-		"AATHETADEV"
-        """
 
-# Remove duplicated/triplicated markers from dataset
-# NB: removal list uses naming scheme from original bim file and has to be executed before
-# conversion to rsID
+# Check for duplicate markers, and remove all but one (keep best callrate)
+# The code here is copied and reused in remove_dup_markers_1kg
+# This rule could be smarter in the case no duplicate markers are found
+rule_stem = 'remove_duplicate_markers'
 rule remove_duplicate_markers:
     input:
-        in_bedset=expand(base + 'mod1-data-preparation/tmp/snptable-markers-excluded' + '{ext}', ext=['.bed','.bim','.fam']),
-        dup_remove_list=config['duplicated_markers_list']
+        bedset= rules.remove_chr0.output.bedset
     output:
-        out_bedset=expand(base + 'mod1-data-preparation/tmp/dup-markers-removed' + '{ext}', ext=['.bed','.bim','.fam']),
-	excl_snps=base + 'mod1-data-preparation/rep/' + 'exclusions_duplicates_snp.txt',
-	stvars=base + 'mod1-data-preparation/rep/' + 'storedvars_duplicates.txt'
-    params:
-        in_bedset=base + 'mod1-data-preparation/tmp/snptable-markers-excluded',
-        out_bedset=base + 'mod1-data-preparation/tmp/dup-markers-removed',
-        runlog=runlog
-    shell:
-        """
-	set -e
-	plinklocal={plinklocal}
-
-	PIPELINELOG={runlog}
-	STOREDVARS={output.stvars}
-	EXCLUSIONSS={output.excl_snps}
-
-	source {libdir}/functions.sh
-
-        log "REMOVE DUPLICATE MARKERS"
+        bedset=multiext(str(tmpMod1/rule_stem),'.bed','.bim','.fam'),
+        excludeList = (tmpMod1/rule_stem).with_suffix(".txt"),
+        resultDetails = (resultPath/rule_stem).with_suffix(".csv"),
+        # plink hardcodes this
+        plink_dup_list = (tmpMod1/"plink").with_suffix(".dupvar"),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 1 Data preparation",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])        
+        inTrunk = mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
+        callRateTrunk = mqc.plinkBase(output.excludeList)
+        # Create a plink.dupvar file
+        # Plink-bug (1.90b5.4): Puts plink.dupvar i snakemake directory. so we cwd ...
+        subprocess.run([plinklocal,
+                        "--bfile",inTrunk,
+                        "--list-duplicate-vars"
+        ], check=True, cwd=tmpMod1)
         
-        # identify duplicate markers for removal
-        DUP_LIST_N=`wc -l {input.dup_remove_list}`
-        log "Number of markers in duplicate marker removal list: ${{DUP_LIST_N}}"
-        
-        # remove markers
-        plink \
-            --bfile {params.in_bedset} \
-            --exclude {input.dup_remove_list} \
-            --make-bed \
-            --out {params.out_bedset} 
+        subprocess.run([plinklocal,
+                        "--bfile", inTrunk,
+                        "--out", callRateTrunk,
+                        "--missing"
+        ], check=True)
 
-	report_lostsnps {params.in_bedset} {params.out_bedset} "DUPLICATEMARKERS"
-        """
+        mqc.create_exclude_list(output.plink_dup_list, callRateTrunk+".lmiss",
+                                output.resultDetails, output.excludeList)
 
-rule fix_technical_markers:
+        subprocess.run([plinklocal,
+                        "--bfile",inTrunk,
+                        "--exclude", output.excludeList,
+                        "--out", outTrunk,
+                        "--make-bed"
+        ], check=True)
+        # We are here checking only the snp-id. It should be unique
+        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [1], sanityCheck = "removal",
+                                    fullList = False) 
+        dropouts["Detailed results"] = output.resultDetails
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+        mqc.log(runlog, f'Due to duplicate markers, removed {dropouts["actionTakenCount"]} markers out of {dropouts["in"]}, leaving {dropouts["out"]} markers\n')
+
+
+rule_stem ='sampleIdUpdated'
+rule update_sample_ids:
     input:
-        in_bedset=expand(base + 'mod1-data-preparation/tmp/dup-markers-removed' + '{ext}', ext=['.bed','.bim','.fam']),
-        recode_rsid=config['recode_rsid']
+        bedset=rules.remove_duplicate_markers.output.bedset,
+        recode=config['recode_ids']
     output:
-        out_bedset=expand(base + 'mod1-data-preparation/tmp/chr0-removed' + '{ext}', ext=['.bed','.bim','.fam']),
-	excl_snps=base + 'mod1-data-preparation/rep/' + 'exclusions_markerfix_snp.txt',
-	stvars=base + 'mod1-data-preparation/rep/' + 'storedvars_markerfix.txt'
+        bedset=multiext(str(tmpMod1/rule_stem) ,'.bed','.bim','.fam'),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 1 Data preparation",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])        
+        inTrunk = mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
+
+
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--update-ids", input.recode,
+                "--out", outTrunk ,
+                "--make-bed"], check=True)
+        updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols=[0,1], indx=1,
+                                   sanityCheck="updated", fullList=True, mapFile=input.recode, mapIndx=1) 
+        updated.update(rule_info[rule])   # Metainfo and documentation about the rule
+        updated["Rule"] = rule
+        mqc.saveYamlResults(output.results, updated)
+        mqc.log(runlog,f'Sample id: Updated {updated["actionTakenCount"]} samples (NIND_NOTUPDATEDID) out of {updated["in"]} (NIND_TOUPDATEID)\n')
+
+rule_stem = 'parents-updated'
+rule update_parents:
+    input:
+        bedset=rules.update_sample_ids.output.bedset,
+        recode=config['recode_parents']
+    output:
+        bedset=multiext(str(tmpMod1/rule_stem) ,'.bed','.bim','.fam'),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 1 Data preparation",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])        
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--update-parents", input.recode,
+                "--out", outTrunk ,
+                "--make-bed"
+        ], check=True)
+        updated= mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols=[1,2,3], sanityCheck = "updated",
+                                   fullList = True, mapFile=input.recode)
+        updated.update(rule_info[rule])   # Metainfo and documentation about the rule
+        updated["Rule"] = rule
+
+        mqc.saveYamlResults(output.results, updated)
+        mqc.log(runlog,f'Sample id: Updated {updated["actionTakenCount"]} samples (NIND_NOTUPDATEDPAR) out of {updated["in"]} (NIND_TOUPDATEPAR)\n')
+
+
+rule_stem = 'sex-updated'
+rule update_sex:
+    input:
+        bedset=rules.update_parents.output.bedset,
+        recode = config['recode_sex']
+    output:
+        bedset = multiext(str(tmpMod1/rule_stem),'.bed','.bim','.fam'),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 1 Data preparation",
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))        
+        
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])        
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--update-sex", input.recode,
+                "--out", outTrunk ,
+                "--make-bed"
+        ], check=True)
+        # Checking how many of the original samples we still have
+        updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [1,4], indx=1, sanityCheck = "updated",
+                                   fullList = True, mapFile=input.recode, mapIndx=1)
+        updated.update(rule_info[rule])   # Metainfo and documentation about the rule
+        updated["Rule"] = rule
+
+
+        mqc.saveYamlResults(output.results, updated)
+        mqc.log(runlog,f'Sex updated: Updated {updated["actionTakenCount"]} samples (NIND_NOTUPDATEDPAR) out of {updated["in"]} (NIND_TOUPDATEPAR)\n')
+
+
+# Remove markers on snp table metrics
+rule_stem = 'clustersep_removal'
+rule remove_markers_cluster_sep:
+    input:
+        bedset = rules.update_sex.output.bedset,
+        snptable=config['snptable']
+    output:
+        bedset=multiext(str(tmpMod1/rule_stem),'.bed','.bim','.fam'),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 1 Data preparation",
+                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/rule_stem).with_suffix(".png"),category="Module 1 Data preparation",
+                                 caption=(resultPath/rule_stem).with_suffix(".rst")),
+        # in addition to the removal list .txt, a *removal.txt.samples is produced, sporting only the sample-list
+        removal= (tmpMod1/rule_stem).with_suffix(".txt"), 
+        removal_markers = (tmpMod1/rule_stem).with_suffix(".markers.txt"),
     params:
-        in_bedset=base + 'mod1-data-preparation/tmp/dup-markers-removed',
-        out_bedset=base + 'mod1-data-preparation/tmp/chr0-removed',
-	outdir=base + 'mod1-data-preparation/tmp/'
-    shell:
-        """
-	set -e
-	plinklocal={plinklocal}
+        treshold = config['cluster_sep_thr']
+    message: "mod1 Remove markers by cluster metrics" 
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])        
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
 
-	PIPELINELOG={runlog}
-	STOREDVARS={output.stvars}
-	EXCLUSIONSS={output.excl_snps}
+        # identify markers for removal on cluster separation
+        (removed,total) = mqc.extract_list(input.snptable, 
+                output.removal_markers, output.removal, 
+                                colName=config['cluster_sep_col_name'], sep='\t',
+                                condition="<", treshold=params.treshold, 
+                                key_cols=[0], doc_cols=[0])
 
-	source {libdir}/functions.sh
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--exclude", output.removal_markers,
+                "--out", outTrunk ,
+                "--make-bed"
+        ], check=True)
 
-	report_nsnps {params.in_bedset} "BEFORE_RSID_UPDATE"
-	
-	# Updates marker info to Illumina provided rsID conversion file
-        log "UPDATE RSIDs"
-        $plinklocal \
-            --bfile {params.in_bedset} \
-            --update-name {input.recode_rsid} \
-            --make-bed \
-            --out {params.outdir}/rsid-updated
-	
-	report_lostsnps {params.in_bedset} {params.outdir}/rsid-updated "RSID_UPDATE"
+        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1],
+                                    sanityCheck = "removal", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Treshold"] = params.treshold
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+        
+        mqc.log(runlog, f'Removed {dropouts["actionTakenCount"]} markers(NSNP_CLUSTERSEP_LOST) out of {dropouts["in"]} (BEFORE_SNPTABLE), leaving {dropouts["out"]} markers. Treshhold {params.treshold}\n')
+        # The following has a huge potential for speedup (using round as in mqc.dotplot()
+        mqc.plot_point_and_line(dropouts, input.snptable, output.plot,
+                                config["cluster_sep_col_name"], separator='\t',
+                                ylabel="Separation", invert=False)
 
-	# Remove technical (chr 0) markers
-        log "REMOVE TECHNICAL MARKERS (CHR 0)"
-        $plinklocal \
-            --bfile {params.outdir}/rsid-updated \
-            --not-chr 0 \
-            --make-bed \
-            --out {params.out_bedset}
+        
+rule_stem = 'gcscore_removal'
+rule remove_markers_gc_score:
+    input:
+        bedset = rules.remove_markers_cluster_sep.output.bedset,
+        snptable=config['snptable']
+    output:
+        bedset=multiext(str(tmpMod1/rule_stem),'.bed','.bim','.fam'),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 1 Data preparation",
+                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/rule_stem).with_suffix(".png"),category="Module 1 Data preparation",
+                                 caption=(resultPath/rule_stem).with_suffix(".rst")),
+        # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
+        removal= (tmpMod1/rule_stem).with_suffix(".txt"),
+        removal_markers = (tmpMod1/rule_stem).with_suffix(".markers.txt"),
+    params:
+        treshold = config['10%_GC_score_thr']
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])        
 
-	report_lostsnps {params.outdir}/rsid-updated {params.out_bedset} "CHR0"
-        """
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+        # identify markers for removal 
+        (removed,total) = mqc.extract_list(input.snptable, 
+                output.removal_markers, output.removal, 
+                            colName=config["10%_GC_score_col_name"], sep='\t',
+                            condition = "<", treshold = params.treshold, 
+                            key_cols=[0], doc_cols=[0] )
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--exclude", output.removal_markers,
+                "--out", outTrunk ,
+                "--make-bed"], check=True)
+
+        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Treshold"] = params.treshold
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+
+        mqc.log(runlog, f'Removed {dropouts["actionTakenCount"]} markers(NSNP_GC_LOST) out of {dropouts["in"]} (NSNP_BEFORE_GC), leaving {dropouts["out"]} markers. Treshhold {params.treshold}\n')
+
+        mqc.plot_point_and_line(dropouts, input.snptable, output.plot,
+                                config["10%_GC_score_col_name"], separator='\t',
+                                ylabel="10% GC Score", invert=False)
+
+
+
+rule_stem = 'remove_markers_aa_theta_deviation'
+rule remove_markers_aa_theta_deviation:
+    input:
+        bedset = rules.remove_markers_gc_score.output.bedset,
+        snptable=config['snptable']
+    output:
+        bedset=multiext(str(tmpMod1/rule_stem),'.bed','.bim','.fam'),
+        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+                         category="Module 1 Data preparation",
+                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/rule_stem).with_suffix(".png"),category="Module 1 Data preparation",
+                                 caption=(resultPath/rule_stem).with_suffix(".rst")),
+        # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
+        removal= (tmpMod1/rule_stem).with_suffix(".txt"),
+        removal_markers = (tmpMod1/rule_stem).with_suffix(".markers.txt"),
+    params:
+        treshold = config['aa_theta_dev_thr']
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])        
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+
+        # identify markers for removal 
+        (removed,total) = mqc.extract_list(input.snptable, 
+                output.removal_markers, output.removal, 
+                                colName=config["aa_theta_dev_col_name"], sep='\t',
+                                condition = ">", treshold=params.treshold, 
+                                key_cols=[0], doc_cols=[0])
+
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--exclude", output.removal_markers,
+                "--out", outTrunk ,
+                "--make-bed"
+        ], check=True)
+
+        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Treshold"] = params.treshold
+        dropouts["Rule"] = rule
+
+        mqc.saveYamlResults(output.results, dropouts)
+        mqc.log(runlog, f'Removed {dropouts["actionTakenCount"]} markers(NSNP_AATHETADEV_LOST) out of {dropouts["in"]} (NSNP_GC_LOST), leaving {dropouts["out"]} markers. Treshhold {params.treshold}\n')
+                     
+        mqc.plot_point_and_line(dropouts, input.snptable, output.plot,
+                                config["aa_theta_dev_col_name"], separator='\t',
+                                ylabel="AA-\u03B8 deviation", invert=False)
+
+
+# This is a dummy rule which sole intention is to recap and show what happens in Modules 1,
+# It permits the module to have some 'public' variables, that other rules can
+# refer to.
+# It also ensure that snakemake -- is easer to read.
+rule_stem = 'm1_output_report'
+rule m1_output_report:
+    input:
+        # Start of pipe
+        bedset_first = rules.remove_chr0.input.bedset,
+        # Note that this is actually the output of module 1, this rule is just a report rule
+        bedset_last = rules.remove_markers_aa_theta_deviation.output.bedset,
+    output:
+        bedset = multiext(str(tmpMod1/rule_stem),'.bed','.bim','.fam'),
+        # category is sorted as written below. We use - as prefix to force
+        # final reports to be sorted first ...
+        report_markers = report((resultPath/rule_stem).with_suffix(".markers.yaml"),
+                        category="- Module 1 Data conversion recap",
+                        caption=(resultPath/rule_stem).with_suffix(".markers.rst")),
+        report_samples = report((resultPath/rule_stem).with_suffix(".samples.yaml"),
+                        category="- Module 1 Data conversion recap",
+                        caption=(resultPath/rule_stem).with_suffix(".samples.rst")),
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])        
+        firstTrunk =  mqc.plinkBase(input.bedset_first[0])
+        lastTrunk =  mqc.plinkBase(input.bedset_last[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+        docs = "For more documentation see https://github.com/folkehelseinstituttet/mobaGenetics-qc/wiki/Module1 . In the html file see info on individual module steps through the section for results of Module 1 Data preparation"
+
+        # Create a dummy bedset we can refer to later that clearly show module1 output
+        for i in ['.bed','.bim','.fam']:
+            copyfile(lastTrunk+i, outTrunk+i)
+        # report markers
+        dropouts = mqc.checkUpdates(firstTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        dropouts["Documentation details"] = docs
+
+        mqc.saveYamlResults(output.report_markers, dropouts)
+
+        # report samples
+        dropouts = mqc.checkUpdates(firstTrunk+".fam",outTrunk+".fam",cols = [0,1], sanityCheck = "update", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        dropouts["Documentation details"] = docs
+
+        mqc.saveYamlResults(output.report_samples, dropouts)
 

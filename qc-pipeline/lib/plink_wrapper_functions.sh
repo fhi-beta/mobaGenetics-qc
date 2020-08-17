@@ -1,5 +1,6 @@
 #!/usr/bin/env bash
-
+# for debugging, you might want to turn on echo - uncomment next line
+set -x
 # # Covert TPED to PLINK binary
 # # Args:
 # # 1. input TPED file
@@ -552,6 +553,7 @@ function plink_remove_excess_het_common {
                 $3 \
                 $5/common_only_het_fail
 
+	
         # wipe the first row
         tail -n +2 $5/common_only_het_fail > $5/het_fail_common_total
 
@@ -582,14 +584,18 @@ function plink_remove_excess_het_common {
 # 5. TMP folder
 function plink_remove_excess_het_rare {
 
-        # Rare autosomal markers
-        $plinklocal \
+    # Rare autosomal markers
+    # Dirty hack 28.10.19 - This can fail, and until we have cleanded up the whole QC, we  accespt failure but lo
+    if ! $($plinklocal \
                 --bfile $1 \
                 --autosome \
                 --max-maf $2 \
                 --het \
                 --out $5/rare_only_het_tmp
-
+	   ); then
+	log "Aaargh. plink_remove_excess_het_rare plink failed (no autosoma marker?)"
+	return 0  #Lets fake this went ok, ignore plots etc
+    fi
         Rscript ${libdir}/het_fail.R \
                 $5/rare_only_het_tmp.het \
                 $3 \

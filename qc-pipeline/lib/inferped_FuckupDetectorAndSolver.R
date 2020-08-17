@@ -6,10 +6,15 @@
 
 library(dplyr)
 
+# gutorm: On crash - at least give us a traceback - and return status non-0
+# Does not work for all errors, so enable at will.
+# Remove if you think it slows down the script ...
+options(error=function()
+	{ traceback(2); if(!interactive()) quit("no", status = 1, runLast = FALSE) })
+
 ####
 #### arguments
 ####
-
 args = commandArgs(trailingOnly=TRUE)
 
 # variable inputs
@@ -97,8 +102,6 @@ y_thr = fem_y + (mal_y-fem_y)*0.666 # threshold for Ycounts
 f_thr = fem_f + (mal_f-fem_f)*0.666 # threshold for Fval (Xchr)
 rm(fem_y,mal_y,fem_f,mal_f)
 
-
-
 ####
 ####  FAM FILE UPDATOR
 ####
@@ -137,7 +140,6 @@ fam$V4[rix] = 0
 fam$V3[which(fam$V3 %in% del$V1)] = 0
 fam$V4[which(fam$V4 %in% del$V1)] = 0
 
-
 ### 2)   update relationships
 
 if (nrow(upd)>0) {
@@ -159,7 +161,7 @@ for (i in 1:nrow(upd)) {
 }
 } # end of IF
 
-...  think about this & or |  at Fthr ...
+# ...  think about this & or |  at Fthr ...
 
 # FLAG FILE UPDATE: remaining families (after hard-coded family rearrangements)
 bad_boys_ix = which((fam$V5==1)&((sex$YCOUNT<y_thr)&(sex$F<f_thr)))  # declared males not males
@@ -184,7 +186,6 @@ fam$V5[bad_girl_ix] = 1
 if(any(fam$V2[which(fam$V5==2)] %in% fam$V3)) warning("genetic females detected in V3 (dad's column)!")
 if(any(fam$V2[which(fam$V5==1)] %in% fam$V4)) warning("genetic males detected in V4 (mom's column)!")
 
-
 ####
 ####  SEX FILE UPDATOR (used only for plotting)
 ####
@@ -204,9 +205,6 @@ for (i in 1:nrow(upd)) {
         }
         rm(rix)
 }
-
-
-
 
 ############
 ############ DATA PREP
@@ -238,12 +236,14 @@ fun = function(FID) paste(sort(unique(FID)),collapse=",")
 adon = group_by(sub,IID) %>% summarise(FID=fun(FID)) %>% ungroup()
 adon = as.data.frame(adon)
 
-
-
 ### convert fam file into vertices
 
 kid_dad = fam[which(fam$V3!=0),c("V2","V3")]
 colnames(kid_dad) = c("IID1","IID2")
+
+# print(head(fam))
+# print(kid_dad)
+# Next line will crash if kid_data frame is empty
 kid_dad$type = "kid_dad"
 
 kid_mom = fam[which(fam$V4!=0),c("V2","V4")]

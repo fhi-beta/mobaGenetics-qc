@@ -1,0 +1,1029 @@
+#!/usr/bin/python3
+import pandas as pd
+import numpy as np
+import math
+import plotnine as p9
+# While plotting in a non-interactive environment (xterm ...) we need this:
+import yaml
+import re
+from pathlib import Path
+import subprocess
+from datetime import datetime
+from shutil import copyfile
+import inspect    # to find stack-info, such as the functions name
+import matplotlib
+matplotlib.use('Agg')
+
+
+# This is kinda ugly
+cwd = Path.cwd()
+snake_dir = cwd/"../snakefiles"
+# snake_dir = Path("/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/snakefiles")
+# print (f"DDDDDDDDEEEEBUG!  {snake_dir}   xxx")
+# Grab the same configfiles as snakefile has
+try:
+    with open(snake_dir/"rules.yaml", 'r') as stream:
+        rule_info = yaml.safe_load(stream)
+    with open(snake_dir/"config.yaml", 'r') as stream:
+        config = yaml.safe_load(stream)
+except Exception as e:
+    print(f"mobaQcTools.py: Could load configfile, {str(e)}")
+
+plink = config["plinklocal"]
+
+
+def test_me(foo="bar"):
+    """ For random tests
+
+    """
+    subprocess.run([plink,
+            "--bfile", "foo",
+            "--chr", "23",
+            "--out", "bar",
+            "--indep-pairphase"] + config["sex_check_indep_pairwise"].split(),
+            check=True)
+
+    print(inspect.getdoc(make_rule_caption))
+    # print(inspect.signature(test_me))
+    # print(inspect.currentframe())
+    # logging.warning("ooops")
+    # logging.warning(getattr(logging, loglevel.upper()))
+    # print (inspect.stack()[0])
+
+
+def make_rule_caption(rule, dir):
+    """ Creates a caption for rule
+
+    Rule is the calling rule, dir is a path object where the file rule.rst is to be created
+
+    Note that this is a hack because founder/offspring construction for now (feb 2020) has
+    proven difficutlt to make good role-dependent caption for.
+    Since captions are used for sorting the html report produced by snakemake --report,
+    this function creates one based on the global rule_info[] structure.
+    It will typically be called twice.
+    Warning: Assumes that rule and rule_stem are identical where this is used.
+    """
+    with open(str(dir/rule)+".rst", 'w') as file:
+        file.write(f'Rule {rule_info[rule]["Rule order"]} ({rule_info[rule]["rule action"]})\n')
+
+
+def plot_hist(dataFile, resultFile, column="name of the column",
+              title="no legend??", separator='\s+',
+              treshold=0, logx=False, bins=100):
+    """ plots and saves a histogram
+
+    Very basic Histogram. Could be prettied up a lot
+    Prints out lots of warning, but see https://stackoverflow.com/questions/55805431/is-there-a-way-to-prevent-plotnine-from-printing-user-warnings-when-saving-ggplo
+    Default separator is whitespace, but it needs to be overriden every now and then ... (typically by pure tab '\t')
+    If (optional) logx is True, x-values are log10 transformed.
+    """
+    my_name = inspect.currentframe().f_code.co_name  # Generic way of find function name
+    try:
+        df = pd.read_csv(dataFile, sep=separator, usecols=[column])
+    except Exception as e:
+        print(f"{my_name}: Could not read plotdata {column} from {dataFile}, {str(e)}")
+        return
+
+    df = df.sort_values(column)
+    p = p9.ggplot(data=df, mapping=p9.aes(x=column))
+    hist = p + p9.geom_histogram(bins=bins)
+    hist += p9.labs(title=title, x=column)
+    if treshold != 0:
+        hist += p9.geom_vline(xintercept=treshold, color='red')
+    if logx:
+        hist += p9.scale_x_log10(name=f"log10({column})")
+    p9.ggsave(plot=hist, filename=resultFile, dpi=300)
+    return
+
+
+def plot_point_and_line(qc_results, dataFile, resultFile,
+                        column="name of the column", separator='\s+',
+                        ylabel="no label given", invert=True):
+    """plots and saves a plot of sample/markers probabilities (y-axis)
+
+    Prints out lots of warning, but see
+    https://stackoverflow.com/questions/55805431/is-there-a-way-to-prevent-plotnine-from-printing-user-warnings-when-saving-ggplo
+    Default separator is whitespace, but it needs to be overriden
+    every now and then ... (typically by pure tab '\t') Probabiliits
+    are found as specified by dataFile and column, with the separator
+    given qc_results is a dictionary containing values that will be
+    used for labels etc.  If invert=True, will plot 1-probabilities.
+    Default is True as this is often used to plot missingess/call
+    rates.
+
+    """
+    my_name = inspect.currentframe().f_code.co_name      # Generic way of find this functions name. Use
+    try:
+        df = pd.read_csv(dataFile, sep=separator,
+                         usecols=[column])
+        treshold = qc_results.get("Treshold", 0)
+    except Exception as e:
+        print(f"{my_name}: Could not read plotdata {column} from {dataFile} or qc-results, {str(e)}")
+        return
+
+    if invert:
+        df = 1-df
+        treshold = 1-treshold
+
+    xlabel = qc_results.get("rule type")
+    title = f'{qc_results.get("QC test")}\n{qc_results.get("Timestamp")}'
+    df = df.sort_values(column).reset_index(drop=True)
+    p = p9.ggplot(df, p9.aes(x=df.index, y=column))
+    line = p + p9.geom_line() + p9.geom_point()
+    if treshold > 0 and treshold < 1 :
+        line += p9.geom_hline(yintercept=treshold, color='red')
+        ylabel += f"   (treshold {treshold})"
+        xlabel += f' ({qc_results.get("actionTakenCount")} outside treshold)'
+    line += p9.labs(title=title, y=ylabel, x=xlabel)
+    p9.ggsave(plot=line, filename=resultFile, dpi=300)
+    return
+
+
+def saveYamlResults(files, yamlStruct):
+    """ Creates three files from the given yamlStruct
+
+    files is a Path or string, typically result.yaml
+    "files.removedSamples" has yamlStruct["xitems"] intact
+    "files" is the name of the structure without samples/markers (xitems).
+    A .rst file will be produced in addition to the .yaml file (used by snakemake --report)
+    Side effect: Deletes yamlStruct["xitems"]
+                 Sets Timestamp in yamlStruct
+    """
+    yamlStruct["Timestamp"] = datetime.utcnow().strftime("%Y.%m.%d %H:%M")+"(UTC)"
+    files = Path(files)
+    fullFile = files.with_suffix(".yaml.details")
+    with open(fullFile, 'w') as file:
+        yaml.dump(yamlStruct, file)
+    # A shorter result version, without sample.
+    if "xitems" in yamlStruct:
+        del yamlStruct["xitems"]
+    with open(files, 'w') as file:
+        yaml.dump(yamlStruct, file)
+    # A .rst version used for captions
+    rstFile = files.with_suffix(".rst")
+    percentDropped = yamlStruct["actionTakenCount"] / yamlStruct["in"]
+    # March 2020; Note that founder/offspring rules, it has been har to declare separate rst-
+    # files for founder/offspring. Instead, we create a common file, overwriting whatever
+    # is made here :-(
+    with open(rstFile, 'w') as file:
+        file.write(f'Rule {yamlStruct["Rule order"]} ({yamlStruct["rule type"]})\n\n')
+        file.write(f'- {yamlStruct["in"]} in\n')
+        file.write(f'- {yamlStruct["actionTakenCount"]} ({percentDropped:.1%}) {yamlStruct["rule action"]}\n') #
+        file.write(f'- {yamlStruct["out"]} left\n\n')
+        file.write(f'{yamlStruct["Timestamp"]}\n')
+
+
+def plinkBase(path):
+    """ part of the file without the last extention (such as .fam .bed .bim)
+
+    plink often works on a trunk and creates extra files: a becomes a.fam, a.bed, a.bid
+    This function reates this trunk, so /foo/bar/gazonk.fam becomes /foo/bar/gazonk
+    The resulting trunk is typically used as input to plink
+    Only the last '.' is removed so /foo.foo/bar/gazonk.x.fam will become /foo.foo/bar/gazonk.x
+    """
+    return re.sub(r"\.\w*$", "", path)
+
+
+def lt(a, b):
+    try:
+        result = (a < b)
+    except Exception as e:
+        print(f"Could not compare '{a}' < '{b}', {str(e)}")
+    return result
+
+
+def eq(a, b):
+    try:
+        result = (a == b)
+    except Exception as e:
+        print(f"Could not compare '{a}' == '{b}', {str(e)}")
+    return result
+
+
+def gt(a, b):
+    try:
+        result = (a > b)
+    except Exception as e:
+        print(f"Could not compare '{a}' > '{b}', {str(e)}")
+    return result
+
+
+def unknownComp(a, b):
+    print("Unknown compare operation")
+    return
+
+
+# used to map symbols to actual comparision functions defined previously
+compOperands = {
+    "<": lt,
+    "==": eq,
+    ">": gt
+}
+
+
+def extract_list(innFile, outFile, threshold_doc_file="/dev/null",
+                 colName="none", sep='\t', condition="<", treshold=0,
+                 key_cols=[0], doc_cols=[0, 1]):
+    """A typical preprocessor to utilities like plink, extracts relevant samples/markers
+
+    Efficient in the sense that it is not reading the (huge) files
+    into memory.  Takes a csv file innFile (first line with headers,
+    separator is parameter "sep", use None for whitespaces)
+
+    Produces
+    * a  list on outFile of the columns indicated by key_cols.
+    * a threshold_doc_file with at set of numbered columns (doc_cols).
+      The contents of colName will always be added
+
+    Only columns were the column colName (regexp) matches the
+    condition of treshold will be written treshold can be a string,
+    this is testet only for condition '==' Returns (number of sample
+    extracted, total samples)
+
+    Restrictions:
+    * Prints error and returns unless only one columns matches
+    * Outputfiles use the same separator as used for innFile. If 'none'
+     was used ' ' is used
+
+    """
+    my_name = inspect.currentframe().f_code.co_name      # Generic way of find this functions name
+    with open(innFile) as fp:
+
+        # Identifying header column
+        line = fp.readline()
+        allcols = line.split(sep)
+        outsep = sep
+        if outsep is None:
+            outsep = " "
+        regex = re.compile(colName)
+        indx = [i for i, item in enumerate(allcols) if re.search(regex, item)]
+        if len(indx) != 1:
+            print(f"ERROR in {my_name}: regexp {colName}  found {len(indx)} times in {innFile}. First line was {allcols}")
+            return
+        indx = indx[0]
+        # print(f"{colName} has index {indx}")
+        matches = 0
+        compare = compOperands.get(condition, unknownComp)
+        if compare == unknownComp:
+            print(f"Cannot compare using: '{condition}'")
+            return
+        # These lines are data, indx[0] is the index  of the column we found interesting
+        sample = open(outFile, "w+")
+        subset = open(threshold_doc_file, "w+")
+        for line in enumerate(fp):
+            allcols = line[1].split(sep)
+            val = allcols[indx]
+            try: val = float(val)  # hack to avoid errors if we want to compare strings
+            except: pass
+
+            if compare(val , treshold):
+                # File with only keys, create the relevant subset first
+                subsetc = [allcols[index] for index in key_cols]
+                sample.write(f"{outsep.join(map(str,subsetc))}\n")
+                # File with more columns, and always include the treshold column
+                # subsetc is a relevant subset of the columns
+                subsetc = [allcols[index] for index in doc_cols]
+                subset.write(f"{outsep.join(map(str,subsetc))} {val}\n")
+                matches += 1
+    totalLines = line[0] + 1  # enumerates from 0, and we read a line manually
+    sample.close()
+    subset.close()
+    return (matches, totalLines)
+
+
+def dict_count_items(fil, cols=[0, 1], warn=True):
+    """Creates and counts item in a dictionary
+
+    Creates a dictionary with as key concatenation of the strings of
+    the columns found in fil.
+    Values are the number of times that key is found
+    Returns the dictionary and the largest key value. In many
+    scenarios, 1 is wanted here, meaning no duplicates.
+    if warn=True, will warn about key value > 1
+    fil is expected to be  csv file with whitespace as delimiters
+    First Column in the file is number 0 (standar Python)
+    (Hint for when this is used to compare the columns of two files:
+    You can reduce memory usage by making a dictionary of the smallest
+    file and searchin/iterating for matches through the largest
+
+    Will print error/warning if dictionary is empty or if replicates found
+
+    """
+    # pandas is overkill here, but since we will use it anyway ...
+    # Grab the relevant columns only
+    try:
+        df = pd.read_csv(fil, usecols=cols, delim_whitespace=True, header=None)
+    except Exception as e:
+        print(f"Could not open file {fil}, {str(e)}")
+        return
+    # concat them as strings, handling NA
+    df = pd.Series(df.fillna('NA').values.tolist()).map(lambda x: ' '.join(map(str, x)))
+    # ... and finally make a dictionary. Note that we will here also count identical lines.
+    countDict = dict()
+    maxHits = 0
+    for i in df:
+        countDict[i] = countDict.get(i, 0) + 1
+        if (countDict[i]) > maxHits:
+            maxHits = countDict[i]
+            sample = i
+    if len(countDict) == 0:
+        print("ERROR: 0 sized dictionary after reading ",fil)
+    if maxHits > 1 and warn:
+        print(f"WARNING: sample/marker {sample} found {maxHits} times in {fil}. Might not be the only nonunique ...")
+    # print(f"**********   counted {fil} and got {len(countDict)} unique items")
+    return countDict, maxHits
+
+
+def lookupDict(fil, indx=1):
+    """ Creates a lookup dictionary from fil, width column indx as index
+
+    fil is a whitespice separated csv
+    indx is the column that you will lookup on later, 0 is the first column
+    """
+    try:
+        all = pd.read_csv(fil, delim_whitespace=True, header=None).astype(str)
+    except Exception as e:
+        print(f"Could not open mapping file {fil}, {str(e)}")
+        return
+    indexCol = all[indx]  # get the index column
+    # all = all.drop([indx], axis=1)   # drop it - figured out it gave confusing output
+    all = all.apply(" ".join, axis=1)  # make each row a single string
+    return dict(zip(indexCol, all))
+
+
+def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
+                 fullList=False,  mapFile="", mapIndx=1):
+    """Generic comparition of two bedsets
+
+    Return number of updates due (typically) to a rule as well as a structure
+    suited for a export as a yaml-file
+
+    The scenario is that a method/step had a dataset (file indData)
+    and produced outData.
+
+    Some items got filtered out/changed
+    pre/postQC are tab-serparated csv-files with the same amount of columns
+
+    The optional sanityCheck parameter will give error message as
+    follows, depending to its value
+       removal: Number of action on (removed) = size of preQc-postQc
+       updated: size of preQc = postQc
+       anything different from the above): No tests performed
+    Only columns passed by cols are used to compare betwen input/and output.
+
+    fullList documents (in list xitems), what sample/markers have been
+    changed/missing.  indx is only necessary if fullList is True. 
+
+    indx is used to genereate a list (usually of samples/markers) from
+    column nr indx
+
+    indx is sample-id/marker-id. indx=0 is the first column, default
+    is second column.
+
+    mapFile is relevant when fullList=True and is the file that mapped
+    values from preQc to postQc and is used to show what the
+    missing/renamed elements were named before
+
+    mapIndx indicates the column of the mapFile that corresponds to
+    indx in the datafile
+
+    The yaml-structure will always contain the number of input
+    samples/markers as well as sample/markers removed/remaining.
+
+    """
+    # dictionaly with only relevant columns
+    (outDict, m) = dict_count_items(postQc, cols)
+    result = {
+        "in":   0,        # will count lines from the 'in' file
+        "out": len(outDict),
+        "xitems": [],    # poplulated later by samples/markers if fullList is True
+        "actionTakenCount": 0 # Not found in dictionary, so it is the effect of the qc-rule on the inputfile
+        }
+    haveDict = False
+    if mapFile != "":   # Setting up a dictionary 'lookup' to lookup the
+                        # original value if postQc has changed
+        lookup = lookupDict(mapFile, mapIndx)
+        haveDict = True
+        result["mapFile"] = mapFile
+    for line in open(preQc):
+        result["in"] += 1
+        allcols = line.split()
+        subsetc = [allcols[index] for index in cols]
+        # concatenating so we can look up the strings with corresponding field from postQc file
+        key = " ".join(map(str, subsetc))
+        if (outDict.get(key, 0) == 0):
+            result["actionTakenCount"] += 1
+            item = str(allcols[indx])    # being the sample or the marker
+            if fullList:
+                changed = f"{item} - had {key}"  # This item was not found in preQc
+                if haveDict:
+                    mappingRule = lookup.get(item, 'ooops: missing')
+                    changed = f'{changed} changed by mapping {mappingRule}'
+                result["xitems"].append(changed)    # sample/marker id(s)
+
+    if sanityCheck == 'updated':  # we don't want to loose items here
+        if (result["out"]) != result["in"]:
+            print(f"Warning: {preQc} -> {postQc}: Update expected, but number of unique items have changed "
+                  f"from {result['in']} to {result['out']}")
+    elif sanityCheck == 'removal':       # we want out + removed = in
+        if (result["actionTakenCount"] + result["out"]) != result["in"]:
+            print(f"Warning: {preQc} -> {postQc}: remaining + removed samples != original number")
+    return result
+
+
+def log(logfile, message="Nothing logged", mode="a"):
+    """ Placeholder until we figure out how logging really needs to be
+    done. Default appends message to logfile
+
+    """
+    with open(logfile, mode) as myfile:
+        myfile.write(f'{datetime.utcnow().strftime("%Y%m%d %H:%M")} {message}')
+    return
+
+
+def _make_gen(reader):
+    """
+    Used to linecount buffered and fast
+    """
+    b = reader(1024*1024)
+    while b:
+        yield b
+        b = reader(1024*1024)
+
+
+def line_count(filename):
+    """ Returns number of lines is (text) filename as wc -l
+
+    Efficient linecounting by buffered reads
+    """
+    f = open(filename, 'rb')
+    f_gen = _make_gen(f.raw.read)
+    return sum( buf.count(b'\n') for buf in f_gen)
+
+
+def create_exclude_list(duplicates, callRates, resultfile, excludelist):
+    """Based on a file duplicates (created by plink --list-duplicate-vars), and a call rate file (created by plink --missing)
+    will create a list (resultfile) with the call rates/alleleles/etc
+    of markers to be excluded.
+    Only the best call rate is kept, so the list will consist of the
+    other duplicates
+    Will also provide a simpler file (excludelist) suitable for plink
+    to remove duplicates.  If there were no duplicates, empty files
+    are created.
+
+    """
+    if line_count(duplicates) == 1:
+        # Special case, no duplicates - only header in file duplicate
+        mt = Path(resultfile)
+        # From python 3.8, use unlink(missing_ok=True) . for now, live with the uglyness
+        mt.touch()
+        mt.unlink()
+        mt.touch()
+        mt = Path(excludelist)
+        mt.touch()
+        mt.unlink()
+        mt.touch()
+        return
+    try:
+        calls = pd.read_csv(callRates, usecols=['CHR', 'SNP', 'F_MISS'],
+                            delim_whitespace=True)
+        dups = pd.read_csv(duplicates,
+                           usecols=['CHR', 'POS', 'ALLELES', 'IDS'],
+                           delimiter='\t')
+    except Exception as e:
+        print(f"Could not open inputfile, {str(e)}")
+        return
+
+    # Series of ids, keep index
+    # in order to explode the ids and join them back on chr
+    ids = dups.IDS.str.split(' ',expand=True).stack().str.strip().reset_index(level=1, drop=True)
+    df = pd.concat([dups.CHR, dups.POS, dups.ALLELES, ids], axis=1,
+                   keys=['chr', 'pos', 'alleles', 'id'])
+    df['duplicate_group'] = df.index   # The index show grouping, rememeber it
+    # include call value to duplicate list
+    all = df.merge(calls, left_on=['chr', 'id'], right_on=['CHR', 'SNP'])
+
+    # sort, group and keep all but the largest callrate
+    drop = all.sort_values(by=['duplicate_group', 'F_MISS'],
+        ascending=False).groupby('duplicate_group').apply(lambda g: g.iloc[1:])
+
+    # Result file
+    drop.loc[:, ['chr', 'pos', 'alleles', 'SNP','F_MISS']].to_csv(resultfile,sep=" ", index=False)
+    # snp idents plink laters can use
+    drop.loc[:, ['SNP']].to_csv(excludelist, sep=" ", index=False, header=False)
+    print("**** .... and we should make a yaml file with summary in it")
+
+
+def missing_genotype_rate(rule,
+                          in_bedset, out_bedset, sample=True, treshold=0.1,
+                          result_file='/dev/null', plot_file=False):
+    """Runs plink --geno or --mind and produces output
+
+    Wrapper around plink and saveYamlResults as well as plots showing
+    what gets removed
+
+    If plot_file is False, no plot is produced
+
+    Returns a 'dropouts' structure that contains info about the
+    dropped samples/markers (but only summaries).  rule is the calling
+    rule, and will be added to the result_file/dropouts
+
+    The bedset are truncs and not files: For example for in_bedset=foo
+    and sample=True, plink --mind will be used, and exclusion results
+    will be related to foo.fam
+
+    """
+    if sample:
+        kindof = "sample"
+        extension = ".fam"
+        plink_switch = "--mind"
+        miss_ext = ".imiss"   # if plotting, .imiss is for samples, .lmiss for markers
+    else:  # marker
+        kindof = "marker"
+        extension = ".bim"
+        plink_switch = "--geno"
+        miss_ext = ".lmiss"
+
+    subprocess.run([plink,
+                "--bfile",in_bedset,
+                plink_switch, str(treshold),
+                "--out", out_bedset,
+                "--make-bed"], check=True)
+
+    dropouts = checkUpdates(in_bedset+extension,
+                            out_bedset+extension, cols=[0, 1],
+                            sanityCheck="removal", fullList=True)
+    dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+    dropouts["Treshold"] = treshold
+    dropouts["Rule"] = rule
+    dropouts["rule type"] = kindof  # rule says sample/marker - we know what is really is
+    saveYamlResults(result_file, dropouts)
+    # A plot might be ordered
+    if plot_file:
+        # call rates for markers/samples before they got removed
+        subprocess.run([plink,
+                        "--bfile", in_bedset,
+                        "--missing",
+                        "--out", in_bedset], check=True)
+        plot_point_and_line(dropouts, in_bedset+miss_ext, plot_file,
+                            column="F_MISS", ylabel="1 - missingness")
+
+    return dropouts
+
+
+def detect_low_hwe_rate(in_bedset, out_bedset, treshold=0.1,
+                        hwe_switches=["--autosome", "--hardy", "midp"]):
+    """Runs plink hwe and computes p-values but doesnt change .bed file
+
+    P-values for markers will end up in out_bedset.hwe - a file
+    suitable for extract_list but not for plink.
+    A subset below treshold will be found in out_bedset.exclude
+    (suitable for plink exclude) and out_bedset.details will contains
+    details including p-values
+
+    """
+    subprocess.run([plink,
+                    "--bfile", in_bedset,
+                    "--out", out_bedset]
+                   + hwe_switches, check=True)  # hwe_switches is a list
+    # We here have a .hwe file where low p-values for markers are to be removed
+    hwe_p_values = out_bedset+".hwe"
+    extract_list(hwe_p_values, out_bedset+".exclude",
+                 threshold_doc_file=out_bedset+".details", sep=None,
+                 colName="^P$", condition="<", treshold=treshold,
+                 key_cols=[1], doc_cols=[0, 1])
+    return
+
+def low_hwe_rate(rule, in_bedset, out_bedset,
+                 treshold=0.1,
+                 hwe_switches=["--autosome", "--hardy", "midp"],
+                 result_file='/dev/null', plot_file='/dev/null'):
+    """ Runs plink hwe and removes low p-values markers.  Produces output, including plot
+
+    Wrapper around plink to do Hardy Weinberg Equilibrium tests and plot distribution.
+    Saves results with  saveYamlResults as well.
+    bedsets are 'trunks'
+
+    Has a potentional to wrap more --plink commands
+
+    """
+    detect_low_hwe_rate(in_bedset, out_bedset, treshold,
+                        hwe_switches)
+    hwe_p_values = out_bedset+".hwe"
+    # low values detected, now extract, make results and plot
+    subprocess.run([plink,
+                    "--bfile", in_bedset,
+                    "--exclude", out_bedset+".exclude",
+                    "--out", out_bedset,
+                    "--make-bed"], check=True)
+
+    dropouts = checkUpdates(in_bedset+".bim", out_bedset+".bim", cols=[0, 1],
+                            sanityCheck="removal", fullList=True)
+    dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+    dropouts["Treshold"] = treshold
+    dropouts["Rule"] = rule
+    saveYamlResults(result_file, dropouts)
+
+    p = hweg_qq_plot(hwe_p_values, prec=2, x='P')
+    # QQish plot with tresholds returned in p. Add, threshold, title and save
+    t_line = p9.geom_hline(yintercept=-1*math.log10(treshold), color='red')
+    p += t_line    # treshold. Note that plot removed above
+    title = f'HWE > -log({treshold}) \n{dropouts.get("actionTakenCount")} outside treshold\n{dropouts.get("Timestamp")}'
+    p += p9.labs(title=title)
+    p9.ggsave(plot=p, filename=plot_file, dpi=600)
+    return
+
+
+def het_extract(het_file, out_file, sd):
+    """Remove samples with HET excess
+
+    Based on het_file and a number of standard deviation sd,
+    Creates three files:
+         out_file contains samples (family, iid) to be removed becase
+         they have --het excess too large (comparing het_rate (se
+         code) to sd*standard deviations) .
+
+         This file is intented to be used by plink
+         to remove these samples and has no headers
+
+         out_files.details contains information on how they actually
+         were removed. This file has headers
+
+         out_files.total contains .het file + more metrics that caused
+         remival. This file has headers
+
+    """
+    my_name = inspect.currentframe().f_code.co_name      # This functions name
+    try:
+        df = pd.read_csv(het_file, delim_whitespace=True)
+    except Exception as e:
+        print(f"{my_name}: {str(e)}")
+        return
+    # Columns defined in https://www.cog-genomics.org/plink/1.9/formats#het
+    df['het_rate'] = (df['N(NM)'] - df['O(HOM)'])/df['N(NM)']
+    failed = df[df.het_rate > df.het_rate.mean() + sd*df.het_rate.std()].copy()
+    failed['het_dst'] = (failed['het_rate'] -
+                         df['het_rate'].mean())/df['het_rate'].std()
+    # output - the .total file is used for plotting later
+    df.to_csv(out_file+".total", sep=" ", index=False)
+    # file to be used by plink to remove samples
+    failed[['FID', 'IID']].to_csv(out_file, sep=" ", index=False, header=False)
+    # Documentation of the actual metrics  of the removed samples
+    failed.to_csv(out_file+".details", sep=" ", index=False)
+
+
+def excess_het(rule, autosomal,
+               in_bedset, out_bedset, treshold=0.1, sd=2,
+               result_file='/dev/null', plot_file=False):
+    """Runs plink het maf autosomal and produces output, including plot
+
+    Wrapper around plink to do check sample heterozygosity and plot
+    distribution.
+
+    If autosomal = "common", we deal with common autosomal
+    markers. The alternative is "rare" (this is reflected in the plink
+    parameters --maf vs --max-maf)
+
+    Saves results with saveYamlResults as well, and creates plots and various
+    backgroundfiles on the tmp-area.
+
+    """
+
+    if autosomal == "common":
+        maf = "--maf"
+    elif autosomal == "rare":
+        maf = "--max-maf"
+    else:
+        print(f"ERROR, Unexpected autosomal rarity {autosomal}. Everything is wrong from now")
+        return
+
+    subprocess.run([plink,
+                    "--bfile", in_bedset,
+                    "--autosome",
+                    maf, str(treshold),
+                    "--het",
+                    "--out", out_bedset], check=True)
+    # We here have a .het file where low p-values for markers are to be removed
+    het_p_values = out_bedset+".het"
+    het_extract(het_p_values, out_bedset+".exclude", sd)
+    # het_extract found .exclude for removal and .total for historgram
+
+    subprocess.run([plink,
+                    "--bfile", in_bedset,
+                    "--remove", out_bedset+".exclude",
+                    "--out", out_bedset,
+                    "--make-bed"], check=True)
+
+    dropouts = checkUpdates(in_bedset+".fam", out_bedset+".fam", cols=[0, 1],
+                            sanityCheck="removal", fullList=True)
+    dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+    dropouts["Treshold"] = f"{treshold} using distance {sd} standard deviations"
+    dropouts["Rule"] = rule
+    dropouts["Details"] = f"{out_bedset}.exclude with extension .details (filtered) and .total (all)"
+    saveYamlResults(result_file, dropouts)
+    title = (f'Sample heterozygosity ({autosomal} markes)\n'
+             f'{dropouts.get("actionTakenCount")} outside treshold\n'
+             f'--maf > {treshold} HET exceeds {sd} std.dev\n{dropouts.get("Timestamp")}')
+    plot_hist(out_bedset+".exclude.total", plot_file,
+              column="het_rate", title=title, separator='\s+',
+              treshold=0, logx=False)
+    return
+
+
+def exclude_strand_ambigious_markers(input, output, plink):
+    """ Runs plink to exlucde A/T and C/G SNPs
+    input is the trunk of a .bed/.bim/.fam triplet
+    ouput will be the corresponding set, without excluded markers
+    The list over exluded markers can be found in ouput.excl
+    plink will produce the output-bedset
+    """
+    try:
+        df = pd.read_csv(input+".bim", delim_whitespace=True, header=None).astype(str)
+    except Exception as e:
+        print(f"Could not open .bim-file of bedset {input}, {str(e)}")
+        return
+    mask = ((df[4] == 'G') & (df[5] == 'C') |
+            (df[4] == 'C') & (df[5] == 'G') |
+            (df[4] == 'A') & (df[5] == 'T') |
+            (df[4] == 'T') & (df[5] == 'A'))
+    (df[mask])[1].to_csv(output+".excl",index=False, header=False)
+
+    subprocess.run([plink,
+                    "--bfile",input,
+                    "--exclude", output+".excl",
+                    "--out", output,
+                    "--make-bed"], check=True)
+
+
+def fix_rsid_map(mapfile, newmap):
+    """ NOT USED! Create a rsid mapping based on som Moba business-logic
+
+    Map of the rsid given in mapfile needs tweeking. newmap is produced
+    Multiple whitespaces in mapfile will become a single space in newmap
+    Could have been a lot more efficient
+
+    We do the following: (works for GSA/GSADM)
+    * Ignore lines that map to dot ('.')
+    * If multiple (comma-separated) ids are found in to-map, we use the first
+    * from strings containg .1 .2 ... .9 are ignored
+    """
+    try:
+        mappings = pd.read_csv(mapfile, usecols=[0, 1], names=['from', 'to'],
+                               delim_whitespace=True).astype(str)
+    except Exception as e:
+        print(f"Could not open file {mapfile}, {str(e)}")
+        return
+
+    with open(newmap, "w") as out:
+        multiAllele = re.compile("\.\d")
+        for index, row in mappings.iterrows():
+            # Elements to ignore
+            if row['to'] == ".":
+                continue
+            if multiAllele.search(row['from']):
+                continue   # eg rs222.1 is ignored
+            # Elements to simplify:
+            # 1 - Trucate everything including and after the first comma
+            to = re.sub(r",.+$", "", row['to'])
+            # Save
+            out.write(f"{row['from']} {to}\n")
+
+
+def intersect_rsid(bim_small, bim_big, intersection, small_col=1, big_col=1):
+    """ Default assumes bim-ish files, that is tab-serarated columns.
+
+    intersection is a file to be created
+    Will create duplicate rsid if bim_big contains such
+    If one of the files is large, pass that as bim_big for efficiency
+    bim-files have rsid in 2. column (1, default). If you files containing rsid
+    but on an other format, pas the column number (0 is firs column)
+
+    """
+    my_name = inspect.currentframe().f_code.co_name      # this functions name
+    m = 0   # max hits
+    try:
+        (smallDict, m) = dict_count_items(bim_small, [small_col], warn=False)
+        with open(intersection, "w") as out:
+            for line in open(bim_big):
+                rsid = line.split()[big_col]
+                if smallDict.get(rsid, 0) > 0:
+                    out.write(f"{rsid}\n")
+    except Exception as e:
+        print(f"{my_name} Exception caught:  {str(e)}")
+
+
+def copy_file(f, ext=".bak"):
+    """makes a .bak file
+
+    This is a debug-tool used keep a copy of a snakemake result that
+    it would have deleted due to failure.
+
+    """
+    print(f"DEBUG> Making a backup of {f} to {f+ext}.")
+    copyfile(f, f+ext)
+
+    
+def dotplot(genomedata, prec=2,x='x',y='y',c='c'):
+    """ Returns a plotnine object ready to be printet, but where extra lines can be added
+
+    Assumes x and y are names of columns containing numbers, these will be rounded to precision decimals
+    The preicision is there to not cluster set plot when there are two many points to be seen
+    c is used for colouring and shaping - a colourblind palette will be used
+    The data is found in a whitespace separated file where they x,y and c are headers
+
+    """
+    my_name = inspect.currentframe().f_code.co_name      # This function's name
+    try:
+        df = pd.read_csv(genomedata, usecols=[c, x, y], delim_whitespace=True)
+    except Exception as e:
+        print(f"{my_name}: {str(e)}")
+        return
+
+    p = p9.ggplot(data=df.round(prec).drop_duplicates(),
+                  mapping=p9.aes(x=x, y=y, color=c, shape=c))
+    p += p9.scale_colour_brewer(type="qual", palette="Set1")  # better for colourblind
+    p += p9.geom_point()
+
+    return p
+
+
+def hweg_qq_plot(pfile, prec=3, x='x'):
+    """Returns a plotnine object ready to be printed
+
+    Values in column named x from file are picked up, and the plot
+    will consist of -log(10) on the Y axis, and expected -log10 of a
+    uniform distribution on the X axis
+
+    The numbers will be rounded to prec(ision) and made unique before
+    the plot is made.
+
+    The preicision is there to not cluster set plot when there are two
+    many points to be seen The data is found in a whitespace separated
+    pfile where they x denotes the header
+
+    """
+    my_name = inspect.currentframe().f_code.co_name      # This function's name
+    try:
+        df = pd.read_csv(pfile, usecols=[x],
+                         delim_whitespace=True).sort_values(by=[x],
+                         na_position='first', ascending=False)
+    except Exception as e:
+        print(f"{my_name}: {str(e)}")
+        return
+    # could/should have tested for 0 values here, avoiding log(0) problems
+    df = -1*np.log10(df)
+    df.rename(columns={x: "-log"+x}, inplace=True)
+    df['-logP_expected'] = -1*np.log10(np.random.uniform(0, 1, len(df.index)))
+    df['-logP_expected'] = df['-logP_expected'].sort_values(ascending=True).values
+
+    p = p9.ggplot(data=df.round(prec).drop_duplicates(),
+                  mapping=p9.aes(y='-logP', x='-logP_expected'))
+    #p += p9.scale_colour_brewer(type="qual", palette="Set1")  # better for colourblind
+    p += p9.geom_point()
+    p += p9.geom_abline(slope=1, intercept=0, color='blue')  # expexted hwe distibution
+
+    return p
+
+
+def sex_check(rule,
+              in_bed, out_bed, f_treshold=0.2, m_treshold=0.8,
+              result_file='/dev/null', plot_file=False):
+    """ Checks if sex according to .fam-file matches genotype. Removes mismatches
+
+    Wrapper around several plink commands. in/out_bedset are plink .bed-files.
+
+    Saves results with saveYamlResults as well, and creates plots and various
+    backgroundfiles on the tmp-area.
+
+    """
+
+    tmpPath = Path(out_bed).parent
+    inTrunk = plinkBase(in_bed)
+    outTrunk = plinkBase(out_bed)
+    # prime/chr23
+    subprocess.run([plink,
+                    "--bfile", inTrunk,
+                    "--chr", "23",
+                    "--out", tmpPath/"pruned_sex_markers",
+                    "--indep-pairphase"] +  # more params ...
+                   config["sex_check_indep_pairwise"].split(),
+                   check=True)
+    subprocess.run([plink,
+                    "--bfile", inTrunk,
+                    "--extract", tmpPath/"pruned_sex_markers.prune.in",
+                    "--out", tmpPath/"pruned_for_sexcheck",
+                    "--make-bed"])
+
+    # check sex with plink
+    subprocess.run([plink,
+                    "--bfile", tmpPath/"pruned_for_sexcheck",
+                    "--check-sex", str(f_treshold), str(m_treshold),
+                    "--out", tmpPath/"sexcheck_report",
+                    ], check=True)
+
+    # find famid/id of the ones failing sexheck
+    extract_list(tmpPath/"sexcheck_report.sexcheck",
+                 tmpPath/"sexcheck_report.remove",
+                 tmpPath/"sexcheck_report.details",
+                 colName="^STATUS$",
+                 sep=None, condition='==', treshold="PROBLEM",
+                 key_cols=[0, 1], doc_cols=[0, 1, 5])
+    # remove these
+    subprocess.run([plink,
+                    "--bfile", inTrunk,
+                    "--remove", tmpPath/"sexcheck_report.remove",
+                    "--out", outTrunk,
+                    "--make-bed"
+                    ], check=True)
+
+    dropouts = checkUpdates(inTrunk+".fam", outTrunk+".fam", cols=[0, 1],
+                            sanityCheck="removal", fullList=True)
+    dropouts.update(rule_info[rule])   # Extra documentation about the rule
+    dropouts["Treshold"] = f"Female={f_treshold} Male={m_treshold}"
+    dropouts["Rule"] = rule
+    saveYamlResults(result_file, dropouts)
+    title = (f'Sex Check\n'
+             f'{dropouts.get("actionTakenCount")} outside treshold\n'
+             f'Treshold {dropouts.get("Treshold")}\n'
+             f'{dropouts.get("Timestamp")}')
+    plot_hist(tmpPath/"sexcheck_report.sexcheck", plot_file,
+              column="F", title=title, separator='\s+',
+              treshold=0, logx=False, bins=100)
+    return
+
+
+def egrep(pattern, in_file, out_file, switches=""):
+    """ egrep wrapper. Lazy. Prone to path errors. It is pretty bad tbh.
+    """
+    subprocess.call(f'egrep {switches} {pattern} {in_file} > {out_file}',
+                    shell=True)
+    return
+
+
+def count_families(famfile, regex):
+    """Counts families with tuples in a fam-file (matching a certain pattern)
+
+    Returns a dictionaly with key "nomatch" for the number of families
+    in famfile with an id not matching regex.
+    The keys 1,2,3 represents the number of matching families with 1,2
+    or 3 members
+
+    Writes a warning to stdout if families contain more than 3 memebers
+
+    Use * as wildcard to check everything. This function is used to count
+    the number of remaining families after we have tried to fix the pedigree
+
+    """
+    good_family = re.compile(regex)
+    (all, n) = dict_count_items(famfile, cols=[0], warn=False)
+    if n > 3:
+        print("**** OUCH! We have families with up to {n} members!")
+    counts = dict()   # counting occurences of 1,2,3 and hopefully not more
+    for fam in all:
+        if re.search(good_family, fam):  # For these we count tuples
+            counts[all[fam]] = counts.get(all[fam], 0) + 1
+        else:  # these do not match, but we count them still
+            counts["nomatch"] = counts.get("nomatch", 0) + 1
+    return(counts)
+
+
+def find_moba_pca_outlier(df):
+    """NOT IN USE/WORKING!
+
+    Actually this seems to work when memory is available.
+
+    The idea is to use stat_ellipse() with good parameters to draw an
+    ellipse/circle around the center - and remove them with at
+    corresponing pandas test df is a dataframe containing
+
+    * "PC1" and "PC2" columns (pca components, float values'
+    * "SuperPop" and "Population" columns. Will be edited for outliers
+      adding "(outlier")
+    A list of outliers will be produced to ... (file)
+
+    """
+    # print(df.head(40))
+    # need copy for this to work
+    df.loc[df["PC1"] > 0, 'SuperPop'] = df['SuperPop'] + "(outlier)"
+    df.loc[df["PC1"] > 0, 'Population'] = df['Population'] + "(outlier)"
+
+    p = p9.ggplot(data=df, mapping=p9.aes(x='PC1', y='PC2',
+                                          color="Population"))
+    # show an ellipse. sounds like a good idea, but didnt work for large sets
+    # while  harvest server was overloaded. If this works, we could use the
+    # corresponding test to remove outliers.
+    p += p9.stat_ellipse()
+    p += p9.geom_point()
+    p9.ggsave(plot=p, filename="foo.png", dpi=300)
+
+# dir="/mnt/work2/gutorm/pipeOut/mod2-data-preparation/founders/"
+# intersect_rsid("/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/snakefiles/foo", dir+"23", "bar", small_col=0, big_col=1)
+
+
+def main():
+    print("Main called")
+    count_families("/mnt/work2/gutorm/pipeOut/mod2-data-preparation/inferped_all_m2.fam","^\d+")
+
+   
+if __name__ == "__main__":
+    main()

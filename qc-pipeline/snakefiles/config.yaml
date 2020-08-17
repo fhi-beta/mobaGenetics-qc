@@ -1,0 +1,105 @@
+# Used by various reporting to describe the set
+
+dataSet: "Rotterdam2"
+chip: "illumina GSA-MD 24 v1.0"
+output_base: "/mnt/work2/gutorm/pipeOut"
+plinklocal: "/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/bin/plink-1.90b5.4/plink"
+
+
+# Lab QC report: /mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/lab-report/GSA2017_246_QC_report.pdf
+raw_bed_stem: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/plink/GSA2017_246_025_ReRun"
+
+# MOBA info
+recode_ids: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-ids-rotterdam2.txt"
+recode_parents: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-parents-rotterdam2.txt"
+recode_sex: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-sex-rotterdam2.txt"
+
+# GenomeStudio produced. Note that headers here are chip-dependent.
+snptable: "/mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/snptable/snp_table_rotterdam2.txt"
+# See https://genome.sph.umich.edu/wiki/Regions_of_high_linkage_disequilibrium_(LD)
+high_ld_regions_hg19: "/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/resources/high-ld-regions-hg19"
+
+# Thresholds and names of the columns in snptable-file
+cluster_sep_thr: 0.40
+cluster_sep_col_name: "GSAMD-24v1-0_20011747_A4.bpm.Cluster Sep"
+10%_GC_score_thr: 0.30
+10%_GC_score_col_name: "10% GC"
+aa_theta_dev_thr: 0.04
+aa_theta_dev_col_name: "GSAMD-24v1-0_20011747_A4.bpm.AA T Dev"
+#
+# Minor allele frequency used in maf_removal plink --maf
+maf_thr: 0.10
+# Missing genotype threshold (samples) plink --mind
+mind_thr: 0.05
+# Missing genotype threshold (markers) plink --geno
+geno_thr: 0.02
+# Hardy-Weinberg equilibrium tests plink --hwe
+hwe_thr: 0.0001
+# prune_markers --make founders (command and params).
+prune_cmd: --indep-pairwise 200 100 0.1
+#
+# these two files have been produced by Jonas by hand and have better pedigree info than we had
+# We want to automate this - but for now (2019) we are just keeping it as it is
+# These files comes from a PC environment and have ^M in them
+infer_recfam: "/mnt/archive/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_reconstruct-fam.txt"
+infer_badids: "/mnt/archive/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_bad-sample-IIDs.txt"
+
+# See https://cran.r-project.org/web/packages/plinkQC/vignettes/Genomes1000.pdf
+# Reference is p37
+1000_genomes_stem: "/mnt/work/gutorm/1000Genomes/all_phase3"
+1000_genomes_pop: "/mnt/work/gutorm/1000Genomes/all_phase3.psam"
+# prune parameters identic to those used for moba. Not necessary? (2020.02.19) Delete if not used 
+#1kgp_maf_thr: 0.1 
+#1kgp_prune_cmd: --indep-pairwise 200 100 0.1
+
+# hapmap ... Old reference set b36 - We switch to G1000
+# note that there is a full set bedset here ...
+#hapmap,stem: /mnt/archive/helgeland/refdata/hapmap/hapmap_b36/hapmapb36"
+#hapmap_pop: "/mnt/archive/helgeland/refdata/hapmap/relationships_w_pops_121708.txt"
+
+# needed? CHECK!
+pca_thr: "6 0.015 NA 0.0355 NA"
+
+# ibd thresholds - used several places (temp and core)
+ibd_pihat_thr: 0.2    #ignore too closely related pairs
+ibd_hard_thr: 0.015   # (?) hard-set (non-SD) threshold for normalized accumPIHAT to determine outliers
+ibd_straight_thr: 0.1 # Used for the direct relatedness (not Djenghis Khan effect)
+
+# 3 cycles of mind/geno removal
+geno_rate.geno1: 0.10
+geno_rate.mind1: 0.05
+geno_rate.geno2: 0.05
+geno_rate.mind2: 0.03
+geno_rate.geno3: 0.02
+geno_rate.mind3: 0.02
+# Rule that works with hwe/autosomatic-het/geno - 2 cycles
+hwe1: 0.0000001
+maf1: 0.01
+sd_het1: 4
+hwe2: 0.000001
+maf2: 0.01
+sd_het2: 4
+geno_rare: 0.020
+
+sex_check_female: 0.2
+sex_check_male: 0.8  # which are the default of plink 1.9 btw
+sex_check_indep_pairwise: 20000 2000 0.5
+
+
+
+# used by all genders, several different rules
+xmarkers_clean: 0.000001
+
+# parameters to finalize core
+core_mind: 0.02
+# Same limits for common/rare
+core_maf: 0.01
+core_sd_het: 4
+
+# from http://www.haplotype-reference-consortium.org/ ?
+# 2.8Gig
+hrc_sites: "/mnt/archive/helgeland/refdata/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
+
+
+
+

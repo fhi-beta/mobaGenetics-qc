@@ -1,0 +1,327 @@
+# <Link do wikidocs>
+# Part of the earlier rule pcawhapmap
+# Note that the name of this rule, being the first of the module, is hardcoded into the final report rule
+rule_stem = 'core_missingness'
+rule core_missingness:
+    threads: 2
+    input:
+        # snamemake issues: didn't manage to use output from mod3 here - due to split/merge.
+        # But to avoid hardcoding of files name, we here use the _input_ of ibd_estomate
+        # that corresponds to the output of split_founder_offspring 
+        # bedset = (tmpMod3/"{role}"/"start_clean").with_suffix(".bed"), # from split_founder_offspring
+        bedset = rules.ibd_estimate.input.bedset,
+        common_markers = rules.m3_output_good_markers.output.good_markers
+    output:
+        bedset = (tmpMod4/"{role}"/rule_stem).with_suffix(".bed"),
+        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+                         category="Module 4 Unrelated samples",
+                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
+                         category="Module 4 Unrelated samples",
+                      caption=(resultPath/rule_stem).with_suffix(".rst")),
+    params:
+        mind = config['core_mind'],
+    benchmark:
+        (tmpMod4/"{role}"/rule_stem).with_suffix(".benchmark")
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+
+        inTrunk =  mqc.plinkBase(input.bedset)
+        outTrunk =  mqc.plinkBase(output.bedset)
+
+        subprocess.run([plinklocal,
+                        "--bfile",inTrunk,
+                        "--extract", input.common_markers,
+                        "--out", outTrunk,
+                        "--make-bed"  ], check=True)
+
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim", cols = [0,1],
+                                sanityCheck = "removal", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule + " (common markers)"
+        mqc.saveYamlResults(output.results+".common", dropouts)
+
+        mqc.missing_genotype_rate(rule, inTrunk, outTrunk, sample=True,
+                        treshold=params.mind,
+                        result_file=output.results,
+                        plot_file=output.plot)
+        mqc.make_rule_caption(rule, resultPath)
+
+rule_stem = 'core_het'
+rule core_het:
+    threads: 2
+    input:
+        bedset = rules.core_missingness.output.bedset
+    output:
+        bedset = (tmpMod4/"{role}"/rule_stem).with_suffix(".bed"),  #called core-lmm, 'related core'
+        results_rare = report((resultPath/"{role}"/rule_stem).with_suffix(".rare.yaml"),
+                              category="Module 4 Unrelated samples",
+                              caption=(resultPath/rule_stem).with_suffix(".rst")),
+        plot_rare = report((resultPath/"{role}"/rule_stem).with_suffix(".rare.png"),
+                           category="Module 4 Unrelated samples",
+                           caption=(resultPath/rule_stem).with_suffix(".rst")),
+        # These commin are for common autosome, a tmp result
+        results_common = report((resultPath/"{role}"/rule_stem).with_suffix(".common.yaml"),
+                                category="Module 4 Unrelated samples",
+                                caption=(resultPath/rule_stem).with_suffix(".rst")),
+        plot_common = report((resultPath/"{role}"/rule_stem).with_suffix(".common.png"),
+                             category="Module 4 Unrelated samples",
+                             caption=(resultPath/rule_stem).with_suffix(".rst")),
+    params:
+        maf = config['core_maf'],
+        sd = config['core_sd_het'],
+    benchmark:
+        (tmpMod4/"{role}"/rule_stem).with_suffix(".benchmark")
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+
+        inTrunk =  mqc.plinkBase(input.bedset)
+        tmpTrunk = inTrunk + ".common"
+        outTrunk =  mqc.plinkBase(output.bedset)
+        # Filter common sample heterozygosity
+        mqc.excess_het(rule, "common", inTrunk, tmpTrunk,
+                       treshold=params.maf,
+                       sd=params.sd,
+                       result_file=output.results_common,
+                       plot_file=output.plot_common)
+        # ... and use results as start for rare sample heterozygosity
+        mqc.excess_het(rule, "rare", tmpTrunk, outTrunk,
+                       treshold=params.maf,
+                       sd=params.sd,
+                       result_file=output.results_rare,
+                       plot_file=output.plot_rare)
+        mqc.make_rule_caption(rule, resultPath)
+
+rule_stem = "core_ibd_estimate"
+rule core_ibd_estimate:  # code is more or less copied from ibd_estimate
+    threads: 2
+    input:
+        bedset = rules.core_het.output.bedset,
+        prunedsnps = rules.prune_markers.output.exclude_list,
+    output:
+        genome = (tmpMod4/"{role}"/rule_stem).with_suffix(".genome"),
+        verify_ibd_reduced_genome = tmpMod4/"{role}"/"verify_ibd_reduced.genome",   #input for R laters, 3 columns of genome file
+        plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
+                           category="Module 4 Unrelated samples",
+                           caption=(resultPath/rule_stem).with_suffix(".rst")),
+    benchmark:
+        (tmpMod4/"{role}"/rule_stem).with_suffix(".benchmark")
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk =  mqc.plinkBase(input.bedset)
+        outTrunk =  mqc.plinkBase(output.genome)
+
+        subprocess.run([plinklocal,
+                        "--bfile", inTrunk,
+                        "--extract", input.prunedsnps,
+                        "--genome",
+                        "--out", outTrunk ], check=True)
+        # create a plot for this - corresponds to the old draw-pihat-plots.R
+        p = mqc.dotplot(output.genome,prec=3, x='Z0',y='Z1', c='RT')
+        p9.ggsave(plot=p, filename=output.plot, dpi=600)
+        df = pd.read_csv(output.genome, delim_whitespace=True,
+            usecols=["IID1", "IID2", "PI_HAT"] )
+        df.to_csv(output.verify_ibd_reduced_genome, index=False, sep=" ")
+        mqc.make_rule_caption(rule, resultPath)
+
+rule_stem = "core_ibd_accum_exclusion"
+rule core_ibd_accum_exclusion:  # code is more or less copied from ibd_accum_exclusion
+    threads: 2
+    input:
+        bed = rules.core_ibd_estimate.input.bedset,
+        ibd_reduced_genome = rules.core_ibd_estimate.output.verify_ibd_reduced_genome
+    output:
+        exclusion = (tmpMod4/"{role}"/rule_stem).with_suffix(".txt"),
+        bedset = (tmpMod4/"{role}"/rule_stem).with_suffix(".bed"),
+        plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
+                         category="Module 4 Unrelated samples",
+                         caption=str(resultPath/rule_stem)+".rst"),
+        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+                         category="Module 4 Unrelated samples",
+                         caption=str(resultPath/rule_stem)+".rst"),
+    params:
+        pihat_thr = str(config["ibd_pihat_thr"]),
+        hard_thr = str(config["ibd_hard_thr"])
+    benchmark:
+        (tmpMod4/"{role}"/rule_stem).with_suffix(".benchmark")
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk =  mqc.plinkBase(input.bed)  # bed is not a .fam file, we need it
+        famFile = inTrunk + ".fam"
+        outTrunk =  mqc.plinkBase(output.bedset)
+        plotdir = os.path.dirname(output.plot)
+
+        # for now, the below is not ported and lives it's own life
+        subprocess.run(["Rscript",
+                    f"{libdir}/accumPIHAT.R",
+                    input.ibd_reduced_genome,
+                    famFile,
+                    output.exclusion,
+                    plotdir,
+                    params.pihat_thr,
+                    params.hard_thr,
+                    rule], check=True)   # a little dirty, but the R rutine wants a filename that it will add .png, .pdf .txt2
+        subprocess.run([plinklocal,
+                        "--bfile", inTrunk,
+                        "--remove", output.exclusion,
+                        "--make-bed",
+                        "--out", outTrunk ], check=True)
+        dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam",cols = [1],
+                                    sanityCheck = "removal", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+        mqc.make_rule_caption(rule, resultPath)
+
+rule_stem = 'core_ibd_direct_exclusion'
+rule core_ibd_direct_exclusion: # code is more or less copied from ibd_direct_exclusion
+    threads: 2
+    input:
+        bedset = rules.core_ibd_accum_exclusion.output.bedset,
+        genome = rules.core_ibd_estimate.output.genome
+    output:
+        bedset = (tmpMod4/"{role}"/rule_stem).with_suffix(".bed"),  #called core_supreme earlier
+        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+                         category="Module 4 Unrelated samples",
+                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+        # in addition to the removal list, a removal.samples.txt is produced, sporting only the sample-list
+        removal= (tmpMod4/"{role}"/rule_stem).with_suffix(".txt"),
+        removal_samples = (tmpMod4/"{role}"/rule_stem).with_suffix(".samples.txt"),
+    params:
+        treshold = config['ibd_straight_thr']
+    benchmark:
+        (tmpMod4/"{role}"/rule_stem).with_suffix(".benchmark")
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+
+        inTrunk =  mqc.plinkBase(input.bedset)
+        outTrunk =  mqc.plinkBase(output.bedset)
+        # identify samples forremoval due to high PI_HAT
+        (removed,total) = mqc.extract_list(input.genome,
+                output.removal_samples, output.removal,
+                colName="PI_HAT", sep=None, condition=">", treshold=params.treshold,
+                key_cols=[0,1], doc_cols=[0,1] )
+
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--remove", output.removal_samples,
+                "--out", outTrunk ,
+                "--make-bed"], check=True)
+
+        dropouts = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [0,1], sanityCheck = "removal", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Treshold"] = params.treshold
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+        mqc.make_rule_caption(rule, resultPath)
+
+rule_stem = "core_pca"
+rule core_pca:
+    threads: 2
+    input:
+        bedset = rules.core_ibd_direct_exclusion.output.bedset,
+        prunedsnps = rules.prune_markers.output.exclude_list, # markers for pca on, found way back
+
+    output:
+        bedset = (tmpMod4/"{role}"/rule_stem).with_suffix(".bed"),  #called pcadir/pruned before
+        pcs = (tmpMod4/"{role}"/rule_stem).with_suffix(".pcs"),
+        plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
+                         category="Module 4 Unrelated samples",
+                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+
+
+
+    benchmark:
+        (tmpMod4/"{role}"/rule_stem).with_suffix(".benchmark")
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk =  mqc.plinkBase(input.bedset)
+        outTrunk =  mqc.plinkBase(output.bedset)
+
+        subprocess.run([plinklocal,
+                        "--bfile", inTrunk,
+                        "--extract", input.prunedsnps,
+                        "--out", outTrunk,
+                        "--make-bed"    ], check=True)
+
+        subprocess.run([flashpca,
+                        "--bfile", outTrunk,
+                        "--outpc", output.pcs,
+                        ], check=True)
+        # Skipping the "PLINK covariate files with PCs only" until I see the need
+        pc = pd.read_csv(output.pcs, usecols=['IID','PC1','PC2'],delim_whitespace=True)
+        p = p9.ggplot(data=pc, mapping=p9.aes(x='PC1',y='PC2'))
+        p +=  p9.geom_point()
+        p9.ggsave(plot=p, filename=output.plot, dpi=600)
+        # create the caption usually made by saveYamlResults. It will be made twice (offspring/founders)
+        mqc.make_rule_caption(rule, resultPath)
+        # Skipping screeplot for now
+
+rule_stem = 'm4_core_individuals'        
+rule m4_core_individuals:
+    input:
+        bedset_lmm = expand(str((tmpMod4/"{role}"/"core_het.bed")), role=ROLES),  #earlier called core-lmm, 'related core'
+        bedset_unrelated = expand(str((tmpMod4/"{role}"/"core_ibd_direct_exclusion.bed")), role=ROLES),
+    output:
+        #bedset_lmm = multiext(str(tmpMod2/"core_lmm") ,'.bed','.bim','.fam'),
+        #bedset_unlrelated = multiext(str(tmpMod2/"core_unrelated") ,'.bed','.bim','.fam'),
+    run:
+        print ("*** No concatenation done!!! ***")
+        
+    
+    
+rule_stem = "m4_output_lmm_samples"
+rule m4_output_lmm_samples:
+    threads: 2
+    input:
+        # first rule in the module. 
+        bedset_in = rules.core_missingness.input.bedset,
+        bedset_done = rules.core_het.output.bedset,
+    output:
+        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+                         category="- Module 4 Core individuals recap",
+                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        # Here, the bedsets are just the .bed-file
+        inTrunk =  mqc.plinkBase(input.bedset_in)
+        outTrunk = mqc.plinkBase(input.bedset_done)
+        dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam", cols=[0,1],
+                                    sanityCheck="removal", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+        mqc.make_rule_caption(rule, resultPath)
+
+rule_stem = "m4_output_unrelated_samples"
+rule m4_output_unrelated_samples:
+    threads: 2
+    input:
+        # first rule in the module. 
+        bedset_in = rules.core_missingness.input.bedset,
+        bedset_done = rules.core_het.output.bedset,
+    output:
+        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+                         category="- Module 4 Core individuals recap",
+                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        # Here, the bedsets are just the .bed-file
+        inTrunk =  mqc.plinkBase(input.bedset_in)
+        outTrunk = mqc.plinkBase(input.bedset_done)
+        dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam", cols=[0,1],
+                                    sanityCheck="removal", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
+        mqc.make_rule_caption(rule, resultPath)
+
+

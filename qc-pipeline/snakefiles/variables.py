@@ -1,13 +1,36 @@
 #!/usr/bin/python3
+from pathlib import Path
+from shutil import copyfile
+# numerical & plots
+import pandas as pd
+import plotnine as p9
+import matplotlib
+import math
+import sys
+import yaml
+import io
+import shutil
+matplotlib.use('Agg')  
 
+# These global variables can be shared only between Snakefiles 
 ### snakemake_workflows initialization ########################################
+
 libdir = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'lib'))
 bcftools = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/bcftools-1.7/bcftools'))
 vcftools = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/vcftools-0.1.13/vcftools'))
-plinklocal = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/plink-1.90b5.4/plink'))
+#plinklocal = Path(os.path.dirname(workflow.basedir)) / 'bin/plink-1.90b5.4/plink'
+plinklocal = Path(config["plinklocal"])
+# if plinklocal turned out well, do the same for all binaries
+flashpca = Path(os.path.dirname(workflow.basedir)) / 'bin/flashpca_x86-64'
 tmp_path = os.path.join(config['output_base'],'tmp')
-runlog = config['output_base'] + 'runlog.txt'
-base = config['output_base']
+runlog = Path(config['output_base']) / 'runlog.txt'
+base = Path(config['output_base'])
+tmpMod1 = base/'mod1-data-preparation/'
+tmpMod2 = base/'mod2-data-preparation/'
+tmpMod3 = base/'mod3-good-markers/'
+tmpMod4 = base/'mod4-samples-unrelated/'
+tmpMod5 = base/'mod5-shaping-preparation/'
+resultPath = base / "results/"
 
 ### workflow settings ##################################
 # chrom gen. list 1-23 (24 not in list)
@@ -23,10 +46,5 @@ if not os.path.exists(config['output_base']):
 
 if not os.path.exists(tmp_path):
     os.makedirs(tmp_path)
-
-#for p in [mod1,modx]:
-#	if not os.path.exists(p):
-#		os.makedirs(p)
-
 
 

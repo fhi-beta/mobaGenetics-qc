@@ -33,9 +33,11 @@ args = commandArgs(trailingOnly=TRUE)
 ibd_file        = args[1]
 fam_file        = args[2]
 out_file        = args[3]
-report_dir      = args[4]
+report_dir      = args[4]  # pass no slash 
 pih_thr         = as.numeric(args[5])
-hard_thr          = as.numeric(args[6])
+hard_thr        = as.numeric(args[6])
+res_files       = args[7]   #  .png, .pdf. and .txt will be added to this trunk
+		# Note that out_file and report_dir/res_files.txt should not be the same file ...
 
 library(dplyr)
 library(ggplot2)
@@ -43,9 +45,9 @@ library(ggplot2)
 # load fam file (to get famIDs)
 fam = read.table(fam_file,h=F,stringsAsFactors = F)
 
-plot_report = paste(report_dir, "pihat_accum.png", sep="")
-pdf_report = paste(report_dir, "pihat_accum.pdf", sep="")
-txt_report = paste(report_dir, "pihat_accum.txt", sep="")
+plot_report = paste(report_dir, paste(res_files,".png",sep=""), sep="/")
+pdf_report = paste(report_dir, paste(res_files,".pdf",sep=""), sep="/")
+txt_report = paste(report_dir, paste(res_files,".txt2",sep=""), sep="/")
 
 # load the genetic-relatedness matrix/dataframe
 a = read.table(ibd_file,h=T,stringsAsFactors = F)
@@ -112,27 +114,30 @@ thr_accpihat = hard_thr # mean(results$normalised) + sd_thr * sd(results$normali
 #hist(results$normalised,breaks=100,col="grey")
 
 # visual reporting
-pdf(pdf_report)
-h = hist(results$normalised,breaks=100,col="grey",
-     main="accumulated PI_HAT normalized to sample size",
-     xlab="accumPI_HAT / N",ylab="individuals")
-abline(v=thr_accpihat,col="orange1",lwd=2,lty=2)
-x_max = max(results$normalised)
-n_out = sum(results$normalised > thr_accpihat)
-n_tot = length(results$normalised)
-text(x=x_max*0.6,y=max(h$counts)*0.9,paste("(PI_HAT>",pih_thr," edges were excluded)",sep=""))
-text(x=x_max*0.6,y=max(h$counts)*0.8,paste("threshold =",hard_thr,sep=" ")) # ,"SD"
-text(x=x_max*0.6,y=max(h$counts)*0.7,paste("N excluded = ",n_out,sep=""))
-text(x=x_max*0.6,y=max(h$counts)*0.6,paste("N total = ",n_tot,sep=""))
-dev.off()
 
-p = ggplot(results, aes(x=normalised)) + geom_histogram() +
-    stat_bin(aes(label=ifelse(..count..==0, "", ..count..), y=..count..),
+# dirty hack: results$normalised with only NA will crash hist(). Only execture when there is at least one value
+if (sum(!is.na(results$normalised)) > 0) {
+   pdf(pdf_report)
+   h = hist(results$normalised,breaks=100,col="grey",
+       main="accumulated PI_HAT normalized to sample size",
+       xlab="accumPI_HAT / N",ylab="individuals")
+   abline(v=thr_accpihat,col="orange1",lwd=2,lty=2)
+   x_max = max(results$normalised)
+   n_out = sum(results$normalised > thr_accpihat)
+   n_tot = length(results$normalised)
+   text(x=x_max*0.6,y=max(h$counts)*0.9,paste("(PI_HAT>",pih_thr," edges were excluded)",sep=""))
+   text(x=x_max*0.6,y=max(h$counts)*0.8,paste("threshold =",hard_thr,sep=" ")) # ,"SD"
+   text(x=x_max*0.6,y=max(h$counts)*0.7,paste("N excluded = ",n_out,sep=""))
+   text(x=x_max*0.6,y=max(h$counts)*0.6,paste("N total = ",n_tot,sep=""))
+   dev.off()
+
+   p = ggplot(results, aes(x=normalised)) + geom_histogram() +
+      stat_bin(aes(label=ifelse(..count..==0, "", ..count..), y=..count..),
              geom="text", vjust=-0.5, size=3) +
-    geom_vline(aes(xintercept=thr_accpihat), colour="red") +
-    theme_bw() + ggtitle(expression(paste("Accumulated ", hat(pi), ", normalized"))) + xlab(NULL)
-ggsave(plot_report, width=16, height=10, units="cm", plot=p)
-
+   	     geom_vline(aes(xintercept=thr_accpihat), colour="red") +
+	     theme_bw() + ggtitle(expression(paste("Accumulated ", hat(pi), ", normalized"))) + xlab(NULL)
+      ggsave(plot_report, width=16, height=10, units="cm", plot=p)
+} else {"Warning: Skipped ploting as results normalised had no values"} # end of dirty code to skip plotting
 
 # output
 bad_samples = results[which(results$normalised > thr_accpihat),"IID"]
