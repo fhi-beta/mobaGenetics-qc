@@ -1,0 +1,943 @@
+rule superclean:
+	input:
+		base + 'mod1-data-preparation/tmp/' + 'chr0-removed.bed'
+	output:
+		base + 'both/tmp/' + 'superclean_pruned.bed',
+		base + 'both/tmp/' + 'full_mind.bed',	# NON-MISSING samples
+		base + 'both/tmp/' + 'superclean_maf_mind_geno.bed',	# for Xchr Fstat
+		base + 'both/tmp/' + 'prune_markers_tmp.prune.in', # SUPERCLEAN markers
+		stvars = base + 'both/rep/' + 'storedvars_superclean.txt',
+		exclinds = base + 'both/rep/' + 'exclusions_superclean_ind.txt',
+		exclsnps = base + 'both/rep/' + 'exclusions_superclean_snp.txt'
+	params:
+		instem = base + 'mod1-data-preparation/tmp/' + 'chr0-removed',
+		outdir = base + 'both/tmp/',
+		plotdir = base + 'both/rep/' + 'plots_superclean/',
+		tmpdir = base + 'both/rep/'
+	shell:
+		"""
+		set -e
+		libdir={libdir}
+		plinklocal={plinklocal}
+
+		source {libdir}/functions.sh
+		source {libdir}/plink_wrapper_functions.sh
+
+		PIPELINELOG={runlog}
+	    STOREDVARS={output.stvars}
+	    EXCLUSIONSI={output.exclinds}
+	    EXCLUSIONSS={output.exclsnps}
+	    PLOTDIR={params.plotdir}
+
+		log "--- IDENTIFY CORE: RULE SUPERCLEAN ---"
+	        mkdir -p $PLOTDIR
+	       	clear_store
+	
+		# ONLY COMMON markers will be used further on
+		report_ninds {params.instem} "SUPERCLEAN_IN"
+		report_nsnps {params.instem} "SUPERCLEAN_IN"
+		{plinklocal} \
+		        --bfile {params.instem} \
+		        --maf 0.10 \
+		        --make-bed \
+		        --out {params.outdir}/superclean_maf
+		log "Initial cleaning: --maf 0.10"
+		report_nsnps {params.outdir}/superclean_maf "SUPERCLEAN_AFTERP1"
+
+		# Removal of very-missing individuals from SUPERCLEAN dataset
+		# Args:
+		# 1. input dataset
+		# 2. tmp directory
+		# 3. stage name
+		# 4. next exclusion filter
+		# 5. exclusion threshold
+		# [6. optional: MAF threshold for HET split]
+		report_plots \
+	        	{params.outdir}/superclean_maf \
+			{params.tmpdir} \
+		        "IDENTIFY" I 0.05
+		plink_remove_above_mind \
+			{params.outdir}/superclean_maf \
+			0.05 \
+			{params.outdir}/superclean_maf_mind
+		log "Initial cleaning: --mind 0.05"
+		report_ninds {params.outdir}/superclean_maf_mind "SUPERCLEAN_AFTERP2"
+
+		# PERMANENT removal of very-missing individuals from FULL dataset
+		{plinklocal} \
+			--bfile {params.instem} \
+			--keep {params.outdir}/superclean_maf_mind.fam \
+			--make-bed \
+			--out {params.outdir}/full_mind
+		report_ninds {params.outdir}/full_mind "FULL_AFTERMIND"
+
+		# Continue marker supercleaning: GENO for Xchr Fstat
+		report_plots \
+			{params.outdir}/superclean_maf_mind \
+			{params.tmpdir} \
+		        "IDENTIFY" L 0.02
+		{plinklocal} \
+		        --bfile {params.outdir}/superclean_maf_mind \
+		        --geno 0.02 \
+		        --make-bed \
+		        --out {params.outdir}/superclean_maf_mind_geno
+		log "Initial cleaning: --geno 0.02"
+		report_nsnps {params.outdir}/superclean_maf_mind_geno "SUPERCLEAN_AFTERGENO"
+		
+		# Continue marker supercleaning for PCA/IBD/inferped
+		report_plots \
+		        {params.outdir}/superclean_maf_mind_geno \
+			{params.tmpdir} \
+		        "IDENTIFY" E -4
+		{plinklocal} \
+			--bfile {params.outdir}/superclean_maf_mind_geno \
+			--autosome \
+			--make-bed \
+			--out {params.outdir}/superclean_autosomal
+		log "Initial cleaning: filter autosomal"
+		report_nsnps {params.outdir}/superclean_autosomal "SUPERCLEAN_AUTOSOMAL"
+		
+		{plinklocal} \
+		        --bfile {params.outdir}/superclean_autosomal \
+		        --hwe 0.0001 \
+		        --make-bed \
+		        --out {params.outdir}/superclean_autosomal_hwe
+		log "Initial cleaning: --hwe 0.0001"
+		report_nsnps {params.outdir}/superclean_autosomal_hwe "SUPERCLEAN_AFTERHWE"
+		
+		# Remove ambiguous SNPs (A/T  and C/G snps)
+		# 1. input bedset
+		# 2. output bedset
+		# 3. TMP-folder
+		remove_strand_ambiguous_markers \
+		        {params.outdir}/superclean_autosomal_hwe \
+		        {params.outdir}/superclean_no_ag_ct \
+		        {params.outdir}
+		
+		# Remove High LD regions
+		# 1. input bedset
+		# 2. output bedset
+		# 3. TMP-folder
+		# 4. Exclusion filter
+		# 5. No logging flag
+		plink_exclude_markers \
+		        {params.outdir}/superclean_no_ag_ct \
+		        "range ../resources/high-ld-regions-hg19" \
+		        {params.outdir}/superclean_no_ag_ct_ld \
+		        "HIGHLD" 1
+
+		# Prune the dataset
+		# 1. input dataset
+		# 2. "indep-pairwise" or "indep-pairphase"
+		# 3. window-size (variant count)
+		# 4. step-size (variant count)
+		# 5. R2-threshold
+		# 6. output path + bed stem
+		# 7. TMP-path
+		plink_prune_markers \
+		        {params.outdir}/superclean_no_ag_ct_ld \
+		        "indep-pairwise" \
+		        200 100 0.1 \
+		        {params.outdir}/superclean_pruned \
+		        {params.outdir}
+		"""
+
+rule inferped:
+	input:
+		base + 'both/tmp/' + 'full_mind.bed', # ALL markers for updating fam file
+		base + 'both/tmp/' + 'superclean_maf_mind_geno.bed', # SORTOFCLEAN markers for X chr sexcheck
+		cleansnps = base + 'both/tmp/' + 'prune_markers_tmp.prune.in' # SUPERCLEAN markers for pihat
+	output:
+		base + 'both/tmp/' + 'inferped_pruned.bed', # INFERRED family info, SUPERCLEAN markers
+		base + 'both/tmp/' + 'inferped_all.bed', # INFERRED family info, ALL markers
+		phenookflags = base + 'both/rep/' + 'phenotypesOK.txt'
+	params:
+		ingeno = base + 'both/tmp/' + 'superclean_maf_mind_geno',
+		inall = base + 'both/tmp/' + 'full_mind',
+		outdir = base + 'both/tmp/',
+		repdir = base + 'both/rep/',
+		plotdir = base + 'both/rep/' + 'plots_inferped/',
+		inferfam = config['infer_recfam'],
+		inferbad = config['infer_badids']
+	shell:
+		"""
+		set -e
+		libdir={libdir}
+		plinklocal={plinklocal}
+
+		source {libdir}/functions.sh
+		source {libdir}/plink_wrapper_functions.sh
+
+		PIPELINELOG={runlog}
+
+		log "--- IDENTIFY CORE: RULE PCAWHAPMAP ---"
+		log "Starting pedigree inference"
+
+ 		# plink will recommend sex assignments based on X het and Y calls
+ 		{plinklocal} \
+ 			--bfile {params.ingeno} \
+ 			--check-sex ycount \
+ 			--out {params.outdir}/inferpedx
+ 
+ 		# get PIHAT estimates
+ 		{plinklocal} \
+ 			--bfile {params.ingeno} \
+ 			--extract {input.cleansnps} \
+ 			--genome \
+ 			--min 0.10 \
+ 			--make-bed \
+ 			--out {params.outdir}/inferped_pruned
+ 		cut -f 2,4,8,10 {params.outdir}/inferped_pruned.genome > {params.outdir}/inferped_pruned_pihat.txt
+ 
+		# ERROR if fam files were different for PRUNED and ALL markers (can't update then)
+		diff {params.inall}.fam {params.outdir}/inferped_pruned.fam
+
+		# R script for updating fam file
+		# 1. input fam file
+		# 2. pihat file
+		# 3. PLINK's sexcheck results
+		# 4. /media/local-disk2/helgeland/rotterdam1/inferred-pedigree/permanent_reconstruct-fam.txt
+		# 5. /media/local-disk2/helgeland/rotterdam1/inferred-pedigree/permanent_bad-sample-IIDs.txt
+		# 6. inferped_data.RData
+		# 7. updated fam file
+		# 8. flag file for individuals
+		Rscript {libdir}/inferped_FuckupDetectorAndSolver.R \
+			{params.outdir}/inferped_pruned.fam \
+			{params.outdir}/inferped_pruned_pihat.txt \
+			{params.outdir}/inferpedx.sexcheck \
+			{params.inferbad} \
+			{params.inferfam} \
+			{params.repdir}/inferped_data.RData \
+			{params.outdir}/inferped_updated.fam \
+			{output.phenookflags}
+
+		# produce bedset with ALL markers and INFERRED family info
+		cp {params.inall}.bed {params.outdir}/inferped_all.bed
+		cp {params.inall}.bim {params.outdir}/inferped_all.bim
+		cp {params.outdir}/inferped_updated.fam {params.outdir}/inferped_all.fam
+
+		# produce bedset with PRUNED markers and INFERRED family info
+		# (inferped_pruned.bed and .bim were made above)
+		cp {params.outdir}/inferped_updated.fam {params.outdir}/inferped_pruned.fam
+		"""
+	
+rule pcawhapmap:
+	input:
+		base + 'both/tmp/' + 'inferped_pruned.bed', # for running the PCA
+		base + 'both/tmp/' + 'inferped_all.bed'	# for extracting ETHNIC-PASS samples
+	output:
+		base + 'both/tmp/' + 'pcainds_allmarkers.bed',
+		base + 'both/pca/' + 'manual_selection_core_list', # ETHNIC-PASS samplelist
+		stvars = base + 'both/rep/' + 'storedvars_pca.txt',
+		exclinds = base + 'both/rep/' + 'exclusions_pca_ind.txt',
+		exclsnps = base + 'both/rep/' + 'exclusions_pca_snp.txt'
+	params:
+		inall = base + 'both/tmp/' + 'inferped_all',
+		ingeno = base + 'both/tmp/' + 'inferped_pruned',
+		pcadir = base + 'both/pca/',
+		outdir = base + 'both/tmp/',
+		hapmap = config['hapmap_stem'],
+		hmpop = config['hapmap_pop'],
+		pcathr = config['pca_thr'],
+		plotdir = base + 'both/rep/' + 'plots_pca/'
+	shell:
+		"""
+		set -e
+		libdir={libdir}
+		plinklocal={plinklocal}
+
+		source {libdir}/functions.sh
+		source {libdir}/plink_wrapper_functions.sh
+
+		PIPELINELOG={runlog}
+	       	STOREDVARS={output.stvars}
+	        EXCLUSIONSI={output.exclinds}
+	        EXCLUSIONSS={output.exclsnps}
+	       	PLOTDIR={params.plotdir}
+
+		log "--- IDENTIFY CORE: RULE PCAWHAPMAP ---"
+	        mkdir -p $PLOTDIR
+	       	clear_store
+
+		report_ninds {params.ingeno} "PCA_IN"
+		report_nsnps {params.ingeno} "PCA_IN"
+
+		# Extracting the inferred-bad samples from the full set
+		grep prblm {params.ingeno}.fam > {params.outdir}/inferped_toremove
+		plink_remove_samples \
+		        {params.ingeno} \
+		        {params.outdir}/inferped_toremove \
+		        {params.outdir}/no_inferped_problems \
+		        "INFERPED"
+
+		# Function merges, prunes and plots merged data after PCA
+		# 1. Input stem of pruned bedset
+		# 2. Input stem of hapmap
+		# 3. Output path + prefix of PCA results
+		# 4. TMP-folder
+		pca_with_hapmap \
+		        {params.outdir}/no_inferped_problems \
+		        {params.hapmap} \
+		        {params.pcadir}/superclean_core_with_hapmap \
+		        {params.pcadir}
+
+		# Manual identifation of samples for the core sample.
+		# 1. Eigenstrat PCA output
+		# 2. HapMap population file
+		# 3. Output name of filtered samples list
+		# 4. Output path of saved files
+		# 5. Std. dev. threshold for inclusion
+		# 6. Lower limit in first dimension, i.e. left vertical line in the PCA, ignored if NA
+		# 7. Upper limit in first dimension, i.e. right vertical line in the PCA, ignored if NA
+		# 8. Lower limit in second dimension, i.e. lower horizontal line in the PCA, ignored if NA
+		# 9. Upper limit in second dimension, i.e. upper horizontal line in the PCA, ignored if NA
+		manual_core_selection \
+		        {params.pcadir}/superclean_core_with_hapmap.pca.evec \
+		        {params.hmpop} \
+		        {params.pcadir}/manual_selection_core_list \
+		        $PLOTDIR \
+		        {params.pcathr}
+		
+		# Extracting the manually selected core samples from the full set
+		# including all markers before cleaning the core in the next steps
+		plink_keep_samples \
+		        {params.inall} \
+		        {params.pcadir}/manual_selection_core_list \
+		        {params.outdir}/pcainds_allmarkers \
+		        "PCA"
+		"""
+
+rule split:
+	input:
+		base + 'both/tmp/' + 'pcainds_allmarkers.bed' # INFERRED family info, PCA pass, all markers
+	output:
+		base + 'founders/tmp/' + 'starting_clean.bed',
+		base + 'offspring/tmp/' + 'starting_clean.bed',
+		stvars = base + 'both/rep/' + 'storedvars_split.txt'
+	params:
+		instem = base + 'both/tmp/' + 'pcainds_allmarkers',
+		outstemf = base + 'founders/tmp/' + 'starting_clean',
+		outstemo = base + 'offspring/tmp/' + 'starting_clean'
+	shell:
+		"""
+		set -e
+		libdir={libdir}
+		plinklocal={plinklocal}
+
+		source {libdir}/functions.sh
+		source {libdir}/plink_wrapper_functions.sh
+
+		PIPELINELOG={runlog}
+	       	STOREDVARS={output.stvars}
+
+		log "--- IDENTIFY CORE: RULE SPLIT ---"
+
+		# separate founders
+		{plinklocal} \
+			--bfile {params.instem} \
+			--filter-founders \
+			--make-bed \
+			--out {params.outstemf}
+		report_ninds {params.outstemf} "REMAIN_FOUNDERS"
+
+		# separate offspring (i.e. anyone with provided parent info)
+		{plinklocal} \
+			--bfile {params.instem} \
+			--filter-nonfounders \
+			--make-founders \
+			--make-bed \
+			--out {params.outstemo}
+		report_ninds {params.outstemo} "REMAIN_OFFSPRING"
+		"""
+
+rule ibd:
+	input:
+      		base + '{role}/tmp/' + 'starting_clean.bed',
+		cleansnps = base + 'both/tmp/' + 'prune_markers_tmp.prune.in'
+	output:
+                base + '{role}/tmp/' + 'ibdpruned.bed', # for marker clean
+                stvars = base + '{role}/rep/' + 'storedvars_ibd.txt',
+                exclinds = base + '{role}/rep/' + 'exclusions_ibd_ind.txt',
+                exclsnps = base + '{role}/rep/' + 'exclusions_ibd_snp.txt'
+	params:
+		instem = base + '{role}/tmp/' + 'starting_clean',
+		outdir = base + '{role}/tmp/',
+		plotdir = base + '{role}/rep/' + 'plots_ibd/'
+	shell:
+		"""
+		set -e
+		libdir={libdir}
+		plinklocal={plinklocal}
+
+                source {libdir}/functions.sh
+                source {libdir}/plink_wrapper_functions.sh
+
+                PIPELINELOG={runlog}
+                STOREDVARS={output.stvars}
+                EXCLUSIONSI={output.exclinds}
+                EXCLUSIONSS={output.exclsnps}
+                PLOTDIR={params.plotdir}
+                
+                log "--- IDENTIFY CORE: RULE IBD ---"
+                mkdir -p $PLOTDIR
+                clear_store
+
+		report_ninds {params.instem} "IBD_IN"
+		report_nsnps {params.instem} "IBD_IN"
+
+		## ACCUMULATED RELATEDNESS
+		# calculate .genome
+		{plinklocal} \
+		        --bfile {params.instem} \
+			--extract {input.cleansnps} \
+		        --genome \
+		        --out {params.outdir}/ibd
+		
+		# extracts only IID1, IID2, PIHAT columns
+		awk '{{print $2, $4, $10}}' {params.outdir}/ibd.genome > {params.outdir}/ibd_reduced.genome
+		# extracts only RT, Z0, Z1 columns
+		awk '{{print $5, $7, $8}}' {params.outdir}/ibd.genome > {params.outdir}/ibd_forplot.genome
+		
+		# Generate "before" IBD plot
+		Rscript {libdir}/draw-pihat-plots.R \
+		        {params.outdir}/ibd_forplot.genome \
+		        ${{PLOTDIR}}z1z0_before.png "TRUE"
+		
+		# Args:
+		# 1. reduced .genome file (three columns)
+		# 2. .fam which was used to generate .genome
+		# 3. output ind list file
+		# 4. a full path and name of TEXT REPORT (accumPIHAT of all samples)
+		# 5. a PI_HAT threshold to ignore too-closely related pairs
+		# 6. a hard-set (accumPIHAT) threshold to define outliers
+		Rscript {libdir}/accumPIHAT.R \
+		        {params.outdir}/ibd_reduced.genome \
+		        {params.instem}.fam \
+		        {params.outdir}/accumulated_exclusions.txt \
+		        $PLOTDIR \
+		        0.2 0.015
+		
+		# exclude the related samples from ALLMARKERS file
+		plink_remove_samples \
+		        {params.instem} \
+		        {params.outdir}/accumulated_exclusions.txt \
+		        {params.outdir}/allmarkers_pihat_accum \
+		        "PIHAT_ACCUM"
+		
+		####  STRAIGHTFORWARD RELATEDNESS
+		# read .genome and remove 0.1 thr
+		# Args:
+		# 1. Input bedset
+		# 2. PIHAT threshold
+		# 3. Output bedset
+		# 4. .genome filestem
+		remove_related_above_pihat_threshold \
+		        {params.outdir}/allmarkers_pihat_accum \
+		        0.1 \
+		        {params.outdir}/ibdpruned \
+		        {params.outdir}/ibd
+
+		"""
+
+rule markerclean:
+	input:
+		base + '{role}/tmp/' + 'ibdpruned.bed' # CORE samples after IBD, ALL markers
+	output:
+		base + '{role}/tmp/' + 'clean_autosomes.bed', # FINAL MARKERS for autosomes
+		stvars = base + '{role}/rep/' + 'storedvars_clean.txt',
+                exclinds = base + '{role}/rep/' + 'exclusions_clean_ind.txt',
+                exclsnps = base + '{role}/rep/' + 'exclusions_clean_snp.txt'
+	params:
+                instem = base + '{role}/tmp/' + 'ibdpruned',
+                outdir = base + '{role}/tmp/',
+                repdir = base + '{role}/rep/',
+                plotdir = base + '{role}/rep/' + 'plots_clean/'
+	shell:
+		"""
+		set -e
+
+		source {libdir}/functions.sh
+		source {libdir}/plink_wrapper_functions.sh
+		plinklocal={plinklocal}
+		libdir={libdir}
+
+                PIPELINELOG={runlog}
+                STOREDVARS={output.stvars}
+                EXCLUSIONSI={output.exclinds}
+                EXCLUSIONSS={output.exclsnps}
+                PLOTDIR={params.plotdir}
+
+                log "--- CLEAN CORE ---"
+                mkdir -p $PLOTDIR
+		clear_store
+		
+		report_ninds {params.instem} "INTO_CLEAN"
+		report_nsnps {params.instem} "INTO_CLEAN"
+		samples_begin_clean=`wc -l {params.instem}.fam | cut -d ' ' -f1`
+
+		# 3 cycles of GENO+MIND
+		# FIRST - make plots for initial incoming data
+		# Args:
+		# 1. input dataset
+		# 2. dir for temp summary storage
+		# 3. stage name
+		# 4. next exclusion filter
+		# 5. threshold
+		# [6. optional: MAF cutoff for HET]
+		# THEN - remove samples/markers with more than X% missingness
+		# 1. Input bedset
+		# 2. Sample/marker missingness threshold
+		# 3. Output bedset
+
+		# CYCLE 1
+		report_plots \
+		        {params.instem} {params.repdir} \
+		        "CLEANGENO1" L 0.1
+		plink_remove_above_geno \
+		        {params.instem} \
+		        0.10 \
+		        {params.outdir}/clean_geno
+
+		report_plots \
+		        {params.instem} {params.repdir} \
+		        "CLEANMIND1" I 0.05
+		plink_remove_above_mind \
+		        {params.outdir}/clean_geno \
+		        0.05 \
+		        {params.outdir}/clean_mind
+		
+		# CYCLE 2
+		report_plots \
+		        {params.outdir}/clean_mind \
+			{params.repdir} \
+		        "CLEANGENO2" L 0.05
+		plink_remove_above_geno \
+		        {params.outdir}/clean_mind \
+		        0.05 \
+		        {params.outdir}/clean_geno
+
+		report_plots \
+		        {params.outdir}/clean_geno \
+			{params.repdir} \
+		        "CLEANMIND2" I 0.03
+		plink_remove_above_mind \
+		        {params.outdir}/clean_geno \
+		        0.03 \
+		        {params.outdir}/clean_mind
+
+		# CYCLE 3
+		report_plots \
+		        {params.outdir}/clean_mind \
+			{params.repdir} \
+		        "CLEANGENO3" L 0.02
+		plink_remove_above_geno \
+		        {params.outdir}/clean_mind \
+		        0.02 \
+		        {params.outdir}/clean_geno
+
+		report_plots \
+		        {params.outdir}/clean_geno \
+			{params.repdir} \
+		        "CLEANMIND3" I 0.02
+		plink_remove_above_mind \
+		        {params.outdir}/clean_geno \
+		        0.02 \
+		        {params.outdir}/clean_mind-geno
+
+		# Remove markers below HWE P-value threshold
+		# 1. Input bedset
+		# 2. P-value threshold
+		# 3. Output bedset
+		# 4. TMP path for storing output
+		# note 1: all samples are now marked as FOUNDERS (no need for "--nonfounders" flag)
+		# note 2: all samples have missing phenotype (no need for "include-nonctrl" flag)
+		# CYCLE 1
+		report_plots \
+		        {params.outdir}/clean_mind-geno \
+			{params.repdir} \
+		        "CLEANHWE1" E -7
+		remove_below_hwe_pval_autosomal \
+		        {params.outdir}/clean_mind-geno \
+		        0.0000001 \
+		        {params.outdir}/clean_mind-geno-hwe \
+		        {params.outdir}
+
+		# Remove samples with excess heterozygosity. Markers are split to common and rare
+		# by given MAF threshold. Samples outside given SD threshold are removed.
+		# Only autosomal markers are evaluated.
+		# Args:
+		# 1. Input bedset
+		# 2. MAF-value for common variants
+		# 3. SD-threshold for excess het removal
+		# 4. Output bedset
+		# 5. TMP folder
+		report_plots \
+		        {params.outdir}/clean_mind-geno-hwe \
+			{params.repdir} \
+		        "CLEANHET1" H 4 0.01
+		plink_remove_excess_het_common \
+		        {params.outdir}/clean_mind-geno-hwe \
+		        0.01 \
+		        4 \
+		        {params.outdir}/clean_het-common \
+		        {params.outdir}
+
+		# CYCLE 2
+		report_plots \
+		        {params.outdir}/clean_het-common \
+			{params.repdir} \
+		        "CLEANHWE2" E -6
+		remove_below_hwe_pval_autosomal \
+		        {params.outdir}/clean_het-common \
+		        0.000001 \
+		        {params.outdir}/clean_hwe-strict \
+		        {params.outdir}
+		
+		report_plots \
+		        {params.outdir}/clean_hwe-strict \
+			{params.repdir} \
+		        "CLEANHET2" H 4 0.01
+		plink_remove_excess_het_rare \
+		        {params.outdir}/clean_hwe-strict \
+		        0.01 \
+		        4 \
+		        {params.outdir}/clean_het-rare \
+		        {params.outdir}
+
+		# additional run of marker missingness at 2%
+		report_plots \
+		        {params.outdir}/clean_het-rare \
+			{params.repdir} \
+		        "CLEANGENO4" L 0.02
+		plink_remove_above_geno \
+		        {params.outdir}/clean_het-rare \
+		        0.020 \
+		        {params.outdir}/clean_autosomes
+
+		samples_end_clean=`wc -l {params.outdir}/clean_autosomes.fam | cut -d ' ' -f1`
+	        log "samples_begin: $samples_begin_clean, samples end: $samples_end_clean"
+		"""
+
+rule sexclean:
+	input:
+		base + '{role}/tmp/' + 'clean_autosomes.bed'
+	output:
+		base + '{role}/tmp/' + 'clean_markers.bim', # FINAL MARKERS
+		stvars = base + '{role}/rep/' + 'storedvars_cleansex.txt',
+                exclinds = base + '{role}/rep/' + 'exclusions_cleansex_ind.txt',
+                exclsnps = base + '{role}/rep/' + 'exclusions_cleansex_snp.txt'
+	params:
+                plotdir = base + '{role}/rep/' + 'plots_cleansex/',
+                instem = base + '{role}/tmp/' + 'clean_autosomes',
+                outdir = base + '{role}/tmp/'
+	shell:
+		"""
+		set -e
+
+		source {libdir}/functions.sh
+		source {libdir}/plink_wrapper_functions.sh
+		libdir={libdir}
+		plinklocal={plinklocal}
+
+                PIPELINELOG={runlog}
+                STOREDVARS={output.stvars}
+                EXCLUSIONSI={output.exclinds}
+                EXCLUSIONSS={output.exclsnps}
+                PLOTDIR={params.plotdir}
+
+                log "--- CLEAN CORE SEX ---"
+                mkdir -p $PLOTDIR
+		clear_store
+		
+		report_ninds {params.instem} "INTO_SEXCLEAN"
+		report_nsnps {params.instem} "INTO_SEXCLEAN"
+
+		store "INTO_SEXCLEAN_X" `grep -c ^23 {params.instem}.bim`
+		store "INTO_SEXCLEAN_Y" `grep -c ^24 {params.instem}.bim`
+		store "INTO_SEXCLEAN_PAR" `grep -c ^25 {params.instem}.bim`
+		store "INTO_SEXCLEAN_MT" `grep -c ^26 {params.instem}.bim`
+
+		# Check sample sex (declared vs. genotyped)
+	        # 1. Input bedset (all or only sex-markers)
+	        # 2. Female max Fstat (PLINK default 0.20)
+	        # 3. Male min Fstat (PLINK default 0.80)
+	        # 4. Full path to list of samples with PROBLEM according to PLINK check-sex
+	        # 5. TMP folder
+	        plink_checksex \
+	                {params.instem} \
+	                0.20 \
+	                0.80 \
+	                {params.outdir}/checksex_exclude \
+	                {params.outdir}
+
+	        # Remove samples failing sex-check
+	        # 1. Input bedset stem
+	        # 2. List of samples to remove (2 cols: PID IID)
+	        # 3. Output bedset stem
+	        # 4. Exclusion filter
+	        plink_remove_samples \
+	                {params.instem} \
+	                {params.outdir}/checksex_exclude \
+	                {params.outdir}/removed_failing_sexcheck \
+	                "SEXCHECK"
+	
+	        ###--- CLEANING FEMALE X MARKERS ---###
+	        # - Only chr. X/23
+	        # note 1: all samples are now marked as FOUNDERS (no need for "--nonfounders" flag)
+	        # note 2: all samples have missing phenotype (no need for "include-nonctrl" flag)
+	        {plinklocal} \
+	                --bfile {params.outdir}/removed_failing_sexcheck \
+	                --filter-females \
+	                --chr 23 \
+	                --hardy midp \
+	                --out {params.outdir}/females_x_hardy
+
+	        # Getting the female X-markers below HWE threshold to be excluded
+	        # NOTE: This step will generate a list of markers to remove in the final step
+	        Rscript {libdir}/hwe_fail.R \
+	                {params.outdir}/females_x_hardy.hwe \
+	                0.000001 \
+	                {params.outdir}/hwe_failed_female_x_markers \
+	                ${{PLOTDIR}}hwe_x_chr.png
+		store "TOREMOVE_HWE_X" `wc -l {params.outdir}/hwe_failed_female_x_markers`
+	
+	        ###--- CLEANING PAR-REGION IN BOTH GENDERS ---###
+	        # - Using both males and females
+	        # note: this could have beed done at autosomal stage by using "--autosome-xy"
+	        {plinklocal} \
+	                --bfile {params.outdir}/removed_failing_sexcheck \
+	                --chr 25 \
+	                --hardy midp \
+	                --out {params.outdir}/par_hardy
+	
+	        Rscript {libdir}/hwe_fail.R \
+	                {params.outdir}/par_hardy.hwe \
+	                0.000001 \
+	                {params.outdir}/hwe_failed_par_markers NA
+		store "TOREMOVE_HWE_PAR" `wc -l {params.outdir}/hwe_failed_par_markers`
+	
+	        ###--- CLEANING MALE X ---###
+	        # - Getting marker names on all markers with any heterozygous calls
+	        touch {params.outdir}/male_x_exclusion_markers
+	        awk 'FNR==NR{{if($1~/23/) x[$2]; next}} {{d[$3]++}}
+	                END{{ for (s in d){{ if (d[s]>1 && s in x) print s }}}}' \
+	                {params.outdir}/removed_failing_sexcheck.bim \
+	                {params.outdir}/removed_failing_sexcheck.hh > {params.outdir}/male_x_exclusion_markers
+	
+	        ###--- REMOVE IDENTIFIED MARKERS FROM CORE ---###
+	        cat {params.outdir}/hwe_failed_female_x_markers \
+	            {params.outdir}/hwe_failed_par_markers > {params.outdir}/hwe_x_and_par_exclusions
+	
+	        #1. Input bedstem
+	        #2. List of markers to exclude
+	        #3. Output bedstem
+	        #4. Exclusion filter
+	        plink_exclude_markers \
+	                {params.instem} \
+	                {params.outdir}/hwe_x_and_par_exclusions \
+	                {params.outdir}/sex_markers_removed_hwe \
+	                "sex_marker_removal"
+		store "AFTER_HWE_X" `grep -c ^23 {params.outdir}/sex_markers_removed_hwe.bim`
+		store "AFTER_HWE_PAR" `grep -c ^25 {params.outdir}/sex_markers_removed_hwe.bim`
+
+	        plink_exclude_markers \
+	                {params.outdir}/sex_markers_removed_hwe \
+	                {params.outdir}/male_x_exclusion_markers \
+	                {params.outdir}/clean_markers \
+	                "male_x_het"
+
+		store "AFTER_SEXCLEAN_X" `grep -c ^23 {params.outdir}/clean_markers.bim`
+		store "AFTER_SEXCLEAN_Y" `grep -c ^24 {params.outdir}/clean_markers.bim`
+		store "AFTER_SEXCLEAN_PAR" `grep -c ^25 {params.outdir}/clean_markers.bim`
+		store "AFTER_SEXCLEAN_MT" `grep -c ^26 {params.outdir}/clean_markers.bim`
+		"""
+
+rule makecore:
+	input:
+		base + '{role}/tmp/' + 'starting_clean.bed', # PCA pass, split, all markers
+		prunedsnps = base + 'both/tmp/' + 'prune_markers_tmp.prune.in', # from superclean above
+		markerlist = base + 'both/tmp/' + 'shared_markers.txt'
+	output:
+		base + '{role}/tmp/' + 'core-lmm.bed',
+		base + '{role}/tmp/' + 'core-supreme.bed',
+		base + '{role}/pca/' + 'final_pca_covars.txt',
+		stvars = base + '{role}/rep/' + 'storedvars_verify.txt',
+		exclinds = base + '{role}/rep/' + 'exclusions_verify_ind.txt',
+		exclsnps = base + '{role}/rep/' + 'exclusions_verify_snp.txt'
+	params:
+ 		plotdir = base + '{role}/rep/' + 'plots_verify/',
+		instem = base + '{role}/tmp/' + 'starting_clean',
+		pcadir = base + '{role}/pca/',
+		repdir = base + '{role}/rep/',
+		outdir = base + '{role}/tmp/'
+	shell:
+		"""
+		set -e
+		libdir={libdir}
+		plinklocal={plinklocal}
+
+		source {libdir}/functions.sh
+		source {libdir}/plink_wrapper_functions.sh
+
+		PIPELINELOG={runlog}
+		STOREDVARS={output.stvars}
+		EXCLUSIONSI={output.exclinds}
+		EXCLUSIONSS={output.exclsnps}
+		PLOTDIR={params.plotdir}
+		mkdir -p $PLOTDIR
+
+		report_ninds {params.instem} "START_VERIFY"
+		report_nsnps {params.instem} "START_VERIFY"
+
+		# extract markers that pass QC in both founders and offspring
+		plink_extract_markers \
+			{params.instem} \
+			{input.markerlist} \
+			{params.outdir}/starting_verify \
+			"shared_pass"
+		
+		# MISS
+		plink_remove_above_mind \
+			{params.outdir}/starting_verify \
+			0.02 \
+			{params.outdir}/verify_mind
+		
+		# HET filter
+		plink_remove_excess_het_common \
+		        {params.outdir}/verify_mind \
+		        0.01 \
+		        4 \
+		        {params.outdir}/verify_het-common \
+		        {params.outdir}
+		plink_remove_excess_het_rare \
+		        {params.outdir}/verify_het-common \
+		        0.01 \
+		        4 \
+		        {params.outdir}/core-lmm \
+		        {params.outdir}
+
+		# RELATED CORE IS READY HERE.
+
+		# filter IBD
+		$plinklocal \
+			--bfile {params.outdir}/core-lmm \
+			--extract {input.prunedsnps} \
+			--genome \
+			--out {params.outdir}/verify_ibd
+
+		awk '{{print $2, $4, $10}}' {params.outdir}/verify_ibd.genome > {params.outdir}/verify_ibd_reduced.genome
+		awk '{{print $5, $7, $8}}' {params.outdir}/verify_ibd.genome > {params.outdir}/verify_ibd_forplot.genome
+		
+		Rscript {libdir}/draw-pihat-plots.R \
+		        {params.outdir}/verify_ibd_forplot.genome \
+		        ${{PLOTDIR}}z1z0_before.png "TRUE"
+		
+		# Args:
+		# 1. reduced .genome file (three columns)
+		# 2. .fam which was used to generate .genome
+		# 3. output ind list file
+		# 4. a full path and name of TEXT REPORT (accumPIHAT of all samples)
+		# 5. a PI_HAT threshold to ignore too-closely related pairs
+		# 6. a hard-set (accumPIHAT) threshold to define outliers
+		Rscript {libdir}/accumPIHAT.R \
+		        {params.outdir}/verify_ibd_reduced.genome \
+		        {params.outdir}/core-lmm.fam \
+		        {params.outdir}/verify_accumulated_exclusions.txt \
+		        $PLOTDIR \
+		        0.2 0.015
+
+		plink_remove_samples \
+		        {params.outdir}/core-lmm \
+		        {params.outdir}/verify_accumulated_exclusions.txt \
+		        {params.outdir}/core-lmm_pihat_accum \
+		        "PIHAT_ACCUM"
+		
+		####  STRAIGHTFORWARD RELATEDNESS
+		# read .genome and remove 0.1 thr
+		# Args:
+		# 1. Input bedset
+		# 2. PIHAT threshold
+		# 3. Output bedset
+		# 4. .genome filestem
+		remove_related_above_pihat_threshold \
+		        {params.outdir}/core-lmm_pihat_accum \
+		        0.1 \
+		        {params.outdir}/core-supreme \
+		        {params.outdir}/verify_ibd
+
+		# CORE-SUPREME IS READY HERE.
+
+		$plinklocal \
+			--bfile {params.outdir}/core-supreme \
+			--extract {input.prunedsnps} \
+			--make-bed \
+			--out {params.pcadir}/pruned
+
+		# Final PCA on the CORE-SUPREME
+	        # 1. Input bedset (pre-pruned)
+	        # 2. Output path + prefix of PCA output
+	        # 3. TMP folder
+	        pca \
+	                {params.pcadir}/pruned \
+	                {params.pcadir}/results \
+	                {params.pcadir}
+	
+	        # Create a PLINK covariate files with PCs only
+	        tail -n +2 {params.pcadir}/results.pca.evec | sed 's/^ *//' | tr -s ' ' ' ' | cut -f1-11 -d' ' | tr ':' ' ' > {params.pcadir}/final_pca_covars.txt
+	
+	        # Plot final PCA run
+	        # 1. pcainput
+	        # 2. outfile
+	        Rscript {libdir}/plot_pca_without_hapmap.R \
+	          {params.pcadir}/results.pca.evec \
+	          {params.pcadir}/final_core_clean.png
+
+	        # Create screeplot on final PCAs
+	        # 1. Eigenvalues input file (the initial lines of the .pca output file from Eigenstrat)
+	        # 2. Number of PCs (eg. will use the lines 2 to 11 if 10 PCs - the first line denotes number of PCs)
+	        # 3. Plot header prefix
+	        # 4. Output path of plot
+	        # 5. Output name of plot pdf file
+	        awk 'NR==1{{for(i=1; i<=NF; i++) print $i}}' {params.pcadir}/results.pca.evec > {params.pcadir}/results.pca
+	        Rscript {libdir}/create_screeplot_pca.R \
+	                {params.pcadir}/results.pca \
+	                10 \
+	                {wildcards.role} \
+	                {params.pcadir} \
+	                pca-final-screeplot.pdf
+	
+		"""
+
+# Rule to generate the exclusion and flag lists
+rule generate_lists:
+    input:
+        expand(base + '{role}/tmp/' + 'core-lmm.bed', role=ROLES),
+        expand(base + '{role}/tmp/' + 'core-supreme.bed', role=ROLES)
+    output:
+        exl_snp=config['output_base'] + 'exclusions_snp_long.txt',
+        exl_ind=config['output_base'] + 'exclusions_ind_long.txt',
+        flaglist=config['output_base'] + 'sample_flag_list.txt'
+    params:
+        input_dir=config['output_base']
+    shell:
+        """
+	set -e
+	source {libdir}/functions.sh
+
+        # Combines sample exclusion lists from one directory
+        # Args:
+        # 1. reporting dir/
+        # 2. current dataset name
+	# 3. exclusion dir/
+        echo "FID IID FILTER STAGE BATCH" > {output.exl_ind}
+        echo "CHR SNP FILTER STAGE BATCH" > {output.exl_snp}
+
+        combine_dir {params.input_dir}mod1-data-preparation/rep/ "MOD1" {params.input_dir}
+        combine_dir {params.input_dir}both/rep/ "MOD2-BOTH" {params.input_dir}
+        combine_dir {params.input_dir}founders/rep/ "MOD2-FOUNDERS" {params.input_dir}
+        combine_dir {params.input_dir}offspring/rep/ "MOD2-OFFSPRING" {params.input_dir}
+        combine_dir {params.input_dir}mod5-shaping-preparation/rep/ "MOD5" {params.input_dir}
+
+        Rscript {libdir}/format_excl_table.R {params.input_dir}
+
+        """
