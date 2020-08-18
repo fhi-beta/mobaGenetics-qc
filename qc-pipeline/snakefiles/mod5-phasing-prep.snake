@@ -1,4 +1,4 @@
-# Remove markers above chr 23 as these are eliglible for imputation
+# Remove markers above chr 23 as these are not eliglible for imputation
 rule_stem = "chr1_23"
 rule chr1_23:
     input:
@@ -125,6 +125,7 @@ rule rayner_verification:
 
 
 # Pretty hardcoded to HRC as reference set
+# This code was used to run Will Rayner script on one chromosome at a time.
 # rule_stem = "wr_check"
 # rule wr_check:
 #     input:
@@ -201,7 +202,7 @@ rule rayner_verification:
 rule_stem = "split_by_chr"
 rule split_by_chr:
     input:
-        bedset = rules.mendelian_errors.output.bedset,
+        bedset = rules.rayner_verification.output.bedset,
     output:
         bedset = expand(str(tmpMod5/rule_stem)
                           +'{{chromo}}'+'{ext}', ext=['.bed','.bim','.fam']),
@@ -213,7 +214,6 @@ rule split_by_chr:
         mqc.log(runlog, rule_info[rule]["QC test"])
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk = mqc.plinkBase(output.bedset[0])
-        print("****** Get bedset from Rayner verification!!! *****")
         subprocess.run([plinklocal,
                         "--bfile", inTrunk,
                         "--chr", str(wildcards.chromo),
@@ -223,7 +223,7 @@ rule split_by_chr:
 rule_stem = "split_by_chr_report"
 rule split_by_chr_report:
     input:
-        bedset = rules.mendelian_errors.output.bedset,
+        bedset = rules.split_by_chr.input.bedset,
         chrfiles =  expand(str(tmpMod5/"split_by_chr")
                           +'{chrom}'+".bim", chrom=range(1,24)),
     output:
@@ -297,6 +297,12 @@ rule split_by_chr_report:
 # 			-h
 		
 # 		log "HRC VERIFICATION UPDATE"
+
+# Gutorms comment: The plink-commands are the ones that is prodused by
+# HRC-1000G-check-bim.pl in Run-plink.sh . I don't know why they are
+# reinserted in the snake pipeline. Make for the reporting?
+# Nevertheless - this is more prone to changes/improvements in
+# HRC-1000G-check-bim.pl
 
 # 		# Update bedset with HRC verification lists
 # 		bedbase=`basename {params.in_bedset}`
