@@ -79,7 +79,7 @@ rule rayner_verification:
         bedset = rules.mendelian_errors.output.bedset,
         hrc_sites=config['hrc_sites']
     output:
-        touch(tmpMod5/"RaynerVerificationNotDone"),
+        touch(tmpMod5/"RaynerVerificationNotDone"), # to force a run by deleting?
         # This is produced by a shell-script we have no control over hence the odd bedset name
         bedset = multiext(mqc.plinkBase(rules.mendelian_errors.output.bedset[0])
                           +"-updated", '.bed','.bim','.fam'),
@@ -103,7 +103,10 @@ rule rayner_verification:
         #                 "--out", freqTrunk])
         # assumes perl found in path
         subprocess.run(["perl",
+
                     f"{libdir}/HRC-1000G-check-bim.pl",
+                    # When 4.3 is installed
+                    "-l", plinklocal, 
                     "-b", inTrunk+".bim",
                     "-f", freqTrunk+".frq",
                     "-r", input.hrc_sites,

@@ -1,7 +1,7 @@
 #!/usr/bin/perl
 
-# Script to check plink .bim files against HRC/1000G for strand, id names, positions, alleles, ref/alt assignment
-# W.Rayner 2015 - 2019
+# Script to check plink .bim files against HRC/1000G/TOPMed for strand, id names, positions, alleles, ref/alt assignment
+# W.Rayner 2015 - 2020
 # wrayner@well.ox.ac.uk
 #
 # Version 4.2
@@ -49,37 +49,52 @@
 #  - Added checking to ensure bim and frq filenames and paths are valid
 #  -v4.2.11
 #  - Changed the commands to update and retain the Ref/Alt alleles in the plink conversion commands
+#  -v4.2.12
+#  - Added -a flag to disable the automatic removal of palindromic SNPs with MAF > 0.4
+#  -v4.2.13
+#  - Added ability to read the bgzipped reference panels, as well as plain gzipped files
+#  - Added -l flag to set path to preferred plink executable   
+#  - Added better support for the paths to the plink files in the shell script
+#  - Added -o flag to allow the final output path for all the plink and VCF files to be specified
+#  -v4.3
+#  - Added TOPMed and rebuilt code to use less memory
+#  - Removed the interactive terminal size check, this version will work both interactively and on a cluster
+#
+#
+#
 #
 #
 # NOTES:
 # Script is based on release 1 of the HRC, filename HRC.r1.GRCh37.autosomes.mac5.sites.tab, can be overridden with the -r flag
-# in r1 HRC there are only autosomes, so 1-22 only considered by script, others counted in altchr
-# 1000G has X and is also checked
-# No indels in r1 HRC, so the code for these is not developed, beyond counting them in the bim file, they are exluded from the bim files
-# May add -i flag to keep or even check these in future
-# Script needs ~20Gb RAM to run
+# # 1000G has X and is also checked
+# At the moment indels are not checked, beyond counting them in the bim file, they are exluded from the bim files
+# May add -i flag to keep or even check these in future but tricky due to the nature of the labelling (I/D vs actual alleles)
+# Script needs ~20Gb RAM to run for HRC, 32GB recommended, and 64GB for 1000G.
 # 
 #
 
 use strict;
 use warnings;
 use File::Basename;
+use File::Path qw(make_path);
 use Getopt::Long;
 use IO::Uncompress::Gunzip qw(gunzip $GunzipError);
-use Term::ReadKey   qw/ GetTerminalSize /;
+#use Term::ReadKey   qw/ GetTerminalSize /;
+use File::Spec;
 
 $| = 1;
 
 my $columns = getwidth(); 
 my $mid = int($columns/2+0.5);
+my $version = '4.3';
 
 print "\n\n";
 printf("%*s", $mid+24, "Script to check plink .bim files against HRC/1000G for\n");
 printf("%*s", $mid+25, "strand, id names, positions, alleles, ref/alt assignment\n");
-printf("%*s", $mid+5, "William Rayner 2015-2018\n");
+printf("%*s", $mid+5, "William Rayner 2015-2020\n");
 printf("%*s", $mid+6, "wrayner\@well.ox.ac.uk\n");
 print "\n";
-printf("%*s", $mid+5, "Version 4.2.9\n\n\n");
+printf("%*s", $mid+5, "Version $version\n\n\n");
 
 # default input filenames (HRC or 1000G file name)
 my $hrc_file = 'HRC.r1.GRCh37.autosomes.mac5.sites.tab';
@@ -123,6 +138,19 @@ my $plotflag = 0;
 my $threshold = 0.2; #allele frequency difference threshold, set as default 0.2
 my $noexclude = 0;
 my $chrflag = 0;
+my $palinFlag = 0;
+my $volume; 
+my $directories;
+my $parsed_file;
+my $abs_path;
+my $plink;
+my $plink_run_script = 'Run-plink.sh';
+my $outpath;
+my $abs_outpath;
+my %chromosomes;
+my %chrPosBim;
+my %rsBim;
+
 
 GetOptions
  (
@@ -137,6 +165,9 @@ GetOptions
  "n|noexclude"   => \$noexclude,  # sets flag to keep all SNPs regardless of allele frequency differences  
  "c|chromosome"  => \$chrflag,    # sets flag to say using a smaller than expected reference panel
  "i|indels"      => \$indelflag,  # sets flag for keeping/checking indels in the bim file
+ "a|acgt"        => \$palinFlag,  # sets flag to keep the palindromic SNPs
+ "l|plink=s"     => \$plink,      # sets the path to the plink executable
+ "o|output=s"    => \$outpath,    # sets the output path for the final files
  "x|xyplot"      => \$plotflag    # sets flag for invoking frequency plots at the end of the comparison, requires GD or R
   );
 
@@ -147,6 +178,18 @@ if (!$hrcflag and !$kgflag)
  print "ERROR: you must specify HRC or 1000G reference panel using -g or -h\n";
  usage();
  die "exiting\n";
+ }
+
+if (!$plink) 
+ {
+ $plink = 'plink';
+ }
+elsif (!-e $plink)
+ {
+ $plink = 'plink';
+ }
+else
+ {
  }
 
 if ($in_file)
@@ -203,6 +246,9 @@ print "Reference Panel:             $referenceused\n";
 print "Bim filename:                $bim_file\n";
 print "Reference filename:          $in_file\n";
 print "Allele frequencies filename: $frq_file\n";
+print "Plink executable to use:     $plink\n";
+print "\n";
+
 if ($chrflag)
  {
  print "Chromosome flag set:         Yes\n";
@@ -211,9 +257,6 @@ else
  {
  print "Chromosome flag set:         No\n";
  }
-
-
-
 
 if (!$noexclude)
  {
@@ -224,41 +267,36 @@ else
  print "Will not exclude any SNPs based on allele frequency differences\n";
  }
 
- 
+# optional flags to be highlighted if set 
 if ($kgflag)
  {
  print "Population for 1000G:        $population\n";
  }
+
 if ($verbose)
  {
  print "Verbose logging flag set\n";
  }
-print "\n\n";
 
-print "Reading $in_file\n";
+if ($palinFlag)
+ {
+ print "Palindromic Flag set:\n";
+ print "   A/T G/C SNPs with MAF > 0.4 will be included in the checks\n";
+ }
 
-if ($hrcflag)
- {
- read_hrc($in_file)
- }
-elsif ($kgflag)
- {
- read_kg($in_file, $population)
- }
-else
- {
- #should never end up here, but just in case
- print "ERROR: you must specify HRC or 1000G reference panel using -g or -h\n";
- usage();
- die "exiting\n";
- }
+print "\n";
 
 my $bim_count = 0;
 my $frq_count = 0;
 
 if (-e $bim_file)
  {
+ read_bim_sites($bim_file);
  $bim_count = get_counts($bim_file);
+ ($volume,$directories,$parsed_file) = File::Spec->splitpath($bim_file);
+ # print "Volume $volume\nDirectories $directories\nFile $parsed_file\n";
+ $abs_path = File::Spec->rel2abs($directories);
+ print "Path to plink bim file: $abs_path\n";
  }
 else
  {
@@ -278,7 +316,6 @@ else
  exit;
  }
 
-
 if ($bim_count != ($frq_count-1))
  {
  print "WARNING: The number of variants in the bim and frq files are different\n";
@@ -291,6 +328,28 @@ if ($allele_coding_flag == 2)
  exit;
  }
  
+if ($outpath)
+ {
+ print "Writing output files to: $outpath\n\n";
+ }
+
+print "\nReading $in_file\n";
+
+if ($hrcflag)
+ {
+ read_hrc($in_file)
+ }
+elsif ($kgflag)
+ {
+ read_kg($in_file, $population)
+ }
+else
+ {
+ #should never end up here, but just in case
+ print "ERROR: you must specify HRC or 1000G type reference panel using -g or -h\n";
+ usage();
+ die "exiting\n";
+ }
 
 open IN, "$bim_file" or die $!; # bim file
 open FRQ, "$frq_file" or die $!; # frequency file 
@@ -305,24 +364,102 @@ while (<FRQ>)
 close FRQ;
 
 #open all the output files for the different plink update lists
-my $filename = fileparse($bim_file);
-$filename =~ /(.*)\.bim$/;
+#my $filename = fileparse($bim_file);
+#$filename =~ /(.*)\.bim$/;
+$parsed_file =~ /(.*)\.bim$/;
 my $file_stem = $1;
+my $plink_file_path = File::Spec->catfile($abs_path, $file_stem);
 
-my $forcefile = 'Force-Allele1-'.$file_stem.'-'.$referenceused.'.txt';
-open F, ">$forcefile" or die $!;
+if ($outpath)
+ {
+ my @created = make_path($outpath);
+ $abs_outpath = File::Spec->rel2abs($outpath);
+ }
 
-my $strandfile = 'Strand-Flip-'.$file_stem.'-'.$referenceused.'.txt';
-open S, ">$strandfile" or die $!;
-
-my $logfilename = 'LOG-'.$file_stem.'-'.$referenceused.'.txt';
+my $logfilename = File::Spec->catfile($abs_path, 'LOG-'.$file_stem.'-'.$referenceused.'.txt');
+if ($outpath)
+ {
+ $logfilename = File::Spec->catfile($abs_outpath, 'LOG-'.$file_stem.'-'.$referenceused.'.txt');
+ }
+print "\n\nDetails written to log file: $logfilename\n";
+#print "$logfilename\n";
 open L, ">$logfilename" or die $!;
 
+print "\nCreating variant lists\n";
+
+my $forcefile = File::Spec->catfile($abs_path, 'Force-Allele1-'.$file_stem.'-'.$referenceused.'.txt');
+if ($outpath)
+ {
+ $forcefile = File::Spec->catfile($abs_outpath, 'Force-Allele1-'.$file_stem.'-'.$referenceused.'.txt');
+ }
+print "$forcefile\n";
+open F, ">$forcefile" or die $!;
+
+my $strandfile = File::Spec->catfile($abs_path, 'Strand-Flip-'.$file_stem.'-'.$referenceused.'.txt');
+if ($outpath)
+ {
+ $strandfile = File::Spec->catfile($abs_outpath, 'Strand-Flip-'.$file_stem.'-'.$referenceused.'.txt');
+ }
+print "$strandfile\n";
+open S, ">$strandfile" or die $!;
+
+my $idfile = File::Spec->catfile($abs_path, 'ID-'.$file_stem.'-'.$referenceused.'.txt');
+if ($outpath)
+ {
+ $idfile = File::Spec->catfile($abs_outpath, 'ID-'.$file_stem.'-'.$referenceused.'.txt');
+ }
+print "$idfile\n";
+open I, ">$idfile" or die $!;
+
+my $posfile = File::Spec->catfile($abs_path, 'Position-'.$file_stem.'-'.$referenceused.'.txt');
+if ($outpath)
+ {
+ $posfile = File::Spec->catfile($abs_outpath, 'Position-'.$file_stem.'-'.$referenceused.'.txt');
+ }
+print "$posfile\n";
+open P, ">$posfile" or die $!;
+
+my $chrfile = File::Spec->catfile($abs_path, 'Chromosome-'.$file_stem.'-'.$referenceused.'.txt');
+if ($outpath)
+ {
+ $chrfile = File::Spec->catfile($abs_outpath, 'Chromosome-'.$file_stem.'-'.$referenceused.'.txt');
+ }
+print "$chrfile\n";
+open C, ">$chrfile" or die $!;
+
+my $excludefile = File::Spec->catfile($abs_path, 'Exclude-'.$file_stem.'-'.$referenceused.'.txt'); 
+if ($outpath)
+ {
+ $excludefile = File::Spec->catfile($abs_outpath, 'Exclude-'.$file_stem.'-'.$referenceused.'.txt'); 
+ }
+print "$excludefile\n";
+open E, ">$excludefile" or die $!;
+
+my $plotfile = File::Spec->catfile($abs_path, 'FreqPlot-'.$file_stem.'-'.$referenceused.'.txt');
+if ($outpath)
+ {
+ $plotfile = File::Spec->catfile($abs_outpath, 'FreqPlot-'.$file_stem.'-'.$referenceused.'.txt');
+ }
+print "$plotfile\n";
+open PL, ">$plotfile" or dir $!;
+
+print L "Version $version\n\n";
 print L "Options Set:\n";
 print L "Reference Panel:             $referenceused\n";
 print L "Bim filename:                $bim_file\n";
 print L "Reference filename:          $in_file\n";
 print L "Allele frequencies filename: $frq_file\n";
+print L "Plink executable to use:     $plink\n";
+
+if ($chrflag)
+ {
+ print L "Chromosome flag set:         Yes\n";
+ }
+else
+ {
+ print L "Chromosome flag set:         No\n";
+ }
+
 if (!$noexclude)
  {
  print L "Allele frequency threshold:  $threshold\n";
@@ -340,70 +477,24 @@ if ($verbose)
  {
  print L "Verbose logging flag set\n";
  } 
-print L "\n\n"; 
 
-my $idfile = 'ID-'.$file_stem.'-'.$referenceused.'.txt';
-open I, ">$idfile" or die $!;
+print L "\nPath to plink bim file: $abs_path\n";
 
-my $posfile = 'Position-'.$file_stem.'-'.$referenceused.'.txt';
-open P, ">$posfile" or die $!;
-
-my $chrfile = 'Chromosome-'.$file_stem.'-'.$referenceused.'.txt';
-open C, ">$chrfile" or die $!;
-
-my $excludefile = 'Exclude-'.$file_stem.'-'.$referenceused.'.txt'; 
-open E, ">$excludefile" or die $!;
-
-my $plotfile = 'FreqPlot-'.$file_stem.'-'.$referenceused.'.txt';
-open PL, ">$plotfile" or dir $!;
-
-# shell script for running plink
-open SH, ">Run-plink.sh" or die $!;
-#set plink to use here
-my $plink = 'plink';
-my $plink = '/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/bin/plink-1.90b5.4/plink';      
-my $tempcount = 1;
-my $tempfile = 'TEMP'.$tempcount;
-#remove SNPs
-print SH "$plink --bfile $file_stem --exclude $excludefile --make-bed --out $tempfile\n";
-
-#change chromosome
-print SH "$plink --bfile $tempfile --update-map $chrfile --update-chr --make-bed --out ";
-$tempcount++;
-$tempfile = 'TEMP'.$tempcount;
-print SH "$tempfile\n";
-
-#change positions
-print SH "$plink --bfile $tempfile --update-map $posfile --make-bed --out ";
-$tempcount++;
-$tempfile = 'TEMP'.$tempcount;
-print SH "$tempfile\n";
-
-#flip strand
-print SH "$plink --bfile $tempfile --flip $strandfile --make-bed --out ";
-$tempcount++;
-$tempfile = 'TEMP'.$tempcount;
-print SH "$tempfile\n";
-
-#update ids
-#remove the following 4 lines if you want don't want to update the SNP identifiers to match the HRC
-#print SH "$plink --bfile $tempfile --update-map $idfile --update-name --make-bed --out ";
-#$tempcount++;
-#$tempfile = 'TEMP'.$tempcount;
-#print SH "$tempfile\n";
-
-#force alleles
-my $newfile = $file_stem.'-updated';
-print SH "$plink --bfile $tempfile --a2-allele $forcefile --make-bed --out $newfile\n";
-
-#split into per chromosome files
-for (my $i = 1; $i <= 23; $i++)
+if ($outpath)
  {
- my $perchrfile = $newfile.'-chr'.$i;
- print SH "$plink --bfile $newfile --real-ref-alleles --make-bed --chr $i --out $perchrfile\n";
- print SH "$plink --bfile $newfile --real-ref-alleles --recode vcf --chr $i --out $perchrfile\n";
+ print L "Writing output files to: $outpath\n\n";
  }
-print SH "rm TEMP*\n";
+
+print L "\n\nDetails written to log file: $logfilename\n";
+print L "\nCreating variant lists\n";
+print L "$forcefile\n";
+print L "$strandfile\n";
+print L "$idfile\n";
+print L "$posfile\n";
+print L "$chrfile\n";
+print L "$excludefile\n";
+print L "$plotfile\n";
+print L "\n\n";
 
 while (<IN>)
  {
@@ -413,11 +504,14 @@ while (<IN>)
  
  #split line
  my @temp = split/\s+/;
- if ($temp[0] <= 23) # or ($kgflag and $temp[0] == 23)) # no X, Y, XY or MT in release 1 HRC so skip checking these for now, only check if 1000G
+ if ($temp[0] <= 23) 
   {
   #set chr-position id for checks 
   my $chrpos = $temp[0].'-'.$temp[3];
   
+  #chromosomes in the file, for final update and split
+  $chromosomes{$temp[0]}++;
+
   #set alleles for strand and ref/alt checks
   my $allele1 = $temp[4];
   my $allele2 = $temp[5];
@@ -619,8 +713,8 @@ my $pos_check = $idmatch + $idmismatch;
 my $worked_check = $idmatch + $idmismatch + $mismatchpos;
 my $worked_check1 = $strand + $nostrand;
 
-print "Matching to $referenceused\n";
-print "\nPosition Matches\n ID matches $referenceused $idmatch\n ID Doesn't match $referenceused $idmismatch\n Total Position Matches $pos_check\nID Match\n Position different from $referenceused $mismatchpos\nNo Match to $referenceused $nothing\nSkipped (XY, Y, MT) $altchr\nTotal in bim file $total\nTotal processed $check_total\n\n"; 
+print "\n\nMatching to $referenceused\n";
+print "\nPosition Matches\n ID matches $referenceused $idmatch\n ID Doesn't match $referenceused $idmismatch\n Total Position Matches $pos_check\nID Match\n Position different from $referenceused $mismatchpos\nNo Match to $referenceused $nothing\nSkipped (MT) $altchr\nTotal in bim file $total\nTotal processed $check_total\n\n"; 
 print "Indels $indel\n\n";
 print "SNPs not changed $unchanged\nSNPs to change ref alt $nomatch\nStrand ok $strand\nTotal Strand ok $check_total1\n\n";
 print "Strand to change $nostrand\nTotal checked $worked_check\nTotal checked Strand $worked_check1\n";
@@ -634,8 +728,8 @@ print "ID and allele mismatching $idallelemismatch; where $referenceused is . $h
 print "Duplicates removed $duplicate\n";
 
 #print L "Total bim File Rows $total\n";
-print L "Matching to $referenceused\n";
-print L "\nPosition Matches\n ID matches $referenceused $idmatch\n ID Doesn't match $referenceused $idmismatch\n Total Position Matches $pos_check\nID Match\n Position different from $referenceused $mismatchpos\nNo Match to $referenceused $nothing\nSkipped (XY, Y, MT) $altchr\nTotal in bim file $total\nTotal processed $check_total\n\n"; 
+print L "\nMatching to $referenceused\n";
+print L "\nPosition Matches\n ID matches $referenceused $idmatch\n ID Doesn't match $referenceused $idmismatch\n Total Position Matches $pos_check\nID Match\n Position different from $referenceused $mismatchpos\nNo Match to $referenceused $nothing\nSkipped (MT) $altchr\nTotal in bim file $total\nTotal processed $check_total\n\n"; 
 print L "Indels $indel\n\n";
 print L "SNPs not changed $unchanged\nSNPs to change ref alt $nomatch\nStrand ok $strand\nTotal Strand ok $check_total1\n\n";
 print L "Strand to change $nostrand\nTotal checked $worked_check\nTotal checked Strand $worked_check1\n";
@@ -648,10 +742,12 @@ print L "\nNon Matching alleles $nomatchalleles\n";
 print L "ID and allele mismatching $idallelemismatch; where $referenceused is . $hrcdot\n";
 print L "Duplicates removed $duplicate\n";
 
+print "\n\nWriting plink commands to: $plink_run_script\n";
+write_shell_script();
+
 #close the file with the allele frequencies
 close PL;
 close L;
-close SH;
 close I;
 close P;
 close C;
@@ -717,6 +813,73 @@ close S;
 # return $check; 
 # }
 
+sub write_shell_script
+ {
+ # shell script for running plink
+ my $run_script = File::Spec->catfile($abs_path, $plink_run_script);
+ if ($outpath)
+  {
+  $run_script = File::Spec->catfile($abs_outpath, $plink_run_script);
+  }
+ open SH, ">$run_script" or die $!;
+
+ my $tempcount = 1;
+ my $tempfile = File::Spec->catfile($abs_path,'TEMP'.$tempcount);
+ #remove SNPs
+ print SH "$plink --bfile $plink_file_path --exclude $excludefile --make-bed --out $tempfile\n"; 
+
+ #change chromosome
+ print SH "$plink --bfile $tempfile --update-map $chrfile --update-chr --make-bed --out ";
+ $tempcount++;
+ $tempfile = File::Spec->catfile($abs_path, 'TEMP'.$tempcount);
+ print SH "$tempfile\n"; 
+
+ #change positions
+ print SH "$plink --bfile $tempfile --update-map $posfile --make-bed --out ";
+ $tempcount++;
+ $tempfile = File::Spec->catfile($abs_path, 'TEMP'.$tempcount);
+ print SH "$tempfile\n";
+
+ #flip strand
+ print SH "$plink --bfile $tempfile --flip $strandfile --make-bed --out ";
+ $tempcount++;
+ $tempfile = File::Spec->catfile($abs_path, 'TEMP'.$tempcount);
+ print SH "$tempfile\n";
+
+ #update ids
+ #remove the following 4 lines if you want don't want to update the SNP identifiers to match the HRC
+ #print SH "$plink --bfile $tempfile --update-map $idfile --update-name --make-bed --out ";
+ #$tempcount++;
+ #$tempfile = 'TEMP'.$tempcount;
+ #print SH "$tempfile\n";
+
+ #force alleles
+ my $newfile = File::Spec->catfile($abs_path, $file_stem.'-updated');
+ if ($outpath)
+  {
+  $newfile = File::Spec->catfile($abs_outpath, $file_stem.'-updated');
+  } 
+ print SH "$plink --bfile $tempfile --a2-allele $forcefile --make-bed --out $newfile\n";
+
+ #split into per chromosome files
+ for (my $i = 1; $i <= 23; $i++)
+  {
+  if ($chromosomes{$i})
+   {
+   my $perchrfile = $newfile.'-chr'.$i;
+   #my $perchrfile = File::Spec->catfile($abs_path, $newfile.'-chr'.$i);
+   #if ($outpath)
+   # {
+   # $perchrfile = File::Spec->catfile($abs_outpath, $newfile.'-chr'.$i);
+   # }
+   print SH "$plink --bfile $newfile --real-ref-alleles --make-bed --chr $i --out $perchrfile\n";
+   print SH "$plink --bfile $newfile --real-ref-alleles --recode vcf --chr $i --out $perchrfile\n";
+   }
+  }
+ print SH "rm TEMP*\n";
+ close SH;
+ }
+
 
 sub check_strand
  {
@@ -758,21 +921,23 @@ sub check_strand
   $maf = $altaf
   }
   
- #check MAFs for palindromic SNPs first, this is an absolute failure, so return here if conditions not met
- if ($maf > 0.4 and ($a1 eq 'A:T' or $a1 eq 'T:A' or $a1 eq 'G:C' or $a1 eq 'C:G')) 
+ if (!$palinFlag)
   {
-  print E "$id\n";
-  
-  if ($verbose)
+  #check MAFs for palindromic SNPs first, this is an absolute failure, so return here if conditions not met
+  if ($maf > 0.4 and ($a1 eq 'A:T' or $a1 eq 'T:A' or $a1 eq 'G:C' or $a1 eq 'C:G')) 
    {
-   print L "$id\t$maf\t$a1\n";
-   }
+   print E "$id\n";
    
-  $check = 5;
-  $palin++;
-  return $check;
+   if ($verbose)
+    {
+    print L "$id\t$maf\t$a1\n";
+    }
+    
+   $check = 5;
+   $palin++;
+   return $check;
+   }
   }
- 
  #print PL "$id\t$refaf\t$af\t";
  #$diff = $refaf - $bimaf;
 
@@ -859,9 +1024,9 @@ sub getwidth
  #my @rowcols = split(/\s/, $output);
  #my $cols = $rowcols[1];
  
- my @winsize = &GetTerminalSize(\*STDOUT);
- my ($cols, $rows, $xpix, $ypix) = @winsize;
- 
+ #my @winsize = &GetTerminalSize(\*STDOUT);
+ #my ($cols, $rows, $xpix, $ypix) = @winsize;
+ my $cols = 80;
  if (!$cols)
   {
   $cols = 80;
@@ -878,11 +1043,13 @@ sub usage
  printusage("-f --frequency", "Frequency file", "Plink format .frq allele frequency file, from plink --freq command");
  printusage("-r --ref", "Reference panel", "Reference Panel file, either 1000G or HRC");
  printusage("-h --hrc", "", "Flag to indicate Reference panel file given is HRC");
- printusage("-p --1000g", "", "Flag to indicate Reference panel file given is 1000G");
+ printusage("-g --1000g", "", "Flag to indicate Reference panel file given is 1000G");
  printusage("-p --pop", "Population", "Population to check frequency against, 1000G only. Default ALL, options ALL, EUR, AFR, AMR, SAS, EAS");
  printusage("-v --verbose", "", "Optional flag to increase verbosity in the log file");
  printusage("-t --threshold", "Freq threshold", "Frequency difference to use when checking allele frequency of data set versus reference; default: 0.2; range: 0-1");
  printusage("-c --chromosome", "Chromsome flag", "Optional flag to indicate to the program you are checking a subset of chromosomes and so to expect a smaller than normal reference panel");
+ printusage("-l --plink", "Path to the plink executable to add to the shell script", "Optional flag to indicate which plink executable you want to use in the Run-plink.sh shell script");
+ printusage("-o --output", "Path for the output files", "Optional flag to indicate the directory to use for the output files");
  #printusage("-i --indels", "", "Optional flag to keep or exclude indels in the output, default: exclude");
  #printusage("-x --xyplot", "", "Optional flag to invoke plotting of the data set vs reference allele frequencies");
  printusage("-n --noexclude", "", "Optional flag to include all SNPs regardless of allele frequency differences, default is exclude based on -t threshold, overrides -t");
@@ -929,7 +1096,11 @@ sub read_hrc
  
  if ($zipped)
   {
-  $z = new IO::Uncompress::Gunzip "$file" or die "IO::Uncompress::Gunzip failed: $GunzipError\n"; 
+  open $z, '-|', '/bin/gunzip', '-c', "$file";
+  if (!$z)
+   {
+   $z = new IO::Uncompress::Gunzip "$file" or die "IO::Uncompress::Gunzip failed: $GunzipError\n"; 
+   }
   }
  else
   {
@@ -941,9 +1112,9 @@ sub read_hrc
   chomp;
   if (!/\#.*/)
    {
-   if ($. % 100000 == 0)
+   if ($. % 2000000 == 0)
     {
-    print " $.";
+    print "$.\n";
     }
    my @temp = split/\s+/;
    if ($temp[0] eq 'X')
@@ -951,10 +1122,13 @@ sub read_hrc
     $temp[0] = 23;
     }
    my $chrpos = $temp[0].'-'.$temp[1];
-   $id{$chrpos} = $temp[2];
-   $rs{$temp[2]} = $chrpos;
-   $refalt{$chrpos} = $temp[3].':'.$temp[4];
-   $AltAf{$chrpos} = $temp[7];
+   if ($chrPosBim{$chrpos} or $rsBim{$temp[2]}) #only read in variant if this position or rs number exists in the supplied bim file
+    {
+    $id{$chrpos} = $temp[2];
+    $rs{$temp[2]} = $chrpos;
+    $refalt{$chrpos} = $temp[3].':'.$temp[4];
+    $AltAf{$chrpos} = $temp[7];
+    }
    }
   }
  if ($. < 10000000 and !$chrflag)
@@ -962,7 +1136,7 @@ sub read_hrc
   print "\nERROR: Reference appears smaller than expected this can be due to bgzip\nor by using a subset of the genome without the -c flag\nBgzip is not supported with the current Perl Library, please use the unzipped version\n";
   exit;
   }
- print " Done\n";
+ print "$.\n ...Done\n";
  close IN;
  }
  
@@ -979,7 +1153,11 @@ sub read_kg
  if ($zipped)
   {
   print "Reference Panel is zipped\n";
-  $z = new IO::Uncompress::Gunzip "$file" or die "IO::Uncompress::Gunzip failed: $GunzipError\n"; 
+  open $z, '-|', '/bin/gunzip', '-c', "$file";
+  if (!$z) # if cannot find gunzip then try uising the library in case not bgzipped
+   {
+   $z = new IO::Uncompress::Gunzip "$file" or die "IO::Uncompress::Gunzip failed: $GunzipError\n"; 
+   }
   }
  else
   {
@@ -1011,32 +1189,36 @@ sub read_kg
  while (<$z>)
   {
   chomp;
-  if ($. % 100000 == 0)
+  if ($. % 2000000 == 0)
    {
-   print " $.";
+   print "$.\n";
    }
   my @temp = split/\s+/;
-  
+  my $rsID = 'rs';
+
   my $chrpos = $temp[1].'-'.$temp[2];
-  $id{$chrpos} = $temp[0];
   if ($temp[0] =~ /^rs.*/)
    {
-   my @tempids = split(/\:/, $temp[0]);
-   $rs{$tempids[0]} = $chrpos;
+   my @tempids = split(/\:/, $temp[0]); #take first element = rs number
+   $rsID = $tempids[0];
+   $rs{$rsID} = $chrpos;
    }
-  $refalt{$chrpos} = $temp[3].':'.$temp[4];
-  $AltAf{$chrpos} = $temp[$freqcol];
-  
-  if ($typecol) # if column with SNP type exists, check for Multiallelic
+  if ($chrPosBim{$chrpos} or $rsBim{$rsID}) #only read in variant if this position or rs number exists in the supplied bim file
    {
-   if ($temp[$typecol] =~ /^Multiallelic.*/)
-    { # set multiallelic alleles to N so will always fail allele check
-    $refalt{$chrpos} = 'N:N';
+   $id{$chrpos} = $temp[0];
+   $refalt{$chrpos} = $temp[3].':'.$temp[4];
+   $AltAf{$chrpos} = $temp[$freqcol];
+  
+   if ($typecol) # if column with SNP type exists, check for Multiallelic
+    {
+    if ($temp[$typecol] =~ /^Multiallelic.*/)
+     { # set multiallelic alleles to N so will always fail allele check
+     $refalt{$chrpos} = 'N:N';
+     }
     }
    }
-  
   }
- print " Done\n";
+ print "$.\n ...Done\n";
  
  close IN;
 
@@ -1122,4 +1304,19 @@ sub check_allele_coding
   }
   
  return $code; 
+ }
+
+sub read_bim_sites
+ {
+ my $file = $_[0];
+ open I, "$file" or die $!;
+ while (<I>)
+  {
+  chomp;
+  my @temp = split/\s+/;  
+  my $chrPos = $temp[0].'-'.$temp[3];
+  $chrPosBim{$chrPos} = 1;
+  $rsBim{$temp[1]} = $chrPos; # add an allele check
+  }
+ close I; 
  }
