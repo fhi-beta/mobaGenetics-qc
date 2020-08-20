@@ -606,42 +606,42 @@ rayner_verification:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-split_by_chr:
-  QC test: split dataset by chromosome before phasing
-  Description:
-  Rule order: mod5-e
-  rule type: markers
-  rule action: split
-  # Placeholders that the pipeline will fill in
-  Rule: Will be the same as the key of this entry
-  Timestamp: 
+# split_by_chr:
+#   QC test: split dataset by chromosome before phasing
+#   Description:
+#   Rule order: mod5-e
+#   rule type: markers
+#   rule action: split
+#   # Placeholders that the pipeline will fill in
+#   Rule: Will be the same as the key of this entry
+#   Timestamp: 
 
-split_by_chr_report:
-  QC test: Document the split/number of chromsones
-  Description: The work is done in the rule split_by_chr but since it has wildcards it was hard to make a caption file for the record.
-  Rule order: mod5-f
-  rule type: markers
-  rule action: split
-  # Placeholders that the pipeline will fill in
-  Rule: Will be the same as the key of this entry
-  Timestamp: 
+# split_by_chr_report:
+#   QC test: Document the split/number of chromsones
+#   Description: The work is done in the rule split_by_chr but since it has wildcards it was hard to make a caption file for the record.
+#   Rule order: mod5-f
+#   rule type: markers
+#   rule action: split
+#   # Placeholders that the pipeline will fill in
+#   Rule: Will be the same as the key of this entry
+#   Timestamp: 
 
-wr_check:
-  QC test: Try out Will Rayner perl on one chromome
-  Description: 
-  Rule order: mod5-g
-  rule type: markers
-  rule action: tweak
-  # Placeholders that the pipeline will fill in
-  Rule: Will be the same as the key of this entry
-  Timestamp: 
+# wr_check:
+#   QC test: Try out Will Rayner perl on one chromome
+#   Description: 
+#   Rule order: mod5-g
+#   rule type: markers
+#   rule action: tweak
+#   # Placeholders that the pipeline will fill in
+#   Rule: Will be the same as the key of this entry
+#   Timestamp: 
 
-prepare_phased_for_imputation:
-  QC test:
-  Description:
-  Rule order: mod5-e
-  rule type: markers
-  rule action: remove
-  # Placeholders that the pipeline will fill in
-  Rule: Will be the same as the key of this
-  Timestamp: 
+# prepare_phased_for_imputation:
+#   QC test:
+#   Description:
+#   Rule order: mod5-e
+#   rule type: markers
+#   rule action: remove
+#   # Placeholders that the pipeline will fill in
+#   Rule: Will be the same as the key of this
+#   Timestamp: 
