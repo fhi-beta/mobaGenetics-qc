@@ -126,6 +126,7 @@ rule rayner_verification:
 
 # Pretty hardcoded to HRC as reference set
 # This code was used to run Will Rayner script on one chromosome at a time.
+# It should not be used - delete it when cleaning up
 # rule_stem = "wr_check"
 # rule wr_check:
 #     input:
@@ -199,57 +200,58 @@ rule rayner_verification:
 #                         "--out", outTrunk,
 #                         "--make-bed"], check=True)
         
-rule_stem = "split_by_chr"
-rule split_by_chr:
-    input:
-        bedset = rules.rayner_verification.output.bedset,
-    output:
-        bedset = expand(str(tmpMod5/rule_stem)
-                          +'{{chromo}}'+'{ext}', ext=['.bed','.bim','.fam']),
-    benchmark:
-        str(tmpMod5/rule_stem)+f"{{chromo}}.benchmark"
-    message: "Splitting verified dataset by chromosome: chromosome {wildcards.chromo}/23"
-    run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])
-        inTrunk =  mqc.plinkBase(input.bedset[0])
-        outTrunk = mqc.plinkBase(output.bedset[0])
-        subprocess.run([plinklocal,
-                        "--bfile", inTrunk,
-                        "--chr", str(wildcards.chromo),
-                        "--out", outTrunk,
-                        "--make-bed"], check=True)
+# rule_stem = "split_by_chr"
+# Not sure whay this is here. WR script allready split and orderes alleles
+# rule split_by_chr:
+#     input:
+#         bedset = rules.rayner_verification.output.bedset,
+#     output:
+#         bedset = expand(str(tmpMod5/rule_stem)
+#                           +'{{chromo}}'+'{ext}', ext=['.bed','.bim','.fam']),
+#     benchmark:
+#         str(tmpMod5/rule_stem)+f"{{chromo}}.benchmark"
+#     message: "Splitting verified dataset by chromosome: chromosome {wildcards.chromo}/23"
+#     run:
+#         item_type = rule_info[rule]["rule type"]
+#         mqc.log(runlog, rule_info[rule]["QC test"])
+#         inTrunk =  mqc.plinkBase(input.bedset[0])
+#         outTrunk = mqc.plinkBase(output.bedset[0])
+#         subprocess.run([plinklocal,
+#                         "--bfile", inTrunk,
+#                         "--chr", str(wildcards.chromo),
+#                         "--out", outTrunk,
+#                         "--make-bed"], check=True)
 
-rule_stem = "split_by_chr_report"
-rule split_by_chr_report:
-    input:
-        bedset = rules.split_by_chr.input.bedset,
-        chrfiles =  expand(str(tmpMod5/"split_by_chr")
-                          +'{chrom}'+".bim", chrom=range(1,24)),
-    output:
-        results = report((resultPath/rule_stem).with_suffix(".rst"),
-                          category="Module 5 Phasing and imputation preparation",
-                          caption=(resultPath/rule_stem).with_suffix(".rst"))
-    run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])
-        bimfile =  mqc.plinkBase(input.bedset[0]) + ".bim"
-        total = mqc.line_count(bimfile)  # number of snps before split
-        sum = 0 # total snps in chr files created previously
-        regx = re.compile('(\d+).bim')  # assuming that the chromosone number is just before .bim
-        res = ""  # String that contains chromosone counts.
-        for f in input.chrfiles:
-            c = re.search(regx,f).group(1)  # this chromosone
-            n = mqc.line_count(f)           # number of snsps for this chromosone
-            res += f"{c}:{n} "
-            sum += n
-        if total != sum :
-            print("Error: {bimfile} had {total} snps while the 23 chromosone files had {sum}")
+# rule_stem = "split_by_chr_report"
+# rule split_by_chr_report:
+#     input:
+#         bedset = rules.split_by_chr.input.bedset,
+#         chrfiles =  expand(str(tmpMod5/"split_by_chr")
+#                           +'{chrom}'+".bim", chrom=range(1,24)),
+#     output:
+#         results = report((resultPath/rule_stem).with_suffix(".rst"),
+#                           category="Module 5 Phasing and imputation preparation",
+#                           caption=(resultPath/rule_stem).with_suffix(".rst"))
+#     run:
+#         item_type = rule_info[rule]["rule type"]
+#         mqc.log(runlog, rule_info[rule]["QC test"])
+#         bimfile =  mqc.plinkBase(input.bedset[0]) + ".bim"
+#         total = mqc.line_count(bimfile)  # number of snps before split
+#         sum = 0 # total snps in chr files created previously
+#         regx = re.compile('(\d+).bim')  # assuming that the chromosone number is just before .bim
+#         res = ""  # String that contains chromosone counts.
+#         for f in input.chrfiles:
+#             c = re.search(regx,f).group(1)  # this chromosone
+#             n = mqc.line_count(f)           # number of snsps for this chromosone
+#             res += f"{c}:{n} "
+#             sum += n
+#         if total != sum :
+#             print("Error: {bimfile} had {total} snps while the 23 chromosone files had {sum}")
 
-        with open(output.results,'w') as file:
-                file.write(f'Rule {rule_info[rule]["Rule order"]} ({rule_info[rule]["rule action"]})\n\n'
-                           f'Total snps {total} split chromosone-wise like this:\n\n'
-                           f'{res}\n')
+#         with open(output.results,'w') as file:
+#                 file.write(f'Rule {rule_info[rule]["Rule order"]} ({rule_info[rule]["rule action"]})\n\n'
+#                            f'Total snps {total} split chromosone-wise like this:\n\n'
+#                            f'{res}\n')
 
 # rule hrc_verification_check:
 # 	input:
