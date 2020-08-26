@@ -140,7 +140,7 @@ def plot_point_and_line(qc_results, dataFile, resultFile,
 
 
 def saveYamlResults(files, yamlStruct):
-    """ Creates three files from the given yamlStruct
+    """ Creates 3 files (.rst .yaml .yaml.details) from yamlStruct
 
     files is a Path or string, typically result.yaml
     "files.removedSamples" has yamlStruct["xitems"] intact
@@ -162,9 +162,10 @@ def saveYamlResults(files, yamlStruct):
     # A .rst version used for captions
     rstFile = files.with_suffix(".rst")
     percentDropped = yamlStruct["actionTakenCount"] / yamlStruct["in"]
-    # March 2020; Note that founder/offspring rules, it has been har to declare separate rst-
-    # files for founder/offspring. Instead, we create a common file, overwriting whatever
-    # is made here :-(
+    # March 2020; Note that founder/offspring rules, it has been hard
+    # to declare separate rst- files for founder/offspring. Instead,
+    # we later create a common file, overwriting whatever is made here
+    # :-(
     with open(rstFile, 'w') as file:
         file.write(f'Rule {yamlStruct["Rule order"]} ({yamlStruct["rule type"]})\n\n')
         file.write(f'- {yamlStruct["in"]} in\n')
@@ -301,7 +302,7 @@ def dict_count_items(fil, cols=[0, 1], warn=True):
     scenarios, 1 is wanted here, meaning no duplicates.
     if warn=True, will warn about key value > 1
     fil is expected to be  csv file with whitespace as delimiters
-    First Column in the file is number 0 (standar Python)
+    First Column in the file is number 0 (standard Python)
     (Hint for when this is used to compare the columns of two files:
     You can reduce memory usage by making a dictionary of the smallest
     file and searchin/iterating for matches through the largest
@@ -1022,9 +1023,11 @@ def find_moba_pca_outlier(df):
 
 
 def main():
+# if you want to test a function
     print("Main called")
-    count_families("/mnt/work2/gutorm/pipeOut/mod2-data-preparation/inferped_all_m2.fam","^\d+")
-
+    (d,max) = dict_count_items("/mnt/work2/gutorm/pipeOut/mod5-shaping-preparation/mendelian_errors.bim", cols=[0], warn=False)
+    print (d)
+    print (d["2"])
    
 if __name__ == "__main__":
     main()
