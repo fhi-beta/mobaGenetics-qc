@@ -24,12 +24,12 @@ rule all:
         # Module 3 results
         (tmpMod3/"m3_output_good_markers").with_suffix(".txt") , 
         # Module 4 results
-        #expand(str(resultPath/"{role}/m4_output_lmm_samples.yaml"), role=ROLES),
-        #expand(str(resultPath/"{role}/m4_output_unrelated_samples.yaml"), role=ROLES),
+        expand(str(resultPath/"{role}/m4_output_lmm_samples.yaml"), role=ROLES),
+        expand(str(resultPath/"{role}/m4_output_unrelated_samples.yaml"), role=ROLES),
         # Module 5 results
-        expand(str(tmpMod5)+"/wr_check{chromo}"+'{ext}', ext=['.bed','.bim','.fam'], chromo=chrom),
-        expand(str(tmpMod5)+"/split_by_chr{chromo}"+'{ext}', ext=['.bed','.bim','.fam'], chromo=chrom),        
-
+#        expand(str(tmpMod5)+"/mendelian_errors"+'{ext}', ext=['.bed','.bim','.fam'], chromo=chrom),
+ #       expand(str(tmpMod5)+"/mendelian_errors-updated-chr{chromo}"+'{ext}', ext=['.bed','.bim','.fam'], chromo=chrom),
+        resultPath/"rayner_report.rst",
         # Forcing documentation of fu_detector of certain elements 
         (resultPath/"pedigree_fu_detector_solver").with_suffix(".yaml"),
         # For now: this is needed to force the plots into the report. Fix later

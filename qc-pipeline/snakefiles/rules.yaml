@@ -577,9 +577,9 @@ mendelian_errors_prep:
   Timestamp: 
     
 chr1_23:
-  QC test: Remove markers above chr 23 as these are eliglible for imputation
+  QC test: Remove markers above chr 23 as these are not eliglible for imputation
   Description: 
-  Rule order: mod5-b
+  Rule order: mod5-a
   rule type: markers
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -589,7 +589,7 @@ chr1_23:
 mendelian_errors:
   QC test: Set any mendelian errors obtained from trios (and duos) to missing in .bed file
   Description: 
-  Rule order: mod5-c
+  Rule order: mod5-a
   rule type: markers
   rule action: mendel errors set to missing
   # Placeholders that the pipeline will fill in
@@ -599,43 +599,23 @@ mendelian_errors:
 rayner_verification:
   QC test: Will Rayner verification (with HRC or 1000G) and update bedset
   Description: Big Perl Script needing 20-30Gb memory 
-  Rule order: mod5-d
+  Rule order: mod5-b
   rule type: markers
   rule action: update
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-# split_by_chr:
-#   QC test: split dataset by chromosome before phasing
-#   Description:
-#   Rule order: mod5-e
-#   rule type: markers
-#   rule action: split
-#   # Placeholders that the pipeline will fill in
-#   Rule: Will be the same as the key of this entry
-#   Timestamp: 
-
-# split_by_chr_report:
-#   QC test: Document the split/number of chromsones
-#   Description: The work is done in the rule split_by_chr but since it has wildcards it was hard to make a caption file for the record.
-#   Rule order: mod5-f
-#   rule type: markers
-#   rule action: split
-#   # Placeholders that the pipeline will fill in
-#   Rule: Will be the same as the key of this entry
-#   Timestamp: 
-
-# wr_check:
-#   QC test: Try out Will Rayner perl on one chromome
-#   Description: 
-#   Rule order: mod5-g
-#   rule type: markers
-#   rule action: tweak
-#   # Placeholders that the pipeline will fill in
-#   Rule: Will be the same as the key of this entry
-#   Timestamp: 
-
+rayner_report:
+  QC test: Document the split/number of chromsones
+  Description: The work is done in the rule rayner_verification but since it has wildcards it was hard to make a caption file for the record
+  Rule order: mod5-c
+  rule type: markers
+  rule action: split
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp:
+    
 # prepare_phased_for_imputation:
 #   QC test:
 #   Description:

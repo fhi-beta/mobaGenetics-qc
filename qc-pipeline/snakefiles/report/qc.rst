@@ -1,11 +1,14 @@
-(A demo to short what could have been included in this section)
+(This html file is autogenrated by snakemake)
 
-QC report for {{ snakemake.config["dataSet"] }}
-Chip used {{ snakemake.config["chip"] }}
+QC report for {{ snakemake.config["dataSet"] }}.
+Chip used was {{ snakemake.config["chip"] }}
 
-For a general description of the QC pipeline, see https://github.com/folkehelseinstituttet/mobaGenetics-qc/wiki (this link does not work for all yet as the wiki is not public)
+For a general description of the QC pipeline, see
+https://github.com/folkehelseinstituttet/mobaDocsBackoffice/wiki/pipeline
+(this link does not work for all yet as the wiki is not public)
 
-This report has two kind of Results_ (click the header to expand the result section)
+This report has two kind of Results (click the header of the Result
+section in the sidebar to expand the result section)
 
 The ones that describes the output main modules:
 
@@ -13,7 +16,7 @@ The ones that describes the output main modules:
 * `- Module 2 Pedigree fix recap`_
 * `- Module 3 Good markers recap`_
 * `- Module 4 Core individuals recap`_
-* Not ready yet
+* Module 5: Not ready yet
 
 
 The ones that decribes the intermediate results within a module 
@@ -25,13 +28,14 @@ The ones that decribes the intermediate results within a module
 * `Module 5 Phasing and imputation preparation`_
 
 
- Some examples of other types of information:
-  
-  
+The result column *Description* can be used to sort the rules in the
+order they appear in the pipleine. The *File* column can be used to
+see more details from the rules.
+
+Sandbox: Some examples of other types of information:
+    
 Links: A link to a plot: `maf_removal_markers.png`_ 
-
-
-Table: (note that these values are shown in the result section anyway) ...
+Table: (note that these values are shown in the result section anyway, this is just a demo of functionality that could have been included in the report).
 
 ====================  ====================
 Parameter                   Value 

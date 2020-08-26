@@ -123,6 +123,42 @@ rule rayner_verification:
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
 
+rule_stem = "rayner_report"
+rule rayner_report:
+    input:
+        bedset = rules.rayner_verification.input.bedset,
+        chrfiles =  expand(str(tmpMod5/"mendelian_errors-updated-chr")
+                          +'{chrom}'+".bim", chrom=range(1,24)),
+    output:
+        results = report((resultPath/rule_stem).with_suffix(".rst"),
+                          category="Module 5 Phasing and imputation preparation",
+                          caption=(resultPath/rule_stem).with_suffix(".rst"))
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        bimfile =  mqc.plinkBase(input.bedset[0]) + ".bim"
+        total = mqc.line_count(bimfile)  # number of snps before split
+        (n_chr_input,max) = mqc.dict_count_items(bimfile, cols=[0], warn=False)
+        # n_chr_input is now a dictionary counting number of chromosone
+        # before the Will Rayner pass
+        sum = 0 # total snps in chr files created by Will Rayner script
+        regx = re.compile('(\d+).bim')  # assuming that the chromosone number is just before .bim
+        res = ""  # String that contains chromosone counts after WR
+        for f in input.chrfiles:
+            c = re.search(regx,f).group(1)  # this chromosone
+            n = mqc.line_count(f)           # number of snsps for this chromosone
+            res += f"{c}:{n_chr_input[c]}->{n} "
+            sum += n
+        # if total != sum :
+            # print(f"Error: {bimfile} had {total} snps while the 23 chromosone files had {sum}")
+
+        with open(output.results,'w') as file:
+                file.write(f'Rule {rule_info[rule]["Rule order"]} ({rule_info[rule]["rule action"]})\n\n'
+                           f'Markers in -> out: {total} ->{sum}\n\n'
+                           f'Split chromosone-wise like this:\n'
+                           f'{res}\n\n'
+                           f'For details the se Will Rayner logs on {tmpMod5}/LOG-split_by_chr*-HRC.txt')
+
 
 # Pretty hardcoded to HRC as reference set
 # This code was used to run Will Rayner script on one chromosome at a time.
@@ -222,36 +258,6 @@ rule rayner_verification:
 #                         "--out", outTrunk,
 #                         "--make-bed"], check=True)
 
-# rule_stem = "split_by_chr_report"
-# rule split_by_chr_report:
-#     input:
-#         bedset = rules.split_by_chr.input.bedset,
-#         chrfiles =  expand(str(tmpMod5/"split_by_chr")
-#                           +'{chrom}'+".bim", chrom=range(1,24)),
-#     output:
-#         results = report((resultPath/rule_stem).with_suffix(".rst"),
-#                           category="Module 5 Phasing and imputation preparation",
-#                           caption=(resultPath/rule_stem).with_suffix(".rst"))
-#     run:
-#         item_type = rule_info[rule]["rule type"]
-#         mqc.log(runlog, rule_info[rule]["QC test"])
-#         bimfile =  mqc.plinkBase(input.bedset[0]) + ".bim"
-#         total = mqc.line_count(bimfile)  # number of snps before split
-#         sum = 0 # total snps in chr files created previously
-#         regx = re.compile('(\d+).bim')  # assuming that the chromosone number is just before .bim
-#         res = ""  # String that contains chromosone counts.
-#         for f in input.chrfiles:
-#             c = re.search(regx,f).group(1)  # this chromosone
-#             n = mqc.line_count(f)           # number of snsps for this chromosone
-#             res += f"{c}:{n} "
-#             sum += n
-#         if total != sum :
-#             print("Error: {bimfile} had {total} snps while the 23 chromosone files had {sum}")
-
-#         with open(output.results,'w') as file:
-#                 file.write(f'Rule {rule_info[rule]["Rule order"]} ({rule_info[rule]["rule action"]})\n\n'
-#                            f'Total snps {total} split chromosone-wise like this:\n\n'
-#                            f'{res}\n')
 
 # rule hrc_verification_check:
 # 	input:
