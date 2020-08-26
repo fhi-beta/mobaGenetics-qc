@@ -21,6 +21,8 @@ report: "report/qc.rst"
 # rule all
 rule all:
     input:
+        # Module 3 results
+        (tmpMod3/"m3_output_good_markers").with_suffix(".txt") , 
         # Module 4 results
         #expand(str(resultPath/"{role}/m4_output_lmm_samples.yaml"), role=ROLES),
         #expand(str(resultPath/"{role}/m4_output_unrelated_samples.yaml"), role=ROLES),
@@ -32,10 +34,10 @@ rule all:
         (resultPath/"pedigree_fu_detector_solver").with_suffix(".yaml"),
         # For now: this is needed to force the plots into the report. Fix later
         # Uncomment when creating in the report with plots
-        #expand(str(resultPath) + "/{role}/core_pca.png", role=ROLES),
-        #expand(str(resultPath/"{role}/ibd_estimate.png"), role=ROLES),
-        #expand(str(resultPath/"{role}/ibd_accum_exclusion.png"), role=ROLES),
-        #expand(str(resultPath/"{role}/core_pca.png"), role=ROLES),        
+        expand(str(resultPath) + "/{role}/core_pca.png", role=ROLES),
+        expand(str(resultPath/"{role}/ibd_estimate.png"), role=ROLES),
+        expand(str(resultPath/"{role}/ibd_accum_exclusion.png"), role=ROLES),
+        expand(str(resultPath/"{role}/core_pca.png"), role=ROLES),        
 
         # remove this when m4 is done
 	# final output:

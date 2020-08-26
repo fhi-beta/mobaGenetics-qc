@@ -382,4 +382,5 @@ rule m1_output_report:
         dropouts["Documentation details"] = docs
 
         mqc.saveYamlResults(output.report_samples, dropouts)
+# Pilepline continutes in module 2 
 

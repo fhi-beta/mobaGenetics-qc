@@ -940,7 +940,3 @@ rule m3_output_good_markers:
         common = mqc.line_count(output.good_markers)
         dropouts["Final markers"] = f"founders/offspring/common {founders}/{offspring}/{common}\n"
         mqc.saveYamlResults(output.results, dropouts)
-
-        
-        
-
