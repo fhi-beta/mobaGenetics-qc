@@ -2,6 +2,9 @@
 
 dataSet: "Rotterdam2"
 chip: "illumina GSA-MD 24 v1.0"
+documentationDataset: "https://github.com/folkehelseinstituttet/mobaDocsBackoffice/wiki/MoBaGenPub"
+documentationQC: "https://github.com/folkehelseinstituttet/mobaDocsBackoffice/wiki/pipeline"
+githubSource: "https://github.com/folkehelseinstituttet/mobaGenetics-qc"
 output_base: "/mnt/work2/gutorm/pipeOut"
 plinklocal: "/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/bin/plink-1.90b5.4/plink"
 
