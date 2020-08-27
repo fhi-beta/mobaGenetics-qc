@@ -17,21 +17,23 @@ then
     exit 1
 fi
 
+# set -x  # For debug/echo
 mkdir -p sort
 for file in $1/*.{bim,fam};
 do
     #echo "$file";
     file1=$1/$(basename -- "$file");
+    sortedFile1=sort/$(basename -- "$file");
     file2=$2/$(basename -- "$file");
     echo comparing $file1 and $file2 with comm -3
     extension="${file2##*.}"
     if [ $extension == "fam" ]
     then
-        sort $file1 > sort/$file
-        sort $file2 | comm -3 - sort/$file
+        sort $file1 > $sortedFile1
+        sort $file2 | comm -3 $sortedFile1 -
     else #bim file: Ignore markername and sort strands
-        awk '{if ($5<$6) {print $1,$3,$4,$5,$6} else {print $1,$3,$4,$6,$5}}' $file1 | sort > sort/$file
-        awk '{if ($5<$6) {print $1,$3,$4,$5,$6} else {print $1,$3,$4,$6,$5}}' $file2 | sort | comm -3 - sort/$file
+        awk '{if ($5<$6) {print $1,$3,$4,$5,$6} else {print $1,$3,$4,$6,$5}}' $file1 | sort > $sortedFile1
+        awk '{if ($5<$6) {print $1,$3,$4,$5,$6} else {print $1,$3,$4,$6,$5}}' $file2 | sort | comm -3 $sortedFile1 -
     fi
     
 done
