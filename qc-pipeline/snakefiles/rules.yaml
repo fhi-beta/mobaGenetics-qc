@@ -256,7 +256,7 @@ m2_output:
 pedigree_fix_pruned:
   QC test: Removes pedigree-problematic samples form the pruned set detected in pedigree_fu_detector_solver
   Description: Some of these detection steps have been manual (2019).
-  Rule order: mod2-l
+  Rule order: mod3-1a
   rule type: samples
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -266,7 +266,7 @@ pedigree_fix_pruned:
 common_markers_moba_ref:
   QC test: Find markers common to both Moba and reference set (1000 Genomes)
   Description: Also extract those markers and creates plink bedsets for them. Pruning has allready be done one moba-set, so that pruning will carry over to the reference set
-  Rule order: mod3.1a
+  Rule order: mod3.1b
   rule type: markers
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -276,7 +276,7 @@ common_markers_moba_ref:
 remove_dup_markers_1kg:
   QC test: Remove duplicte markers in 1000 Genomes
   Description: 
-  Rule order: mod3.1b
+  Rule order: mod3.1c
   rule type: markers
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -286,7 +286,7 @@ remove_dup_markers_1kg:
 pca_1kgp:
   QC test: PCA on reference set 1000 Genomes (without Moba data)
   Description: (flashpca used)
-  Rule order: mod3.1c
+  Rule order: mod3.1d
   rule type: analysis
   rule action: pca/plot
   # Placeholders that the pipeline will fill in
@@ -296,7 +296,7 @@ pca_1kgp:
 pca_moba:
   QC test: Project moba PCA on reference set 1000 Genomes 
   Description: (flashpca used)
-  Rule order: mod3.1d
+  Rule order: mod3.1e
   rule type: analysis
   rule action: pca/plot
   # Placeholders that the pipeline will fill in
@@ -306,7 +306,7 @@ pca_moba:
 pca_both:
   QC test: Merge Moba and reference data (1000g) and do pca
   Description: (flashpca used)
-  Rule order: mod3.1e
+  Rule order: mod3.1f
   rule type: analysis
   rule action: pca/plot
   # Placeholders that the pipeline will fill in
@@ -316,7 +316,7 @@ pca_both:
 plot_pca_both:
   QC test: Plot Moba and reference data (1000g). 
   Description: 1000genomes superpopulations used, except for europe where countries are shown. 
-  Rule order: mod3.1e
+  Rule order: mod3.1g
   rule type: analysis
   rule action: pca/plot
   # Placeholders that the pipeline will fill in
@@ -336,7 +336,7 @@ plot_pca_both:
 extract_pca_outliers:
   QC test: Exclude samples where there is too much diversity in pca
   Description: Consider only the two first principal components. 2020.1. Criteria to be improved
-  Rule order: mod3.1g
+  Rule order: mod3.1h
   rule type: samples
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -346,7 +346,7 @@ extract_pca_outliers:
 tmp_extract_samples:
   QC test: On mod2 bedset (all markers), temporarily remove  samples corrected for pedigree & pca
   Description: When looking for good markers, we avoid pca-outliers and too dependent samples. Samples will not be extracted permanently. For the sake of identifying good markers, we keep them out of the loop for now.
-  Rule order: mod3.1h
+  Rule order: mod3.1i
   rule type: samples
   rule action: remove
   # Placeholders that the pipeline will fill in

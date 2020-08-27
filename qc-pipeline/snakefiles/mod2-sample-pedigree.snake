@@ -437,11 +437,10 @@ rule document_pedigree_fu_detector_solver:
         with open(rst_file, "a") as f:
             f.write(msg)
 
-# This is a dummy rule which sole intention is to recap and show what happens in Modules 2,
-# It permits the module to have some 'public' variables, that other rules can
-# refer to.
-# It also ensure that snakemake --report is easer to read.
-
+# This recaps and show what happens in Modules 2. It permits the
+# module to have some 'public' variables, that other rules can refer
+# to.  It also ensure that snakemake --report is easer to read.
+# The rule will rename/copy some files made previously.
 rule_stem = 'm2_output'
 rule m2_output:
     input:
