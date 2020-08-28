@@ -173,7 +173,7 @@ def saveYamlResults(files, yamlStruct):
         file.write(f'- {yamlStruct["out"]} left\n\n')
         file.write(f'{yamlStruct["Timestamp"]}\n')
 
-
+        
 def plinkBase(path):
     """ part of the file without the last extention (such as .fam .bed .bim)
 
@@ -370,14 +370,13 @@ def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
        removal: Number of action on (removed) = size of preQc-postQc
        updated: size of preQc = postQc
        anything different from the above): No tests performed
-    Only columns passed by cols are used to compare betwen input/and output.
+    Only columns passed by cols are used to compare between input/and output.
 
     fullList documents (in list xitems), what sample/markers have been
-    changed/missing.  indx is only necessary if fullList is True. 
+    changed/missing.  
 
-    indx is used to genereate a list (usually of samples/markers) from
-    column nr indx
-
+    indx (if fullList is True) is used to genereate a list (usually of
+    samples/markers) from column nr indx.
     indx is sample-id/marker-id. indx=0 is the first column, default
     is second column.
 
@@ -392,7 +391,7 @@ def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
     samples/markers as well as sample/markers removed/remaining.
 
     """
-    # dictionaly with only relevant columns
+    # dictionary with only relevant columns
     (outDict, m) = dict_count_items(postQc, cols)
     result = {
         "in":   0,        # will count lines from the 'in' file

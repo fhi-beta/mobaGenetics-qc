@@ -20,7 +20,7 @@
 
 remove_chr0:
   QC test: Remove chromosone 0
-  Description: Illumina techincal markers were assigned to chromosone 0
+  Description: Illumina techincal markers were assigned to chromosone 0. This rule simply removes them all from the bedset.
   Rule order: mod1-a
   rule type: markers
   rule action: remove
