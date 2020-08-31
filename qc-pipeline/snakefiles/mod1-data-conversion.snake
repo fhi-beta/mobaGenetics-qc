@@ -26,8 +26,9 @@ rule remove_chr0:
 
         # Checking how many markers/chromosone 0 we removed  on this step
         # We turn of warning here as we know there might be duplicate markers to check for later
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim", cols=[0,1,3,4,5], indx=1,
-                                    sanityCheck="none", fullList=True, ) 
+        dropouts = mqc.checkUpdates(inTrunk+".bim",
+                                    outTrunk+".bim", cols=[0,1,3,4,5], indx=1,
+                                    sanityCheck="none", fullList=True ) 
 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
@@ -84,9 +85,9 @@ rule remove_duplicate_markers:
         ], check=True)
         
         dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",
-                                    cols = [0,1,3,4,5],
-                                    sanityCheck = "removal",
-                                    fullList = True) 
+                                    cols=[0,1,3,4,5],
+                                    sanityCheck="removal",
+                                    fullList=True) 
         dropouts["Callrates"] = output.resultDetails
 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -117,8 +118,10 @@ rule update_sample_ids:
                 "--update-ids", input.recode,
                 "--out", outTrunk ,
                 "--make-bed"], check=True)
-        updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols=[0,1], indx=1,
-                                   sanityCheck="updated", fullList=True, mapFile=input.recode, mapIndx=1) 
+        updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols=[0,1],
+                                   indx=1,
+                                   sanityCheck="updated", fullList=True,
+                                   mapFile=input.recode, mapIndx=1) 
         updated.update(rule_info[rule])   # Metainfo and documentation about the rule
         updated["Rule"] = rule
         mqc.saveYamlResults(output.results, updated)
@@ -145,8 +148,9 @@ rule update_parents:
                 "--out", outTrunk ,
                 "--make-bed"
         ], check=True)
-        updated= mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols=[1,2,3], sanityCheck = "updated",
-                                   fullList = True, mapFile=input.recode)
+        updated= mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols=[1,2,3],
+                                  sanityCheck="updated",
+                                  fullList=True, mapFile=input.recode)
         updated.update(rule_info[rule])   # Metainfo and documentation about the rule
         updated["Rule"] = rule
 
@@ -178,8 +182,10 @@ rule update_sex:
                 "--make-bed"
         ], check=True)
         # Checking how many of the original samples we still have
-        updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [1,4], indx=1, sanityCheck = "updated",
-                                   fullList = True, mapFile=input.recode, mapIndx=1)
+        updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",
+                                   cols = [1,4], indx=1, sanityCheck="updated",
+                                   fullList=True,
+                                   mapFile=input.recode, mapIndx=1)
         updated.update(rule_info[rule])   # Metainfo and documentation about the rule
         updated["Rule"] = rule
 
@@ -199,8 +205,9 @@ rule remove_markers_cluster_sep:
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
-        plot = report((resultPath/rule_stem).with_suffix(".png"),category="Module 1 Data preparation",
-                                 caption=(resultPath/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/rule_stem).with_suffix(".png"),
+                      category="Module 1 Data preparation",
+                      caption=(resultPath/rule_stem).with_suffix(".rst")),
         # in addition to the removal list .txt, a *removal.txt.samples is produced, sporting only the sample-list
         removal= (tmpMod1/rule_stem).with_suffix(".txt"), 
         removal_markers = (tmpMod1/rule_stem).with_suffix(".markers.txt"),
@@ -216,9 +223,9 @@ rule remove_markers_cluster_sep:
         # identify markers for removal on cluster separation
         (removed,total) = mqc.extract_list(input.snptable, 
                 output.removal_markers, output.removal, 
-                                colName=config['cluster_sep_col_name'], sep='\t',
-                                condition="<", treshold=params.treshold, 
-                                key_cols=[0], doc_cols=[0])
+                colName=config['cluster_sep_col_name'], sep='\t',
+                condition="<", treshold=params.treshold, 
+                key_cols=[0], doc_cols=[0])
 
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
@@ -227,8 +234,9 @@ rule remove_markers_cluster_sep:
                 "--make-bed"
         ], check=True)
 
-        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1],
-                                    sanityCheck = "removal", fullList = True)
+        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",
+                                    cols = [0,1,3,4,5],
+                                    sanityCheck="removal", fullList=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Treshold"] = params.treshold
         dropouts["Rule"] = rule
@@ -276,7 +284,9 @@ rule remove_markers_gc_score:
                 "--out", outTrunk ,
                 "--make-bed"], check=True)
 
-        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True) 
+        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",
+                                    cols=[0,1,3,4,5], sanityCheck="removal",
+                                    fullList=True) 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Treshold"] = params.treshold
         dropouts["Rule"] = rule
@@ -327,7 +337,9 @@ rule remove_markers_aa_theta_deviation:
                 "--make-bed"
         ], check=True)
 
-        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True)
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
+                                    cols=[0,1,3,4,5], sanityCheck="removal",
+                                    fullList=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Treshold"] = params.treshold
         dropouts["Rule"] = rule
@@ -373,7 +385,9 @@ rule m1_output_report:
         for i in ['.bed','.bim','.fam']:
             copyfile(lastTrunk+i, outTrunk+i)
         # report markers
-        dropouts = mqc.checkUpdates(firstTrunk+".bim",outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True)
+        dropouts = mqc.checkUpdates(firstTrunk+".bim", outTrunk+".bim",
+                                    cols=[0,1,3,4,5],
+                                    sanityCheck="removal", fullList=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         dropouts["Documentation details"] = docs
@@ -381,7 +395,9 @@ rule m1_output_report:
         mqc.saveYamlResults(output.report_markers, dropouts)
 
         # report samples
-        dropouts = mqc.checkUpdates(firstTrunk+".fam",outTrunk+".fam",cols = [0,1], sanityCheck = "update", fullList = True)
+        dropouts = mqc.checkUpdates(firstTrunk+".fam",outTrunk+".fam",
+                                    cols=[0,1], sanityCheck="update",
+                                    fullList=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         dropouts["Documentation details"] = docs

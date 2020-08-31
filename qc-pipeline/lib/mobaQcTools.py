@@ -126,16 +126,17 @@ def plot_point_and_line(qc_results, dataFile, resultFile,
         treshold = 1-treshold
 
     xlabel = qc_results.get("rule type")
-    title = f'{qc_results.get("QC test")}\n{qc_results.get("Timestamp")}'
+    title = f'{qc_results.get("QC test")}\ntreshold={treshold}'
     df = df.sort_values(column).reset_index(drop=True)
     p = p9.ggplot(df, p9.aes(x=df.index, y=column))
     line = p + p9.geom_line() + p9.geom_point()
     if treshold > 0 and treshold < 1 :
         line += p9.geom_hline(yintercept=treshold, color='red')
-        ylabel += f"   (treshold {treshold})"
+        # ylabel += f"   (treshold={treshold})"
         xlabel += f' ({qc_results.get("actionTakenCount")} outside treshold)'
     line += p9.labs(title=title, y=ylabel, x=xlabel)
-    p9.ggsave(plot=line, filename=resultFile, dpi=300)
+    p9.ggsave(plot=line, filename=resultFile, dpi=300,
+              width=6, height=6, units="cm")
     return
 
 

@@ -120,7 +120,6 @@ m1_output_report:
 #   Timestamp:
 
 
-
 maf_removal_markers: 
   QC test: Low minor allele frequencies of markers temporarily removed
   Description: plink --maf
@@ -132,8 +131,8 @@ maf_removal_markers:
   Timestamp: 
 
 missing_genotype_samples:
-  QC test: Remove samples due to high missing callrates (plink --mind)
-  Description: Input to this is a previously --maf reduced marker set
+  QC test: Detect samples with poor callrate for later removal
+  Description:  Find sample with high genotype missingness (plink --mind) Input to this is a previously --maf reduced marker set
   Rule order: mod2-b
   rule type: samples
   rule action: remove
@@ -141,9 +140,9 @@ missing_genotype_samples:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-clean_samples:
-  QC test: Permanent removal of samples , but keep markers from Module1
-  Description: Input to this is a previously --maf --mind filtered marker set
+callrate_permanent_removal:
+  QC test: Permanent removal of samples with high genotype missingness.
+  Description: In an attempt not to loose samples of good quality, we only remove extremely poor samples
   Rule order: mod2-b1
   rule type: samples
   rule action: remove
