@@ -68,7 +68,7 @@ update_sex:
   Timestamp: 
 
 remove_markers_cluster_sep:
-  QC test: Remove markers with poor cluster separation according to config-file set threshold 
+  QC test: Remove markers with poor cluster separation 
   Description: Clustering metrics were provided by the SNP table exported from GenomeStudio
   Rule order: mod1-f
   rule type: markers
