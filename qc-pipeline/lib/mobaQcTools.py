@@ -136,7 +136,7 @@ def plot_point_and_line(qc_results, dataFile, resultFile,
         xlabel += f' ({qc_results.get("actionTakenCount")} outside treshold)'
     line += p9.labs(title=title, y=ylabel, x=xlabel)
     p9.ggsave(plot=line, filename=resultFile, dpi=300,
-              width=6, height=6, units="cm")
+              width=6, height=4, units="cm")
     return
 
 
