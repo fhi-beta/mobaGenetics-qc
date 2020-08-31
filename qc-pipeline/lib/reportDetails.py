@@ -8,39 +8,6 @@ import argparse
 import re
 
 
-# def create_new_flag_col(df, c, qcFile, failPass=["Failed", "Passed"]):
-#     """ Append a row to the flag matrix
-
-#     df is the frame to be augmentet by a new columne named c
-#     the results from the QC are samples found in qcFile
-#     When a match is not found, the corresponding string from failPass is used
-#     qcFile is typical result from checkUpdates() with fullList=True. If the sample/marker
-#     has been modified, it is present in the "xitems" list of the .details file.
-
-#     Dropped samples should be marked by a X. When that happens, 
-#     all following columns will
-#     be set to x (lower case).
-
-#     """
-#     try:    # creating a dictionary of samples/markers listed
-#         with open(qcFile) as file:
-#             qcFull = yaml.load(file, Loader=yaml.FullLoader)
-#         allItems = qcFull["xitems"]
-#         item = re.compile('^\w+')  # sample or marker id
-#         items = [item.match(i).group() for i in allItems]
-#         qc = dict.fromkeys(items, 1)
-#     except Exception as e:
-#         print(f"Could not create dictionary from yaml file {qcFile} ({str(e)})")
-#         return
-#     # we translate the qc list of samples to a pass/not passed code
-#     results = list(df["Id"])              # These are the samples/markers
-#     for i, result in enumerate(results):  # found in the qc-fresults or not?
-#         results[i] = failPass[0] if qc.get(result, 0) == 0 else failPass[1]
-#     df[c] = results                      # add a new column
-#     # If the sample was previously dropped, the second last column contains x or X.
-#     # In that case, we just add an 'x': Not being in the .detail file means nothing.
-#     if len(df.columns) > 1:
-#         df.loc[df.iloc[:, -2].str.upper() == 'X', [c]] = 'x'
 
 def parse_yaml(file, value):
     """ Checking a result-file for a marker/sample
@@ -68,11 +35,14 @@ def parse_yaml(file, value):
     elif result.returncode == 1: # no match
         return 0
     # We here have a match. Parse the yaml-file and dump results.
+    match_details = ""
+    if int(result.stdout) > 1:
+        match_details = f"!{int(result.stdout)} matches found!"
     with open(file, 'r') as stream:
         r = yaml.safe_load(stream)  # r for result
 
     print (f'Item {r["rule action"]}d by rule {r["Rule"]} ({r["Rule order"]})'
-           f' on {r["Timestamp"]}')
+           f' on {r["Timestamp"]} {match_details}')
     print (f'Test/description: {r["QC test"]}\n{r["Description"]}')
     print (f'See {file} for full details')
     
