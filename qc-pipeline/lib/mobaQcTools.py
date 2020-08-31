@@ -955,6 +955,8 @@ def sex_check(rule,
 
 def egrep(pattern, in_file, out_file, switches=""):
     """ egrep wrapper. Lazy. Prone to path errors. It is pretty bad tbh.
+
+        Consider simply using subprocess.run
     """
     subprocess.call(f'egrep {switches} {pattern} {in_file} > {out_file}',
                     shell=True)
