@@ -1,0 +1,33 @@
+# Used by various reporting to describe the set
+
+dataSet: "Norment (biobank retrieval 954, V1 chip)"
+chip: "DeCodeGenetics_V1"
+# Name the raw plink files
+# a_b_c-chip.version
+# this will both be the name of the plinkset as well as default family name
+rawPlink: "954-deCODE.V1"
+
+# Not used for now - These links will need to be updated when we go
+# public
+documentationDataset: "https://github.com/folkehelseinstituttet/mobaDocsBackoffice/wiki/MoBaGenPub"
+documentationQC: "https://github.com/folkehelseinstituttet/mobaDocsBackoffice/wiki/pipeline"
+githubSource: "https://github.com/folkehelseinstituttet/mobaGenetics-qc"
+
+# Ugly, but we try to avoid absolute paths. 
+plinklocal: "../../../qc-pipeline/bin/plink-1.90b5.4/plink"
+
+# Lab QC report: < if they have one> Edit snakefile so this is used ...
+
+# This is the plink set as it was received it from the lab (for norment: deCODE)
+raw_bed_stem_in: "/mnt/work2/NORMENT1/JAN20/MorBarn.DeCodeGenetics_V1_20012591_A1.plink.dir/MorBarn.DeCodeGenetics_V1_20012591_A1"
+raw_bed_dir_out: "/home/gthh/work/gutorm/MobaGenetics/Datasets/Norment_2a/raw-data/plink"
+
+# The following file is typically made by hand/grep It has no headers
+# and is typically made from the samplesheet. Sometime (in case of
+# duplicates) it needs to be tweaked. It should have two columns (id
+# from to and the same number of rows as the plinkfiles. 
+remap_id: "/mnt/work2/NORMENT1/JAN20/sampleCheck/retrievalID_to_sentrixId"
+# The mapping above will produce something suitable for plink
+recode_ids: "/mnt/work2/NORMENT1/JAN20/sampleCheck/retrievalID_to_sentrixId_4_plink"
+
+
