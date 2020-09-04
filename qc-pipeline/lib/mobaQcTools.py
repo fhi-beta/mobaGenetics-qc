@@ -1041,8 +1041,7 @@ def create_fam_map(fam_file, map_in_file,  map_out_file, new_fam):
     * new_fam is the name of the new family. If "", leave the one from fam_file
 
     """
-
-    print(f"Doing: {fam_file} and {map_in_file} to {map_out_file}")
+    # print(f"Doing: {fam_file} and {map_in_file} to {map_out_file}")
     my_name = inspect.currentframe().f_code.co_name  # Generic way of find function name
     try:
         # 4 columns 0-3
@@ -1063,8 +1062,6 @@ def create_fam_map(fam_file, map_in_file,  map_out_file, new_fam):
     else:
         all['set'] = new_fam
     
-        
-    print (all)
     # 1_x is old ID (retrievalID), 1_y is new (sentrixId)
     # 0_x is old familyname, set is new
     all[["0_x","1_x","set","1_y"]].to_csv(map_out_file, sep=" ",
