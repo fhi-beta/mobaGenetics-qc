@@ -235,7 +235,7 @@ rule remove_markers_cluster_sep:
         ], check=True)
 
         dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",
-                                    cols = [0,3,4,5],
+                                    cols = [0,1,3,4,5],
                                     sanityCheck="removal", fullList=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Treshold"] = params.treshold
