@@ -1,42 +1,33 @@
-# Config files containing hard coded variables
+# Usage: snakemake --config-file configs/your-config
+
 sys.path.append('../../../qc-pipeline/lib/')  # in order to find our local packages
-foo = "morn"
 import mobaQcTools as mqc  # local moba package
-# from shutil import copyfile
 
-# But we will think about set-spesific configfiles ...
-configfile: "config.yaml" 
+# There are multiple configfiles, choose the right one as a snakemake param
+# configfile: "Friendly reminder: Use --configfile configs/whatever" 
 
-#ensure bash as shell - if used at all
-shell.executable("/bin/bash")
+# Report (top level) (for now we dont need/use it. --report still works
+# report: "report/qc.rst"
 
-# lets see if we can avoid these
-# Runtime variables
-# include: "variables.py"
-# A file with rule properties and ordering
-#with open("rules.yaml", 'r') as stream:
-#    rule_info = yaml.safe_load(stream)
-
-# Report (top level)
-report: "report/qc.rst"
-
+rule all:
+    input: recode_ids=config["recode_ids"],
 
 # rule all
-rule all:
+rule make_plink:
     input:
         bedset=multiext(config["raw_bed_stem_in"],".bed",".bim",".fam"),
         biobank2sentrix_map=config["remap_id"]
     output:
         recode_ids=config["recode_ids"],
         bedset=multiext(config["raw_bed_dir_out"]+"/"+config["rawPlink"],
-                        ".bed",".bim",".fam"),
+                        ".bed",".bim",".fam")
+    log: "logs/make_plink"
+            
     run:
-#        print(f"will recode {input.bedset} using {input.biobank2sentrix_map}")
         plink = config["plinklocal"]
         # Clumsy, but generic
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
-
         mqc.create_fam_map(inTrunk+".fam",
                            input.biobank2sentrix_map,
                            output.recode_ids,
@@ -46,6 +37,6 @@ rule all:
                         "--update-ids", output.recode_ids,
                         "--out", outTrunk,
                         "--make-bed"], check=True)
-
-        
+        # .nosex file still contains unmapped ids so it must die
+        Path(outTrunk+".nosex").unlink(missing_ok=True)
 
