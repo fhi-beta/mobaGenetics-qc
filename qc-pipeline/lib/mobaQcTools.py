@@ -1025,7 +1025,7 @@ def find_moba_pca_outlier(df):
 # dir="/mnt/work2/gutorm/pipeOut/mod2-data-preparation/founders/"
 # intersect_rsid("/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/snakefiles/foo", dir+"23", "bar", small_col=0, big_col=1)
 
-def create_fam_map(fam_file, map_in_file,  map_out_file, new_fam):
+def create_fam_map(fam_file, map_in_file,  map_out_file):
     """Creates a file that plink can use to rename individuals
 
     This is typically used to replace/obfuscate retrievalDetails_Ids
@@ -1037,8 +1037,6 @@ def create_fam_map(fam_file, map_in_file,  map_out_file, new_fam):
       and only retrievalDetails_Ids and sentrixIds
 
     * map_out_file the mapping file expected later by plink --update-ids
-
-    * new_fam is the name of the new family. If "", leave the one from fam_file
 
     """
     # print(f"Doing: {fam_file} and {map_in_file} to {map_out_file}")
@@ -1057,14 +1055,9 @@ def create_fam_map(fam_file, map_in_file,  map_out_file, new_fam):
     # print(map)
     all = fam.merge(map, left_on=[1], right_on=[0],
                     indicator=True, validate="1:1")
-    if new_fam=="" :
-        all['set'] = all[["0_x"]]
-    else:
-        all['set'] = new_fam
-    
+    # 0_x is old familyname, 
     # 1_x is old ID (retrievalID), 1_y is new (sentrixId)
-    # 0_x is old familyname, set is new
-    all[["0_x","1_x","set","1_y"]].to_csv(map_out_file, sep=" ",
+    all[["0_x","1_x","1_y","1_y"]].to_csv(map_out_file, sep=" ",
                                           header=False,
                                           index=False)
     # end create_fam_map

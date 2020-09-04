@@ -28,8 +28,7 @@ rule make_plink:
         outTrunk =  mqc.plinkBase(output.bedset[0])
         mqc.create_fam_map(inTrunk+".fam",
                            input.biobank2sentrix_map,
-                           output.recode_ids,
-                           config["rawPlink"])
+                           output.recode_ids)
         subprocess.run([plink,
                         "--bfile",inTrunk,
                         "--update-ids", output.recode_ids,
