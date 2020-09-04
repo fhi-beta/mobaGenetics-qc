@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 import pandas as pd
 import numpy as np
 import math
@@ -14,22 +14,24 @@ import inspect    # to find stack-info, such as the functions name
 import matplotlib
 matplotlib.use('Agg')
 
-
-# This is kinda ugly
-cwd = Path.cwd()
-snake_dir = cwd/"../snakefiles"
 # snake_dir = Path("/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/snakefiles")
 # print (f"DDDDDDDDEEEEBUG!  {snake_dir}   xxx")
 # Grab the same configfiles as snakefile has
 try:
+    # This is kinda ugly - it only works for the ../snakefiles directory
+    # It is only needed for functions that need the rules/config files
+    cwd = Path.cwd()
+    snake_dir = cwd/"../snakefiles"
+    
     with open(snake_dir/"rules.yaml", 'r') as stream:
         rule_info = yaml.safe_load(stream)
     with open(snake_dir/"config.yaml", 'r') as stream:
         config = yaml.safe_load(stream)
-except Exception as e:
-    print(f"mobaQcTools.py: Could load configfile, {str(e)}")
+    plink = config["plinklocal"]
 
-plink = config["plinklocal"]
+except Exception as e:
+    print(f"Warning mobaQcTools.py: Could not load configfiles, {str(e)}")
+
 
 
 def test_me(foo="bar"):
@@ -136,7 +138,7 @@ def plot_point_and_line(qc_results, dataFile, resultFile,
         xlabel += f' ({qc_results.get("actionTakenCount")} outside treshold)'
     line += p9.labs(title=title, y=ylabel, x=xlabel)
     p9.ggsave(plot=line, filename=resultFile, dpi=300,
-              width=6, height=4, units="cm")
+              width=4, height=3, units="cm")
     return
 
 
@@ -1023,13 +1025,60 @@ def find_moba_pca_outlier(df):
 # dir="/mnt/work2/gutorm/pipeOut/mod2-data-preparation/founders/"
 # intersect_rsid("/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/snakefiles/foo", dir+"23", "bar", small_col=0, big_col=1)
 
+def create_fam_map(fam_file, map_in_file,  map_out_file, new_fam):
+    """Creates a file that plink can use to rename individuals
+
+    This is typically used to replace/obfuscate retrievalDetails_Ids
+    with sentrixIds.  
+
+    * fam_file is the original plink fam-file 
+
+    * map_in_file is typically a subset of the samplesheet, no headers
+      and only retrievalDetails_Ids and sentrixIds
+
+    * map_out_file the mapping file expected later by plink --update-ids
+
+    * new_fam is the name of the new family. If "", leave the one from fam_file
+
+    """
+
+    print(f"Doing: {fam_file} and {map_in_file} to {map_out_file}")
+    my_name = inspect.currentframe().f_code.co_name  # Generic way of find function name
+    try:
+        # 4 columns 0-3
+        fam = pd.read_csv(fam_file, header=None,
+                         delim_whitespace=True)
+        # 2 columns 4-5
+        map = pd.read_csv(map_in_file, header=None,
+                         delim_whitespace=True)
+    except Exception as e:
+        print(f"{my_name}: {str(e)}")
+        return
+    
+    # print(map)
+    all = fam.merge(map, left_on=[1], right_on=[0],
+                    indicator=True, validate="1:1")
+    if new_fam=="" :
+        all['set'] = all[["0_x"]]
+    else:
+        all['set'] = new_fam
+    
+        
+    print (all)
+    # 1_x is old ID (retrievalID), 1_y is new (sentrixId)
+    # 0_x is old familyname, set is new
+    all[["0_x","1_x","set","1_y"]].to_csv(map_out_file, sep=" ",
+                                          header=False,
+                                          index=False)
+    # end create_fam_map
+
 
 def main():
 # if you want to test a function
     print("Main called")
-    (d,max) = dict_count_items("/mnt/work2/gutorm/pipeOut/mod5-shaping-preparation/mendelian_errors.bim", cols=[0], warn=False)
-    print (d)
-    print (d["2"])
-   
+    create_fam_map("/mnt/work2/NORMENT1/JAN20/MorBarn.DeCodeGenetics_V1_20012591_A1.plink.dir/MorBarn.DeCodeGenetics_V1_20012591_A1.fam",
+                   "/mnt/work2/NORMENT1/JAN20/sampleCheck/retrievalID_to_sentrixId",
+                   "/mnt/work2/NORMENT1/JAN20/sampleCheck/retrievalID_to_sentrixId_4_plink",
+                   "954-f.v1")
 if __name__ == "__main__":
     main()
