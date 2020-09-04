@@ -1,18 +1,16 @@
 # Usage: snakemake --config-file configs/your-config
 
+# Due to some hacks, the below will produce a warning about
+# configfiles not being found. You can ignore that
 sys.path.append('../../../qc-pipeline/lib/')  # in order to find our local packages
 import mobaQcTools as mqc  # local moba package
-
-# There are multiple configfiles, choose the right one as a snakemake param
-# configfile: "Friendly reminder: Use --configfile configs/whatever" 
 
 # Report (top level) (for now we dont need/use it. --report still works
 # report: "report/qc.rst"
 
-rule all:
-    input: recode_ids=config["recode_ids"],
+#rule all:
+#    input: bedset=multiext(config["raw_bed_dir_out"]+"/"+config["rawPlink"]
 
-# rule all
 rule make_plink:
     input:
         bedset=multiext(config["raw_bed_stem_in"],".bed",".bim",".fam"),
