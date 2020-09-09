@@ -352,12 +352,12 @@ rule remove_markers_aa_theta_deviation:
                                 ylabel="AA-\u03B8 deviation", invert=False)
 
 
-# This is a dummy rule which sole intention is to recap and show what happens in Modules 1,
-# It permits the module to have some 'public' variables, that other rules can
-# refer to.
-# It also ensure that snakemake -- is easer to read.
-rule_stem = 'm1_output_report'
-rule m1_output_report:
+# This is a non-functional rule which sole intention is to recap and
+# show what happens in Module 1, It permits the module to have some
+# 'public' variables (output), that other rules can refer to.  It also
+# ensure that snakemake DAG output is easer to read.
+rule_stem = 'm1_output'
+rule m1_output:
     input:
         # Start of pipe
         bedset_first = rules.remove_chr0.input.bedset,

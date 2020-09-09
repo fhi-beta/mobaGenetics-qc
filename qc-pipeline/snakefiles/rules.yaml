@@ -97,7 +97,7 @@ remove_markers_aa_theta_deviation:
   Rule: Will be the same as the key of this entry
   Timestamp:
 
-m1_output_report:
+m1_output:
   QC test: Recap of module 1. Mostly produces report-info and an interface for later rules.
   Description: Also makes it easier to read code as other modules can (sort of refer) to module1.output (for example  rules.mod1_output_report.output.bedset)
   Rule order: mod1Final
