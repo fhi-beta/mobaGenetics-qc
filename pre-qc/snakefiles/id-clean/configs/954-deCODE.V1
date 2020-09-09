@@ -4,12 +4,12 @@
 dataSet: "Norment (biobank retrieval 954, deCODEV1 chip)"
 chip: "DeCodeGenetics_V1"
 
-# this will both be the name of the plink bedset
+# the name of the plink bedset to produce
 rawPlink: "Norment2Jan20a"
 
 # This is the plink set as it was received it from the lab (for norment: deCODE)
 raw_bed_stem_in: "/mnt/work2/NORMENT1/JAN20/MorBarn.DeCodeGenetics_V1_20012591_A1.plink.dir/MorBarn.DeCodeGenetics_V1_20012591_A1"
-raw_bed_dir_out: "/home/gthh/work/gutorm/MobaGenetics/Datasets/Norment2/Jan20/Norment2Jan20a/raw-data/bedset"
+raw_bed_dir_out: "/home/gthh/work/gutorm/MobaGenetics/Datasets/Norment2/raw-data/bedset/Jan20a"
 
 # The following file is typically made by hand/grep It has no headers
 # and is typically made from the samplesheet. Sometime (in case of
