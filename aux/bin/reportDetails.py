@@ -10,20 +10,21 @@ import re
 
 
 def parse_yaml(file, value):
-    """ Checking a result-file for a marker/sample
+    """Checking a result-file for a marker/sample
 
     file is the file to check, and is assumed to have been made by the
     qc-pipleine and contains a yaml-structure.
 
-    If the parameter value is found (using egrep), the file will be parsed 
-    and selcted items from the yaml-file will be printed out.
-    This is values as the rule that has processed the marker, when it was run
-    and so on.
+    If the parameter value is found (using egrep), the file will be
+    parsed and selcted items from the yaml-file will be printed out.
+    These are detailis like values as the rule that has processed the
+    marker, when it was run and so on.
     
     The yaml-file is expected to contain the marker/sample only if the 
     rule removed/replaced it.
-
+####
     Returns the number of matches found, -1 on eggrep error
+
     """
     #print (value, file)
     # Counting matches before we start parsing the file
@@ -44,6 +45,9 @@ def parse_yaml(file, value):
     print (f'Item {r["rule action"]}d by rule {r["Rule"]} ({r["Rule order"]})'
            f' on {r["Timestamp"]} {match_details}')
     print (f'Test/description: {r["QC test"]}\n{r["Description"]}')
+    check_for = "Callrates"
+    if check_for in r:
+        print (f'{check_for}: {r[check_for]}')
     print (f'See {file} for full details')
     
 
@@ -81,6 +85,7 @@ def main(argv):
         # Building a egrep regexp matching .bim files. Quote the \S (non-blank)
         target = target.split(":")[0] + " \\S+ " + target.split(":")[1] + \
                  " " + target.split(":")[2] + " " + target.split(":")[3]
+        print (f"*** FIX regep matching flipped strands: {target}")
             
     if chatty:
         print(f"Looking for '{target}' in results found in directory '{result_dir}' "
