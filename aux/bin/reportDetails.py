@@ -62,7 +62,7 @@ def main(argv):
     result_dir = "."
     files_to_check = "markers.yaml"
     parser = argparse.ArgumentParser(description='Reports on what rules in the QC did what to a sample/marker')
-    parser.add_argument("--resultdir","-r", default=result_dir, help=f"A direcory containing QC results (default {result_dir})")
+    parser.add_argument("--resultdir","-r", default=result_dir, help=f"A direcory containing QC results (default {result_dir}). Prefix to all files listet in configfile")
     parser.add_argument("--configfile","-c", default=files_to_check, help=f"A list of rules result files to check (default {files_to_check}). Order of files should match expected pipleine age, if not use the --silent switch")
     parser.add_argument("--id","-i", required=True, help=f"identificator to look for in the files supplied by -c. For markers, you can choose between snpid or 'chr:pos:a1:a2' ")
 
@@ -74,7 +74,7 @@ def main(argv):
     
     print("Should be able to check that the sample/markers is in the final set...")
     target = args.id
-    result_dir = args.resultdir
+    result_dir = Path(args.resultdir)
     files_to_check = args.configfile
     
     is_marker = target.split(":")
@@ -88,8 +88,8 @@ def main(argv):
         print (f"*** FIX regep matching flipped strands: {target}")
             
     if chatty:
-        print(f"Looking for '{target}' in results found in directory '{result_dir}' "
-              f"Checking only files listed in {files_to_check}"  )
+        print(f"Looking for '{target}'  "
+              f"Checking only files listed in {files_to_check} (prefixed with '{result_dir}')"  )
 
     try:
         # Grab files to check|
@@ -103,7 +103,7 @@ def main(argv):
     last_file = "No such file"
     # print (res_files)
     for index, row in res_files.iterrows():  # process all files
-        res_file_name = row["result_file"]
+        res_file_name = result_dir / Path(row["result_file"])
         if chatty:
             print(f"Checking {res_file_name}")
         try:
