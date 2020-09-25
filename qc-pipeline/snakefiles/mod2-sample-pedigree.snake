@@ -103,9 +103,9 @@ rule callrate_permanent_removal:
                 "--out", permTrunk,        # earlier called full_mind
                 "--make-bed" ], check=True)
         dropouts = mqc.checkUpdates(oldPermTrunk+".fam", permTrunk+".fam",
-                                    cols = [0,1,3,4,5],
+                                    cols = [0,1],
                                     sanityCheck = "removal",
-                                    fullList = True, allele_flip=True)
+                                    fullList = True)
 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
