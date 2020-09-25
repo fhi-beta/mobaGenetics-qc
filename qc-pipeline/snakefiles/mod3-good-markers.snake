@@ -100,16 +100,20 @@ rule common_markers_moba_ref:
                 "--make-bed" ], check=True)
 
         # Document the reduction for ref (1000 genomes)
-        dropouts = mqc.checkUpdates(inTrunk_ref+".bim", outTrunk_ref+".bim",cols = [0,1],
-                                    sanityCheck = "removal", fullList = False)
+        dropouts = mqc.checkUpdates(inTrunk_ref+".bim", outTrunk_ref+".bim",
+                                    cols = [0,1,3,4,5],
+                                    sanityCheck = "removal", fullList = False,
+                                    allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         dropouts["Excluded markers"] = f"Common markers in {output.marker_list}, trialleles removed in {output.tri_alleles}"
         mqc.saveYamlResults(output.results_ref, dropouts)
 
         # Document the reduction for moba
-        dropouts = mqc.checkUpdates(inTrunk_moba+".bim", outTrunk_moba+".bim",cols = [0,1],
-                                    sanityCheck = "removal", fullList = False)
+        dropouts = mqc.checkUpdates(inTrunk_moba+".bim", outTrunk_moba+".bim",
+                                    cols = [0,1,3,4,5],
+                                    sanityCheck = "removal",
+                                    fullList = False, allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         dropouts["Excluded markers"] = f"Common markers in {output.marker_list}, trialleles removed in {output.tri_alleles}"
@@ -355,7 +359,8 @@ rule extract_pca_outliers:
                 "--out", outTrunk,
                 "--make-bed" ], check=True)
 
-        dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam",cols = [0,1],
+        dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam",
+                                    cols = [0,1],
                                     sanityCheck = "removal", fullList = True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Treshold"] = params.treshold
@@ -391,7 +396,8 @@ rule tmp_extract_samples:
                 "--keep", sample_list,
                 "--out", outTrunk,
                 "--make-bed" ], check=True)
-        dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam",cols = [0,1],
+        dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam",
+                                    cols = [0,1],
                                     sanityCheck = "removal", fullList = True)
 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -434,7 +440,9 @@ rule split_founders_offspring:
                         "--out", foundersTrunk,
                         "--make-bed"  ], check=True)
 
-        dropouts = mqc.checkUpdates(inTrunk+".fam", foundersTrunk+".fam",cols = [1], sanityCheck = "removal", fullList = True)
+        dropouts = mqc.checkUpdates(inTrunk+".fam", foundersTrunk+".fam",
+                                    cols = [1], sanityCheck = "removal",
+                                    fullList = True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results_founders, dropouts)
@@ -446,7 +454,8 @@ rule split_founders_offspring:
                         "--out", offspringTrunk,
                         "--make-bed"  ], check=True)
 
-        dropouts = mqc.checkUpdates(inTrunk+".fam", offspringTrunk+".fam", cols=[1], sanityCheck="removal", fullList=True)
+        dropouts = mqc.checkUpdates(inTrunk+".fam", offspringTrunk+".fam",
+                                    cols=[1], sanityCheck="removal", fullList=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results_offspring, dropouts)
@@ -572,7 +581,8 @@ rule ibd_direct_exclusion: # code is more or less copied to core_ibd_direct_excl
                 "--out", outTrunk ,
                 "--make-bed"], check=True)
 
-        dropouts = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [0,1], sanityCheck = "removal", fullList = True)
+        dropouts = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [0,1],
+                                    sanityCheck = "removal", fullList = True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Treshold"] = params.treshold
         dropouts["Rule"] = rule
@@ -890,8 +900,10 @@ rule sex_clean:
                         "--out", outTrunk,
                         "--make-bed"  ], check=True)
 
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim", cols = [0,1],
-                                sanityCheck = "removal", fullList = True)
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
+                                    cols = [0,1,3,4,5],
+                                    sanityCheck = "removal", fullList = True,
+                                    allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
@@ -930,8 +942,10 @@ rule m3_output_good_markers:
                         "--extract", output.good_markers,
                         "--out", outTrunk,
                         "--make-bed" ], check=True)
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
-                                    sanityCheck = "removal", fullList = True)
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
+                                    cols = [0,1,3,4,5],
+                                    sanityCheck = "removal", fullList = True,
+                                    allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         # Let the yaml-file contain info abut last step as well.

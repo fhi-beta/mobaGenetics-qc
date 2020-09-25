@@ -28,7 +28,8 @@ rule remove_chr0:
         # We turn of warning here as we know there might be duplicate markers to check for later
         dropouts = mqc.checkUpdates(inTrunk+".bim",
                                     outTrunk+".bim", cols=[0,1,3,4,5], indx=1,
-                                    sanityCheck="none", fullList=True ) 
+                                    sanityCheck="none", fullList=True,
+                                    allele_flip=True) 
 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
@@ -85,9 +86,9 @@ rule remove_duplicate_markers:
         ], check=True)
         
         dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",
-                                    cols=[0,3,4,5],
+                                    cols=[0,1,3,4,5],
                                     sanityCheck="removal",
-                                    fullList=True) 
+                                    fullList=True, allele_flip=True) 
         dropouts["Callrates"] = output.resultDetails
 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -236,7 +237,8 @@ rule remove_markers_cluster_sep:
 
         dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",
                                     cols = [0,1,3,4,5],
-                                    sanityCheck="removal", fullList=True)
+                                    sanityCheck="removal", fullList=True,
+                                    allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Treshold"] = params.treshold
         dropouts["Rule"] = rule
@@ -285,8 +287,8 @@ rule remove_markers_gc_score:
                 "--make-bed"], check=True)
 
         dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",
-                                    cols=[0,3,4,5], sanityCheck="removal",
-                                    fullList=True) 
+                                    cols=[0,1,3,4,5], sanityCheck="removal",
+                                    fullList=True, allele_flip=True) 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Treshold"] = params.treshold
         dropouts["Rule"] = rule
@@ -338,8 +340,8 @@ rule remove_markers_aa_theta_deviation:
         ], check=True)
 
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
-                                    cols=[0,3,4,5], sanityCheck="removal",
-                                    fullList=True)
+                                    cols=[0,1,3,4,5], sanityCheck="removal",
+                                    fullList=True, , allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Treshold"] = params.treshold
         dropouts["Rule"] = rule
@@ -386,8 +388,9 @@ rule m1_output:
             copyfile(lastTrunk+i, outTrunk+i)
         # report markers
         dropouts = mqc.checkUpdates(firstTrunk+".bim", outTrunk+".bim",
-                                    cols=[0,3,4,5],
-                                    sanityCheck="removal", fullList=True)
+                                    cols=[0,1,3,4,5],
+                                    sanityCheck="removal", fullList=True,
+                                    allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         dropouts["Documentation details"] = docs

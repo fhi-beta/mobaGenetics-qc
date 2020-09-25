@@ -22,8 +22,10 @@ rule chr1_23:
                         "--chr", "1-23",
                         "--out", outTrunk,
                         "--make-bed" ], check=True)
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
-                                    sanityCheck = "removal", fullList = True)
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
+                                    cols = [0,1,3,4,5],
+                                    sanityCheck = "removal",
+                                    fullList = True, allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
@@ -52,8 +54,10 @@ rule mendelian_errors:
                         "--mendel-duos",
                         "--out", outTrunk,
                         "--make-bed" ], check=True)
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
-                                    sanityCheck = "updated", fullList = True)
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
+                                    cols = [0,1,3,4,5],
+                                    sanityCheck = "updated",
+                                    fullList = True, allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         # we are not happy about the yaml-file since it does not reflect the missings state
@@ -117,8 +121,9 @@ rule rayner_verification:
                     check=True, cwd=tmpMod5) # cwd so perl-script finds its previously made results
 
         # resulting bedsettrunk called inTrunk-updated
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
-                                    sanityCheck = "updated", fullList = True)
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
+                                    cols = [0,1,3,4,5], sanityCheck = "updated",
+                                    fullList = True, allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
