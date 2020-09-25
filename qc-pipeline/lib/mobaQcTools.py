@@ -391,7 +391,10 @@ def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
     mapIndx indicates the column of the mapFile that corresponds to
     indx in the datafile
 
-    if allele_flip is true, the two last cols <document this!>
+    if allele_flip is true, the two last columns are expected to be
+    letters (alleles). Records will be classified as identical
+    regardless of the order of these: "foo A T" will be regarded as
+    identical too "foo T A" (but obiously not of "foo T x" etc)
 
     The yaml-structure will always contain the number of input
     samples/markers as well as sample/markers removed/remaining.
@@ -419,7 +422,11 @@ def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
         key = " ".join(map(str, subsetc))
         flipkey = key  # in case we want to flip alleles, if not key == flipkey
         if allele_flip:
-            parts = re.match(r"(.*) (\w) (\w)$", key) # assuming the alleles at the end
+            parts = re.match(r"(.*) (\S+) (\S+)$", key) # assuming the alleles at the end
+            # group(2) is allele 1, group(3) allele 2
+            # Turned out that alleles (like in 1000genomes can be on the form
+            # <INS:ME:ALU> so we are accept any non-blank in the match
+            #print (key)
             flipkey = " ".join((parts.group(1),parts.group(3),parts.group(2)))
         if (outDict.get(key, 0) + outDict.get(flipkey, 0)) == 0 :
         # If we didnt find this, even by (possible) flipping alleles
@@ -1074,8 +1081,8 @@ def create_fam_map(fam_file, map_in_file,  map_out_file):
 def main():
 # if you want to test a function
     print("Main called")
-    y = checkUpdates("/mnt/work2/gutorm/pipeOut/mod2-data-preparation/test/maf_removal_markers.bim",
-                 "/mnt/work2/gutorm/pipeOut/mod2-data-preparation/test/mind005.bim", cols=[0,1,3,4,5], indx=1, sanityCheck="none",
+    y = checkUpdates("/mnt/work/gutorm/1000Genomes/all_phase3.bim",
+                 "/mnt/work2/gutorm/pipeOut/mod3-good-markers/pca_ref.bim", cols=[0,1,3,4,5], indx=1, sanityCheck="none",
                      fullList=True, allele_flip=True)
     print(y)
 if __name__ == "__main__":
