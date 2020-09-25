@@ -296,10 +296,10 @@ def extract_list(innFile, outFile, threshold_doc_file="/dev/null",
 
 
 def dict_count_items(fil, cols=[0, 1], warn=True):
-    """Creates and counts item in a dictionary
+    """Creates and counts items in a dictionary
 
     Creates a dictionary with as key concatenation of the strings of
-    the columns found in fil.
+    the columns cols found in fil.
     Values are the number of times that key is found
     Returns the dictionary and the largest key value. In many
     scenarios, 1 is wanted here, meaning no duplicates.
@@ -359,14 +359,14 @@ def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
                  fullList=False,  mapFile="", mapIndx=1):
     """Generic comparition of two bedsets
 
-    Return number of updates due (typically) to a rule as well as a structure
-    suited for a export as a yaml-file
+    Return number of updates due (typically) to a rule as well as a
+    structure suited for a export as a yaml-file
 
-    The scenario is that a method/step had a dataset (file indData)
-    and produced outData.
+    The scenario is that a method/step had a dataset (file preQc)
+    and produced postQc.
 
-    Some items got filtered out/changed
-    pre/postQC are tab-serparated csv-files with the same amount of columns
+    Some items got filtered out/changed. pre/postQC are tab-serparated
+    csv-files with the same amount of columns
 
     The optional sanityCheck parameter will give error message as
     follows, depending to its value
@@ -1066,9 +1066,9 @@ def create_fam_map(fam_file, map_in_file,  map_out_file):
 def main():
 # if you want to test a function
     print("Main called")
-    create_fam_map("/mnt/work2/NORMENT1/JAN20/MorBarn.DeCodeGenetics_V1_20012591_A1.plink.dir/MorBarn.DeCodeGenetics_V1_20012591_A1.fam",
-                   "/mnt/work2/NORMENT1/JAN20/sampleCheck/retrievalID_to_sentrixId",
-                   "/mnt/work2/NORMENT1/JAN20/sampleCheck/retrievalID_to_sentrixId_4_plink",
-                   "954-f.v1")
+    y = checkUpdates("/mnt/work2/gutorm/pipeOut/mod2-data-preparation/test/maf_removal_markers.bim",
+                 "/mnt/work2/gutorm/pipeOut/mod2-data-preparation/test/mind005.bim", cols=[0,1,3,4,5], indx=1, sanityCheck="none",
+                 fullList=True)
+    print(y)
 if __name__ == "__main__":
     main()
