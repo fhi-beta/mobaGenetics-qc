@@ -356,7 +356,8 @@ def lookupDict(fil, indx=1):
 
 
 def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
-                 fullList=False,  mapFile="", mapIndx=1):
+                 fullList=False,  mapFile="", mapIndx=1,
+                 allele_flip=False):
     """Generic comparition of two bedsets
 
     Return number of updates due (typically) to a rule as well as a
@@ -390,6 +391,8 @@ def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
     mapIndx indicates the column of the mapFile that corresponds to
     indx in the datafile
 
+    if allele_flip is true, the two last cols <document this!>
+
     The yaml-structure will always contain the number of input
     samples/markers as well as sample/markers removed/remaining.
 
@@ -414,7 +417,12 @@ def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
         subsetc = [allcols[index] for index in cols]
         # concatenating so we can look up the strings with corresponding field from postQc file
         key = " ".join(map(str, subsetc))
-        if (outDict.get(key, 0) == 0):
+        flipkey = key  # in case we want to flip alleles, if not key == flipkey
+        if allele_flip:
+            parts = re.match(r"(.*) (\w) (\w)$", key) # assuming the alleles at the end
+            flipkey = " ".join((parts.group(1),parts.group(3),parts.group(2)))
+        if (outDict.get(key, 0) + outDict.get(flipkey, 0)) == 0 :
+        # If we didnt find this, even by (possible) flipping alleles
             result["actionTakenCount"] += 1
             item = str(allcols[indx])    # being the sample or the marker
             if fullList:
@@ -1068,7 +1076,7 @@ def main():
     print("Main called")
     y = checkUpdates("/mnt/work2/gutorm/pipeOut/mod2-data-preparation/test/maf_removal_markers.bim",
                  "/mnt/work2/gutorm/pipeOut/mod2-data-preparation/test/mind005.bim", cols=[0,1,3,4,5], indx=1, sanityCheck="none",
-                 fullList=True)
+                     fullList=True, allele_flip=True)
     print(y)
 if __name__ == "__main__":
     main()
