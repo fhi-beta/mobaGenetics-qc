@@ -83,8 +83,8 @@ def main(argv):
         if not silent:
             print ("Looking for a postion based marker")
         # Building an egrep regexp matching .bim files. Quote the \S (non-blank)
-        target = target.split(":")[0] + " \\S+ " + target.split(":")[1] + "("\
-            # The following two lines (note the or |) handle allele flips
+        # Note the lines, syntax ((a)|(t)) that handles allele flips \
+        target = target.split(":")[0] + " \\S+ " + target.split(":")[1] + "(" \
                  "( " + target.split(":")[2] + " " + target.split(":")[3] + ")|" +\
                  "( " + target.split(":")[3] + " " + target.split(":")[2] + ")" +\
                  ")"
