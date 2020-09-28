@@ -15,14 +15,14 @@ def parse_yaml(file, value):
     file is the file to check, and is assumed to have been made by the
     qc-pipleine and contains a yaml-structure.
 
-    If the parameter value is found (using egrep), the file will be
+    If the parameter value (treated as regexp) is found (using egrep), the file will be
     parsed and selcted items from the yaml-file will be printed out.
-    These are detailis like values as the rule that has processed the
-    marker, when it was run and so on.
+    These are details like values as the name of the rule that has
+    processed the marker, when it was run and so on.
     
     The yaml-file is expected to contain the marker/sample only if the 
     rule removed/replaced it.
-####
+
     Returns the number of matches found, -1 on eggrep error
 
     """
@@ -48,7 +48,7 @@ def parse_yaml(file, value):
     check_for = "Callrates"
     if check_for in r:
         print (f'{check_for}: {r[check_for]}')
-    print (f'See {file} for full details')
+    print (f'See {file} for full details\n')
     
 
     # end parse_yaml
@@ -79,21 +79,23 @@ def main(argv):
     
     is_marker = target.split(":")
     if  len(is_marker)  == 4 :
-        # This is a chr:pos:a1:a1 syntax later egrep will have probles
+        # This is a chr:pos:a1:a1 syntax later egrep will have problems
         if not silent:
             print ("Looking for a postion based marker")
-        # Building a egrep regexp matching .bim files. Quote the \S (non-blank)
-        target = target.split(":")[0] + " \\S+ " + target.split(":")[1] + \
-                 " " + target.split(":")[2] + " " + target.split(":")[3]
-        print (f"*** FIX regep matching flipped strands: {target}")
-            
+        # Building an egrep regexp matching .bim files. Quote the \S (non-blank)
+        target = target.split(":")[0] + " \\S+ " + target.split(":")[1] + "("\
+            # The following two lines (note the or |) handle allele flips
+                 "( " + target.split(":")[2] + " " + target.split(":")[3] + ")|" +\
+                 "( " + target.split(":")[3] + " " + target.split(":")[2] + ")" +\
+                 ")"
     if chatty:
         print(f"Looking for '{target}'  "
               f"Checking only files listed in {files_to_check} (prefixed with '{result_dir}')"  )
 
     try:
         # Grab files to check|
-        res_files = pd.read_csv(args.configfile, sep=":", comment="#", skipinitialspace=True,names=["result_file"] )
+        res_files = pd.read_csv(args.configfile, sep=":", comment="#",
+                                skipinitialspace=True,names=["result_file"] )
     except Exception as e:
         print(f"Sorry could not do it. {str(e)}")
 
