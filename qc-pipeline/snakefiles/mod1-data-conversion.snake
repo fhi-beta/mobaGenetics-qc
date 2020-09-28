@@ -341,7 +341,7 @@ rule remove_markers_aa_theta_deviation:
 
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
                                     cols=[0,1,3,4,5], sanityCheck="removal",
-                                    fullList=True, , allele_flip=True)
+                                    fullList=True, allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Treshold"] = params.treshold
         dropouts["Rule"] = rule

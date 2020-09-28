@@ -59,7 +59,6 @@ rule missing_genotype_samples:
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
     params:
         treshold = config['mind_thr']
-o
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, "Missing genotype {item_type} (--mind)\n")
