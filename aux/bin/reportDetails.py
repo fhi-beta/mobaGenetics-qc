@@ -7,7 +7,9 @@ import sys
 import argparse
 import re
 
-
+# Improvement idea: Also check .fam/.bim files. Or in another program.
+# It's not hard, it just that we are then looking for existings items and nor removed
+# Also, there will be no yaml-structure to parse
 
 def parse_yaml(file, value):
     """Checking a result-file for a marker/sample
@@ -60,7 +62,7 @@ def main(argv):
     """
 
     result_dir = "."
-    files_to_check = "markers.yaml"
+    files_to_check = "markers.csv"
     parser = argparse.ArgumentParser(description='Reports on what rules in the QC did what to a sample/marker')
     parser.add_argument("--resultdir","-r", default=result_dir, help=f"A direcory containing QC results (default {result_dir}). Prefix to all files listet in configfile")
     parser.add_argument("--configfile","-c", default=files_to_check, help=f"A list of rules result files to check (default {files_to_check}). Order of files should match expected pipleine age, if not use the --silent switch")

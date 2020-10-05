@@ -102,7 +102,7 @@ m1_output:
   Description: Also makes it easier to read code as other modules can (sort of refer) to module1.output (for example  rules.mod1_output_report.output.bedset)
   Rule order: mod1Final
   rule type: markers/samples
-  rule action: updated or removed
+  rule action: update or remove
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp:
@@ -247,7 +247,7 @@ m2_output:
   Description: "There are two outputbedsets: One for module 3 (reduced marker set) and one for module 5 (full markerset). The one with the full markerset is treated as the final results. The reduced markerset will be reduced even more during module3."
   Rule order: mod2Final
   rule type: markers/samples
-  rule action: updated or removed
+  rule action: update or remove
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp:
