@@ -44,15 +44,20 @@ def create_new_flag_col(df, c, qcFile, failPass=["Failed", "Passed"]):
 
 
 def main(argv):
-    """
-    Creates a flaglist, based on an exiting samplefile.
-    The filesamplefile should sport names used through the whole qc process - typicall after having lab-ids updated to moba ids.
-    Is dependent on a configfile (-c) that shows what columns to make and call them, as well as results from the qc-pipeline.
-    A default configfile flagTemplate.csv is provided at the installdirecotry. 
+    """Creates a flaglist, based on an exiting samplefile.  
+
+    The filesamplefile should sport names used through the whole qc
+    process - typically after having lab-ids updated to moba ids.  Is
+    dependent on a configfile (-c) that shows what columns to make and
+    call them, as well as results from the qc-pipeline.  A default
+    configfile flagTemplate.csv is provided at the installdirecotry.
     
 
-    The program could be used for markers as well, but that has not been tried
+    The program could be used for markers as well, but that has not
+    been tried
+
     Displays a usage if run without parameters.
+
     """
     
     parser = argparse.ArgumentParser(description='Creates a flag-list showing all QC results for all samples')

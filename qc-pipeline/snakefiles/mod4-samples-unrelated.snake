@@ -36,8 +36,9 @@ rule core_missingness:
                         "--out", outTrunk,
                         "--make-bed"  ], check=True)
 
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim", cols = [0,1],
-                                sanityCheck = "removal", fullList = True)
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
+                                    cols = [0,1,3,4,5], sanityCheck = "removal",
+                                    fullList = True, allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule + " (common markers)"
         mqc.saveYamlResults(output.results+".common", dropouts)
@@ -213,7 +214,9 @@ rule core_ibd_direct_exclusion: # code is more or less copied from ibd_direct_ex
                 "--out", outTrunk ,
                 "--make-bed"], check=True)
 
-        dropouts = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols = [0,1], sanityCheck = "removal", fullList = True)
+        dropouts = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",
+                                    cols = [0,1], sanityCheck = "removal",
+                                    fullList = True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Treshold"] = params.treshold
         dropouts["Rule"] = rule

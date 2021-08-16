@@ -1,0 +1,37 @@
+# Used by various reporting to describe the set
+# Variable that you are likely to edit are placed first
+
+dataSet: "Norment (biobank retrieval 954, deCODEV3 chip)"
+chip: "DeCodeGenetics_V3"
+
+# this will both be the name of the plink bedset
+rawPlink: "Norment2Jan20b"
+
+# This is the plink set as it was received it from the lab (for norment: deCODE)
+raw_bed_stem_in: "/mnt/work2/NORMENT1/JAN20/MorBarn.DeCodeGenetics_V3_20032937X331991_A1.plink.dir/MorBarn.DeCodeGenetics_V3_20032937X331991_A1"
+raw_bed_dir_out: "/home/gthh/work/gutorm/MobaGenetics/Datasets/Norment2/raw-data/bedset/Jan20b"
+
+# The following file is typically made by hand/grep It has no headers
+# and is typically made from the samplesheet. Sometime (in case of
+# duplicates) it needs to be tweaked. It should have two columns: id
+# from to and the same number of rows as the plinkfiles.
+
+# Note that for the norment '954' (Jan20) set, these files are used for both chips
+remap_id: "/mnt/work2/NORMENT1/JAN20/sampleCheck/retrievalID_to_sentrixId"
+# The maOpping above will produce something suitable for plink
+recode_ids: "/mnt/work2/NORMENT1/JAN20/sampleCheck/retrievalID_to_sentrixId_4_plink"
+
+
+# Not used for now - These links will need to be updated when we go
+# public documentationDataset: "https://github.com/folkehelseinstituttet/mobaDocsBackoffice/wiki/MoBaGenPub"
+documentationQC: "
+# Lab QC report: < if they have one> Edit snakefile so this is used ...
+
+
+https://github.com/folkehelseinstituttet/mobaDocsBackoffice/wiki/mobagenRaw"
+githubSource: "https://github.com/folkehelseinstituttet/mobaGenetics-qc"
+
+# Ugly, but we try to avoid absolute paths. 
+plinklocal: "../../../qc-pipeline/bin/plink-1.90b5.4/plink"
+
+

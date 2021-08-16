@@ -1,7 +1,7 @@
 rule_stem = 'maf_removal_markers'
 rule maf_removal_markers:   #Minor allele frequencies removal
     input:
-        bedset = rules.m1_output_report.output.bedset,
+        bedset = rules.m1_output.output.bedset,
     output:
         bedset = multiext(str(tmpMod2/rule_stem), '.bed','.bim','.fam'),
         callrate_sample = (tmpMod2/rule_stem).with_suffix('.imiss'),
@@ -27,8 +27,10 @@ rule maf_removal_markers:   #Minor allele frequencies removal
                 "--maf", str(params.treshold),
                 "--out", outTrunk,      # previously named superclean_maf
                 "--make-bed" ], check=True)
-        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",cols = [0,1],
-                                    sanityCheck = "removal", fullList = True)
+        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",
+                                    cols = [0,1,3,4,5],
+                                    sanityCheck = "removal",
+                                    fullList = True, allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Treshold"] = params.treshold
         dropouts["Rule"] = rule
@@ -57,7 +59,6 @@ rule missing_genotype_samples:
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
     params:
         treshold = config['mind_thr']
-
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, "Missing genotype {item_type} (--mind)\n")
@@ -70,11 +71,11 @@ rule missing_genotype_samples:
                         result_file=output.results)
 
 
-rule_stem = "clean_samples"
-rule clean_samples:
+rule_stem = "callrate_permanent_removal"
+rule callrate_permanent_removal:
     input:
         # This is for permanent removal - samples from module1
-        mod1_bedset = rules.m1_output_report.output.bedset,
+        mod1_bedset = rules.m1_output.output.bedset,
         # bedset is samples we removed at last stage, and where markers have been
         # temorary removed
         bedset = rules.missing_genotype_samples.output.bedset,
@@ -100,8 +101,10 @@ rule clean_samples:
                 "--keep",inTrunk + ".fam", # keeping those samples that just passed the --mind threshold
                 "--out", permTrunk,        # earlier called full_mind
                 "--make-bed" ], check=True)
-        dropouts = mqc.checkUpdates(oldPermTrunk+".fam", permTrunk+".fam",cols = [0,1],
-                                    sanityCheck = "removal", fullList = True)
+        dropouts = mqc.checkUpdates(oldPermTrunk+".fam", permTrunk+".fam",
+                                    cols = [0,1],
+                                    sanityCheck = "removal",
+                                    fullList = True)
 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
@@ -161,8 +164,10 @@ rule exclude_unplaced_and_non_autosomal_markers:
                 "--out", outTrunk,                # called superclean_autosomal
                 "--make-bed" ], check=True)
 
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
-                                    sanityCheck = "removal", fullList = True)
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
+                                    cols = [0,1,3,4,5],
+                                    sanityCheck = "removal",
+                                    fullList = True, allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
 
@@ -210,7 +215,10 @@ rule exclude_strand_ambigious_markers:
         outTrunk =  mqc.plinkBase(output.bedset[0])
 
         mqc.exclude_strand_ambigious_markers(inTrunk, outTrunk, plinklocal)
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True)
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
+                                    cols=[0,1,3,4,5],
+                                    sanityCheck="removal", fullList = True,
+                                    allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
@@ -239,7 +247,10 @@ rule exclude_high_ld_markers:
                 "--out", outTrunk,                                   # called superclean_no_ag_ct_ld before
                 "--make-bed"  ], check=True)
 
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1], sanityCheck = "removal", fullList = True)
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
+                                    cols=[0,1,3,4,5],
+                                    sanityCheck="removal",
+                                    fullList=True, allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
@@ -277,8 +288,10 @@ rule prune_markers:
                 "--out", outTrunk,                  # called superclean_pruned before
                 "--make-bed" ], check=True)
 
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
-                                    sanityCheck = "removal", fullList = True)
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
+                                    cols=[0,1,3,4,5],
+                                    sanityCheck="removal", fullList=True,
+                                    allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
@@ -288,7 +301,7 @@ rule_stem = 'pedigree_ibd_estimate' # used for outputfilenames
 rule pedigree_ibd_estimate:
     input:
         in_geno = rules.missing_genotype_markers.output.bedset,
-        in_all= rules.clean_samples.output.bedset,
+        in_all= rules.callrate_permanent_removal.output.bedset,
         clean_snps = rules.prune_markers.output.exclude_list
     output:
         bedset=multiext(str(tmpMod2/rule_stem) ,'.bed','.bim','.fam'),
@@ -318,8 +331,10 @@ rule pedigree_ibd_estimate:
                 "--out", outTrunk,                           # called inferped_pruned before
                 "--make-bed" ], check=True)
 
-        dropouts = mqc.checkUpdates(inGenoTrunk+".bim", outTrunk+".bim",cols = [0,1],
-                                    sanityCheck = "remove", fullList = True)
+        dropouts = mqc.checkUpdates(inGenoTrunk+".bim", outTrunk+".bim",
+                                    cols=[0,1,3,4,5],
+                                    sanityCheck="remove", fullList=True,
+                                    allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
@@ -330,7 +345,7 @@ rule pedigree_ibd_estimate:
 rule pedigree_fu_detector_solver:
     input:
         in_geno = rules.missing_genotype_markers.output.bedset,
-        in_all = rules.clean_samples.output.bedset,
+        in_all = rules.callrate_permanent_removal.output.bedset,
         ped_pruned = rules.pedigree_ibd_estimate.output.bedset,
         ped_pruned_pihat = rules.pedigree_ibd_estimate.output.genome,
         ped_sexcheck = rules.pedigree_ibd_estimate.output.inferpedx
@@ -412,8 +427,9 @@ rule document_pedigree_fu_detector_solver:
         mqc.egrep('prblm', input.fam_fix, output.problems)  
         mqc.egrep('^[0-9]+_i', input.fam_fix, output.fixed)  
 
-        dropouts = mqc.checkUpdates(input.bedset, input.fam_fix, cols = [0,1],
-                                    sanityCheck = "update", fullList = True)
+        dropouts = mqc.checkUpdates(input.bedset, input.fam_fix,
+                                    cols = [0,1],
+                                    sanityCheck="update", fullList=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         dropouts["Description"] += f" Fixed family rows found in {output.fixed} while problems are found in {output.problems}"
@@ -437,26 +453,25 @@ rule document_pedigree_fu_detector_solver:
         with open(rst_file, "a") as f:
             f.write(msg)
 
-# This is a dummy rule which sole intention is to recap and show what happens in Modules 2,
-# It permits the module to have some 'public' variables, that other rules can
-# refer to.
-# It also ensure that snakemake --report is easer to read.
-
+# This recaps and show what happens in Modules 2. It permits the
+# module to have some 'public' variables, that other rules can refer
+# to.  It also ensure that snakemake --report is easer to read.
+# The rule will rename/copy some files made previously.
 rule_stem = 'm2_output'
 rule m2_output:
     input:
         # End of module 1
-        bedset_first = rules.m1_output_report.output.bedset,
+        bedset_m1 = rules.m1_output.output.bedset,
         # We will tweak on the results of fu_detector
         fam_fix = rules.pedigree_fu_detector_solver.output.Rfixed_fam,
-        bedset_all_markers = rules.clean_samples.output.bedset,
+        bedset_all_markers = rules.callrate_permanent_removal.output.bedset,
         bedset_pruned_markers = rules.pedigree_fu_detector_solver.input.ped_pruned,
         problems = rules.document_pedigree_fu_detector_solver.output.problems,
         # To visualize/formalize that this is a reusable result
         prunedsnps = rules.prune_markers.output.exclude_list
     output:
         # Tagged to show who these are
-        # This is the real output of mod2. It will be combined with good markers from mod later
+        # This is the real output of mod2. It will be combined with good markers from a later module
         bedset =  multiext(str(tmpMod2/'inferped_all_m2'),'.bed','.bim','.fam'),
         # This is a party pruned set, that mod3 will continue to prune
         mod3_bedset =  multiext(str(tmpMod2/'inferped_pruned_m2'),'.bed','.bim','.fam'),
@@ -472,7 +487,7 @@ rule m2_output:
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])        
-        firstTrunk =  mqc.plinkBase(input.bedset_first[0])
+        m1Trunk =  mqc.plinkBase(input.bedset_m1[0])
         inTrunk_all_markers = mqc.plinkBase(input.bedset_all_markers[0])
         outTrunk_all_markers =  mqc.plinkBase(output.bedset[0])
         inTrunk_pruned_markers = mqc.plinkBase(input.bedset_pruned_markers[0])
@@ -494,17 +509,21 @@ rule m2_output:
             copyfile(input.fam_fix, outTrunk_pruned_markers+".fam")
 
         # report markers (we only do this for mod5 output aka outTrunk_all_markers
-        dropouts = mqc.checkUpdates(firstTrunk+".bim",outTrunk_all_markers+".bim",
-                                    cols = [0,1], sanityCheck = "removal", fullList = True)
+        dropouts = mqc.checkUpdates(m1Trunk+".bim",
+                                    outTrunk_all_markers+".bim",
+                                    cols=[0,1,3,4,5],
+                                    sanityCheck="removal",
+                                    fullList=True, allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         dropouts["Documentation details"] = docs
         mqc.saveYamlResults(output.report_markers, dropouts)
 
         # report samples, same logic as markers
-        dropouts = mqc.checkUpdates(firstTrunk+".fam",outTrunk_all_markers+".fam",
-                                    cols = [0,1],
-                                    sanityCheck = "update", fullList = True)
+        dropouts = mqc.checkUpdates(m1Trunk+".fam",
+                                    outTrunk_all_markers+".fam",
+                                    cols=[0,1],
+                                    sanityCheck="update", fullList=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         dropouts["Documentation details"] = docs

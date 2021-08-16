@@ -1,0 +1,39 @@
+# Usage: snakemake --config-file configs/your-config
+
+# Due to some hacks, the below will produce a warning about
+# configfiles not being found. You can ignore that
+sys.path.append('../../../qc-pipeline/lib/')  # in order to find our local packages
+import mobaQcTools as mqc  # local moba package
+
+# Report (top level) (for now we dont need/use it. --report still works
+# report: "report/qc.rst"
+
+#rule all:
+#    input: bedset=multiext(config["raw_bed_dir_out"]+"/"+config["rawPlink"]
+
+rule make_plink:
+    input:
+        bedset=multiext(config["raw_bed_stem_in"],".bed",".bim",".fam"),
+        biobank2sentrix_map=config["remap_id"]
+    output:
+        recode_ids=config["recode_ids"],
+        bedset=multiext(config["raw_bed_dir_out"]+"/"+config["rawPlink"],
+                        ".bed",".bim",".fam")
+    log: "logs/make_plink"
+            
+    run:
+        plink = config["plinklocal"]
+        # Clumsy, but generic
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+        mqc.create_fam_map(inTrunk+".fam",
+                           input.biobank2sentrix_map,
+                           output.recode_ids)
+        subprocess.run([plink,
+                        "--bfile",inTrunk,
+                        "--update-ids", output.recode_ids,
+                        "--out", outTrunk,
+                        "--make-bed"], check=True)
+        # .nosex file still contains unmapped ids so it must die
+        Path(outTrunk+".nosex").unlink(missing_ok=True)
+

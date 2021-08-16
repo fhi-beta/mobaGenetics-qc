@@ -1,4 +1,4 @@
-#!/usr/bin/python3
+#!/usr/bin/env python3
 import pandas as pd
 import numpy as np
 import math
@@ -14,22 +14,24 @@ import inspect    # to find stack-info, such as the functions name
 import matplotlib
 matplotlib.use('Agg')
 
-
-# This is kinda ugly
-cwd = Path.cwd()
-snake_dir = cwd/"../snakefiles"
 # snake_dir = Path("/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/snakefiles")
 # print (f"DDDDDDDDEEEEBUG!  {snake_dir}   xxx")
 # Grab the same configfiles as snakefile has
 try:
+    # This is kinda ugly - it only works for the ../snakefiles directory
+    # It is only needed for functions that need the rules/config files
+    cwd = Path.cwd()
+    snake_dir = cwd/"../snakefiles"
+    
     with open(snake_dir/"rules.yaml", 'r') as stream:
         rule_info = yaml.safe_load(stream)
     with open(snake_dir/"config.yaml", 'r') as stream:
         config = yaml.safe_load(stream)
-except Exception as e:
-    print(f"mobaQcTools.py: Could load configfile, {str(e)}")
+    plink = config["plinklocal"]
 
-plink = config["plinklocal"]
+except Exception as e:
+    print(f"Warning mobaQcTools.py: Could not load configfiles, {str(e)}")
+
 
 
 def test_me(foo="bar"):
@@ -126,21 +128,22 @@ def plot_point_and_line(qc_results, dataFile, resultFile,
         treshold = 1-treshold
 
     xlabel = qc_results.get("rule type")
-    title = f'{qc_results.get("QC test")}\n{qc_results.get("Timestamp")}'
+    title = f'{qc_results.get("QC test")}\ntreshold={treshold}'
     df = df.sort_values(column).reset_index(drop=True)
     p = p9.ggplot(df, p9.aes(x=df.index, y=column))
     line = p + p9.geom_line() + p9.geom_point()
     if treshold > 0 and treshold < 1 :
         line += p9.geom_hline(yintercept=treshold, color='red')
-        ylabel += f"   (treshold {treshold})"
+        # ylabel += f"   (treshold={treshold})"
         xlabel += f' ({qc_results.get("actionTakenCount")} outside treshold)'
     line += p9.labs(title=title, y=ylabel, x=xlabel)
-    p9.ggsave(plot=line, filename=resultFile, dpi=300)
+    p9.ggsave(plot=line, filename=resultFile, dpi=300,
+              width=4, height=3, units="cm")
     return
 
 
 def saveYamlResults(files, yamlStruct):
-    """ Creates three files from the given yamlStruct
+    """ Creates 3 files (.rst .yaml .yaml.details) from yamlStruct
 
     files is a Path or string, typically result.yaml
     "files.removedSamples" has yamlStruct["xitems"] intact
@@ -162,9 +165,10 @@ def saveYamlResults(files, yamlStruct):
     # A .rst version used for captions
     rstFile = files.with_suffix(".rst")
     percentDropped = yamlStruct["actionTakenCount"] / yamlStruct["in"]
-    # March 2020; Note that founder/offspring rules, it has been har to declare separate rst-
-    # files for founder/offspring. Instead, we create a common file, overwriting whatever
-    # is made here :-(
+    # March 2020; Note that founder/offspring rules, it has been hard
+    # to declare separate rst- files for founder/offspring. Instead,
+    # we later create a common file, overwriting whatever is made here
+    # :-(
     with open(rstFile, 'w') as file:
         file.write(f'Rule {yamlStruct["Rule order"]} ({yamlStruct["rule type"]})\n\n')
         file.write(f'- {yamlStruct["in"]} in\n')
@@ -172,7 +176,7 @@ def saveYamlResults(files, yamlStruct):
         file.write(f'- {yamlStruct["out"]} left\n\n')
         file.write(f'{yamlStruct["Timestamp"]}\n')
 
-
+        
 def plinkBase(path):
     """ part of the file without the last extention (such as .fam .bed .bim)
 
@@ -292,16 +296,16 @@ def extract_list(innFile, outFile, threshold_doc_file="/dev/null",
 
 
 def dict_count_items(fil, cols=[0, 1], warn=True):
-    """Creates and counts item in a dictionary
+    """Creates and counts items in a dictionary
 
     Creates a dictionary with as key concatenation of the strings of
-    the columns found in fil.
+    the columns cols found in fil.
     Values are the number of times that key is found
     Returns the dictionary and the largest key value. In many
     scenarios, 1 is wanted here, meaning no duplicates.
     if warn=True, will warn about key value > 1
     fil is expected to be  csv file with whitespace as delimiters
-    First Column in the file is number 0 (standar Python)
+    First Column in the file is number 0 (standard Python)
     (Hint for when this is used to compare the columns of two files:
     You can reduce memory usage by making a dictionary of the smallest
     file and searchin/iterating for matches through the largest
@@ -352,31 +356,31 @@ def lookupDict(fil, indx=1):
 
 
 def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
-                 fullList=False,  mapFile="", mapIndx=1):
+                 fullList=False,  mapFile="", mapIndx=1,
+                 allele_flip=False):
     """Generic comparition of two bedsets
 
-    Return number of updates due (typically) to a rule as well as a structure
-    suited for a export as a yaml-file
+    Return number of updates due (typically) to a rule as well as a
+    structure suited for a export as a yaml-file
 
-    The scenario is that a method/step had a dataset (file indData)
-    and produced outData.
+    The scenario is that a method/step had a dataset (file preQc)
+    and produced postQc.
 
-    Some items got filtered out/changed
-    pre/postQC are tab-serparated csv-files with the same amount of columns
+    Some items got filtered out/changed. pre/postQC are tab-serparated
+    csv-files with the same amount of columns
 
     The optional sanityCheck parameter will give error message as
     follows, depending to its value
        removal: Number of action on (removed) = size of preQc-postQc
        updated: size of preQc = postQc
        anything different from the above): No tests performed
-    Only columns passed by cols are used to compare betwen input/and output.
+    Only columns passed by cols are used to compare between input/and output.
 
     fullList documents (in list xitems), what sample/markers have been
-    changed/missing.  indx is only necessary if fullList is True. 
+    changed/missing.  
 
-    indx is used to genereate a list (usually of samples/markers) from
-    column nr indx
-
+    indx (if fullList is True) is used to genereate a list (usually of
+    samples/markers) from column nr indx.
     indx is sample-id/marker-id. indx=0 is the first column, default
     is second column.
 
@@ -387,11 +391,16 @@ def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
     mapIndx indicates the column of the mapFile that corresponds to
     indx in the datafile
 
+    if allele_flip is true, the two last columns are expected to be
+    letters (alleles). Records will be classified as identical
+    regardless of the order of these: "foo A T" will be regarded as
+    identical too "foo T A" (but obiously not of "foo T x" etc)
+
     The yaml-structure will always contain the number of input
     samples/markers as well as sample/markers removed/remaining.
 
     """
-    # dictionaly with only relevant columns
+    # dictionary with only relevant columns
     (outDict, m) = dict_count_items(postQc, cols)
     result = {
         "in":   0,        # will count lines from the 'in' file
@@ -411,7 +420,16 @@ def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
         subsetc = [allcols[index] for index in cols]
         # concatenating so we can look up the strings with corresponding field from postQc file
         key = " ".join(map(str, subsetc))
-        if (outDict.get(key, 0) == 0):
+        flipkey = key  # in case we want to flip alleles, if not key == flipkey
+        if allele_flip:
+            parts = re.match(r"(.*) (\S+) (\S+)$", key) # assuming the alleles at the end
+            # group(2) is allele 1, group(3) allele 2
+            # Turned out that alleles (like in 1000genomes can be on the form
+            # <INS:ME:ALU> so we are accept any non-blank in the match
+            #print (key)
+            flipkey = " ".join((parts.group(1),parts.group(3),parts.group(2)))
+        if (outDict.get(key, 0) + outDict.get(flipkey, 0)) == 0 :
+        # If we didnt find this, even by (possible) flipping alleles
             result["actionTakenCount"] += 1
             item = str(allcols[indx])    # being the sample or the marker
             if fullList:
@@ -790,13 +808,14 @@ def fix_rsid_map(mapfile, newmap):
 
 
 def intersect_rsid(bim_small, bim_big, intersection, small_col=1, big_col=1):
-    """ Default assumes bim-ish files, that is tab-serarated columns.
+    """Default assumes bim-ish files, that is tab-serarated columns.
 
     intersection is a file to be created
     Will create duplicate rsid if bim_big contains such
     If one of the files is large, pass that as bim_big for efficiency
-    bim-files have rsid in 2. column (1, default). If you files containing rsid
-    but on an other format, pas the column number (0 is firs column)
+    bim-files have rsid in 2. column (1, default). If you files
+    containing rsid but on an other format, pas the column number (0
+    is first column)
 
     """
     my_name = inspect.currentframe().f_code.co_name      # this functions name
@@ -954,6 +973,8 @@ def sex_check(rule,
 
 def egrep(pattern, in_file, out_file, switches=""):
     """ egrep wrapper. Lazy. Prone to path errors. It is pretty bad tbh.
+
+        Consider simply using subprocess.run
     """
     subprocess.call(f'egrep {switches} {pattern} {in_file} > {out_file}',
                     shell=True)
@@ -1019,11 +1040,50 @@ def find_moba_pca_outlier(df):
 # dir="/mnt/work2/gutorm/pipeOut/mod2-data-preparation/founders/"
 # intersect_rsid("/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/snakefiles/foo", dir+"23", "bar", small_col=0, big_col=1)
 
+def create_fam_map(fam_file, map_in_file,  map_out_file):
+    """Creates a file that plink can use to rename individuals
+
+    This is typically used to replace/obfuscate retrievalDetails_Ids
+    with sentrixIds.  
+
+    * fam_file is the original plink fam-file 
+
+    * map_in_file is typically a subset of the samplesheet, no headers
+      and only retrievalDetails_Ids and sentrixIds
+
+    * map_out_file the mapping file expected later by plink --update-ids
+
+    """
+    # print(f"Doing: {fam_file} and {map_in_file} to {map_out_file}")
+    my_name = inspect.currentframe().f_code.co_name  # Generic way of find function name
+    try:
+        # 4 columns 0-3
+        fam = pd.read_csv(fam_file, header=None,
+                         delim_whitespace=True)
+        # 2 columns 4-5
+        map = pd.read_csv(map_in_file, header=None,
+                         delim_whitespace=True)
+    except Exception as e:
+        print(f"{my_name}: {str(e)}")
+        return
+    
+    # print(map)
+    all = fam.merge(map, left_on=[1], right_on=[0],
+                    indicator=True, validate="1:1")
+    # 0_x is old familyname, 
+    # 1_x is old ID (retrievalID), 1_y is new (sentrixId)
+    all[["0_x","1_x","1_y","1_y"]].to_csv(map_out_file, sep=" ",
+                                          header=False,
+                                          index=False)
+    # end create_fam_map
+
 
 def main():
+# if you want to test a function
     print("Main called")
-    count_families("/mnt/work2/gutorm/pipeOut/mod2-data-preparation/inferped_all_m2.fam","^\d+")
-
-   
+    y = checkUpdates("/mnt/work/gutorm/1000Genomes/all_phase3.bim",
+                 "/mnt/work2/gutorm/pipeOut/mod3-good-markers/pca_ref.bim", cols=[0,1,3,4,5], indx=1, sanityCheck="none",
+                     fullList=True, allele_flip=True)
+    print(y)
 if __name__ == "__main__":
     main()

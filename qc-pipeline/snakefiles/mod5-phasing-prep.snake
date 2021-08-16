@@ -1,4 +1,4 @@
-# Remove markers above chr 23 as these are eliglible for imputation
+# Remove markers above chr 23 as these are not eliglible for imputation
 rule_stem = "chr1_23"
 rule chr1_23:
     input:
@@ -22,8 +22,10 @@ rule chr1_23:
                         "--chr", "1-23",
                         "--out", outTrunk,
                         "--make-bed" ], check=True)
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
-                                    sanityCheck = "removal", fullList = True)
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
+                                    cols = [0,1,3,4,5],
+                                    sanityCheck = "removal",
+                                    fullList = True, allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
@@ -52,8 +54,10 @@ rule mendelian_errors:
                         "--mendel-duos",
                         "--out", outTrunk,
                         "--make-bed" ], check=True)
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
-                                    sanityCheck = "updated", fullList = True)
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
+                                    cols = [0,1,3,4,5],
+                                    sanityCheck = "updated",
+                                    fullList = True, allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         # we are not happy about the yaml-file since it does not reflect the missings state
@@ -79,7 +83,7 @@ rule rayner_verification:
         bedset = rules.mendelian_errors.output.bedset,
         hrc_sites=config['hrc_sites']
     output:
-        touch(tmpMod5/"RaynerVerificationNotDone"),
+        touch(tmpMod5/"RaynerVerificationNotDone"), # to force a run by deleting?
         # This is produced by a shell-script we have no control over hence the odd bedset name
         bedset = multiext(mqc.plinkBase(rules.mendelian_errors.output.bedset[0])
                           +"-updated", '.bed','.bim','.fam'),
@@ -103,7 +107,10 @@ rule rayner_verification:
         #                 "--out", freqTrunk])
         # assumes perl found in path
         subprocess.run(["perl",
+
                     f"{libdir}/HRC-1000G-check-bim.pl",
+                    # When 4.3 is installed
+                    "-l", plinklocal, 
                     "-b", inTrunk+".bim",
                     "-f", freqTrunk+".frq",
                     "-r", input.hrc_sites,
@@ -114,14 +121,53 @@ rule rayner_verification:
                     check=True, cwd=tmpMod5) # cwd so perl-script finds its previously made results
 
         # resulting bedsettrunk called inTrunk-updated
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",cols = [0,1],
-                                    sanityCheck = "updated", fullList = True)
+        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
+                                    cols = [0,1,3,4,5], sanityCheck = "updated",
+                                    fullList = True, allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
 
+rule_stem = "rayner_report"
+rule rayner_report:
+    input:
+        bedset = rules.rayner_verification.input.bedset,
+        chrfiles =  expand(str(tmpMod5/"mendelian_errors-updated-chr")
+                          +'{chrom}'+".bim", chrom=range(1,24)),
+    output:
+        results = report((resultPath/rule_stem).with_suffix(".rst"),
+                          category="Module 5 Phasing and imputation preparation",
+                          caption=(resultPath/rule_stem).with_suffix(".rst"))
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        bimfile =  mqc.plinkBase(input.bedset[0]) + ".bim"
+        total = mqc.line_count(bimfile)  # number of snps before split
+        (n_chr_input,max) = mqc.dict_count_items(bimfile, cols=[0], warn=False)
+        # n_chr_input is now a dictionary counting number of chromosone
+        # before the Will Rayner pass
+        sum = 0 # total snps in chr files created by Will Rayner script
+        regx = re.compile('(\d+).bim')  # assuming that the chromosone number is just before .bim
+        res = ""  # String that contains chromosone counts after WR
+        for f in input.chrfiles:
+            c = re.search(regx,f).group(1)  # this chromosone
+            n = mqc.line_count(f)           # number of snsps for this chromosone
+            res += f"{c}:{n_chr_input[c]}->{n} "
+            sum += n
+        # if total != sum :
+            # print(f"Error: {bimfile} had {total} snps while the 23 chromosone files had {sum}")
+
+        with open(output.results,'w') as file:
+                file.write(f'Rule {rule_info[rule]["Rule order"]} ({rule_info[rule]["rule action"]})\n\n'
+                           f'Markers in -> out: {total} ->{sum}\n\n'
+                           f'Split chromosone-wise like this:\n'
+                           f'{res}\n\n'
+                           f'For details the se Will Rayner logs on {tmpMod5}/LOG-split_by_chr*-HRC.txt')
+
 
 # Pretty hardcoded to HRC as reference set
+# This code was used to run Will Rayner script on one chromosome at a time.
+# It should not be used - delete it when cleaning up
 # rule_stem = "wr_check"
 # rule wr_check:
 #     input:
@@ -195,58 +241,28 @@ rule rayner_verification:
 #                         "--out", outTrunk,
 #                         "--make-bed"], check=True)
         
-rule_stem = "split_by_chr"
-rule split_by_chr:
-    input:
-        bedset = rules.mendelian_errors.output.bedset,
-    output:
-        bedset = expand(str(tmpMod5/rule_stem)
-                          +'{{chromo}}'+'{ext}', ext=['.bed','.bim','.fam']),
-    benchmark:
-        str(tmpMod5/rule_stem)+f"{{chromo}}.benchmark"
-    message: "Splitting verified dataset by chromosome: chromosome {wildcards.chromo}/23"
-    run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])
-        inTrunk =  mqc.plinkBase(input.bedset[0])
-        outTrunk = mqc.plinkBase(output.bedset[0])
-        print("****** Get bedset from Rayner verification!!! *****")
-        subprocess.run([plinklocal,
-                        "--bfile", inTrunk,
-                        "--chr", str(wildcards.chromo),
-                        "--out", outTrunk,
-                        "--make-bed"], check=True)
+# rule_stem = "split_by_chr"
+# Not sure whay this is here. WR script allready split and orderes alleles
+# rule split_by_chr:
+#     input:
+#         bedset = rules.rayner_verification.output.bedset,
+#     output:
+#         bedset = expand(str(tmpMod5/rule_stem)
+#                           +'{{chromo}}'+'{ext}', ext=['.bed','.bim','.fam']),
+#     benchmark:
+#         str(tmpMod5/rule_stem)+f"{{chromo}}.benchmark"
+#     message: "Splitting verified dataset by chromosome: chromosome {wildcards.chromo}/23"
+#     run:
+#         item_type = rule_info[rule]["rule type"]
+#         mqc.log(runlog, rule_info[rule]["QC test"])
+#         inTrunk =  mqc.plinkBase(input.bedset[0])
+#         outTrunk = mqc.plinkBase(output.bedset[0])
+#         subprocess.run([plinklocal,
+#                         "--bfile", inTrunk,
+#                         "--chr", str(wildcards.chromo),
+#                         "--out", outTrunk,
+#                         "--make-bed"], check=True)
 
-rule_stem = "split_by_chr_report"
-rule split_by_chr_report:
-    input:
-        bedset = rules.mendelian_errors.output.bedset,
-        chrfiles =  expand(str(tmpMod5/"split_by_chr")
-                          +'{chrom}'+".bim", chrom=range(1,24)),
-    output:
-        results = report((resultPath/rule_stem).with_suffix(".rst"),
-                          category="Module 5 Phasing and imputation preparation",
-                          caption=(resultPath/rule_stem).with_suffix(".rst"))
-    run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])
-        bimfile =  mqc.plinkBase(input.bedset[0]) + ".bim"
-        total = mqc.line_count(bimfile)  # number of snps before split
-        sum = 0 # total snps in chr files created previously
-        regx = re.compile('(\d+).bim')  # assuming that the chromosone number is just before .bim
-        res = ""  # String that contains chromosone counts.
-        for f in input.chrfiles:
-            c = re.search(regx,f).group(1)  # this chromosone
-            n = mqc.line_count(f)           # number of snsps for this chromosone
-            res += f"{c}:{n} "
-            sum += n
-        if total != sum :
-            print("Error: {bimfile} had {total} snps while the 23 chromosone files had {sum}")
-
-        with open(output.results,'w') as file:
-                file.write(f'Rule {rule_info[rule]["Rule order"]} ({rule_info[rule]["rule action"]})\n\n'
-                           f'Total snps {total} split chromosone-wise like this:\n\n'
-                           f'{res}\n')
 
 # rule hrc_verification_check:
 # 	input:
@@ -294,6 +310,12 @@ rule split_by_chr_report:
 # 			-h
 		
 # 		log "HRC VERIFICATION UPDATE"
+
+# Gutorms comment: The plink-commands are the ones that is prodused by
+# HRC-1000G-check-bim.pl in Run-plink.sh . I don't know why they are
+# reinserted in the snake pipeline. Make for the reporting?
+# Nevertheless - this is more prone to changes/improvements in
+# HRC-1000G-check-bim.pl
 
 # 		# Update bedset with HRC verification lists
 # 		bedbase=`basename {params.in_bedset}`
