@@ -77,37 +77,38 @@ rule mendelian_errors:
         mqc.saveYamlResults(output.results, dropouts)
 
 
-rule_stem = "hrc_verification" # Not used for  the output bed 
+rule_stem = "hrc_verification" # Not used for the output bed 
 rule rayner_verification:
     input:
         bedset = rules.mendelian_errors.output.bedset,
-        hrc_sites=config['hrc_sites']
+        hrc_sites = config['hrc_sites']
     output:
-        touch(tmpMod5/"RaynerVerificationNotDone"), # to force a run by deleting?
+        # touch(tmpMod5/"RaynerVerificationNotDone"), # to force a run by deleting? This was a hack, should have been documented why
         # This is produced by a shell-script we have no control over hence the odd bedset name
         bedset = multiext(mqc.plinkBase(rules.mendelian_errors.output.bedset[0])
                           +"-updated", '.bed','.bim','.fam'),
         results = report((resultPath/rule_stem).with_suffix(".yaml"),
                          category="Module 5 Phasing and imputation preparation",
-                        caption=(resultPath/rule_stem).with_suffix(".rst"))
+                        caption=(resultPath/rule_stem).with_suffix(".rst")),
+        chrfiles = expand(str(tmpMod5/"mendelian_errors-updated-chr")
+                         + '{chrom}' + ".bim", chrom=range(1, 24)) # These are made by the 'rayner-script'
     benchmark:
         (tmpMod5/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
 
-        inTrunk =  mqc.plinkBase(input.bedset[0])
+        inTrunk = mqc.plinkBase(input.bedset[0])
         outTrunk = mqc.plinkBase(output.bedset[0])
         freqTrunk = outTrunk + ".freq4hrc"
-        print ("**** UNCOMMENT hrc_verification!!!!: ")
+        #print("**** UNCOMMENT hrc_verification!!!!: ")
         # generate required frequency file for HRC check perl script
-        # subprocess.run([plinklocal,
-        #                 "--bfile", inTrunk,
-        #                 "--freq",
-        #                 "--out", freqTrunk])
+        subprocess.run([plinklocal,
+                         "--bfile", inTrunk,
+                         "--freq",
+                         "--out", freqTrunk])
         # assumes perl found in path
         subprocess.run(["perl",
-
                     f"{libdir}/HRC-1000G-check-bim.pl",
                     # When 4.3 is installed
                     "-l", plinklocal, 
@@ -117,13 +118,13 @@ rule rayner_verification:
                     "-h"], # -h indicates HRC as refset
                     check=True, cwd=tmpMod5) # cwd so perl-script drops results on 'our' tmp dir
         # The -sh script is produced by the above (but as march 2020 the x-but is not set)
-        subprocess.run(["bash","Run-plink.sh"], 
+        subprocess.run(["bash", "Run-plink.sh"],
                     check=True, cwd=tmpMod5) # cwd so perl-script finds its previously made results
 
         # resulting bedsettrunk called inTrunk-updated
         dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
-                                    cols = [0,1,3,4,5], sanityCheck = "updated",
-                                    fullList = True, allele_flip=True)
+                                    cols=[0, 1, 3, 4, 5], sanityCheck="updated",
+                                    fullList=True, allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
@@ -132,8 +133,8 @@ rule_stem = "rayner_report"
 rule rayner_report:
     input:
         bedset = rules.rayner_verification.input.bedset,
-        chrfiles =  expand(str(tmpMod5/"mendelian_errors-updated-chr")
-                          +'{chrom}'+".bim", chrom=range(1,24)),
+        chrfiles = expand(str(tmpMod5/"mendelian_errors-updated-chr")
+                          + '{chrom}' + ".bim", chrom=range(1, 24)),
     output:
         results = report((resultPath/rule_stem).with_suffix(".rst"),
                           category="Module 5 Phasing and imputation preparation",
