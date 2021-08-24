@@ -312,7 +312,7 @@ rule rayner_report:
 		
 # 		log "HRC VERIFICATION UPDATE"
 
-# Gutorms comment: The plink-commands are the ones that is prodused by
+# Gutorms comment: The plink-commands are the ones that are prodused by
 # HRC-1000G-check-bim.pl in Run-plink.sh . I don't know why they are
 # reinserted in the snake pipeline. Make for the reporting?
 # Nevertheless - this is more prone to changes/improvements in
