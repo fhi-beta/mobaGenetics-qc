@@ -43,11 +43,9 @@ rule common_markers_moba_ref:
         bedset_ref = multiext(str(tmpMod3/"pca_ref") ,'.bed','.bim','.fam'),
         bedset_moba = multiext(str(tmpMod3/"pca_moba") ,'.bed','.bim','.fam'),
         marker_list = (tmpMod3/rule_stem).with_suffix(".txt"),
-        # see comments below on why this is removed (it takes forever
-        # to run and might not be needed)
-        # tri_alleles = report((tmpMod3/rule_stem).with_suffix(".missnp"),
-        #                      category="Module 3 1000Genomes prep",
-        #                      caption=(resultPath/"pca_ref").with_suffix(".rst")),
+        tri_alleles = report((tmpMod3/rule_stem).with_suffix(".missnp"),
+                              category="Module 3 1000Genomes prep",
+                              caption=(resultPath/"pca_ref").with_suffix(".rst")),
         # results_ref = report((resultPath/"pca_ref").with_suffix(".yaml"),
         #                      category="Module 3 1000Genomes prep",
         #                      caption=(resultPath/"pca_ref").with_suffix(".rst")),
