@@ -1,0 +1,12 @@
+data/
+plots/
+processed_data/
+qc_results/
+logs/
+doc/manual_remove_samples_bad_density.txt
+.archive
+.snakemake
+.venv
+.Rhistory
+.nfs*
+Rplots.pdf
