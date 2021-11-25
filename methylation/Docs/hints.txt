@@ -1,0 +1,10 @@
+# just some notes that will enter the docs laters
+# Todo:
+
+
+# Run by using 8 cores
+snakemake -c 8 # and we will add some params here
+
+# dag
+snakemake --forceall --rulegraph | dot -Tpdf > dag.pdf
+
