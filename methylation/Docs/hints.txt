@@ -1,6 +1,8 @@
 # just some notes that will enter the docs laters
 # Todo:
 
+# saving conda environment
+conda list --explicit > metQc-env.txt
 
 # Run by using 8 cores
 snakemake -c 8 # and we will add some params here
