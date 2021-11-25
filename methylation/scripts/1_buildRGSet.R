@@ -1,7 +1,4 @@
 # ---- 0. Load dependencies and parse arguments
-message("Load .Rprofile for set up... \n")
-getwd()
-source(".Rprofile")
 
 message("Loading script dependencies...\n")
 
@@ -35,8 +32,9 @@ arrays <- read.metharray.sheet(plateDir)
 #arrays$Basename = paste(plateDir, "/", paste(arrays$Slide, arrays$SentrixPosition, sep = "_"), sep = "")
 
 # relevant subsetting if needed due to memory limitations
-arrays = arrays[arrays$SampleType == "B", ]
-arrays = arrays[1501:2009,]
+#arrays = arrays[arrays$SampleType != "B", ]
+#print(dim(arrays))
+#arrays = arrays[2501:3000,]
 
 message("Dimension of sample sheet: \n")
 print(dim(arrays))

@@ -1,6 +1,4 @@
 # ---- 0. Load dependencies
-message("Load .Rprofile for set up... \n")
-source(".Rprofile")
 
 message("Loading script dependencies...\n")
 

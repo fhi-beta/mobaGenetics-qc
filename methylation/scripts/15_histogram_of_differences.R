@@ -1,6 +1,3 @@
-message("Load .Rprofile for set up... \n")
-getwd()
-source(".Rprofile")
 
 message("Loading script dependencies...\n")
 
