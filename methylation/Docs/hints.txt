@@ -4,7 +4,9 @@
 
 # Run by using 8 cores
 snakemake -c 8 # and we will add some params here
-
-# dag
+# or dryrun using config on commandline and switch 
+snakemake -n -c8 --configfile input/met003.yaml --snakefile Snakefile third_part
+# DAG (might need configfile).
 snakemake --forceall --rulegraph | dot -Tpdf > dag.pdf
+
 
