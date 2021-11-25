@@ -9,7 +9,8 @@
 
 # 0. Load parameters, settings etc
 
-configfile: 'config.yaml'
+# Is replaced by command line argument such as --configfile input/met003.yaml
+# configfile: 'config.yaml'
 
 # Unpack config dictionary to local environment
 # is this part necessary?
@@ -40,7 +41,7 @@ rule filter_probes_rgset:
     input:
         script="scripts/2_filterRGSet.R",
         rgset=rules.build_rgset.output.rgset,
-        cross_hybridizing=f'doc/cross_hybridizing_{data_type}.txt'
+        cross_hybridizing=f'input/cross_hybridizing_{data_type}.txt'
     params:
         filter_cross_hybridizing=config['filter_cross_hybridizing'],
         filter_polymorphic_CpGs=config['filter_polymorphic_CpGs'],
