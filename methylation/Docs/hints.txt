@@ -1,5 +1,7 @@
 # just some notes that will enter the docs laters
 # Todo:
+# Check and split out the interactive part (with a dependency file that will crash?)
+
 
 # saving conda environment
 conda list --explicit > metQc-env.txt
