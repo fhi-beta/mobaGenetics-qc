@@ -1,5 +1,15 @@
 # ---- 0. Load dependencies
 
+# ---- 0. Parse Snakemake arguments
+args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality
+
+# activate renv if renv = TRUE
+if(as.logical(args[1])){
+        source("renv/activate.R")
+}
+
+args = args[-1]
+
 message("Loading script dependencies...\n")
 
 # Suppress package load messages to ensure logs are not cluttered
@@ -8,8 +18,6 @@ suppressMessages({
     library(data.table, quietly=TRUE)
 })
 
-# ---- 0. Parse Snakemake arguments
-args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality 
 message("Printing arguments from snakemake...\n")
 print(args)
 message("\n")
@@ -36,7 +44,7 @@ saveRDS(grSet_no_sex_chr, output.ratiosetNoSex)
 
 # store the beta matrix directly, as no more qc will be done on the sex chromosomes
 beta_matrix_sex_chr <- getBeta(grSet[sex_chr, ])
-saveRDS(beta_matrix_sex_chr, output.betaMatrixOnlySex)
+write.csv(beta_matrix_sex_chr, file = output.betaMatrixOnlySex, row.names = T)
 
 message("\nSeparating sex chromosomes done!\n\n")
 

@@ -1,3 +1,12 @@
+# ---- 0. Parse Snakemake arguments
+args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality
+
+# activate renv if renv = TRUE
+if(as.logical(args[1])){
+        source("renv/activate.R")
+}
+
+args = args[-1]
 
 message("Loading script dependencies...\n")
 
@@ -7,8 +16,6 @@ suppressMessages({
 	library(ggplot2, quietly=TRUE)
 })
 
-
-args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality
 
 message("Printing arguments from snakemake...\n")
 print(args)
@@ -21,7 +28,7 @@ input.bmiqed = args[3]
 output.plot = args[4]
 
 # load the different data sets we need for plotting Raw values, Noob values and BMIQed values
-bmiqed = readRDS(input.bmiqed)
+bmiqed = as.matrix(read.table(input.bmiqed, sep = ",", header = T, row.names = 1, check.names = F))
 set.seed(10)
 cpg_sub = sample(rownames(bmiqed), size = 50000)
 bmiqed = bmiqed[cpg_sub,]

@@ -1,5 +1,15 @@
 # ---- 0. Load dependencies
 
+# ---- 0. Parse Snakemake arguments
+args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality
+
+# activate renv if renv = TRUE
+if(as.logical(args[1])){
+        source("renv/activate.R")
+}
+
+args = args[-1]
+
 message("Loading script dependencies...\n")
 
 # Suppress package load messages to ensure logs are not cluttered
@@ -9,8 +19,6 @@ suppressMessages({
     library(pryr, quietly=TRUE)
 })
 
-# ---- 0. Parse Snakemake arguments
-args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality 
 message("Printing arguments from snakemake...\n")
 print(args)
 message("\n")
@@ -67,10 +75,10 @@ for(i in 1:dim(beta.autosomal.BMIQ)[2]){
 }
 
 message(paste0('Saving beta values prior to BMIQ to ', output.raw))
-saveRDS(data, file = output.raw)
+write.csv(data, file = output.raw, row.names = TRUE)
 
 message(paste0('Saving bmiqed beta values to ', output.raw))
-saveRDS(beta.autosomal.BMIQ, file = output.bmiqed)
+write.csv(beta.autosomal.BMIQ, file = output.bmiqed, row.names = TRUE)
 
 message('BMIQ done!')
 

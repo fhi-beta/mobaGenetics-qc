@@ -1,5 +1,15 @@
 # ---- 0. Load dependencies
 
+# ---- 0. Parse Snakemake arguments
+args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality
+
+# activate renv if renv = TRUE
+if(as.logical(args[1])){
+        source("renv/activate.R")
+}
+
+args = args[-1]
+
 message('Loading script dependencies...\n')
 
 
@@ -11,8 +21,6 @@ suppressMessages({
     library(grid, quietly=TRUE)
 })
 
-# ---- 0. Parse Snakemake arguments
-args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality 
 
 message("Printing arguments from snakemake...\n")
 print(args)
@@ -34,7 +42,7 @@ message("Reading in data from:\n\t",
         paste0(input.rgset, '\n\t', paste0(input.methylsets, collapse='\n\t'), '\n\t', input.bmiqed_data))
 
 message("\n\nFiltering the data to random subsample of 50 000 CpGs... \n ")
-betaBMIQ <- readRDS(input.bmiqed_data)
+betaBMIQ <- as.matrix(read.table(input.bmiqed_data, sep = ",", header = T, row.names = 1, check.names = F))
 
 #Pick random CpGs  
 sampleNames <- colnames(betaBMIQ)

@@ -1,5 +1,16 @@
 # ---- 0. Load dependencies and parse arguments
 
+# Parse arguments
+args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality 
+
+# activate renv if renv = TRUE
+if(as.logical(args[1])){
+	source("renv/activate.R")
+}
+
+args = args[-1]
+
+
 message("Loading script dependencies...\n")
 
 # Suppres package load messages
@@ -8,8 +19,6 @@ suppressMessages({
 	library(pryr, quietly=TRUE)
 })
 
-# Parse arguments
-args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality 
 
 message("Printing arguments from snakemake...\n")
 print(args)
@@ -27,14 +36,7 @@ message("\nReading in plate data...\n")
 
 plateDir <- input.plateDir
 arrays <- read.metharray.sheet(plateDir)
-# print(dim(arrays))
 
-#arrays$Basename = paste(plateDir, "/", paste(arrays$Slide, arrays$SentrixPosition, sep = "_"), sep = "")
-
-# relevant subsetting if needed due to memory limitations
-#arrays = arrays[arrays$SampleType != "B", ]
-#print(dim(arrays))
-#arrays = arrays[2501:3000,]
 
 message("Dimension of sample sheet: \n")
 print(dim(arrays))
