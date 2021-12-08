@@ -25,7 +25,9 @@ message("\n")
 # unpack args to improve readability:
 input.ratioset = args[1]
 output.bmiqed = args[2]
-output.raw = args[3]
+output.bmiqedRds = args[3]
+output.raw = args[4]
+output.rawRds = args[5]
 
 # ---- 1. load GRSet
 message(paste0('Loading GRSet no sex chromosomes and getting beta values... \n'))
@@ -76,9 +78,11 @@ for(i in 1:dim(beta.autosomal.BMIQ)[2]){
 
 message(paste0('Saving beta values prior to BMIQ to ', output.raw))
 write.csv(data, file = output.raw, row.names = TRUE)
+saveRDS(data, file = output.rawRds)
 
 message(paste0('Saving bmiqed beta values to ', output.raw))
 write.csv(beta.autosomal.BMIQ, file = output.bmiqed, row.names = TRUE)
+saveRDS(beta.autosomal.BMIQ, file = output.bmiqedRds)
 
 message('BMIQ done!')
 

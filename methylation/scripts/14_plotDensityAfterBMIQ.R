@@ -42,7 +42,7 @@ message("Reading in data from:\n\t",
         paste0(input.rgset, '\n\t', paste0(input.methylsets, collapse='\n\t'), '\n\t', input.bmiqed_data))
 
 message("\n\nFiltering the data to random subsample of 50 000 CpGs... \n ")
-betaBMIQ <- as.matrix(read.table(input.bmiqed_data, sep = ",", header = T, row.names = 1, check.names = F))
+betaBMIQ <- readRDS(input.bmiqed_data)
 
 #Pick random CpGs  
 sampleNames <- colnames(betaBMIQ)

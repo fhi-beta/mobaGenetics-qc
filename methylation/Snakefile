@@ -245,11 +245,12 @@ rule separate_sex_chromosomes:
         renv=config['renv']
     output:
         ratioset_no_sex_chr=f'processed_data/{analysis_name}_12_{selected_preprocess_method}_GenomicRatioSet_filter_probes_without_sex_chr.rds',
-        beta_matrix_sex_chr=f'processed_data/{analysis_name}_12_{selected_preprocess_method}_beta_matrix_sex_chr.csv'
+        beta_matrix_sex_chr=f'processed_data/{analysis_name}_12_{selected_preprocess_method}_beta_matrix_sex_chr.csv',
+        beta_matrix_sex_chr_rds=f'processed_data/{analysis_name}_12_{selected_preprocess_method}_beta_matrix_sex_chr.rds'
     log:
         'logs/12_separateSexChromosomesInGRSet.Rout'
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.ratioset} {output.ratioset_no_sex_chr} {output.beta_matrix_sex_chr} >& {log}"
+        "Rscript --vanilla {input.script} {params.renv} {input.ratioset} {output.ratioset_no_sex_chr} {output.beta_matrix_sex_chr} {output.beta_matrix_sex_chr_rds} >& {log}"
 
 # ---- 13. Do BMIQ on beta values from GenomicRatioSet
 
@@ -263,11 +264,13 @@ rule bmiq_on_grset:
         renv=config['renv']
     output:
         bmiqed_data=f'processed_data/{analysis_name}_13_bmiqed_beta_values.csv',
-        raw_data=f'processed_data/{analysis_name}_13_beta_values.csv'
+        bmiqed_data_rds=f'processed_data/{analysis_name}_13_bmiqed_beta_values.rds',
+        raw_data=f'processed_data/{analysis_name}_13_beta_values.csv',
+        raw_data_rds=f'processed_data/{analysis_name}_13_beta_values.rds'
     log:
         'logs/13_bmiqGRSet.Rout'
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.ratioset_no_sex_chr} {output.bmiqed_data} {output.raw_data} >& {log}"
+        "Rscript --vanilla {input.script} {params.renv} {input.ratioset_no_sex_chr} {output.bmiqed_data} {output.bmiqed_data_rds} {output.raw_data} {output.raw_data_rds} >& {log}"
 
 
 # ---- 14. Plot density after BMIQ
@@ -276,7 +279,7 @@ rule plot_density_after_bmiq:
         script="scripts/14_plotDensityAfterBMIQ.R",
         methylsets=rules.preprocess_to_methylset.output.methylsets,
         rgset=rules.filter_samples_rgset.output.rgset_filtered,
-        bmiqed_data=rules.bmiq_on_grset.output.bmiqed_data
+        bmiqed_data=rules.bmiq_on_grset.output.bmiqed_data_rds
     params:
         plot_titles=preprocess_methods,
         renv=config['renv']
@@ -293,7 +296,7 @@ rule plot_histogram_of_differences:
         script="scripts/15_histogram_of_differences.R",
         rgset=rules.filter_samples_rgset.output.rgset_filtered,
         methset=rules.preprocess_to_methylset.output.methylsets,
-        bmiqed=rules.bmiq_on_grset.output.bmiqed_data
+        bmiqed=rules.bmiq_on_grset.output.bmiqed_data_rds
     params:
         renv=config['renv']
     output:

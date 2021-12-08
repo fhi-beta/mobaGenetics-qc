@@ -26,6 +26,7 @@ message("\n")
 input.ratioset = args[1]
 output.ratiosetNoSex = args[2]
 output.betaMatrixOnlySex = args[3]
+output.betaMatrixSexChrRds = args[4]
 
 # ---- 1. Read in data
 message(paste0('Reading in GRSet from: ', input.ratioset, '...\n'))
@@ -45,6 +46,7 @@ saveRDS(grSet_no_sex_chr, output.ratiosetNoSex)
 # store the beta matrix directly, as no more qc will be done on the sex chromosomes
 beta_matrix_sex_chr <- getBeta(grSet[sex_chr, ])
 write.csv(beta_matrix_sex_chr, file = output.betaMatrixOnlySex, row.names = T)
+saveRDS(beta_matrix_sex_chr, file = output.betaMatrixSexChrRds)
 
 message("\nSeparating sex chromosomes done!\n\n")
 

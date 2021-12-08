@@ -28,7 +28,7 @@ input.bmiqed = args[3]
 output.plot = args[4]
 
 # load the different data sets we need for plotting Raw values, Noob values and BMIQed values
-bmiqed = as.matrix(read.table(input.bmiqed, sep = ",", header = T, row.names = 1, check.names = F))
+bmiqed = readRDS(input.bmiqed)
 set.seed(10)
 cpg_sub = sample(rownames(bmiqed), size = 50000)
 bmiqed = bmiqed[cpg_sub,]

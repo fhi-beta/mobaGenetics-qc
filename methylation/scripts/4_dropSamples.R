@@ -103,7 +103,6 @@ numSamplesPassedQC <- sum(colMeans(detected) > 0.9)
 message(paste0(numSamplesPassedQC, ' out of ', ncol(detPvals), ' samples passed detection p-value filtering  at alpha of ', detect_p_val, '...\n'))
 
 failedSamples <- which(colMeans(detected) < 0.9)
-message(paste0("The following samples failed: \n\t", paste0(names(failedSamples), collapse=',\n\t'), '\n'))
 
 keepSamples <- colMeans(detected) > 0.9
 
@@ -132,12 +131,6 @@ numPassed <- sum(bisulphiteConversionDT$conversion_rate > conversion_minimum)
 message(paste0(numPassed, ' out of ', nrow(bisulphiteConversionDT),
                ' samples passed qc at bisulphite conversion rate of ',
                conversion_minimum, '%...\n'))
-
-message(paste0('The following samples failed at bisulphite conversion rate of ',
-        conversion_minimum, '%:\n\t ',
-        paste0(bisulphiteConversionDT[conversion_rate < conversion_minimum]$sample,
-               collapse=',\n\t'),
-        '\n'))
 
 # ---- 8. Drop samples failing the bisulphite conversion cut-off
 message("Subsetting RGChannelSet to samples passing bisulphite QC...\n")

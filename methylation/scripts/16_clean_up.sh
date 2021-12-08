@@ -2,7 +2,15 @@
 
 # remove stored intermediate data
 cd processed_data
-rm *.rds
+rm *_1_*
+rm *_2_*
+rm *_4_*
+rm *_5_*
+rm *_7_*
+rm *_8_*
+rm *_10_*
+rm *_11_*
+rm *filter_probes_without_sex_chr.rds
 
 cd ../qc_results
 rm *3_filtered_NA_control_probes.csv

@@ -73,15 +73,18 @@ $ snakemake --core 1 clean_up
 The end matrices with data:
 processed_data/:
 {analysis_name}_12_Noob_beta_matrix_sex_chr.csv	(beta values from CpGs at sex chromosomes; rows - CpGs, columns - samples)
+{analysis_name}_12_Noob_beta_matrix_sex_chr.rds	(same as above, but stored as .rds file)
 {analysis_name}_13_beta_values.csv			(beta values from autosomal CpGs before BMIQ; rows - CpGs, columns - samples)
+{analysis_name}_13_beta_values.rds			(same as above, but stored as .rds file)
 {analysis_name}_13_bmiqed_beta_values.csv		(beta values from autosomal CpGs after BMIQ; rows - CpGs, columns - samples)
+{analysis_name}_13_bmiqed_beta_values.rds		(same as above, but stored as .rds file)
 
 these are stored as .csv files. To load into R, do the following command in R:
 data = read.table("{analysis_name}_12_Noob_beta_matrix_sex_chr.csv", sep = ",", header = TRUE, row.names = 1, check.names = FALSE)
 
 additional files with valueable information:
 logs/:
-- folder with log files containing output from the scripts that have been run. Inspect if errors or if curious
+The Rout files are log files containing information about the R session and the functions applied to the data. They contain information of what is done to the data during the different scripts. Additionally, if an error occurs in a script, the error message is given in the associated log file. These files are primarily meant for debugging of the pipeline, but can also be inspected to understand the order of when the different functions and QC steps have been applied.
 
 plots/:
 {analysis_name}_3_boxplot_control_probes.pdf (boxplot of log2()-values from intensity measures from control probes for each sample)

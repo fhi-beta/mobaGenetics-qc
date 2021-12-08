@@ -31,12 +31,11 @@ output.rgset = args[2]
 message("\nReading in plate data...\n")
 
 # Notes: if unable to load all idats due to memory limitation
-# Use read.metharray.exp(targets = arrays, extended = FALSE), and subset the arrays prior. 
-# This will keep the sample sheet information in the RGset.
 
 plateDir <- input.plateDir
 arrays <- read.metharray.sheet(plateDir)
-
+# Notes: if unable to load all idats due to memory limitation
+# subset the arrays before loading the idats
 
 message("Dimension of sample sheet: \n")
 print(dim(arrays))
