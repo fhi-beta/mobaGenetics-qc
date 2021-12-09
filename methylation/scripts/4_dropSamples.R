@@ -68,9 +68,9 @@ if(sum(colnames(pheno) == "Comment")){
 	exclude = c(exclude, names(comments[grep("failedsample", comments)]))
 	reason = c(reason, rep("failed_sample", times = length(comments[grep("failedsample", comments)])))
 
-	dropped_samples_df = rbind(dropped_samples_df, data.frame(exclude, reason))
+	dropped_samples_df = rbind(dropped_samples_df, data.frame(sample=exclude, reason=reason))
 	message(paste0("Remove ", length(exclude), " failed samples(too low concentration) and illumina controls.."))
-	rgSet = rgSet[, setdiff(rownames(pheno), exclude)]
+	rgSet = rgSet[, setdiff(colnames(rgSet), exclude)]
 	message(paste0("Dimension of rgSet after intial filtering: ", dim(rgSet)[1], " ", dim(rgSet)[2]))
 }
 
@@ -106,7 +106,8 @@ failedSamples <- which(colMeans(detected) < 0.9)
 
 keepSamples <- colMeans(detected) > 0.9
 
-rgSetFiltered <- rgSet[, keepSamples]
+rgSet <- rgSet[, keepSamples]
+invisible(gc())
 
 df <- data.frame(sample=names(failedSamples), reason=rep('pvalue', length=length(failedSamples)))
 dropped_samples_df <- rbind(dropped_samples_df, df)
@@ -114,7 +115,7 @@ dropped_samples_df <- rbind(dropped_samples_df, df)
 
 # ---- 6. Calculate the bisulphite conversion rates per sample and save to disk
 message("Calculating sample bisulphite conversion rates...\n")
-bisulphiteConversion <- bscon(rgSetFiltered)
+bisulphiteConversion <- bscon(rgSet)
 bisulphiteConversionDT <- data.table(
                             'sample'=names(bisulphiteConversion),
                             'conversion_rate'=bisulphiteConversion
@@ -136,13 +137,13 @@ message(paste0(numPassed, ' out of ', nrow(bisulphiteConversionDT),
 message("Subsetting RGChannelSet to samples passing bisulphite QC...\n")
 keepSamples <- bisulphiteConversion > conversion_minimum
 
-rgSetFiltered2 <- rgSetFiltered[, keepSamples]
+rgSet <- rgSet[, keepSamples]
 message('\n')
 
 
 # ---- 9. Save RGChannelSet to disk
 message(paste0("Saving RGChannel set to ", output.rgset_filtered , '...\n'))
-saveRDS(rgSetFiltered2, file=output.rgset_filtered )
+saveRDS(rgSet, file=output.rgset_filtered )
 
 
 failedSamples2 <- which(bisulphiteConversion <= conversion_minimum)
