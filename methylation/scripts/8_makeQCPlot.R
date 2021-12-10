@@ -1,5 +1,15 @@
 # ---- 0. Load dependencies and parse arguments
 
+# ---- 0. Parse Snakemake arguments
+args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality
+
+# activate renv if renv = TRUE
+if(as.logical(args[1])){
+        source("renv/activate.R")
+}
+
+args = args[-1]
+
 message("Loading script dependencies...\n")
 
 # Suppres package load messages
@@ -7,8 +17,6 @@ suppressMessages({
         library(minfi, quietly=TRUE)
 })
 
-# Parse arguments
-args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality 
 
 message("printing arguments from snakemake...\n")
 print(args)

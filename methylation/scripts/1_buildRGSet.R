@@ -1,5 +1,16 @@
 # ---- 0. Load dependencies and parse arguments
 
+# Parse arguments
+args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality 
+
+# activate renv if renv = TRUE
+if(as.logical(args[1])){
+	source("renv/activate.R")
+}
+
+args = args[-1]
+
+
 message("Loading script dependencies...\n")
 
 # Suppres package load messages
@@ -8,8 +19,6 @@ suppressMessages({
 	library(pryr, quietly=TRUE)
 })
 
-# Parse arguments
-args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality 
 
 message("Printing arguments from snakemake...\n")
 print(args)
@@ -22,19 +31,11 @@ output.rgset = args[2]
 message("\nReading in plate data...\n")
 
 # Notes: if unable to load all idats due to memory limitation
-# Use read.metharray.exp(targets = arrays, extended = FALSE), and subset the arrays prior. 
-# This will keep the sample sheet information in the RGset.
 
 plateDir <- input.plateDir
 arrays <- read.metharray.sheet(plateDir)
-# print(dim(arrays))
-
-#arrays$Basename = paste(plateDir, "/", paste(arrays$Slide, arrays$SentrixPosition, sep = "_"), sep = "")
-
-# relevant subsetting if needed due to memory limitations
-#arrays = arrays[arrays$SampleType != "B", ]
-#print(dim(arrays))
-#arrays = arrays[2501:3000,]
+# Notes: if unable to load all idats due to memory limitation
+# subset the arrays before loading the idats
 
 message("Dimension of sample sheet: \n")
 print(dim(arrays))

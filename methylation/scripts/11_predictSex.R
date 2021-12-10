@@ -1,5 +1,15 @@
 # ---- 0. Load dependencies
 
+# ---- 0. Parse Snakemake arguments
+args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality
+
+# activate renv if renv = TRUE
+if(as.logical(args[1])){
+        source("renv/activate.R")
+}
+
+args = args[-1]
+
 message("Loading script dependencies...\n")
 
 # Suppress package load messages to ensure logs are not cluttered
@@ -7,8 +17,6 @@ suppressMessages({
     library(minfi, quietly=TRUE)
 })
 
-# ---- 0. Parse Snakemake arguments
-args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality 
 message("Printing arguments from snakemake...")
 print(args)
 message("\n")
@@ -25,10 +33,16 @@ GRset = readRDS(input.ratioset)
 sex_prediction = getSex(GRset)
 
 pheno = pData(GRset)
+if(sum(colnames(pheno) == "Sex")){
+	if("FALSE" %in% as.character(pheno$Sex)){
+	pheno$Sex = substr(as.character(pheno$Sex), 1, 1)
+	}
+}
 
 pheno_added = cbind(pheno, sex_prediction[rownames(pheno), ])
 message("\nDimension of GRset before filtering: \n")
 print(dim(GRset))
+
 
 # if the sample sheet has a column with specified "Sex", check for discordancy
 if(sum(colnames(pheno) == "Sex")){
@@ -49,6 +63,5 @@ message("\nSave filtered GRset and pheno data with added sex prediction column..
 
 saveRDS(GRset, file = output.filteredRatioset)
 write.csv(pheno_added, file = output.addedPheno, row.names = T)
-
 
 message("\nPredicting sex and checking for discordancy done!\n")

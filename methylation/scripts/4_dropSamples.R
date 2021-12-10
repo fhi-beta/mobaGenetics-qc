@@ -1,5 +1,15 @@
 # ---- 0. Load dependencies
 
+# ---- 0. Parse Snakemake arguments
+args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality 
+
+# activate renv if renv = TRUE
+if(as.logical(args[1])){
+        source("renv/activate.R")
+}
+
+args = args[-1]
+
 message("Loading script dependencies...\n")
 
 # Suppress package load messages to ensure logs are not cluttered
@@ -9,9 +19,6 @@ suppressMessages({
     library(data.table, quietly=TRUE)
     library(wateRmelon, quietly=TRUE)
 })
-
-# ---- 0. Parse Snakemake arguments
-args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality 
 
 message("Printing arguments from snakemake...\n")
 print(args)
@@ -61,9 +68,9 @@ if(sum(colnames(pheno) == "Comment")){
 	exclude = c(exclude, names(comments[grep("failedsample", comments)]))
 	reason = c(reason, rep("failed_sample", times = length(comments[grep("failedsample", comments)])))
 
-	dropped_samples_df = rbind(dropped_samples_df, data.frame(exclude, reason))
+	dropped_samples_df = rbind(dropped_samples_df, data.frame(sample=exclude, reason=reason))
 	message(paste0("Remove ", length(exclude), " failed samples(too low concentration) and illumina controls.."))
-	rgSet = rgSet[, setdiff(rownames(pheno), exclude)]
+	rgSet = rgSet[, setdiff(colnames(rgSet), exclude)]
 	message(paste0("Dimension of rgSet after intial filtering: ", dim(rgSet)[1], " ", dim(rgSet)[2]))
 }
 
@@ -96,11 +103,11 @@ numSamplesPassedQC <- sum(colMeans(detected) > 0.9)
 message(paste0(numSamplesPassedQC, ' out of ', ncol(detPvals), ' samples passed detection p-value filtering  at alpha of ', detect_p_val, '...\n'))
 
 failedSamples <- which(colMeans(detected) < 0.9)
-message(paste0("The following samples failed: \n\t", paste0(names(failedSamples), collapse=',\n\t'), '\n'))
 
 keepSamples <- colMeans(detected) > 0.9
 
-rgSetFiltered <- rgSet[, keepSamples]
+rgSet <- rgSet[, keepSamples]
+invisible(gc())
 
 df <- data.frame(sample=names(failedSamples), reason=rep('pvalue', length=length(failedSamples)))
 dropped_samples_df <- rbind(dropped_samples_df, df)
@@ -108,7 +115,7 @@ dropped_samples_df <- rbind(dropped_samples_df, df)
 
 # ---- 6. Calculate the bisulphite conversion rates per sample and save to disk
 message("Calculating sample bisulphite conversion rates...\n")
-bisulphiteConversion <- bscon(rgSetFiltered)
+bisulphiteConversion <- bscon(rgSet)
 bisulphiteConversionDT <- data.table(
                             'sample'=names(bisulphiteConversion),
                             'conversion_rate'=bisulphiteConversion
@@ -126,23 +133,17 @@ message(paste0(numPassed, ' out of ', nrow(bisulphiteConversionDT),
                ' samples passed qc at bisulphite conversion rate of ',
                conversion_minimum, '%...\n'))
 
-message(paste0('The following samples failed at bisulphite conversion rate of ',
-        conversion_minimum, '%:\n\t ',
-        paste0(bisulphiteConversionDT[conversion_rate < conversion_minimum]$sample,
-               collapse=',\n\t'),
-        '\n'))
-
 # ---- 8. Drop samples failing the bisulphite conversion cut-off
 message("Subsetting RGChannelSet to samples passing bisulphite QC...\n")
 keepSamples <- bisulphiteConversion > conversion_minimum
 
-rgSetFiltered2 <- rgSetFiltered[, keepSamples]
+rgSet <- rgSet[, keepSamples]
 message('\n')
 
 
 # ---- 9. Save RGChannelSet to disk
 message(paste0("Saving RGChannel set to ", output.rgset_filtered , '...\n'))
-saveRDS(rgSetFiltered2, file=output.rgset_filtered )
+saveRDS(rgSet, file=output.rgset_filtered )
 
 
 failedSamples2 <- which(bisulphiteConversion <= conversion_minimum)
