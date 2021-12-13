@@ -6,6 +6,10 @@ nthread: 1
 # The name prepended to files to identify current analysis. Use MoBa1, MoBa2, etc
 analysis_name: met003
 
+# renv controls if renv should be used for package control or not. creates some modifications to the scripts
+# if on TSD, renv should be TRUE. If outside of TSD, renv should be FALSE
+renv: FALSE
+
 # type of data, 450k or EPIC
 data_type: 450k
 
@@ -15,20 +19,18 @@ cell_type: "CordBlood"
 
 # Directories
 plate_data_dir: "/mnt/archive/Momics/MomicsPub/Methylation/Datasets/met003/raw-data/idats/"
-# plate_data_dir: "/tsd/p229methylation/data/durable/Datasets/met004/raw-data/idats"
-#"/tsd/p229methylation/data/durable/Datasets/met004/raw-data/idats"
-# "/tsd/p581/data/durable/Projects/MoBa_genomics/moba_qc_pipeline/data/EPIC"
-# "/tsd/p229methylation/data/durable/Datasets/met003/raw-data/idats"
+# plate_data_dir: "/tsd/p581/data/durable/Projects/MoBa_genomics/moba_qc_pipeline/data/EPIC"
+# "/tsd/p229methylation/data/durable/Datasets/met005/raw-data/idats"
 # "/tsd/p581/data/durable/Projects/MoBa_genomics/moba_qc_pipeline/data/EPIC"
 
-# rule 1_5
+# rule 2
 filter_cross_hybridizing: TRUE
 filter_polymorphic_CpGs: TRUE
 
 # rule 2 parameters
-sample_groups: "Sample_Plate"
+sample_groups: "Sentrix_ID"
 
-# rule 3 parameters
+# rule 4 parameters
 # Set the p-value cut-off for calling CpG probes as detected
 # We recommend leaving this as default unless you have a good justification
 detection_pvalue: 0.01
