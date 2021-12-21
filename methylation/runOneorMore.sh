@@ -1,11 +1,14 @@
 #!/bin/bash
 
-# run 1 local config file. By using this script, you dont have to navigate to tmp_config if too large sample size for doing all samples in one batch.
+# run 1 local config file. By using this script, you dont have to
+# navigate to tmp_config if too large sample size for doing all
+# samples in one batch.
 
-cores=2  # number of cores
+cores=12  # number of cores
 
-# define rule to run. if first time, do second_part. if rerun, or the list of manual removed samples are known, do third_part
-rule=first_part
+# define rule to run. if first time, do second_part. if rerun, or the
+# list of manual removed samples are known, do third_part
+rule=third_part
 
 # activate virtual environment enabling snakemake. This can be done outside of the script prior to "bash runOne.sh"
 #source .venv/bin/activate
@@ -15,18 +18,11 @@ mkdir -m775 tmp_config
 
 if [ $# -eq 0 ]
   then
-	echo "No arguments supplied."
-    	echo "Will run for all met*.yaml files in the input folder."
-    	# copy local config files to tmp_config
-	echo "$(ls -1q input/ | grep met | grep .yaml | wc -l) config files detected."
-    	
-	for file in $(ls -1q input/ | grep met | grep .yaml)
-    	  do
-        	cp input/$file tmp_config
-    	  done
+	echo "Usage: $0 <config-files>"
+    	echo "Config files are typically .yaml files.."
+    	echo "Example: $0 input/met00*.yaml"
   else
 	echo "$# files where given. Will run snakemake for these config files."
-	
 	for file in "$@"
 	  do
 		cp $file tmp_config
