@@ -1,5 +1,8 @@
 #!/bin/sh
 
+# move to the output folder, given as input to this script in Snakefile
+cd $1
+
 # remove stored intermediate data
 cd processed_data
 rm *_1_*

@@ -1,14 +1,14 @@
 # type of data, 450k or EPIC
-data_type: 450k
+data_type: EPIC
 
 # cell_type of your data, Blood or CordBlood. important for cell type proportion estimation.
 # if your data is a mix, partion them and run QC for each part
 cell_type: "CordBlood"
 
 # Directories
-local_path: "met003/raw-data/idats"
+local_path: "met008/raw-data/idats_child"
 
 # Filter out samples that failed manual QC after plotting density
 # The file name should indicate which analysis it belongs to.
 # One sample per line
-discarded_samples: 'input/met003_manual_remove_samples_bad_density.txt'
+discarded_samples: 'input/met008_child_manual_remove_samples_bad_density.txt'

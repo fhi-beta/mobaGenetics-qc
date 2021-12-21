@@ -9,33 +9,61 @@
 
 # 0. Load parameters, settings etc
 
-configfile: 'config.yaml'
-
 # Unpack config dictionary to local environment
-# is this part necessary?
+# import python module to get analysis name
+import sys
+
+args = sys.argv
+local_config_path = args[args.index("--configfile") + 2]  # relative path to local config file
+
+analysis_name = local_config_path.replace(".yaml", "").replace("input/", "").replace("tmp_config/", "") # define analysis_name based on config file name
+
+outputFolder = "Runs/" + analysis_name  # create path to folder to put results in
+
 nthread = config['nthread']
-analysis_name = config['analysis_name']
 data_type = config['data_type']
 detection_pvalue = config['detection_pvalue']
 bisulphite_conversion_rate = config['bisulphite_conversion_rate']
+plate_data_dir = config['global_path'] + "/" + config['local_path']
 
-plate_data_dir = config['plate_data_dir']
+# max sample size depends on 450k or EPIC, meaning the data type:
+if data_type == "450k":
+    max_sample_size = config['max_sample_size_450k']
+elif data_type == "EPIC":
+    max_sample_size = config['max_sample_size_epic']
 
+
+# 0. check that the sample size is not larger than allowed sample size
+rule sample_size_check:
+    input:
+        script="scripts/0_checkSampleSize.R",
+        plates=plate_data_dir
+    params:
+        renv=config['renv'],
+        analysis_name=analysis_name,
+        max_sample_size=max_sample_size,
+        folder=outputFolder
+    output:
+        sampleSheet=f'{outputFolder}/qc_results/{analysis_name}_sampleSheet.rds'
+    log:
+        f"{outputFolder}/logs/0_checkSampleSize.Rout"
+    shell:
+        "Rscript --vanilla {input.script} {params.renv} {input.plates} {params.analysis_name} {params.max_sample_size} {output.sampleSheet} {params.folder} >& {log}"
 
 # 1. Build RGSet
 
 rule build_rgset:
     input:
         script="scripts/1_buildRGSet.R",
-        plates=plate_data_dir # we send the whole directory to minfi
+        sheet=rules.sample_size_check.output.sampleSheet
     params:
         renv=config['renv']
     output:
-        rgset=f'processed_data/{analysis_name}_1_RGset.rds'
+        rgset=f'{outputFolder}/processed_data/{analysis_name}_1_RGset.rds'
     log:
-        "logs/1_buildRGSet.Rout"
+        f"{outputFolder}/logs/1_buildRGSet.Rout"
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.plates} {output.rgset} >& {log}"
+        "Rscript --vanilla {input.script} {params.renv} {input.sheet} {output.rgset} >& {log}"
 
 # 2. Filter probes from RGSet
 rule filter_probes_rgset:
@@ -47,16 +75,16 @@ rule filter_probes_rgset:
         filter_cross_hybridizing=config['filter_cross_hybridizing'],
         filter_polymorphic_CpGs=config['filter_polymorphic_CpGs'],
         detection_p=detection_pvalue,
-        frac_poor_quality=config['frac_poor_quality'],
         renv=config['renv']
     output:
-        probes_removed=f'qc_results/{analysis_name}_2_probes_removed.csv',
-        rgset_filtered_probes=f'processed_data/{analysis_name}_2_RGSet_filtered_probes.rds',
-        SNPbetas=f'qc_results/{analysis_name}_2_SNP_Betas.rds'
+        probes_removed=f'{outputFolder}/qc_results/{analysis_name}_2_probes_removed.csv',
+        rgset_filtered_probes=f'{outputFolder}/processed_data/{analysis_name}_2_RGSet_filtered_probes.rds',
+        SNPbetas=f'{outputFolder}/qc_results/{analysis_name}_2_SNP_Betas.rds',
+        pvalueMat=f'{outputFolder}/qc_results/{analysis_name}_2_pvalueMat.rds'
     log:
-        "logs/2_filterRGSet.Rout"
+        f"{outputFolder}/logs/2_filterRGSet.Rout"
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.rgset} {input.cross_hybridizing} {params.filter_cross_hybridizing} {params.filter_polymorphic_CpGs} {params.detection_p} {params.frac_poor_quality} {output.probes_removed} {output.SNPbetas} {output.rgset_filtered_probes} >& {log}"
+        "Rscript --vanilla {input.script} {params.renv} {input.rgset} {input.cross_hybridizing} {params.filter_cross_hybridizing} {params.filter_polymorphic_CpGs} {params.detection_p} {output.probes_removed} {output.SNPbetas} {output.rgset_filtered_probes} {output.pvalueMat} >& {log}"
 
 
 # 3. Add PCA plot as part of report
@@ -68,18 +96,18 @@ rule make_control_probe_PCA:
     params:
         renv=config['renv']
     output:
-        PCA_plot=f'plots/{analysis_name}_3_control_probe_PCA_plot.pdf', 
-        control_probe_PCA=f'qc_results/{analysis_name}_3_control_probe_PCA.rds',
-        NA_control_probe=f'qc_results/{analysis_name}_3_filtered_NA_control_probes.csv',
-        boxplot=f'plots/{analysis_name}_3_boxplot_control_probes.pdf'
+        PCA_plot=f'{outputFolder}/plots/{analysis_name}_3_control_probe_PCA_plot.pdf', 
+        control_probe_PCA=f'{outputFolder}/qc_results/{analysis_name}_3_control_probe_PCA.rds',
+        NA_control_probe=f'{outputFolder}/qc_results/{analysis_name}_3_filtered_NA_control_probes.csv',
+        boxplot=f'{outputFolder}/plots/{analysis_name}_3_boxplot_control_probes.pdf'
     log:
-        "logs/3_makeControlProbePCA.Rout"
+        f"{outputFolder}/logs/3_makeControlProbePCA.Rout"
     shell:
         "Rscript --vanilla {input.script} {params.renv} {input.rgset} {output.PCA_plot} {output.control_probe_PCA} {output.NA_control_probe} {output.boxplot} >& {log}"
 
 
 # 4. Filter out samples with less than 90% CpG probes detected 
-qc_path1 = f'qc_results/{analysis_name}_4'
+qc_path1 = f'{outputFolder}/qc_results/{analysis_name}_4'
 qc_step1 = f'detectionP{detection_pvalue}'
 
 rule filter_samples_rgset:
@@ -90,18 +118,19 @@ rule filter_samples_rgset:
     params:
         detection_pvalue=detection_pvalue,
         bisulphite_conversion_rate=bisulphite_conversion_rate,
-        renv=config['renv']
+        renv=config['renv'],
+        poor_frac=config['poor_quality_frac']
     output:
         detectionPvalues=f'{qc_path1}_detection_pvalues.csv',
         probeQC=f'{qc_path1}_num_probes_with_proportion_failed_samples_p{detection_pvalue}.csv',
         sampleQC=f'{qc_path1}_probes_failed_per_sample_p{detection_pvalue}.csv',
         bisulphiteQC=f'{qc_path1}_bisulphite_conversions.csv',
-        rgset_filtered=f'processed_data/{analysis_name}_4_RGSet_filtered_probes_and_samples.rds',
+        rgset_filtered=f'{outputFolder}/processed_data/{analysis_name}_4_RGSet_filtered_probes_and_samples.rds',
         dropped_sample_sheet=f'{qc_path1}_dropped_samples.csv'
     log:
-        "logs/4_dropSamples.Rout"
+        f"{outputFolder}/logs/4_dropSamples.Rout"
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.rgset} {input.NA_control_probes} {params.detection_pvalue} {params.bisulphite_conversion_rate} {output.detectionPvalues} {output.probeQC} {output.sampleQC} {output.bisulphiteQC} {output.rgset_filtered} {output.dropped_sample_sheet} >& {log}"
+        "Rscript --vanilla {input.script} {params.renv} {input.rgset} {input.NA_control_probes} {params.detection_pvalue} {params.bisulphite_conversion_rate} {params.poor_frac} {output.detectionPvalues} {output.probeQC} {output.sampleQC} {output.bisulphiteQC} {output.rgset_filtered} {output.dropped_sample_sheet} >& {log}"
 
 # ---- 5. Preprocess RGChannelSet to MethylSet
 
@@ -116,10 +145,10 @@ rule preprocess_to_methylset:
         preprocess_methods=preprocess_methods,
         renv=config['renv']
     output:
-        methylsets=expand('processed_data/{analysis_name}_5_MethylSet_{preprocess_method}.rds',
-            analysis_name=analysis_name, preprocess_method=preprocess_methods)
+        methylsets=expand('{outputFolder}/processed_data/{analysis_name}_5_MethylSet_{preprocess_method}.rds',
+            analysis_name=analysis_name, preprocess_method=preprocess_methods, outputFolder=outputFolder)
     log:
-        "logs/5_preprocessToMethylSet.Rout"
+        f"{outputFolder}/logs/5_preprocessToMethylSet.Rout"
     shell:
         "Rscript --vanilla {input.script} {params.renv} {input.rgset} {params.preprocess_methods} {output.methylsets} >& {log}"
 
@@ -137,9 +166,9 @@ rule plot_density_preprocessed_vs_rgset:
         plot_titles=preprocess_methods,
         renv=config['renv']
     output:
-        plots=f'plots/{analysis_name}_6_{comparisons}_density_plots.pdf'
+        plots=f'{outputFolder}/plots/{analysis_name}_6_{comparisons}_density_plots.pdf'
     log:
-        "logs/6_plotDensityPreprocessedVsRGSet.Rout"
+        f"{outputFolder}/logs/6_plotDensityPreprocessedVsRGSet.Rout"
     shell:
         "Rscript --vanilla {input.script} {params.renv} {input.methylsets} {input.rgset} {params.plot_titles} {output.plots} >& {log}"
 
@@ -153,16 +182,16 @@ discarded_samples = config['discarded_samples']
 rule filter_samples_failed_manual_qc:
     input:
         script="scripts/7_filterSamplesManualQC.R",
-        methylset=f'processed_data/{selected_methylset_file_name}.rds',
+        methylset=f'{outputFolder}/processed_data/{selected_methylset_file_name}.rds',
         discarded_samples=discarded_samples,
         filtered_samples=rules.filter_samples_rgset.output.dropped_sample_sheet
     params:
         renv=config['renv']
     output:
-        methylset=f'processed_data/{selected_methylset}_filtered_manual_qc.rds',
-        removed_samples=f'qc_results/{analysis_name}_7_filtered_samples.csv'
+        methylset=f'{outputFolder}/processed_data/{selected_methylset}_filtered_manual_qc.rds',
+        removed_samples=f'{outputFolder}/qc_results/{analysis_name}_7_filtered_samples.csv'
     log:
-        "logs/7_filterSamplesManualQC.Rout"
+        f"{outputFolder}/logs/7_filterSamplesManualQC.Rout"
     shell:
         "Rscript --vanilla {input.script} {params.renv} {input.methylset} {input.discarded_samples} {input.filtered_samples} {output.methylset} {output.removed_samples} >& {log}"
 
@@ -176,11 +205,11 @@ rule make_qc_plot:
     params:
         renv=config['renv']
     output:
-        qc_plot=f'plots/{analysis_name}_8_qc_plot.pdf',
-        filtered_methset=f'processed_data/{analysis_name}_8_filtered_methset.rds',
-        filtered_sample_list=f'qc_results/{analysis_name}_8_filtered_samples.csv'
+        qc_plot=f'{outputFolder}/plots/{analysis_name}_8_qc_plot.pdf',
+        filtered_methset=f'{outputFolder}/processed_data/{analysis_name}_8_filtered_methset.rds',
+        filtered_sample_list=f'{outputFolder}/qc_results/{analysis_name}_8_filtered_samples.csv'
     log:
-        "logs/8_makeQCPlot.Rout"
+        f"{outputFolder}/logs/8_makeQCPlot.Rout"
     shell:
         "Rscript --vanilla {input.script} {params.renv} {input.methylset} {input.filtered_samples} {output.qc_plot} {output.filtered_methset} {output.filtered_sample_list} >& {log}"
 
@@ -196,9 +225,9 @@ rule estimate_cell_type_proportions:
         selected_preprocess_method=selected_preprocess_method,
         renv=config['renv']
     output:
-        cellcounts=f'qc_results/{analysis_name}_9_estimated_cell_proportions.csv'
+        cellcounts=f'{outputFolder}/qc_results/{analysis_name}_9_estimated_cell_proportions.csv'
     log:
-        "logs/9_estimateCellTypeProportions.Rout"
+        f"{outputFolder}/logs/9_estimateCellTypeProportions.Rout"
     shell:
         "Rscript --vanilla {input.script} {params.renv} {input.rgset} {params.cell_type} {params.selected_preprocess_method} {output.cellcounts} >& {log}"
 
@@ -212,9 +241,9 @@ rule convert_gmset_to_grset:
     params:
         renv=config['renv']
     output:
-        ratioset=f'processed_data/{analysis_name}_10_{selected_preprocess_method}_GenomicRatioSet.rds'
+        ratioset=f'{outputFolder}/processed_data/{analysis_name}_10_{selected_preprocess_method}_GenomicRatioSet.rds'
     log:
-        'logs/10_convertGMSetToGRSet.Rout'
+        f'{outputFolder}/logs/10_convertGMSetToGRSet.Rout'
     shell:
         "Rscript --vanilla {input.script} {params.renv} {input.methylset} {output.ratioset} >& {log}"
 
@@ -227,12 +256,13 @@ rule filter_discordant_sex_samples:
     params:
         renv=config['renv']
     output:
-        filtered_ratioset=f'processed_data/{analysis_name}_11_{selected_preprocess_method}_GenomicRatioSet_filter_sex_disc.rds',
-        added_pheno=f'qc_results/{analysis_name}_11_added_sex_prediction_to_pheno.csv'
+        filtered_ratioset=f'{outputFolder}/processed_data/{analysis_name}_11_{selected_preprocess_method}_GenomicRatioSet_filter_sex_disc.rds',
+        added_pheno=f'{outputFolder}/qc_results/{analysis_name}_11_added_sex_prediction_to_pheno.csv',
+        sex_plot=f'{outputFolder}/plots/{analysis_name}_11_sex_plot.pdf'
     log:
-        "logs/11_predictSex.Rout"
+        f"{outputFolder}/logs/11_predictSex.Rout"
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.ratioset} {output.filtered_ratioset} {output.added_pheno} >& {log}"        
+        "Rscript --vanilla {input.script} {params.renv} {input.ratioset} {output.filtered_ratioset} {output.added_pheno} {output.sex_plot} >& {log}"        
 
 
 # ---- 12. Separate sex chromosomes
@@ -240,17 +270,22 @@ rule filter_discordant_sex_samples:
 rule separate_sex_chromosomes:
     input:
         script="scripts/12_separateSexChromosomesInGRSet.R",
-        ratioset=rules.filter_discordant_sex_samples.output.filtered_ratioset
+        ratioset=rules.filter_discordant_sex_samples.output.filtered_ratioset,
+        pvalMat=rules.filter_probes_rgset.output.pvalueMat
     params:
         renv=config['renv']
     output:
-        ratioset_no_sex_chr=f'processed_data/{analysis_name}_12_{selected_preprocess_method}_GenomicRatioSet_filter_probes_without_sex_chr.rds',
-        beta_matrix_sex_chr=f'processed_data/{analysis_name}_12_{selected_preprocess_method}_beta_matrix_sex_chr.csv',
-        beta_matrix_sex_chr_rds=f'processed_data/{analysis_name}_12_{selected_preprocess_method}_beta_matrix_sex_chr.rds'
+        ratioset_no_sex_chr=f'{outputFolder}/processed_data/{analysis_name}_12_{selected_preprocess_method}_GenomicRatioSet_filter_probes_without_sex_chr.rds',
+        beta_matrix_sex_chr=f'{outputFolder}/processed_data/{analysis_name}_12_{selected_preprocess_method}_beta_matrix_sex_chr.csv',
+        beta_matrix_sex_chr_rds=f'{outputFolder}/processed_data/{analysis_name}_12_{selected_preprocess_method}_beta_matrix_sex_chr.rds',
+        pvalMatNoSex=f'{outputFolder}/processed_data/{analysis_name}_12_pvalueMat_autosomal.csv',
+        pvalMatNoSexRds=f'{outputFolder}/processed_data/{analysis_name}_12_pvalueMat_autosomal.rds',
+        pvalMatSex=f'{outputFolder}/processed_data/{analysis_name}_12_pvalueMat_sex_chr.csv',
+        pvalMatSexRds=f'{outputFolder}/processed_data/{analysis_name}_12_pvalueMat_sex_chr.rds'
     log:
-        'logs/12_separateSexChromosomesInGRSet.Rout'
+        f'{outputFolder}/logs/12_separateSexChromosomesInGRSet.Rout'
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.ratioset} {output.ratioset_no_sex_chr} {output.beta_matrix_sex_chr} {output.beta_matrix_sex_chr_rds} >& {log}"
+        "Rscript --vanilla {input.script} {params.renv} {input.ratioset} {input.pvalMat} {output.ratioset_no_sex_chr} {output.pvalMatNoSex} {output.pvalMatNoSexRds} {output.beta_matrix_sex_chr} {output.beta_matrix_sex_chr_rds} {output.pvalMatSex} {output.pvalMatSexRds} >& {log}"
 
 # ---- 13. Do BMIQ on beta values from GenomicRatioSet
 
@@ -263,12 +298,12 @@ rule bmiq_on_grset:
     params:
         renv=config['renv']
     output:
-        bmiqed_data=f'processed_data/{analysis_name}_13_bmiqed_beta_values.csv',
-        bmiqed_data_rds=f'processed_data/{analysis_name}_13_bmiqed_beta_values.rds',
-        raw_data=f'processed_data/{analysis_name}_13_beta_values.csv',
-        raw_data_rds=f'processed_data/{analysis_name}_13_beta_values.rds'
+        bmiqed_data=f'{outputFolder}/processed_data/{analysis_name}_13_bmiqed_beta_values.csv',
+        bmiqed_data_rds=f'{outputFolder}/processed_data/{analysis_name}_13_bmiqed_beta_values.rds',
+        raw_data=f'{outputFolder}/processed_data/{analysis_name}_13_beta_values.csv',
+        raw_data_rds=f'{outputFolder}/processed_data/{analysis_name}_13_beta_values.rds'
     log:
-        'logs/13_bmiqGRSet.Rout'
+        f'{outputFolder}/logs/13_bmiqGRSet.Rout'
     shell:
         "Rscript --vanilla {input.script} {params.renv} {input.ratioset_no_sex_chr} {output.bmiqed_data} {output.bmiqed_data_rds} {output.raw_data} {output.raw_data_rds} >& {log}"
 
@@ -284,9 +319,9 @@ rule plot_density_after_bmiq:
         plot_titles=preprocess_methods,
         renv=config['renv']
     output:
-        plots=f'plots/{analysis_name}_14_BMIQ_density_plots.pdf'
+        plots=f'{outputFolder}/plots/{analysis_name}_14_BMIQ_density_plots.pdf'
     log:
-        "logs/14_plotDensityAfterBMIQ.Rout"
+        f"{outputFolder}/logs/14_plotDensityAfterBMIQ.Rout"
     shell:
         "Rscript --vanilla {input.script} {params.renv} {input.methylsets} {input.rgset} {input.bmiqed_data} {params.plot_titles} {output.plots} >& {log}"
 
@@ -300,36 +335,38 @@ rule plot_histogram_of_differences:
     params:
         renv=config['renv']
     output:
-        plot=f'plots/{analysis_name}_15_histogram_of_differences.pdf'
+        plot=f'{outputFolder}/plots/{analysis_name}_15_histogram_of_differences.pdf'
     log:
-        "logs/15_histogram_of_differences.Rout"
+        f"{outputFolder}/logs/15_histogram_of_differences.Rout"
     shell:
         "Rscript --vanilla {input.script} {params.renv} {input.rgset} {input.methset} {input.bmiqed} {output.plot} >& {log}"
 
 # ---- 16. Clean up - remove intermediate data
 rule clean_up:
     input:
-        script="scripts/16_clean_up.sh"
+        script="scripts/16_clean_up.sh",
+        folder=f'{outputFolder}'
     log:
-        "logs/16_clean_up.log"
+        f"{outputFolder}/logs/16_clean_up.log"
     shell:
-        "bash {input.script} >& {log}"
+        "bash {input.script} {input.folder} >& {log}"
 
 
 rule first_part:
     input:
-        f'plots/{analysis_name}_3_control_probe_PCA_plot.pdf',
-        f'qc_results/{analysis_name}_3_control_probe_PCA.rds',
-        f'plots/{analysis_name}_3_boxplot_control_probes.pdf'
+        f'{outputFolder}/plots/{analysis_name}_3_control_probe_PCA_plot.pdf',
+        f'{outputFolder}/qc_results/{analysis_name}_3_control_probe_PCA.rds',
+        f'{outputFolder}/plots/{analysis_name}_3_boxplot_control_probes.pdf'
 
 rule second_part:
     input:
-        f'plots/{analysis_name}_6_{comparisons}_density_plots.pdf'
+        f'{outputFolder}/plots/{analysis_name}_6_{comparisons}_density_plots.pdf'
 
 rule third_part:
     input:
-        f'plots/{analysis_name}_8_qc_plot.pdf',
-        f'qc_results/{analysis_name}_9_estimated_cell_proportions.csv',
-        f'plots/{analysis_name}_14_BMIQ_density_plots.pdf',
-        f'plots/{analysis_name}_15_histogram_of_differences.pdf'
+        f'{outputFolder}/plots/{analysis_name}_6_{comparisons}_density_plots.pdf',
+        f'{outputFolder}/plots/{analysis_name}_8_qc_plot.pdf',
+        f'{outputFolder}/qc_results/{analysis_name}_9_estimated_cell_proportions.csv',
+        f'{outputFolder}/plots/{analysis_name}_14_BMIQ_density_plots.pdf',
+        f'{outputFolder}/plots/{analysis_name}_15_histogram_of_differences.pdf'
 

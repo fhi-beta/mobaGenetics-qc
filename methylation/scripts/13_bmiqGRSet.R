@@ -1,5 +1,9 @@
 # ---- 0. Load dependencies
 
+# print start time of script:
+start_time = Sys.time()
+message(paste0("The script was started at: \n", start_time, "\n\n"))
+
 # ---- 0. Parse Snakemake arguments
 args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality
 
@@ -62,7 +66,7 @@ cg = intersect(rownames(data), rownames(annotation))
 source("scripts/functions/BMIQseed.R")
 
 # normalizes beta values based on probe design. Projects probe II distribution onto probe I
-beta.autosomal.BMIQ.list <- apply(data[cg,], 2,BMIQseed, design.v = ifelse(annotation[cg, "Type"] == "I", 1, 2), plots = FALSE, nfit=20000)
+beta.autosomal.BMIQ.list <- apply(data[cg,], 2,BMIQseed, design.v = ifelse(annotation[cg, "Type"] == "I", 1, 2), plots = FALSE, nfit=25000)
 
 # store the normalized beta values
 beta.autosomal.BMIQ       <- sapply(beta.autosomal.BMIQ.list, function(x)x$nbeta)
@@ -83,6 +87,12 @@ saveRDS(data, file = output.rawRds)
 message(paste0('Saving bmiqed beta values to ', output.raw))
 write.csv(beta.autosomal.BMIQ, file = output.bmiqed, row.names = TRUE)
 saveRDS(beta.autosomal.BMIQ, file = output.bmiqedRds)
+
+end_time = Sys.time()
+message(paste0("The script finished at: \n", end_time, "\n"))
+
+message(paste0("The script had a "))
+Sys.time() - start_time
 
 message('BMIQ done!')
 

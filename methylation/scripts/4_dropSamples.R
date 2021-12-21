@@ -1,5 +1,9 @@
 # ---- 0. Load dependencies
 
+# print start time of script:
+start_time = Sys.time()
+message(paste0("The script was started at: \n", start_time, "\n\n"))
+
 # ---- 0. Parse Snakemake arguments
 args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality 
 
@@ -28,13 +32,14 @@ input.NA_control_probes = args[2]
 
 params.detection_pvalue = args[3]
 params.bisulphite_conversion_rate = args[4]
+params.poor_quality = 1 - as.numeric(args[5])
 
-output.detectionPvalues = args[5]
-output.probeQC = args[6]
-output.sampleQC = args[7]
-output.bisulphiteQC = args[8]
-output.rgset_filtered = args[9]
-output.removed_samples = args[10]
+output.detectionPvalues = args[6]
+output.probeQC = args[7]
+output.sampleQC = args[8]
+output.bisulphiteQC = args[9]
+output.rgset_filtered = args[10]
+output.removed_samples = args[11]
 
 # ---- 1. Load RGChannelSet
 message("\nReading in RGChannelSet from: ", input.rgset, '...\n')
@@ -81,8 +86,8 @@ detectionQCResults <- summarizeDetectionPvalueQC(rgSet, pValue=detect_p_val)
 # ---- 4. Construct result names and save QC results to disk
 
 detectionPOut <- output.detectionPvalues
-sampleQCOut <- output.probeQC
-probeQCOut <- output.sampleQC
+sampleQCOut <- output.sampleQC
+probeQCOut <- output.probeQC
 
 paths <- c(detectionPOut, sampleQCOut, probeQCOut)
 
@@ -99,12 +104,12 @@ detPvals <- detectionQCResults$detectionPvals[, -'rownames']
 detected <- detPvals < detect_p_val
 
 
-numSamplesPassedQC <- sum(colMeans(detected) > 0.9)
+numSamplesPassedQC <- sum(colMeans(detected) > params.poor_quality)
 message(paste0(numSamplesPassedQC, ' out of ', ncol(detPvals), ' samples passed detection p-value filtering  at alpha of ', detect_p_val, '...\n'))
 
-failedSamples <- which(colMeans(detected) < 0.9)
+failedSamples <- which(colMeans(detected) < params.poor_quality)
 
-keepSamples <- colMeans(detected) > 0.9
+keepSamples <- colMeans(detected) > params.poor_quality
 
 rgSet <- rgSet[, keepSamples]
 invisible(gc())
@@ -138,13 +143,15 @@ message("Subsetting RGChannelSet to samples passing bisulphite QC...\n")
 keepSamples <- bisulphiteConversion > conversion_minimum
 
 rgSet <- rgSet[, keepSamples]
+invisible(gc())
 message('\n')
 
 
 # ---- 9. Save RGChannelSet to disk
 message(paste0("Saving RGChannel set to ", output.rgset_filtered , '...\n'))
-saveRDS(rgSet, file=output.rgset_filtered )
+saveRDS(rgSet, file=output.rgset_filtered)
 
+dropped_samples_df
 
 failedSamples2 <- which(bisulphiteConversion <= conversion_minimum)
 df <- data.frame(sample=names(failedSamples2), reason=rep('bisulphite', length=length(failedSamples2)))
@@ -153,5 +160,11 @@ dropped_samples_df <- rbind(dropped_samples_df, df)
 # ---- 10. Save dropped samples to disk
 message(paste0("Saving dropped samples to ", output.removed_samples, '...\n'))
 write.csv(dropped_samples_df, file = output.removed_samples, row.names = F)
+
+end_time = Sys.time()
+message(paste0("The script finished at: \n", end_time, "\n"))
+
+message(paste0("The script had a "))
+Sys.time() - start_time
 
 message("Filtering RGSet samples done!\n\n")

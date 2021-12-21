@@ -1,5 +1,9 @@
 # ---- 0. Load dependencies
 
+# print start time of script:
+start_time = Sys.time()
+message(paste0("The script was started at: \n", start_time, "\n\n"))
+
 # ---- 0. Parse Snakemake arguments
 args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality
 
@@ -49,6 +53,12 @@ saveRDS(methylSetFiltered, file=output.methylSet)
 dropped_samples_df = read.csv(file = input.filtered_samples)
 dropped_samples_df = rbind(dropped_samples_df, data.frame(sample=discarded_samples, reason=rep("manual_removed_bad_density", times = length(discarded_samples))))
 write.csv(dropped_samples_df, file = output.removed_samples, row.names = F)
+
+end_time = Sys.time()
+message(paste0("The script finished at: \n", end_time, "\n"))
+
+message(paste0("The script had a "))
+Sys.time() - start_time
 
 message("Manual filtering done!\n\n")
 

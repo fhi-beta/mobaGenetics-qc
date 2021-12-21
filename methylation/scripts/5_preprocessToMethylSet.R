@@ -1,5 +1,9 @@
 # ---- 0. Load dependencies
 
+# print start time of script:
+start_time = Sys.time()
+message(paste0("The script was started at: \n", start_time, "\n\n"))
+
 # ---- 0. Parse Snakemake arguments
 args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality 
 
@@ -63,5 +67,10 @@ for (i in seq_along(output.methylsets)) {
     message("\n\n")
 }
 
+end_time = Sys.time()
+message(paste0("The script finished at: \n", end_time, "\n"))
+
+message(paste0("The script had a "))
+Sys.time() - start_time
 
 message("Preprocessing done!\n\n")

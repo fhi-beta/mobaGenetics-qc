@@ -1,4 +1,9 @@
 # ---- 0. Load dependencies and parse arguments
+
+# print start time of script:
+start_time = Sys.time()
+message(paste0("The script was started at: \n", start_time, "\n\n"))
+
 # Parse arguments
 args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality 
 
@@ -28,11 +33,11 @@ input.cross_hybridizing = args[2]
 params.filter_cross_hybridizing = args[3]
 params.filter_polymorphic_CpGs = args[4]
 params.detection_p = args[5]
-params.frac_poor_quality = args[6]
 
-output.probes_removed = args[7]
-output.SNPbetas = args[8]
-output.rgset_filtered_probes = args[9]
+output.probes_removed = args[6]
+output.SNPbetas = args[7]
+output.rgset_filtered_probes = args[8]
+output.pvalueMat = args[9]
 
 # ---- 1.Read in RGSet
 message("\nReading in RGSet...\n")
@@ -60,34 +65,39 @@ if(params.filter_polymorphic_CpGs){
 	polymorphic = rownames(snpDF[sort(wh),])
 }
 
-message(paste0("\n", "Filter out CpGs with detection p-value less than ", params.detection_p, " across more than ", params.frac_poor_quality, " of the samples \n"))
+
+
+RGSet = subsetByLoci(RGSet, excludeLoci = unique(c(cross_hybridizing, polymorphic)), keepControls = TRUE, keepSnps = FALSE)
 
 pValMat = detectionP(RGSet)
-drop = rowSums(pValMat > as.numeric(params.detection_p)) > ncol(RGSet)*as.numeric(params.frac_poor_quality)
-message("Amount of droped probes based on detection p val: ")
-print(table(drop))
-filter_out = names(drop[drop == TRUE])
-
-RGSet = subsetByLoci(RGSet, excludeLoci = unique(c(cross_hybridizing, polymorphic, filter_out)), keepControls = TRUE, keepSnps = FALSE)
 
 message("\nDimension of RGset after filtering: \n")
 print(dim(RGSet))
 
+message("Dimension of pvalue-matrix: \n")
+print(dim(pValMat))
+
 message("\nCreate and store .csv of probes removed...")
-probes_removed_mat = matrix("c", ncol = 2, nrow = length(unique(c(cross_hybridizing,polymorphic,filter_out))))
-rownames(probes_removed_mat) = unique(c(cross_hybridizing, polymorphic, filter_out))
+probes_removed_mat = matrix("c", ncol = 2, nrow = length(unique(c(cross_hybridizing,polymorphic))))
+rownames(probes_removed_mat) = unique(c(cross_hybridizing, polymorphic))
 colnames(probes_removed_mat) = c("CpG", "Reason")
 probes_removed_mat[,1] = rownames(probes_removed_mat)
-probes_removed_mat[filter_out, 2] = "high_detection_p"
 probes_removed_mat[polymorphic, 2] = "polymorphic"
 probes_removed_mat[cross_hybridizing, 2] = "cross_hybridizing"
 
 write.csv(probes_removed_mat, file = output.probes_removed, row.names = F)
 
-message("\nSave SNPbetas and filtered RGSet...")
+message("\nSave SNPbetas, filtered RGSet and pvalue-matrix...")
 
 saveRDS(SNPbetas, file = output.SNPbetas)
 saveRDS(RGSet, file = output.rgset_filtered_probes)
+saveRDS(pValMat, file = output.pvalueMat)
+
+end_time = Sys.time()
+message(paste0("The script finished at: \n", end_time, "\n"))
+
+message(paste0("The script had a "))
+Sys.time() - start_time
 
 message("\nFiltering RGset probes done! \n\n")
 

@@ -1,5 +1,9 @@
 # ---- 0. Load dependencies and parse arguments
 
+# print start time of script:
+start_time = Sys.time()
+message(paste0("The script was started at: \n", start_time, "\n\n"))
+
 # Parse arguments
 args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality 
 
@@ -24,31 +28,20 @@ message("Printing arguments from snakemake...\n")
 print(args)
 
 # improve readability by unpacking args to variables:
-input.plateDir = args[1]
+input.sampleSheet = args[1]
 output.rgset = args[2]
 
 # ---- 1.Read in data
-message("\nReading in plate data...\n")
+message("\nReading in sample sheet...\n")
 
-# Notes: if unable to load all idats due to memory limitation
+arrays <- readRDS(input.sampleSheet)
+# print(dim(arrays))
 
-plateDir <- input.plateDir
-arrays <- read.metharray.sheet(plateDir)
-# Notes: if unable to load all idats due to memory limitation
-# subset the arrays before loading the idats
+# Nice command to have in case:
+# arrays$Basename = paste(plateDir, "/", paste(arrays$Slide, arrays$SentrixPosition, sep = "_"), sep = "")
 
 message("Dimension of sample sheet: \n")
 print(dim(arrays))
-
-# test if the sample composition is of different sampleType (tissues)
-if(sum(colnames(arrays) == "SampleType")){
-        uniq = unique(arrays$SampleType)  # unique items
-        if(length(uniq) > 1 & ("B" %in% uniq)){
-                stop("Your samples are a mix of children and adults. \n 
-                       Split your samples in batches and rerun. \n
-		       Look at Notes within this script for ideas on how to split")
-        }
-}
 
 # ---- 2. Read data into RGChannelSets
 message("\n")
@@ -63,6 +56,12 @@ RGSet <- suppressWarnings(read.metharray.exp(targets=arrays, extended=FALSE))
 message("Saving the RGSet to disk...\n")
 
 saveRDS(RGSet, file=output.rgset)
+
+end_time = Sys.time()
+message(paste0("The script finished at: \n", end_time, "\n"))
+
+message(paste0("The script had a "))
+Sys.time() - start_time
 
 message("Building RGSet Done!")
 

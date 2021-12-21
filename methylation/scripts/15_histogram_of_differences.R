@@ -1,4 +1,9 @@
 # ---- 0. Parse Snakemake arguments
+
+# print start time of script:
+start_time = Sys.time()
+message(paste0("The script was started at: \n", start_time, "\n\n"))
+
 args = commandArgs(trailingOnly=TRUE) # get character vector of file names, both input, params and output. Must be done like this for logging functionality
 
 # activate renv if renv = TRUE
@@ -71,9 +76,13 @@ ggplot(data.frame(x = Bmiq_Noob_mean), aes(x = x)) + geom_histogram(bins = 50) +
 ggplot(data.frame(x = Bmiq_Noob_sd), aes(x = x)) + geom_histogram(bins = 50) + ggtitle("Bmiq beta values vs Noob") + xlab("std. dev. of methylation differences between samples")
 dev.off()
 
+end_time = Sys.time()
+message(paste0("The script finished at: \n", end_time, "\n"))
+
+message(paste0("The script had a "))
+Sys.time() - start_time
+
+
 message("Plotting done!\n\n")
-
-
-
 
 
