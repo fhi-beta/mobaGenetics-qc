@@ -1,14 +1,44 @@
+<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
+**Table of Contents**
+
+- [Introduction](#introduction)
+- [Setup](#setup)
+    - [TSD](#tsd)
+        - [Start interactive R:](#start-interactive-r)
+        - [exit R](#exit-r)
+- [Configuration](#configuration)
+    - [Global config file globalConfig.yaml](#global-config-file-globalconfigyaml)
+    - [Local config-files](#local-config-files)
+- [Pre-quality control:](#pre-quality-control)
+- [Running the pipeline](#running-the-pipeline)
+    - [Removing bad samples](#removing-bad-samples)
+    - [Finalizing the run](#finalizing-the-run)
+    - [Canned wrapper script](#canned-wrapper-script)
+- [Results](#results)
+    - [Final](#final)
+    - [Logs](#logs)
+    - [Plots](#plots)
+    - [Qc_results](#qc_results)
+- [Quality Control Pipeline documentation/descrition](#quality-control-pipeline-documentationdescrition)
+
+<!-- markdown-toc end -->
+
+# Introduction
 Based on prior QC work by Christian M. Page and Haakon E. Nustad and
 the bhklab/IlluminaEPICmethylation pipeline on github by Christopher Eeles and Joanna Pryzbyl.
 Developed by Hanna Zdanowicz, Haakon E. Nustad and Gutorm Thomas Høgåsen.
 
+# Setup
 General set-up steps (outside of TSD):
 Clone the git repository. Every command must be run from inside the main directory.
-Use python (version 3) to create virtual environment, and install snakemake.
+An exported conda environment (suitable for creating your own) is available on Setup/metQc-env.txt
+Among many things it will install python and snakemake. 
 
-If you do not want to use renv, make sure renv/, renv.lock and .Rprofile are located in Setup folder and change config.yaml renv variable to FALSE.
+If you do not want to use renv, make sure renv/, renv.lock and
+.Rprofile are located in Setup folder and make sure the config.yaml
+renv variable is set to to FALSE.
 
-
+## TSD
 Set up on TSD:
 
 Unpack the zipped pipeline folder at preferred destination on TSD, move within the folder and use python3 to set up virtual environment and install snakemake:
@@ -22,36 +52,78 @@ Change globalConfig.yaml renv variable to TRUE. The globalConfig.yaml is located
 For installation of packages into local R library:
 Start interative session with R. This will trigger renv, which is version control and package management software for R.
 
-# Start interactive R:
-R
-
-#trigger dependency installation if initialization did not:
-renv::restore()
-
-# exit R
-q()
-
-
-Go through the local config.yaml file (usual names met003.yaml, met004.yaml, etc) in input folder and change parameters to your specific file paths and names, especially data directory (idat and sample sheet file path), data type (450k or EPIC). Additionally, add file in input folder: manual_remove_samples_bad_density.txt. This file is meant to contain sample ids of samples you want to remove based on having outlying genomewide DNA methylation patterns. This should be filled with sample ids based on output from the first and second part of the pipeline. Good to go!
-
-
-Pre-quality control:
-Important pre-step: the sample sheet needs the beadchip array column to have column name: Sentrix_ID, 
-and the position on the array to have column name: Sentrix_Position.
-This is important for minfi to automatically recognize correct columns to identify the .idat files.
-
-All samples you wish to run QC for must be listed in your sample_sheet.csv, which must be located in the folder you specify in config.yaml. It should be placed together with the .idat files. This .csv file is recognized automatically with the minfi function applied to read in the sample_sheet. A current step implemented detects if you have a mix of children and older individuals, which will create an error with an error message, encouraging the user to split their samples into two .csv files, and running these seperately. This is because the quality of the QC will increase if such biologically related differences are not present.
-
-How to use:
+Before you run stuff make sure to activate your environement: 
 
 $ source .venv/bin/activate
-This activates the virtual environment, enabling snakemake.
+This activates the virtual environment, enabling among others snakemake.
 
 (If you wish to jump out of the virtual enviroment, do:
 $ deactivate
 )
 
-The pipeline is organized in 3 parts, where one should inspect the plots produced located in plots/ after the first and second part. 
+
+### Start interactive R:
+R
+
+#trigger dependency installation if initialization did not:
+renv::restore()
+
+### exit R
+q()
+
+# Configuration
+
+## Global config file globalConfig.yaml
+Edit the globale config file globalConfig.yaml , it must be customized
+for your environemnt. 
+
+## Local config-files
+Each dataset has one or more config-file (called a local config file)
+that can be used to override the global one.
+
+
+If you use the standard/original 'MoBa' path-structure you don't need
+to change anything.
+
+Go through the local config.yaml file (usual names met003.yaml,
+met004.yaml, etc) in input folder and change parameters to your
+specific file paths and names, especially data directory (idat and
+sample sheet file path), data type (450k or EPIC). 
+
+Additionally, add file in input folder:
+manual_remove_samples_bad_density.txt. This file is meant to contain
+sample ids of samples you want to remove based on having outlying
+genomewide DNA methylation patterns. This should be filled with sample
+ids based on output from the first and second part of the
+pipeline. Good to go!
+
+
+# Pre-quality control:
+Important pre-step: the sample sheet needs the beadchip array column to have column name: Sentrix_ID, 
+and the position on the array to have column name: Sentrix_Position.
+This is important for minfi to automatically recognize correct columns to identify the .idat files.
+
+All samples you wish to run QC for must be listed in your
+sample_sheet.csv, which must be located in the folder you specify in
+config.yaml. It should be placed together with the .idat files. This
+.csv file is recognized automatically with the minfi function applied
+to read in the sample_sheet. A current step implemented detects if you
+have a mix of children and older individuals, which will create an
+error with an error message, encouraging the user to split their
+samples into two .csv files, and running these seperately. This is
+because the quality of the QC will increase if such biologically
+related differences are not present.
+
+# Running the pipeline
+
+Most users will want to use the [Canned wrapper
+script](#canned-wrapper-script) described below. The sections below
+describe the different partst of the pipleline,
+
+## Removing bad samples
+The pipeline is organized in 3 parts, where one should inspect the
+plots produced located in plots/ after the first and second part.
+
 Based on the plots produced in first and second part, you should add sample IDs to the file input/(x)_manual_remove_samples_bad_density.txt if you think they should be removed. Remove samples showing especially outlying patterns compared to the rest, based on the boxplot of control_probes and genome wide density plot.
 
 
@@ -63,29 +135,51 @@ This command runs the entire pipeline if the input/(x)_manual_remove_samples_bad
 $ snakemake --core 1 --configfile input/globalConfig.yaml input/met001.yaml --snakefile Snakefile first_part
 $ snakemake --core 1 --configfile input/globalConfig.yaml input/met001.yaml --snakefile Snakefile second_part
 
+## Finalizing the run
+
 After one has run the third_part, the following command will clean up the output files, removing unnecessary files:
 $ snakemake --core 1 --configfile input/globalConfig.yaml input/met001.yaml --snakefile Snakefile clean_up
 
+## Canned wrapper script 
+The wrapper script runOneorMore.sh will make the process of running
+the pipeline easier, especially if your resources are limited. 
+In
+globalConfig.yaml, you need to specify 
+- how many samples you can run in
+memory at once. 2 estimates are given to make this easier. If your
+amount of samples are larger than this amount, the pipeline will
+return an error message the first time it runs, but will create
+temporary config files where the data is split into batches.
+- what part of the pipeline you want to run - edit the rule parameter.
 
-The wrapper script will make the process of running the pipeline easier, especially if your resources are limited. In the globalConfig.yaml, you need to specify how many samples you can run in memory at ones. 2 estimates are given to make this easier. If your amount of samples are larger than this amount, the pipeline will return an error message the first time it runs, but will create temporary config files where the data is split into batches. This process is entirely controlled if you use the following wrapper script:
-runOneorMore.sh
+This process is entirely controlled if you use the wrapper
+script, but you will have to edit it describing what step you are running.
 
-If you wish to run One local config file, met001.yaml for example, you do this with the following command:
+If you wish to run One local config file, met001.yaml for example, you
+do this with the following command:
+
 bash runOneorMore.sh input/met001.yaml
 
-you can give several input config files if desired:
-bash runOneorMore.sh input/met001.yaml input/met004.yaml input/met007.yaml
+you can give several input config files if desired (the syntax assumes
+bash):
 
+bash runOneorMore.sh input/met00[147].yaml 
 
-Now, if the amount of samples are more than the max_sample_size specified in globalConfig.yaml, the data will be split automatically into met001-1, met001-2, met001-3, etc. and run for each if these batches. The scripts can be modified to allow more cores and which rule to run. This can be changed by changing the variables inside the scripts:
-cores
-rule
+If the amount of samples in a set are more than the max_sample_size
+specified in globalConfig.yaml, the data will be split automatically
+into met001-1, met001-2, met001-3, etc. and run for each if these
+batches. The scripts can be modified to allow more cores and which
+rule to run. This can be changed by changing the variables inside the
+scripts: cores rule
 
 No arguments should be given to runOneorMore.sh if one wants to run through all local config files listed in the input folder. It is organized to run for all config files with the name consisting of "met" and ".yaml". Therefore, if the input folder has met001.yaml, met002.yaml, met003.yaml, it wil run for each of these. If any of these contains more samples than your hardware allows (max_sample_size), it will create subbatches. This script can also be modified with cores and rule. 
 
+# Results
 All results are stored within the Runs folder, with the analysis_name given as a subdirectory. The analysis_name is the name of the config file, minus the .yaml part. This is set automatically. 
 
+## Final 
 The end matrices with data:
+
 processed_data/:
 {analysis_name}_12_Noob_beta_matrix_sex_chr.csv	(beta values from CpGs at sex chromosomes; rows - CpGs, columns - samples)
 {analysis_name}_13_beta_values.csv			(beta values from autosomal CpGs before BMIQ; rows - CpGs, columns - samples)
@@ -95,10 +189,12 @@ The exact same matrices are also stored as .rds files. These are easier to work 
 The .csv files can be loaded into R with the following command:
 data = read.table("{analysis_name}_12_Noob_beta_matrix_sex_chr.csv", sep = ",", header = TRUE, row.names = 1, check.names = FALSE)
 
+## Logs
 Additional files with valueable information:
 logs/:
 - The Rout files are log-files containing information about the R session and the functions applied to the data. They contain information of what is done to the data during the different scripts. Additionally, if an error occurs in a script, the error message is given in the associated log file. These files are primarily meant for debugging of the pipeline, and can be inspected to understand the order of when the different functions and QC steps have been applied. 
 
+## Plots
 plots/:
 {analysis_name}_3_boxplot_control_probes.pdf (boxplot of log2()-values from intensity measures from control probes for each sample)
 {analysis_name}_3_control_probe_PCA_plot.pdf (PC2 against PC1 from PCA of log2()-values from intensity measures from control probe)
@@ -108,6 +204,7 @@ plots/:
 {analysis_name}_14_BMIQ_density_plots.pdf (similar to {analysis_name}_6_rgSet_vs_Noob_density_plots.pdf, but with genomewide density after BMIQ is applied as well)
 {analysis_name}_15_histogram_of_differences.pdf (Comparison of RAW vs ssNoob methylation values. The difference of the two matrices are calculated, then the rowMeans (plot 1) and rowSds (plot 2) are calculated and plotted as histograms. The same is done between ssNoob methylation values and BMIQ methylation values. These plots are for documenting the difference after each major normalization method is applied.)
 
+## Qc_results
 qc_results/:
 {analysis_name}_2_probes_removed.csv (2 column matrix of CpG-ids removed and why: "cross_hybridizing", "polymorphic" (SNP influenced), "high_detection_p")
 {analysis_name}_2_SNP_Betas.rds (Matrix of beta values for the 65 (450k) or 60 (EPIC) SNPs on the array. Rows - rs id, column - samples)
@@ -120,7 +217,8 @@ qc_results/:
 {analysis_name}_11_added_sex_prediction_to_pheno.csv (Sample sheet data with additional columns for predicted sex, median intensity across Y chromosome probes, and median intenisty across X chromosome probes)
 
 
-Quality Control Pipeline:
+# Quality Control Pipeline documentation/descrition
+
 - load iDat files to RGset (all information in minfi object format)
 
 - filter probes from RGset
