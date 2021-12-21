@@ -3,7 +3,8 @@ plots/
 processed_data/
 qc_results/
 logs/
-input/manual_remove_samples_bad_density.txt
+input/*manual_remove_samples_bad_density.txt
+Runs/
 .archive
 .snakemake
 .venv
