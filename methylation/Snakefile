@@ -18,7 +18,8 @@ local_config_path = args[args.index("--configfile") + 2]  # relative path to loc
 
 analysis_name = local_config_path.replace(".yaml", "").replace("input/", "").replace("tmp_config/", "") # define analysis_name based on config file name
 
-outputFolder = "Runs/" + analysis_name  # create path to folder to put results in
+
+outputFolder = config['output_path'] + "/" + analysis_name  # create path to folder to put results in
 
 nthread = config['nthread']
 data_type = config['data_type']
