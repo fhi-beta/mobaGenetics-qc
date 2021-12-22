@@ -29,14 +29,32 @@ the bhklab/IlluminaEPICmethylation pipeline on github by Christopher Eeles and J
 Developed by Hanna Zdanowicz, Haakon E. Nustad and Gutorm Thomas Høgåsen.
 
 # Setup
-General set-up steps (outside of TSD):
-Clone the git repository. Every command must be run from inside the main directory.
-An exported conda environment (suitable for creating your own) is available on Setup/metQc-env.txt
-Among many things it will install python and snakemake. 
+General set-up steps (outside of TSD): Clone the git repository. Every
+command must be run from inside the main directory.
 
-If you do not want to use renv, make sure renv/, renv.lock and
-.Rprofile are located in Setup folder and make sure the config.yaml
-renv variable is set to to FALSE.
+Then install (if not installed)
+[conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html).
+An exported environment (suitable for running the pipeling) is available
+on Setup/metQc-env.yml or metQc-env.txt .  Among many things it will
+install R, python and snakemake. The txt-version was created by the
+command\ conda list --explicit > metQc-env.txt\
+
+It is suitable for a linux-64 platform and can be used to create an
+environment (provided conda is installed) by\
+conda create --name metQc --file metQc-env.txt
+
+
+The yml version on the other hand is more generic and made by
+conda env export > metQc-env.yml\
+
+It should work to create a working environment with 
+
+conda env create --file metQc-env.yml
+
+Since you use conda, you do not want to use renv (see the TSD section below),
+so make sure renv/, renv.lock and .Rprofile are located in Setup
+folder and make sure that in input/globalConfig.yaml the renv variable
+is set to to FALSE.
 
 ## TSD
 Set up on TSD, needs a litlle extra tweaking. 
