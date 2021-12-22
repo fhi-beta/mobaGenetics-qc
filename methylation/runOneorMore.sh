@@ -43,18 +43,8 @@ do
 
         # clean up the output files, removing unecessary files.
 	# only do this part if rule=third_part
-
-        if [ "$rule" == "third_part" ]
-        then
-
-                echo snakemake --core $cores --configfile input/globalConfig.yaml tmp_config/$set --snakefile Snakefile clean_up
-                     snakemake --core $cores --configfile input/globalConfig.yaml tmp_config/$set --snakefile Snakefile clean_up
-        fi
-	
 	echo "Finished for $set"
-
         mv tmp_config/$set Runs/${set%".yaml"}  # move configfile to the folder with corresponding results
-
         len_input=$(ls -1q tmp_config/ | grep met | grep .yaml | wc -l)
 done
 
