@@ -48,7 +48,7 @@ rule sample_size_check:
     log:
         f"{outputFolder}/logs/0_checkSampleSize.Rout"
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.plates} {params.analysis_name} {params.max_sample_size} {output.sampleSheet} {params.folder} 2>&1 {log}"
+        "Rscript --vanilla {input.script} {params.renv} {input.plates} {params.analysis_name} {params.max_sample_size} {output.sampleSheet} {params.folder} &> {log}"
 
 # 1. Build RGSet
 
@@ -63,7 +63,7 @@ rule build_rgset:
     log:
         f"{outputFolder}/logs/1_buildRGSet.Rout"
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.sheet} {output.rgset} 2>&1 {log}"
+        "Rscript --vanilla {input.script} {params.renv} {input.sheet} {output.rgset} &> {log}"
 
 # 2. Filter probes from RGSet
 rule filter_probes_rgset:
@@ -84,7 +84,7 @@ rule filter_probes_rgset:
     log:
         f"{outputFolder}/logs/2_filterRGSet.Rout"
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.rgset} {input.cross_hybridizing} {params.filter_cross_hybridizing} {params.filter_polymorphic_CpGs} {params.detection_p} {output.probes_removed} {output.SNPbetas} {output.rgset_filtered_probes} {output.pvalueMat} 2>&1 {log}"
+        "Rscript --vanilla {input.script} {params.renv} {input.rgset} {input.cross_hybridizing} {params.filter_cross_hybridizing} {params.filter_polymorphic_CpGs} {params.detection_p} {output.probes_removed} {output.SNPbetas} {output.rgset_filtered_probes} {output.pvalueMat} &> {log}"
 
 
 # 3. Add PCA plot as part of report
@@ -103,7 +103,7 @@ rule make_control_probe_PCA:
     log:
         f"{outputFolder}/logs/3_makeControlProbePCA.Rout"
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.rgset} {output.PCA_plot} {output.control_probe_PCA} {output.NA_control_probe} {output.boxplot} 2>&1 {log}"
+        "Rscript --vanilla {input.script} {params.renv} {input.rgset} {output.PCA_plot} {output.control_probe_PCA} {output.NA_control_probe} {output.boxplot} &> {log}"
 
 
 # 4. Filter out samples with less than 90% CpG probes detected 
@@ -130,7 +130,7 @@ rule filter_samples_rgset:
     log:
         f"{outputFolder}/logs/4_dropSamples.Rout"
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.rgset} {input.NA_control_probes} {params.detection_pvalue} {params.bisulphite_conversion_rate} {params.poor_frac} {output.detectionPvalues} {output.probeQC} {output.sampleQC} {output.bisulphiteQC} {output.rgset_filtered} {output.dropped_sample_sheet} 2>&1 {log}"
+        "Rscript --vanilla {input.script} {params.renv} {input.rgset} {input.NA_control_probes} {params.detection_pvalue} {params.bisulphite_conversion_rate} {params.poor_frac} {output.detectionPvalues} {output.probeQC} {output.sampleQC} {output.bisulphiteQC} {output.rgset_filtered} {output.dropped_sample_sheet} &> {log}"
 
 # ---- 5. Preprocess RGChannelSet to MethylSet
 
@@ -150,7 +150,7 @@ rule preprocess_to_methylset:
     log:
         f"{outputFolder}/logs/5_preprocessToMethylSet.Rout"
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.rgset} {params.preprocess_methods} {output.methylsets} 2>&1 {log}"
+        "Rscript --vanilla {input.script} {params.renv} {input.rgset} {params.preprocess_methods} {output.methylsets} &> {log}"
 
 # ---- 6. Visual the Raw RGSet vs Each Preprocessing Method with QC Metrics
 
@@ -170,7 +170,7 @@ rule plot_density_preprocessed_vs_rgset:
     log:
         f"{outputFolder}/logs/6_plotDensityPreprocessedVsRGSet.Rout"
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.methylsets} {input.rgset} {params.plot_titles} {output.plots} 2>&1 {log}"
+        "Rscript --vanilla {input.script} {params.renv} {input.methylsets} {input.rgset} {params.plot_titles} {output.plots} &> {log}"
 
 selected_preprocess_method = config['selected_preprocess_method']
 selected_methylset_file_name = f'{analysis_name}_5_MethylSet_{selected_preprocess_method}'
@@ -193,7 +193,7 @@ rule filter_samples_failed_manual_qc:
     log:
         f"{outputFolder}/logs/7_filterSamplesManualQC.Rout"
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.methylset} {input.discarded_samples} {input.filtered_samples} {output.methylset} {output.removed_samples} 2>&1 {log}"
+        "Rscript --vanilla {input.script} {params.renv} {input.methylset} {input.discarded_samples} {input.filtered_samples} {output.methylset} {output.removed_samples} &> {log}"
 
 
 # 8. Make QC plot for selected preprocessing method
@@ -211,7 +211,7 @@ rule make_qc_plot:
     log:
         f"{outputFolder}/logs/8_makeQCPlot.Rout"
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.methylset} {input.filtered_samples} {output.qc_plot} {output.filtered_methset} {output.filtered_sample_list} 2>&1 {log}"
+        "Rscript --vanilla {input.script} {params.renv} {input.methylset} {input.filtered_samples} {output.qc_plot} {output.filtered_methset} {output.filtered_sample_list} &> {log}"
 
 
 # 9. Estimate cell type proportions
@@ -229,7 +229,7 @@ rule estimate_cell_type_proportions:
     log:
         f"{outputFolder}/logs/9_estimateCellTypeProportions.Rout"
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.rgset} {params.cell_type} {params.selected_preprocess_method} {output.cellcounts} 2>&1 {log}"
+        "Rscript --vanilla {input.script} {params.renv} {input.rgset} {params.cell_type} {params.selected_preprocess_method} {output.cellcounts} &> {log}"
 
 
 # ---- 10. Convert GenomicMethylSet to GenomicRatioSet and add annotations
@@ -245,7 +245,7 @@ rule convert_gmset_to_grset:
     log:
         f'{outputFolder}/logs/10_convertGMSetToGRSet.Rout'
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.methylset} {output.ratioset} 2>&1 {log}"
+        "Rscript --vanilla {input.script} {params.renv} {input.methylset} {output.ratioset} &> {log}"
 
 
 # ---- 11. Sex prediction and removement of discordant gender/predicted sex samples
@@ -262,7 +262,7 @@ rule filter_discordant_sex_samples:
     log:
         f"{outputFolder}/logs/11_predictSex.Rout"
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.ratioset} {output.filtered_ratioset} {output.added_pheno} {output.sex_plot} 2>&1 {log}"        
+        "Rscript --vanilla {input.script} {params.renv} {input.ratioset} {output.filtered_ratioset} {output.added_pheno} {output.sex_plot} &> {log}"        
 
 
 # ---- 12. Separate sex chromosomes
@@ -285,7 +285,7 @@ rule separate_sex_chromosomes:
     log:
         f'{outputFolder}/logs/12_separateSexChromosomesInGRSet.Rout'
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.ratioset} {input.pvalMat} {output.ratioset_no_sex_chr} {output.pvalMatNoSex} {output.pvalMatNoSexRds} {output.beta_matrix_sex_chr} {output.beta_matrix_sex_chr_rds} {output.pvalMatSex} {output.pvalMatSexRds} 2>&1 {log}"
+        "Rscript --vanilla {input.script} {params.renv} {input.ratioset} {input.pvalMat} {output.ratioset_no_sex_chr} {output.pvalMatNoSex} {output.pvalMatNoSexRds} {output.beta_matrix_sex_chr} {output.beta_matrix_sex_chr_rds} {output.pvalMatSex} {output.pvalMatSexRds} &> {log}"
 
 # ---- 13. Do BMIQ on beta values from GenomicRatioSet
 
@@ -305,7 +305,7 @@ rule bmiq_on_grset:
     log:
         f'{outputFolder}/logs/13_bmiqGRSet.Rout'
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.ratioset_no_sex_chr} {output.bmiqed_data} {output.bmiqed_data_rds} {output.raw_data} {output.raw_data_rds} 2>&1 {log}"
+        "Rscript --vanilla {input.script} {params.renv} {input.ratioset_no_sex_chr} {output.bmiqed_data} {output.bmiqed_data_rds} {output.raw_data} {output.raw_data_rds} &> {log}"
 
 
 # ---- 14. Plot density after BMIQ
@@ -323,7 +323,7 @@ rule plot_density_after_bmiq:
     log:
         f"{outputFolder}/logs/14_plotDensityAfterBMIQ.Rout"
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.methylsets} {input.rgset} {input.bmiqed_data} {params.plot_titles} {output.plots} 2>&1 {log}"
+        "Rscript --vanilla {input.script} {params.renv} {input.methylsets} {input.rgset} {input.bmiqed_data} {params.plot_titles} {output.plots} &> {log}"
 
 # ---- 15. Plot histogram of differences
 rule plot_histogram_of_differences:
@@ -339,7 +339,7 @@ rule plot_histogram_of_differences:
     log:
         f"{outputFolder}/logs/15_histogram_of_differences.Rout"
     shell:
-        "Rscript --vanilla {input.script} {params.renv} {input.rgset} {input.methset} {input.bmiqed} {output.plot} 2>&1 {log}"
+        "Rscript --vanilla {input.script} {params.renv} {input.rgset} {input.methset} {input.bmiqed} {output.plot} &> {log}"
 
 # ---- 16. Clean up - remove intermediate data
 rule clean_up:
@@ -349,7 +349,7 @@ rule clean_up:
     log:
         f"{outputFolder}/logs/16_clean_up.log"
     shell:
-        "bash {input.script} {input.folder} 2>&1 {log}"
+        "bash {input.script} {input.folder} &> {log}"
 
 
 rule first_part:
