@@ -41,8 +41,6 @@ do
         echo snakemake --core $cores --configfile input/globalConfig.yaml tmp_config/$set --snakefile Snakefile $rule
              snakemake --core $cores --configfile input/globalConfig.yaml tmp_config/$set --snakefile Snakefile $rule
 
-        # clean up the output files, removing unecessary files.
-	# only do this part if rule=third_part
 	echo "Finished for $set"
         mv tmp_config/$set Runs/${set%".yaml"}  # move configfile to the folder with corresponding results
         len_input=$(ls -1q tmp_config/ | grep met | grep .yaml | wc -l)
