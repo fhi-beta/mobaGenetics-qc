@@ -1,6 +1,9 @@
-#
-# the maximum number of threads the pipeline can use. Change this when/if more resources available
-nthread: 1
+# Used to set variables common for all datasets
+# Location of inputfiles (assumes a certain dir structure below)
+# root_data_path: "/tsd/p229methylation/data/durable/Datasets"
+root_data_path: "/mnt/archive/Momics/MomicsPub/Methylation/Datasets"
+# Where to put the result
+output_path: "/mnt/archive/gutorm/methylationRuns"
 
 # max sample size to use in one batch. This is hardware dependent. If
 # 120GB memmory, 1000 EPIC samples or 1700 450k samples can be run at
@@ -12,11 +15,6 @@ max_sample_size_450k: 850
 # renv controls if renv should be used for package control or not. creates some modifications to the scripts
 # if on TSD, renv should be TRUE. If outside of TSD, renv should be FALSE
 renv: FALSE
-
-# data path:
-# global_path: "/tsd/p229methylation/data/durable/Datasets" 
-global_path: "/mnt/archive/Momics/MomicsPub/Methylation/Datasets"
-output_path: "/mnt/archive/gutorm/methylationRuns"
 
 # rule 2
 filter_cross_hybridizing: TRUE

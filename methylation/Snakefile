@@ -21,11 +21,10 @@ analysis_name = local_config_path.replace(".yaml", "").replace("input/", "").rep
 
 outputFolder = config['output_path'] + "/" + analysis_name  # create path to folder to put results in
 
-nthread = config['nthread']
 data_type = config['data_type']
 detection_pvalue = config['detection_pvalue']
 bisulphite_conversion_rate = config['bisulphite_conversion_rate']
-plate_data_dir = config['global_path'] + "/" + config['local_path']
+plate_data_dir = config['root_data_path'] + "/" + config['local_path']
 
 # max sample size depends on 450k or EPIC, meaning the data type:
 if data_type == "450k":

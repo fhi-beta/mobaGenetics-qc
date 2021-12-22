@@ -39,7 +39,7 @@ If you do not want to use renv, make sure renv/, renv.lock and
 renv variable is set to to FALSE.
 
 ## TSD
-Set up on TSD:
+Set up on TSD, needs a litlle extra tweaking. 
 
 Unpack the zipped pipeline folder at preferred destination on TSD, move within the folder and use python3 to set up virtual environment and install snakemake:
 $python -m venv .venv
@@ -76,6 +76,19 @@ q()
 ## Global config file globalConfig.yaml
 Edit the globale config file globalConfig.yaml , it must be customized
 for your environemnt. 
+
+Important variables
+
+- root_data_path points to where idat-files and samplesheets are
+  located. Tee exact locations are found in the local config-files.
+- ouput_path is where all the results logs and whatnot will end
+  up. The pipeline might create terrabytes of data depending on your
+  input
+- max_sample_size_* Unless you have loads of memory, you want to
+  reduce the size of samples being processed in one go. See the
+  documentation and comments in the yaml-file for more details.
+- renv If you cannot use conda as described below, an alternative
+  using pip & renv is possible.
 
 ## Local config-files
 Each dataset has one or more config-file (called a local config file)
