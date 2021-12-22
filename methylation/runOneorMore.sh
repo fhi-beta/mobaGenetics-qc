@@ -9,6 +9,8 @@ cores=12  # number of cores
 # define rule to run. if first time, do second_part. if rerun, or the
 # list of manual removed samples are known, do third_part
 rule=third_part
+# output_path must match whatever is in globalConfig.yaml !
+output_path=/mnt/archive/gutorm/methylationRuns
 
 # activate virtual environment enabling snakemake. This can be done outside of the script prior to "bash runOne.sh"
 #source .venv/bin/activate
@@ -42,7 +44,7 @@ do
              snakemake --core $cores --configfile input/globalConfig.yaml tmp_config/$set --snakefile Snakefile $rule
 
 	echo "Finished for $set"
-        mv tmp_config/$set Runs/${set%".yaml"}  # move configfile to the folder with corresponding results
+        mv tmp_config/$set "$output_path"/${set%".yaml"}  # move configfile to the folder with corresponding results
         len_input=$(ls -1q tmp_config/ | grep met | grep .yaml | wc -l)
 done
 
