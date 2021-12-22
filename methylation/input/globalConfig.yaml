@@ -16,6 +16,7 @@ renv: FALSE
 # data path:
 # global_path: "/tsd/p229methylation/data/durable/Datasets" 
 global_path: "/mnt/archive/Momics/MomicsPub/Methylation/Datasets"
+output_path: "/mnt/archive/gutorm/methylationRuns"
 
 # rule 2
 filter_cross_hybridizing: TRUE
