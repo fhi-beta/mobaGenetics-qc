@@ -6,11 +6,11 @@ root_data_path: "/mnt/archive/Momics/MomicsPub/Methylation/Datasets"
 output_path: "/mnt/archive/gutorm/methylationRuns"
 
 # max sample size to use in one batch. This is hardware dependent. If
-# 120GB memmory, 1000 EPIC samples or 1700 450k samples can be run at
-# once. If 60GB memmory, 500 EPIC or 850 450k samples can be run at
+# 120GB memmory, 800 EPIC samples or 1400 450k samples can be run at
+# once. If 60GB memmory, 400 EPIC or 700 450k samples can be run at
 # once.
-max_sample_size_epic: 500
-max_sample_size_450k: 850
+max_sample_size_epic: 400
+max_sample_size_450k: 700
 
 # renv controls if renv should be used for package control or not. creates some modifications to the scripts
 # if on TSD, renv should be TRUE. If outside of TSD, renv should be FALSE
