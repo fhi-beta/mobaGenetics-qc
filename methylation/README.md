@@ -211,14 +211,8 @@ All results are stored within the Runs folder, with the analysis_name given as a
 ## Final 
 The end matrices with data:
 
-processed_data/:
-{analysis_name}_12_Noob_beta_matrix_sex_chr.csv	(beta values from CpGs at sex chromosomes; rows - CpGs, columns - samples)
-{analysis_name}_13_beta_values.csv			(beta values from autosomal CpGs before BMIQ; rows - CpGs, columns - samples)
-{analysis_name}_13_bmiqed_beta_values.csv		(beta values from autosomal CpGs after BMIQ; rows - CpGs, columns - samples)
-The exact same matrices are also stored as .rds files. These are easier to work with for R users, as they are much faster to load into R and already in the correct format in terms of colnames and rownames.
+This section has been moved completely to https://github.com/folkehelseinstituttet/mobagen/wiki/Methylation#QC
 
-The .csv files can be loaded into R with the following command:
-data = read.table("{analysis_name}_12_Noob_beta_matrix_sex_chr.csv", sep = ",", header = TRUE, row.names = 1, check.names = FALSE)
 
 ## Logs
 Additional files with valueable information:
@@ -235,17 +229,20 @@ plots/:
 {analysis_name}_14_BMIQ_density_plots.pdf (similar to {analysis_name}_6_rgSet_vs_Noob_density_plots.pdf, but with genomewide density after BMIQ is applied as well)
 {analysis_name}_15_histogram_of_differences.pdf (Comparison of RAW vs ssNoob methylation values. The difference of the two matrices are calculated, then the rowMeans (plot 1) and rowSds (plot 2) are calculated and plotted as histograms. The same is done between ssNoob methylation values and BMIQ methylation values. These plots are for documenting the difference after each major normalization method is applied.)
 
-## Qc_results
+## Qc_results (to be renamed)
 qc_results/:
-{analysis_name}_2_probes_removed.csv (2 column matrix of CpG-ids removed and why: "cross_hybridizing", "polymorphic" (SNP influenced), "high_detection_p")
+
 {analysis_name}_2_SNP_Betas.rds (Matrix of beta values for the 65 (450k) or 60 (EPIC) SNPs on the array. Rows - rs id, column - samples)
 {analysis_name}_3_control_probe_PCA.rds (The PCA object of PCA analysis from control probes)
+{analysis_name}_9_estimated_cell_proportions.csv (Matrix with samples as rows and cell type proportions estimated as columns)
+{analysis_name}_11_added_sex_prediction_to_pheno.csv (Sample sheet data with additional columns for predicted sex, median intensity across Y chromosome probes, and median intenisty across X chromosome probes)
+
+(Moved to https://github.com/folkehelseinstituttet/mobagen/wiki/Methylation)
+{analysis_name}_2_probes_removed.csv (2 column matrix of CpG-ids removed and why: "cross_hybridizing", "polymorphic" (SNP influenced), "high_detection_p")
 {analysis_name}_4_bisulphite_conversions.csv (The calculated bisulphite conversion rate for each sample)
 {analysis_name}_4_num_probes_with_proportion_failed_samples_p0.01.csv (For each sample, the fraction of failed probes and the total of failed probes, compared to the detection p value cut off (0.01))
 {analysis_name}_4_probes_failed_per_sample_p0.01.csv (For 5 different proportions (0.5, 0.1, 0.05, 0.01, 0.0033), how many CpGs have a bad detection p value for more than the give proportion of samples)
 {analysis_name}_8_filtered_samples.csv (2 column matrix of sample ids removed and why: "NA_control_probes" (too many NA/INF values), "bisulphite" (low bisulphite conversion), "low_median_meth_or_unmeth_channel" (less than 10.5 mean median meth and unmeth log2-intensity), "manual_removed_bad_density" (removed due to having outlying values in either the control_probe_boxplot or genome-wide density), "pvalue" (removed samples with less than 90% detected probes based on detection pvalue cutoff))
-{analysis_name}_9_estimated_cell_proportions.csv (Matrix with samples as rows and cell type proportions estimated as columns)
-{analysis_name}_11_added_sex_prediction_to_pheno.csv (Sample sheet data with additional columns for predicted sex, median intensity across Y chromosome probes, and median intenisty across X chromosome probes)
 
 
 # Quality Control Pipeline documentation/descrition
