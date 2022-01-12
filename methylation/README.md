@@ -63,22 +63,21 @@ Unpack the zipped pipeline folder at preferred destination on TSD, move within t
 $python -m venv .venv
 $pip install snakemake
 
-Move renv/ folder, renv.lock and .Rprofile out of Setup folder to root folder.
+Move renv/, renv.lock and .Rprofile out of Setup folder to root folder.
 
-Change globalConfig.yaml renv variable to TRUE. The globalConfig.yaml is located in input folder.
+Change globalConfig.yaml renv variable to TRUE.
 
 For installation of packages into local R library:
-Start interative session with R. This will trigger renv, which is version control and package management software for R.
+Start interative session with R from root pipeline folder. This will trigger renv, which is version control and package management software for R.
+Run the following commands:
 
-Before you run stuff make sure to activate your environement: 
-
+### activate the virtual env:
 $ source .venv/bin/activate
-This activates the virtual environment, enabling among others snakemake.
+This activates the virtual environment, enabling snakemake.
 
 (If you wish to jump out of the virtual enviroment, do:
 $ deactivate
 )
-
 
 ### Start interactive R:
 R
@@ -89,16 +88,16 @@ renv::restore()
 ### exit R
 q()
 
+
 # Configuration
 
-## Global config file globalConfig.yaml
-Edit the globale config file globalConfig.yaml , it must be customized
+## Global config file: globalConfig.yaml
+Edit the globale config file globalConfig.yaml, it must be customized
 for your environemnt. 
 
-Important variables
-
+Important variables:
 - root_data_path points to where idat-files and samplesheets are
-  located. Tee exact locations are found in the local config-files.
+  located. The exact locations are found in the local config-files.
 - ouput_path is where all the results logs and whatnot will end
   up. The pipeline might create terrabytes of data depending on your
   input
@@ -111,7 +110,6 @@ Important variables
 ## Local config-files
 Each dataset has one or more config-file (called a local config file)
 that can be used to override the global one.
-
 
 If you use the standard/original 'MoBa' path-structure you don't need
 to change anything.
@@ -149,7 +147,7 @@ related differences are not present.
 
 Most users will want to use the [Canned wrapper
 script](#canned-wrapper-script) described below. The sections below
-describe the different partst of the pipleline,
+describe the different partst of the pipleline and how to run them with snakemake commands.
 
 ## Removing bad samples
 The pipeline is organized in 3 parts, where one should inspect the
@@ -157,11 +155,10 @@ plots produced located in plots/ after the first and second part.
 
 Based on the plots produced in first and second part, you should add sample IDs to the file input/(x)_manual_remove_samples_bad_density.txt if you think they should be removed. Remove samples showing especially outlying patterns compared to the rest, based on the boxplot of control_probes and genome wide density plot.
 
-
-The pipeline can be run in several ways, with wrapper shell scripts or direct snakemake commands, depending on the users preferences. But in general, there are 2 commands that are/should be run:
+The pipeline can be run in several ways, with wrapper shell scripts or direct snakemake commands, depending on the users preferences. But in general, there is 1 command that should be run:
 $ snakemake --core 1 --configfile input/globalConfig.yaml input/met001.yaml --snakefile Snakefile third_part
 
-This command runs the entire pipeline if the input/(x)_manual_remove_samples_bad_density.txt file exists. If it is the first time the pipeline is run, one should first run the first and second part, then inspect the plots to consider putting some sample IDs in the input/(x)_manual_remove_samples_bad_density.txt file. This is done with the following commands:
+This command runs the entire pipeline if the input/(x)_manual_remove_samples_bad_density.txt file exists. If it is the first time the pipeline is run, one should first run the first_part and second part, then inspect the plots to consider putting some sample IDs in the input/(x)_manual_remove_samples_bad_density.txt file. This is done with the following commands:
 
 $ snakemake --core 1 --configfile input/globalConfig.yaml input/met001.yaml --snakefile Snakefile first_part
 $ snakemake --core 1 --configfile input/globalConfig.yaml input/met001.yaml --snakefile Snakefile second_part
@@ -182,11 +179,12 @@ amount of samples are larger than this amount, the pipeline will
 return an error message the first time it runs, but will create
 temporary config files where the data is split into batches.
 - what part of the pipeline you want to run - edit the rule parameter.
+This should in most cases be third_part.
 
 This process is entirely controlled if you use the wrapper
 script, but you will have to edit it describing what step you are running.
 
-If you wish to run One local config file, met001.yaml for example, you
+If you wish to run one local config file, met001.yaml for example, you
 do this with the following command:
 
 bash runOneorMore.sh input/met001.yaml
@@ -213,7 +211,6 @@ The end matrices with data:
 
 This section has been moved completely to https://github.com/folkehelseinstituttet/mobagen/wiki/Methylation#QC
 
-
 ## Logs
 Additional files with valueable information:
 logs/:
@@ -221,29 +218,39 @@ logs/:
 
 ## Plots
 plots/:
+
 {analysis_name}_3_boxplot_control_probes.pdf (boxplot of log2()-values from intensity measures from control probes for each sample)
 {analysis_name}_3_control_probe_PCA_plot.pdf (PC2 against PC1 from PCA of log2()-values from intensity measures from control probe)
 {analysis_name}_6_rgSet_vs_Noob_density_plots.pdf (genomewide density from RAW methylation values compared to after ssNoob is applied. Estimated from a random (set.seed) selection of 50000 CpGs.)
+
 {analysis_name}_8_qc_plot.pdf (minfi qc plot - median intensity from methylated vs unmethylated intensities. A mean of these being less than 10.5 indicates bad sample/low signal)
+
 {analysis_name}_11_sex_plot.pdf  - The median intensity signal from chromosome Y probes against X probes, indicating Male or Female
 {analysis_name}_14_BMIQ_density_plots.pdf (similar to {analysis_name}_6_rgSet_vs_Noob_density_plots.pdf, but with genomewide density after BMIQ is applied as well)
+
 {analysis_name}_15_histogram_of_differences.pdf (Comparison of RAW vs ssNoob methylation values. The difference of the two matrices are calculated, then the rowMeans (plot 1) and rowSds (plot 2) are calculated and plotted as histograms. The same is done between ssNoob methylation values and BMIQ methylation values. These plots are for documenting the difference after each major normalization method is applied.)
 
-## Qc_results (to be renamed)
-qc_results/:
+## tmp_results
+tmp_results/:
+(Moved to https://github.com/folkehelseinstituttet/mobagen/wiki/Methylation)
+in this folder, all intermediate results are stored. These are not important for the end results, but can be inspected if the pipeline crashes at some point.
 
+## results
+results/:
 {analysis_name}_2_SNP_Betas.rds (Matrix of beta values for the 65 (450k) or 60 (EPIC) SNPs on the array. Rows - rs id, column - samples)
+
 {analysis_name}_3_control_probe_PCA.rds (The PCA object of PCA analysis from control probes)
 {analysis_name}_9_estimated_cell_proportions.csv (Matrix with samples as rows and cell type proportions estimated as columns)
+{analysis_name}_2_probes_removed.csv (2 column matrix of CpG-ids removed and why: "cross_hybridizing", "polymorphic" (SNP influenced))
+
 {analysis_name}_11_added_sex_prediction_to_pheno.csv (Sample sheet data with additional columns for predicted sex, median intensity across Y chromosome probes, and median intenisty across X chromosome probes)
 
-(Moved to https://github.com/folkehelseinstituttet/mobagen/wiki/Methylation)
-{analysis_name}_2_probes_removed.csv (2 column matrix of CpG-ids removed and why: "cross_hybridizing", "polymorphic" (SNP influenced), "high_detection_p")
 {analysis_name}_4_bisulphite_conversions.csv (The calculated bisulphite conversion rate for each sample)
+
 {analysis_name}_4_num_probes_with_proportion_failed_samples_p0.01.csv (For each sample, the fraction of failed probes and the total of failed probes, compared to the detection p value cut off (0.01))
 {analysis_name}_4_probes_failed_per_sample_p0.01.csv (For 5 different proportions (0.5, 0.1, 0.05, 0.01, 0.0033), how many CpGs have a bad detection p value for more than the give proportion of samples)
-{analysis_name}_8_filtered_samples.csv (2 column matrix of sample ids removed and why: "NA_control_probes" (too many NA/INF values), "bisulphite" (low bisulphite conversion), "low_median_meth_or_unmeth_channel" (less than 10.5 mean median meth and unmeth log2-intensity), "manual_removed_bad_density" (removed due to having outlying values in either the control_probe_boxplot or genome-wide density), "pvalue" (removed samples with less than 90% detected probes based on detection pvalue cutoff))
 
+{analysis_name}_8_filtered_samples.csv (2 column matrix of sample ids removed and why: "NA_control_probes" (too many NA/INF values), "bisulphite" (low bisulphite conversion), "low_median_meth_or_unmeth_channel" (less than 10.5 mean median meth and unmeth log2-intensity), "manual_removed_bad_density" (removed due to having outlying values in either the control_probe_boxplot or genome-wide density), "pvalue" (removed samples with less than 90% detected probes based on detection pvalue cutoff))
 
 # Quality Control Pipeline documentation/descrition
 
