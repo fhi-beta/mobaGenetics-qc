@@ -104,9 +104,15 @@ Important variables:
   input
 - max_sample_size_* Unless you have loads of memory, you want to
   reduce the size of samples being processed in one go. See the
-  documentation and comments in the yaml-file for more details.
+  documentation and comments in the yaml-file for more details. If
+  your samples size within a set is larger than this amount, the
+  pipeline will return an error message the first time it runs, but
+  will create temporary config files where the data is split into
+  suitable batches.  This splitting process is entirely handled by the
+  [Canned wrapper script](#canned-wrapper-script) described below
 - renv If you cannot use conda as described below, an alternative
   using pip & renv is possible.
+  
 
 ## Local config-files
 Each dataset has one or more config-file (called a local config file)
@@ -134,7 +140,7 @@ and the position on the array to have column name: Sentrix_Position.
 This is important for minfi to automatically recognize correct columns to identify the .idat files.
 
 All samples you wish to run QC for must be listed in your
-sample_sheet.csv, which must be located in the folder you specify in
+sample\_sheet.csv, which must be located in the folder you specify in
 config.yaml. It should be placed together with the .idat files. This
 .csv file is recognized automatically with the minfi function applied
 to read in the sample_sheet. A current step implemented detects if you
@@ -172,37 +178,38 @@ $ snakemake --core 1 --configfile input/globalConfig.yaml input/met001.yaml --sn
 ## Canned wrapper script 
 The wrapper script runOneorMore.sh will make the process of running
 the pipeline easier, especially if your resources are limited. 
-In
-globalConfig.yaml, you need to specify 
-- how many samples you can run in
-memory at once. 2 estimates are given to make this easier. If your
-amount of samples are larger than this amount, the pipeline will
-return an error message the first time it runs, but will create
-temporary config files where the data is split into batches.
-- what part of the pipeline you want to run - edit the rule parameter.
-This should in most cases be third_part.
 
-This process is entirely controlled if you use the wrapper
-script, but you will have to edit it describing what step you are running.
+You will need to edit the file to set some crucial variables: 
+
+- output\_path Where you want the results
+- data\_path Where idat-files are found. For MoMics users this will be
+  .../Methylation/Datasets
+- global\_config Where to find the globalConfig.yaml described in a
+  separate section. It sets common parameters for all datasets you
+  will run. For MoMics users this is set right as long as you have set
+  data\_path correctly (see above).
+- rule What part of the pipeline you want to run This should in most
+  cases be third_part. The exception is if you need to generate lists
+  over bad samples - for MoMics users these are already found and
+  placed under the sets QC/input sub-directory.
+- cores Max number of cores to use
 
 If you wish to run one local config file, met001.yaml for example, you
 do this with the following command:
 
-bash runOneorMore.sh input/met001.yaml
+bash runOneorMore.sh path/met001.yaml 
 
-you can give several input config files if desired (the syntax assumes
-bash):
+For MoMics users the path will be .../Methylation/Datasets/met001/QC/input/
 
-bash runOneorMore.sh input/met00[147].yaml 
+You can give several input config files if desired (the syntax assumes
+bash and will run met001, met004 and met007):
+
+bash runOneorMore.sh Datasets/met\*/QC/input/met00[147]\*.yaml 
 
 If the amount of samples in a set are more than the max_sample_size
 specified in globalConfig.yaml, the data will be split automatically
 into met001-1, met001-2, met001-3, etc. and run for each if these
-batches. The scripts can be modified to allow more cores and which
-rule to run. This can be changed by changing the variables inside the
-scripts: cores rule
-
-No arguments should be given to runOneorMore.sh if one wants to run through all local config files listed in the input folder. It is organized to run for all config files with the name consisting of "met" and ".yaml". Therefore, if the input folder has met001.yaml, met002.yaml, met003.yaml, it wil run for each of these. If any of these contains more samples than your hardware allows (max_sample_size), it will create subbatches. This script can also be modified with cores and rule. 
+batches. 
 
 # Results
 All results are stored within the Runs folder, with the analysis_name given as a subdirectory. The analysis_name is the name of the config file, minus the .yaml part. This is set automatically. 
@@ -219,24 +226,15 @@ logs/:
 
 ## Plots
 plots/:
-
-{analysis_name}_3_boxplot_control_probes.pdf (boxplot of log2()-values from intensity measures from control probes for each sample)
-{analysis_name}_3_control_probe_PCA_plot.pdf (PC2 against PC1 from PCA of log2()-values from intensity measures from control probe)
-{analysis_name}_6_rgSet_vs_Noob_density_plots.pdf (genomewide density from RAW methylation values compared to after ssNoob is applied. Estimated from a random (set.seed) selection of 50000 CpGs.)
-
-{analysis_name}_8_qc_plot.pdf (minfi qc plot - median intensity from methylated vs unmethylated intensities. A mean of these being less than 10.5 indicates bad sample/low signal)
-
-{analysis_name}_11_sex_plot.pdf  - The median intensity signal from chromosome Y probes against X probes, indicating Male or Female
-{analysis_name}_14_BMIQ_density_plots.pdf (similar to {analysis_name}_6_rgSet_vs_Noob_density_plots.pdf, but with genomewide density after BMIQ is applied as well)
-
-{analysis_name}_15_histogram_of_differences.pdf (Comparison of RAW vs ssNoob methylation values. The difference of the two matrices are calculated, then the rowMeans (plot 1) and rowSds (plot 2) are calculated and plotted as histograms. The same is done between ssNoob methylation values and BMIQ methylation values. These plots are for documenting the difference after each major normalization method is applied.)
+(Moved to https://github.com/folkehelseinstituttet/mobagen/wiki/Methylation)
 
 ## tmp_results
 tmp_results/:
-(Moved to https://github.com/folkehelseinstituttet/mobagen/wiki/Methylation)
+
 in this folder, all intermediate results are stored. These are not important for the end results, but can be inspected if the pipeline crashes at some point.
 
 ## results
+Should be Moved to https://github.com/folkehelseinstituttet/mobagen/wiki/Methylation and is be partially. 
 results/:
 {analysis_name}_2_SNP_Betas.rds (Matrix of beta values for the 65 (450k) or 60 (EPIC) SNPs on the array. Rows - rs id, column - samples)
 
