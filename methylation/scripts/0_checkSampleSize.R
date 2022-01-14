@@ -30,6 +30,8 @@ output.sampleSheet = args[4]
 output.folder = args[5]
 
 message("Read in sample sheet from plate directory... \n")
+message("Sample sheet .rds file exist: ", paste0(file.exists(output.sampleSheet)), "\n")
+
 if(file.exists(output.sampleSheet)){
 	arrays = readRDS(output.sampleSheet)
 }else{
@@ -66,15 +68,19 @@ if(dim(arrays)[1] > params.maxSampleSize){
 			tmp_arrays = arrays[start:end, ]
 		}
 		dir.create(paste(output.folder, "-", nameTag, sep = ""))
-		tmp_file_name_sheet = paste(output.folder, "-", nameTag, "/qc_results/", 
+		tmp_file_name_sheet = paste(output.folder, "-", nameTag, "/tmp_results/", 
 					    params.analysisName, "-", nameTag, "_sampleSheet.rds", sep = "")
 		# first, create the folders necessary since saveRDS() can not create folders
-		dir.create(paste(output.folder, "-", nameTag, "/qc_results", sep = ""))
+		dir.create(paste(output.folder, "-", nameTag, "/tmp_results", sep = ""))
 		#dir.create(paste(output.folder, "-", nameTag, "/plots", sep = ""))
 		#dir.create(paste(output.folder, "-", nameTag, "/processed_data", sep = ""))
-		saveRDS(tmp_arrays, file=tmp_file_name_sheet)
+		if(file.exists(tmp_file_name_sheet)){
+		}else{
+			saveRDS(tmp_arrays, file=tmp_file_name_sheet)
+		}
 		tmp_file_name_config = paste("tmp_config/", params.analysisName, "-", nameTag, ".yaml", sep = "")
-		file.copy(paste("input/", params.analysisName, ".yaml", sep = ""), 
+		
+		file.copy(paste("tmp_config/", params.analysisName, ".yaml", sep = ""), 
 			  tmp_file_name_config)
 		nameTag = nameTag + 1
 		start = end+1

@@ -35,7 +35,6 @@ output.rgset = args[2]
 message("\nReading in sample sheet...\n")
 
 arrays <- readRDS(input.sampleSheet)
-# print(dim(arrays))
 
 # Nice command to have in case:
 # arrays$Basename = paste(plateDir, "/", paste(arrays$Slide, arrays$SentrixPosition, sep = "_"), sep = "")
@@ -47,7 +46,7 @@ print(dim(arrays))
 message("\n")
 message("Building RGChannelSet from array data...\n")
 
-RGSet <- suppressWarnings(read.metharray.exp(targets=arrays, extended=FALSE))
+RGSet <- suppressWarnings(read.metharray.exp(targets=arrays, extended=FALSE, force = TRUE))
 
 # message("print size of session: \n")
 # print(mem_used())

@@ -14,6 +14,8 @@ Will be removed when we are done
 
 - change clean_up rule after new layout for outputs
 
+- clean up the input directory (only cross_hybrid* files to be left?)
+
 # Wait
 - endre fra å gi en error i splitten i script 0
 
