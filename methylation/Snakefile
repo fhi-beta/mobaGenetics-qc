@@ -178,7 +178,7 @@ selected_methylset_file_name = f'{analysis_name}_5_MethylSet_{selected_preproces
 selected_methylset = f'{analysis_name}_7_MethylSet_{selected_preprocess_method}'
 
 # ---- 7. Filter out samples that failed manual QC
-discarded_samples = config['discarded_samples']
+discarded_samples = config['root_data_path'] + '/' + config['discarded_samples']
 
 rule filter_samples_failed_manual_qc:
     input:
