@@ -37,8 +37,9 @@ input.methylsets = args[1]
 input.rgset = args[2]
 
 params.plot_titles = args[3]
-
-output.plots = args[4]
+params.subset_size = as.numeric(args[4])
+params.plot_dir = args[5]
+output.plots_done = args[6]
 
 plotTitles <- c('Unprocessed', params.plot_titles)
 
@@ -48,7 +49,7 @@ message("Reading in data from:\n\t",
 
 rgSet <- readRDS(input.rgset)
 set.seed(10)
-cpg_subsamples <- sample(rownames(rgSet), size=50000)
+cpg_subsamples <- sample(rownames(rgSet), size=params.subset_size)
 betaRGSet <- na.omit(getBeta(rgSet[cpg_subsamples, ]))
 rm(rgSet)
 invisible(gc())
@@ -70,7 +71,7 @@ invisible(gc())
 
 
 # ----- 2. Rendering Plots and Writing to PDF 
-message(paste0("Writing plots to:\n\t", output.plots, '\n'))
+message(paste0("Writing plots.. \n"))
 
 pickBetaForSample <- function(betaList, sampleName, plotTitles) {
   n_titles <- length(plotTitles)
@@ -98,12 +99,20 @@ pickBetaForSample <- function(betaList, sampleName, plotTitles) {
 
 
 message('Saving plots to file...\n')
-pdf(output.plots, height=6, width=8.5)
-#lapply(densities, FUN = function(x) x)
+
 for(i in sampleNames){
-print(.densityPlotSample(i, betaList, plotTitles))
+	jpeg(filename = paste(params.plot_dir, "/", i, ".jpeg", sep = ""))
+	print(.densityPlotSample(i, betaList, plotTitles))
+	dev.off()
 }
-dev.off()
+
+if(length(list.files(params.plot_dir)) == length(sampleNames)){
+        fileConn<-file(output.plots_done)
+        time = Sys.time()
+        writeLines("Done with density plots for all samples", fileConn)
+        close(fileConn)
+}
+
 
 end_time = Sys.time()
 message(paste0("The script finished at: \n", end_time, "\n"))

@@ -34,7 +34,8 @@ input.rgset = args[1]
 output.PCAPlot = args[2]
 output.controlProbePCA = args[3]
 output.NA_control_probes = args[4]
-output.boxplot_control_probes = args[5]
+output.boxplot_dir = args[5]
+output.boxplot_control_probes = args[6]
 # load RGset
 message("\nReading in RGSet...\n")
 
@@ -100,12 +101,30 @@ saveRDS(PCA, file = output.controlProbePCA)
 
 message("\n")
 message("Create boxplot of control probes..\n")
-pdf(output.boxplot_control_probes, height = dim(comb_control)[2]/2)
-ggplot(data = data.frame(methylation = as.vector(comb_control), 
-			 sample = factor(rep(colnames(comb_control), 
-					     each = dim(comb_control)[1]))), 
-       aes(x = methylation, y = sample, group = sample)) + geom_boxplot()
-dev.off()
+# create directories for plotting if not already created:
+# dir.create(output.boxplot_dir)
+
+samples = colnames(comb_control)
+for(i in 1:dim(comb_control)[2]){
+	jpeg(file = paste(output.boxplot_dir, "/", samples[i], ".jpeg", sep = ""), height = 100)
+	print(ggplot(data = data.frame(methylation = comb_control[,samples[i]]), 
+	       aes(x = methylation)) + geom_boxplot() + theme(axis.text.y = element_blank(), 
+	       axis.ticks.y = element_blank()) + xlim(c(0, 20)))
+	dev.off()
+}
+
+if(length(list.files(output.boxplot_dir)) == dim(comb_control)[2]){
+	fileConn<-file(output.boxplot_control_probes)
+	time = Sys.time()
+	writeLines("Done with boxplot of control probes for all samples", fileConn)
+	close(fileConn)
+}
+#pdf(output.boxplot_control_probes, height = dim(comb_control)[2]/2)
+#ggplot(data = data.frame(methylation = as.vector(comb_control), 
+#			 sample = factor(rep(colnames(comb_control), 
+#					     each = dim(comb_control)[1]))), 
+#       aes(x = methylation, y = sample, group = sample)) + geom_boxplot()
+#dev.off()
 
 end_time = Sys.time()
 message(paste0("The script finished at: \n", end_time, "\n"))
@@ -114,4 +133,4 @@ message(paste0("The script had a "))
 Sys.time() - start_time
 
 
-message("\nMaking control probes plots  one!!!\n\n")
+message("\nMaking control probes plots done!!!\n\n")

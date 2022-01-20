@@ -36,8 +36,9 @@ input.rgset = args[2]
 input.bmiqed_data = args[3]
 
 params.plot_titles = args[4]
-
-output.plots = args[5]
+params.subset = as.numeric(args[5])
+params.plot_dir = args[6]
+output.plots_done = args[7]
 
 plotTitles <- c('Unprocessed', params.plot_titles, 'BMIQ')
 
@@ -51,7 +52,7 @@ betaBMIQ <- readRDS(input.bmiqed_data)
 #Pick random CpGs  
 sampleNames <- colnames(betaBMIQ)
 set.seed(10)
-cpg_subsample = sample(rownames(betaBMIQ), size = 50000)
+cpg_subsample = sample(rownames(betaBMIQ), size = params.subset)
 betaBMIQ = betaBMIQ[cpg_subsample,]
 invisible(gc())
 
@@ -80,7 +81,7 @@ invisible(gc())
 
 # ----- 3. Rendering Plots and Writing to PDF
 # we assume that beta sets and processing methods are in the same order
-message(paste0("\n\nWriting plots to:\n\t", output.plots, '\n'))
+message(paste0("\n\nWriting plots.. \n"))
 pickBetaForSample <- function(betaList, sampleName, plotTitles) {
   n_titles <- length(plotTitles)
   final_df <- data.frame(matrix(ncol=n_titles,nrow=0))
@@ -109,11 +110,19 @@ pickBetaForSample <- function(betaList, sampleName, plotTitles) {
 
 
 message('\n\nSaving plots to file...\n')
-pdf(output.plots, height=6, width=8.5)
+
 for(i in sampleNames){
-print(.densityPlotSample(i, betaList, plotTitles))
+	jpeg(filename = paste(params.plot_dir, "/", i, ".jpeg", sep = ""))
+	print(.densityPlotSample(i, betaList, plotTitles))
+	dev.off()
 }
-dev.off()
+
+if(length(list.files(params.plot_dir)) == length(sampleNames)){
+        fileConn<-file(output.plots_done)
+        time = Sys.time()
+        writeLines("Done with density plots for all samples", fileConn)
+        close(fileConn)
+}
 
 end_time = Sys.time()
 message(paste0("The script finished at: \n", end_time, "\n"))

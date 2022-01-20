@@ -30,12 +30,13 @@ message('\n')
 input.rgset = args[1]
 input.methset = args[2]
 input.bmiqed = args[3]
-output.plot = args[4]
+params.subset = as.numeric(args[4])
+output.plot = args[5]
 
 # load the different data sets we need for plotting Raw values, Noob values and BMIQed values
 bmiqed = readRDS(input.bmiqed)
 set.seed(10)
-cpg_sub = sample(rownames(bmiqed), size = 50000)
+cpg_sub = sample(rownames(bmiqed), size = params.subset)
 bmiqed = bmiqed[cpg_sub,]
 invisible(gc())
 message("\nDimension of BMIQed_data:")

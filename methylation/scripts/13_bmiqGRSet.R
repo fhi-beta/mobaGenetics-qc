@@ -28,10 +28,11 @@ print(args)
 message("\n")
 # unpack args to improve readability:
 input.ratioset = args[1]
-output.bmiqed = args[2]
-output.bmiqedRds = args[3]
-output.raw = args[4]
-output.rawRds = args[5]
+params.subset = as.numeric(args[2])
+output.bmiqed = args[3]
+output.bmiqedRds = args[4]
+output.raw = args[5]
+output.rawRds = args[6]
 
 # ---- 1. load GRSet
 message(paste0('Loading GRSet no sex chromosomes and getting beta values... \n'))
@@ -66,7 +67,7 @@ cg = intersect(rownames(data), rownames(annotation))
 source("scripts/functions/BMIQseed.R")
 
 # normalizes beta values based on probe design. Projects probe II distribution onto probe I
-beta.autosomal.BMIQ.list <- apply(data[cg,], 2,BMIQseed, design.v = ifelse(annotation[cg, "Type"] == "I", 1, 2), plots = FALSE, nfit=25000)
+beta.autosomal.BMIQ.list <- apply(data[cg,], 2,BMIQseed, design.v = ifelse(annotation[cg, "Type"] == "I", 1, 2), plots = FALSE, nfit=params.subset)
 
 # store the normalized beta values
 beta.autosomal.BMIQ       <- sapply(beta.autosomal.BMIQ.list, function(x)x$nbeta)

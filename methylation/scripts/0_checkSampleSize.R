@@ -67,6 +67,9 @@ if(dim(arrays)[1] > params.maxSampleSize){
 			end = n
 			tmp_arrays = arrays[start:end, ]
 		}
+		if(nameTag < 10){
+			nameTag = paste(0, nameTag, sep = "")
+		}
 		dir.create(paste(output.folder, "-", nameTag, sep = ""))
 		tmp_file_name_sheet = paste(output.folder, "-", nameTag, "/tmp_results/", 
 					    params.analysisName, "-", nameTag, "_sampleSheet.rds", sep = "")
@@ -82,7 +85,7 @@ if(dim(arrays)[1] > params.maxSampleSize){
 		
 		file.copy(paste("tmp_config/", params.analysisName, ".yaml", sep = ""), 
 			  tmp_file_name_config)
-		nameTag = nameTag + 1
+		nameTag = as.numeric(nameTag) + 1
 		start = end+1
 	}
 	stop(paste0("To large sample size compared to the max_sample_size given in global config file: ", params.maxSampleSize, ". The sample sheet will be split into batches by creation of new local config files in tmp_config."))
