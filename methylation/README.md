@@ -254,22 +254,24 @@ results/:
 # Quality Control Pipeline documentation/descrition
 
 - load iDat files to RGset (all information in minfi object format)
+(minfi documentation: http://bioconductor.org/packages/release/bioc/manuals/minfi/man/minfi.pdf)
+(minfi example: https://www.bioconductor.org/help/course-materials/2015/BioC2015/methylation450k.html#genetic-variants-and-cell-type-composition)
 
 - filter probes from RGset
 	- poor quality probes (detection p-value larger than 0.01 for more than 5 % of the samples)
 	- cross-hybridizing probes (probes shown to have more than 1 possible binding site in the genome)
-	- non-CpG methylation (CpH, (H = A, C or T))
+	- cross-hybridizing non-CpG methylation (CpH, (H = A, C or T))
 	- probes influenced by SNPs with higher than 0.05 MAF. SNP placed in interrogated CpG or at the neighboring positions
 
 - create boxplot and PCA plot of control probes:
-	- PCA pot: PC2 against PC1 from PCA of approximately 1200 Red and Green channel control probes
+	- PCA plot: PC2 against PC1 from PCA of approximately 1200 Red and Green channel control probes
 		- meant to use as documentation and to get intuition of possible amount of outliers
 	- boxplot of control probe values for each sample
 		- if a sample has outlying pattern, such as very narrow range of values -> remove sample
 
 - filter samples with:
 	- more than 25% missing/infinite values for control probes
-	- more than 10% probes with high detection p value (> 0.01)
+	- more than 5%/10% probes with high detection p value (> 0.01)
 	- less than 90% bisulphite conversion rate (calculated with bscon() function, which uses bisulphite conversion control probes to estimate conversion rate)
 	
 - preprocess with ss-Noob:
@@ -279,20 +281,19 @@ results/:
 - plotting of genomewide densities of RAW methylation data and after ssNoob is applied
 	- if a sample has clear outlying distribution from the others, remove sample
 
-- removing samples based on outlying pattern
 
 - check median methylated intensity against median unmethylated intensity, and remove samples with (median_M + median_U)/2 < 10.5. Indicates low signal from either one or both channels.
 
-- cell type proportion estimation. Uses either Blood reference set or CordBlood reference set, dependening on input to config.yaml.
-Blood reference set: DOI: 10.1371/journal.pone.0041361
-CordBlood reference set: doi: 10.1080/15592294.2016.1161875
+- cell type proportion estimation. Uses either Blood reference set or CordBlood reference set, dependening on input to config.yaml:
+	- Blood reference set: DOI: 10.1371/journal.pone.0041361
+	- CordBlood reference set: doi: 10.1080/15592294.2016.1161875
 
 - sex prediction and removement of sex discordant samples between given sex and predicted sex
-	- measures the median intensity values from combined methylated and unmethylated signal from Y chromsome probes and the same for X chromosome probes. If the differences between these medians is more than 2 (less than -2) a female is predicted.
+	- measures the median intensity values from combined methylated and unmethylated signal from Y chromsome probes and the same for X chromosome probes. If the differences between these medians is more than 2 (less than -2) a female is predicted. Take caution if your set is only females or males. Check if many samples have been removed
 	
 - seperate out sex chromosome measurements from autosomal measurements
 
-- do BMIQ: probe type normalisation. The Beadchips have 2 different probe designs, I and II. These have a clear difference in dynamic range for the obtained methylation measurements. BMIQ projects the global distribution of probe type II measurements onto the distribution of probe type I, meaning that the methylation values from probe type II measuements are slightly shifted. This is especially an usual step when analysing regions of data, i.e. looking for differentially methylation regions. It is also believed that the dynamic range of probe type I is more correct than probe type II. BMIQ also calculates only within each sample.
+- do BMIQ: probe type normalisation. The Beadchips have 2 different probe designs, I and II. These have a clear difference in dynamic range for the obtained methylation measurements. BMIQ projects the global distribution of probe type II measurements onto the distribution of probe type I, meaning that the methylation values from probe type II measuements are slightly shifted. This is especially an usual step when analysing regions of data, i.e. looking for differentially methylation regions. It is also believed that the dynamic range of probe type I is more correct than probe type II. BMIQ also calculates only within each sample. Article: 10.1093/bioinformatics/bts680
 
 - plotting og genomewide distribution of methylation values after BMIQ is applied.
 
@@ -301,14 +302,14 @@ CordBlood reference set: doi: 10.1080/15592294.2016.1161875
 - clean up and delete unnecassry data stored at intermediate steps
 
 
-More information:
+##More information:
 
-detection p value:
+- detection p value:
 a detection p value greater than 0.01 should not be trusted. It is calculated by comparing the total dna signal (methylated + unmethylated) for each position and sample to the background signal level. The background is estimated using the negative control probes, assuming a normal distribution. Calculations are performed on the original (non-log) scale.
 
-negative control probes: specifically design not to match the human genome, reads/signal from these probes in red and green channel to estimate the background signal distribution.
+- negative control probes: specifically design not to match the human genome, reads/signal from these probes in red and green channel to estimate the background signal distribution.
 
-out of band probes: for a given type I bead, the intensity from the unused color channel has been proposed as a means of estimating background signal, and termed the out-of-band intensity. 
+- out of band probes: for a given type I bead, the intensity from the unused color channel has been proposed as a means of estimating background signal, and termed the out-of-band intensity. 
 
 
 
