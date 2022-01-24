@@ -254,8 +254,8 @@ results/:
 # Quality Control Pipeline documentation/descrition
 
 - load iDat files to RGset (all information in minfi object format)
-(minfi documentation: http://bioconductor.org/packages/release/bioc/manuals/minfi/man/minfi.pdf)
-(minfi example: https://www.bioconductor.org/help/course-materials/2015/BioC2015/methylation450k.html#genetic-variants-and-cell-type-composition)
+	- (minfi documentation: http://bioconductor.org/packages/release/bioc/manuals/minfi/man/minfi.pdf)
+	- (minfi example: https://www.bioconductor.org/help/course-materials/2015/BioC2015/methylation450k.html#genetic-variants-and-cell-type-composition)
 
 - filter probes from RGset
 	- poor quality probes (detection p-value larger than 0.01 for more than 5 % of the samples)
