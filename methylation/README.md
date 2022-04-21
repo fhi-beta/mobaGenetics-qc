@@ -1,27 +1,22 @@
-<!-- markdown-toc start - Don't edit this section. Run M-x markdown-toc-refresh-toc -->
-**Table of Contents**
-
+#### Table of contents <!-- :TOC: -->
 - [Introduction](#introduction)
 - [Setup](#setup)
-    - [TSD](#tsd)
-        - [Start interactive R:](#start-interactive-r)
-        - [exit R](#exit-r)
+  - [TSD](#tsd)
 - [Configuration](#configuration)
-    - [Global config file globalConfig.yaml](#global-config-file-globalconfigyaml)
-    - [Local config-files](#local-config-files)
+  - [Global config file: globalConfig.yaml](#global-config-file-globalconfigyaml)
+  - [Local config-files](#local-config-files)
 - [Pre-quality control:](#pre-quality-control)
 - [Running the pipeline](#running-the-pipeline)
-    - [Removing bad samples](#removing-bad-samples)
-    - [Finalizing the run](#finalizing-the-run)
-    - [Canned wrapper script](#canned-wrapper-script)
+  - [Removing bad samples](#removing-bad-samples)
+  - [Finalizing the run](#finalizing-the-run)
+  - [Canned wrapper script](#canned-wrapper-script)
 - [Results](#results)
-    - [Final](#final)
-    - [Logs](#logs)
-    - [Plots](#plots)
-    - [Qc_results](#qc_results)
-- [Quality Control Pipeline documentation/descrition](#quality-control-pipeline-documentationdescrition)
-
-<!-- markdown-toc end -->
+  - [Final](#final)
+  - [Logs](#logs)
+  - [Plots](#plots)
+  - [tmp_results](#tmp_results)
+  - [results](#results-1)
+- [Quality Control Pipeline documentation/description](#quality-control-pipeline-documentationdescription)
 
 # Introduction
 Based on prior QC work by Christian M. Page and Haakon E. Nustad and
@@ -269,63 +264,6 @@ Section moved to
 https://github.com/folkehelseinstituttet/mobagen/wiki/Methylation 
 
 # Quality Control Pipeline documentation/description
-
-- load iDat files to RGset (all information in minfi object format)
-
-- filter probes from RGset
-	- poor quality probes (detection p-value larger than 0.01 for more than 5 % of the samples)
-	- cross-hybridizing probes (probes shown to have more than 1 possible binding site in the genome)
-	- non-CpG methylation (CpH, (H = A, C or T))
-	- probes influenced by SNPs with higher than 0.05 MAF. SNP placed in interrogated CpG or at the neighboring positions
-
-- create boxplot and PCA plot of control probes:
-	- PCA pot: PC2 against PC1 from PCA of approximately 1200 Red and Green channel control probes
-		- meant to use as documentation and to get intuition of possible amount of outliers
-	- boxplot of control probe values for each sample
-		- if a sample has outlying pattern, such as very narrow range of values -> remove sample
-
-- filter samples with:
-	- more than 25% missing/infinite values for control probes
-	- more than 10% probes with high detection p value (> 0.01)
-	- less than 90% bisulphite conversion rate (calculated with bscon() function, which uses bisulphite conversion control probes to estimate conversion rate)
-	
-- preprocess with ss-Noob:
-	- single-sample-(normal-exponential out-of-band) method used for background subtraction and dye-bias correction. It uses out-of-band probes to estimate a normal-exponential background signal for each color channel, and normalizes the signal from regular probes based on these estimated distributions to obtain a purer signal where the background is removed. This algorithm only uses information within each sample to correct each sample. It has been shown to be one of the better background subtraction and dye-bias correction methods: https://www.ncbi.nlm.nih.gov/pmc/articles/PMC5408810/
-	- from the authors of ssNoob: "We note that on the Beta value scale, there is no difference between values returned by Noob or ssNoob. Differences are confined to the methylated and unmethylated signals."
-
-- plotting of genomewide densities of RAW methylation data and after ssNoob is applied
-	- if a sample has clear outlying distribution from the others, remove sample
-
-- removing samples based on outlying pattern
-
-- check median methylated intensity against median unmethylated intensity, and remove samples with (median_M + median_U)/2 < 10.5. Indicates low signal from either one or both channels.
-
-- cell type proportion estimation. Uses either Blood reference set or CordBlood reference set, dependening on input to config.yaml.
-Blood reference set: DOI: 10.1371/journal.pone.0041361
-CordBlood reference set: doi: 10.1080/15592294.2016.1161875
-
-- sex prediction and removement of sex discordant samples between given sex and predicted sex
-	- measures the median intensity values from combined methylated and unmethylated signal from Y chromsome probes and the same for X chromosome probes. If the differences between these medians is more than 2 (less than -2) a female is predicted.
-	
-- seperate out sex chromosome measurements from autosomal measurements
-
-- do BMIQ: probe type normalisation. The Beadchips have 2 different probe designs, I and II. These have a clear difference in dynamic range for the obtained methylation measurements. BMIQ projects the global distribution of probe type II measurements onto the distribution of probe type I, meaning that the methylation values from probe type II measuements are slightly shifted. This is especially an usual step when analysing regions of data, i.e. looking for differentially methylation regions. It is also believed that the dynamic range of probe type I is more correct than probe type II. BMIQ also calculates only within each sample.
-
-- plotting og genomewide distribution of methylation values after BMIQ is applied.
-
-- plot histogram of differences between raw methylation values and after ssNoob is applied, and between methylation values after ssNoob is applied and BMIQ is applied. These plots are for documenting the difference after each major normalization method is applied.
-
-- clean up and delete unnecassry data stored at intermediate steps
-
-
-More information:
-
-detection p value:
-a detection p value greater than 0.01 should not be trusted. It is calculated by comparing the total dna signal (methylated + unmethylated) for each position and sample to the background signal level. The background is estimated using the negative control probes, assuming a normal distribution. Calculations are performed on the original (non-log) scale.
-
-negative control probes: specifically design not to match the human genome, reads/signal from these probes in red and green channel to estimate the background signal distribution.
-
-out of band probes: for a given type I bead, the intensity from the unused color channel has been proposed as a means of estimating background signal, and termed the out-of-band intensity. 
-
-
+Section moved to
+https://github.com/folkehelseinstituttet/mobagen/wiki/Methylation 
 
