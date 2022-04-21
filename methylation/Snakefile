@@ -2,33 +2,43 @@
 # 0. Load parameters, settings etc
 
 # Unpack config dictionary to local environment
+
+# First part is a hack to recognize big samplesheets previously split
+# We need to know the name of the sample-sheet to put (sub) results there
+# These will be merged later
 # import python module to get analysis name
 import sys
+from pathlib import Path
 
 args = sys.argv
 local_config_path = args[args.index("--configfile") + 2]  # relative path to local config file
+# print(local_config_path)
+# analysis_name is the root name of the yaml-file, without path
+analysis_name = Path(local_config_path).stem
 
-analysis_name = local_config_path.replace(".yaml", "").replace("input/", "").replace("tmp_config/", "") # define analysis_name based on config file name
-
-
+# As we use pathlib, we could have made a lot of the pathwork cooler
 outputFolder = config['output_path'] + "/" + analysis_name  # create path to folder to put results in
-
 data_type = config['data_type']
 detection_pvalue = config['detection_pvalue']
 bisulphite_conversion_rate = config['bisulphite_conversion_rate']
 plate_data_dir = config['root_data_path'] + "/" + config['local_path']
+
 
 # max sample size depends on 450k or EPIC, meaning the data type:
 if data_type == "450k":
     max_sample_size = config['max_sample_size_450k']
 elif data_type == "EPIC":
     max_sample_size = config['max_sample_size_epic']
-
+else:
+    print(f"Unknown chip/data_type {data_type}. Supportet EPIC and 450k")
+    exit(1)
+        
 
 # 0. check that the sample size is not larger than allowed sample size
+# If it is, split it.
 rule sample_size_check:
     input:
-        script="scripts/0_checkSampleSize.R",
+        script = "scripts/0_checkSampleSize.R",
         plates=plate_data_dir
     params:
         renv=config['renv'],
