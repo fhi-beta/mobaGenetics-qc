@@ -266,4 +266,3 @@ https://github.com/folkehelseinstituttet/mobagen/wiki/Methylation
 # Quality Control Pipeline documentation/description
 Section moved to
 https://github.com/folkehelseinstituttet/mobagen/wiki/Methylation 
-

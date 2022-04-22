@@ -10,8 +10,8 @@ cores=12  # number of cores
 # list of manual removed samples are known, do third_part
 rule=third_part
 rule=second_part
-rule=first_part
-rule=build_rgset
+# rule=first_part
+# rule=build_rgset
 # rule=sample_size_check
 # output_path must match whatever is in globalConfig.yaml !
 output_path=/mnt/archive/gutorm/methylationRuns
@@ -34,21 +34,25 @@ global_config="$data_path"/MetCommon/QC/input/globalConfig.yaml
 
 # This directory is harcoded in 0_checkSamplesSize.R so for now we leave it here
 tmp_config=tmp_config
-rm -rf $tmp_config  # remove if the directory exists from before
-mkdir -m775 $tmp_config
 
 if [ $# -eq 0 ]
-  then
+then
 	echo "Usage: $0 <config-files>"
     	echo "Conlesls tmpfig files are typically .yaml files.."
     	echo "Example: $0 input/met00*.yaml"
         echo "It is assumed that a global config file is set in this script: $global_config"
-  else
-      echo "$# files were given. Will run snakemake for these config files - and maybe make new ones"
-      cp $* $tmp_config
-      echo just copied $* to $tmp_config
-
 fi
+
+
+date
+echo -n "Starting \"$0 $@\" on host "
+hostname
+echo "$# files were given. Will run snakemake for these config files - and maybe make new ones"
+echo "Parameters set: rule=$rule tmpdir=$tmpdir output_path=$output_path"
+rm -rf $tmp_config  # remove if the directory exists from before
+mkdir -m775 $tmp_config
+cp $* $tmp_config
+echo "Copied $* to $tmp_config"
 
 # define the number of local config files to run snakemake for
 len_input=$(ls -1q $tmp_config/ | grep met | grep .yaml | wc -l)
@@ -68,10 +72,14 @@ do
     len_input=$(ls -1q $tmp_config/ | grep met | grep .yaml | wc -l)
 done
 
-# remove the temporary folder with configs
+# remove the temporary folder with configs. Not by default as it can be nice for debugging
 # rm -rf $tmp_config
 
 # deacivate the virtual environment. Should be uncommented if the activation is done within this script
 #deactivate
+
+date
+echo -n "Completed \"$0 $@\" on host "
+hostname
 
 
