@@ -7,9 +7,9 @@
   - [Local config-files](#local-config-files)
 - [Pre-quality control:](#pre-quality-control)
 - [Running the pipeline](#running-the-pipeline)
+  - [Canned wrapper script](#canned-wrapper-script)
   - [Removing bad samples](#removing-bad-samples)
   - [Finalizing the run](#finalizing-the-run)
-  - [Canned wrapper script](#canned-wrapper-script)
 - [Results](#results)
   - [Final](#final)
   - [Logs](#logs)
@@ -109,10 +109,10 @@ Important variables:
   using pip & renv is possible.
   
 
-## Local config-files
+## Local config-files 
 Each dataset has one or more config-file (called a local config file)
 that can be used to override the global one. It must be on the form
-setname.yaml.
+setname.yaml. Sometime the setname will include child or parent. 
 
 If you use the standard/original 'MoBa' path-structure you don't need
 to change anything.
@@ -164,35 +164,38 @@ seperately. This is because the quality of the QC will increase if
 such biologically related differences are not present.
 
 # Running the pipeline
+The first time the pipeline is run, remove bad samples manually as
+described below by using the (snakemake) rules first\_part and second_part.
 
-Most users will want to use the [Canned wrapper
-script](#canned-wrapper-script) described below. The sections below
-describe the different partst of the pipleline and how to run them with snakemake commands.
+In order to run Snakemake, most users will want to use the [Canned wrapper
+script](#canned-wrapper-script) described below. 
 
-## Removing bad samples
-The pipeline is organized in 3 parts, where one should inspect the
-plots produced located in plots/ after the first and second part.
+The sections further below describe the different partst of the
+pipleline and how to run them with snakemake commands.
 
-Based on the plots produced in first and second part, you should add sample IDs to the file input/(x)_manual_remove_samples_bad_density.txt if you think they should be removed. Remove samples showing especially outlying patterns compared to the rest, based on the boxplot of control_probes and genome wide density plot.
-
-The pipeline can be run in several ways, with wrapper shell scripts or direct snakemake commands, depending on the users preferences. But in general, there is 1 command that should be run:
-$ snakemake --core 1 --configfile input/globalConfig.yaml input/met001.yaml --snakefile Snakefile third_part
-
-This command runs the entire pipeline if the input/(x)_manual_remove_samples_bad_density.txt file exists. If it is the first time the pipeline is run, one should first run the first_part and second part, then inspect the plots to consider putting some sample IDs in the input/(x)_manual_remove_samples_bad_density.txt file. This is done with the following commands:
-
-$ snakemake --core 1 --configfile input/globalConfig.yaml input/met001.yaml --snakefile Snakefile first_part
-$ snakemake --core 1 --configfile input/globalConfig.yaml input/met001.yaml --snakefile Snakefile second_part
-
-## Finalizing the run
-
-After one has run the third_part, the following command will clean up the output files, removing unnecessary files:
-$ snakemake --core 1 --configfile input/globalConfig.yaml input/met001.yaml --snakefile Snakefile clean_up
 
 ## Canned wrapper script 
 The wrapper script runOneorMore.sh will make the process of running
 the pipeline easier, especially if your resources are limited. 
 
-You will need to edit the file to set some crucial variables: 
+At the base you will be running commands like 
+
+$ snakemake --core 1
+--configfile input/globalConfig.yaml met001.yaml --snakefile
+Snakefile third\_part
+
+where the last parameter is the snakemake rule (workflow part) you
+want to run. The canned script echoes what it does, so you don't need
+to read up on [snakemake](https://snakemake.readthedocs.io/en/stable/)
+(for now).
+
+Do not create the final results (rule third\_part) before bad samples
+have been removed, see the section below that describes how to create
+setname\_manual\_remove\_samples\_bad\_density.txt files.
+
+
+You will need to edit the script runOneorMore.sh to set some crucial
+variables:
 
 - output\_path Where you want the results
 - data\_path Where idat-files are found. For MoMics users this will be
@@ -202,9 +205,10 @@ You will need to edit the file to set some crucial variables:
   will run. For MoMics users this is set right as long as you have set
   data\_path correctly (see above).
 - rule What part of the pipeline you want to run This should in most
-  cases be third_part. The exception is if you need to generate lists
-  over bad samples - for MoMics users these are already found and
-  placed under the sets QC/input sub-directory.
+  cases be third_part. The exception is the first time you run the
+  pipeline as you need to generate lists over bad samples - for MoMics
+  users these are already found and placed under the sets QC/input
+  sub-directory.
 - cores Max number of cores to use
 
 If you wish to run one local config file, met001.yaml for example, you
@@ -219,10 +223,40 @@ bash and will run met001, met004 and met007):
 
 bash runOneorMore.sh Datasets/met\*/QC/input/met00[147]\*.yaml 
 
-If the amount of samples in a set are more than the max_sample_size
+If the amount of samples in a set are more than the max\_sample\_size
 specified in globalConfig.yaml, the data will be split automatically
 into met001-1, met001-2, met001-3, etc. and run for each if these
 batches. 
+
+### A warning on failing rule sample\_size\_check
+When snakemake is run (usually by runOneorMore.sh) now rules should
+fail _except_ sample\_size\_check.
+
+This rule detects that there are two many samples in the set to handle
+for your limited memory. It will split the set up using a directory
+tmp_config. The results will be a lot of subsets that Snakemake will
+be run on.
+
+## Removing bad samples
+The pipeline is organized in 3 parts, where one should inspect the
+plots produced located in plots/ after the first and second part. This
+section describes the two first parts, leading to boxplots suitable
+for removing bad samples. 
+
+Based on the plots produced in first and second part, you should add
+sample IDs to the file input/(x)\_manual\_remove\_samples\_bad\_density.txt
+if you think they should be removed. Remove samples showing especially
+outlying patterns compared to the rest, based on the boxplot of
+control\_probes and genome wide density plot.
+
+
+## Finalizing the run
+
+After one has run the third\_part, the following command will clean up
+the output files, removing unnecessary files:
+
+$ snakemake --core 1 --configfile input/globalConfig.yaml input/met001.yaml --snakefile Snakefile clean\_up
+
 
 # Results
 All results are stored within the output\_path folder (see above), in
