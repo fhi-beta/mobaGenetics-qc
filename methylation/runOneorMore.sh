@@ -9,7 +9,7 @@ cores=12  # number of cores
 # define rule to run. if first time, do second_part. if rerun, or the
 # list of manual removed samples are known, do third_part
 rule=third_part
-rule=second_part
+# rule=second_part
 # rule=first_part
 # rule=build_rgset
 # rule=sample_size_check
