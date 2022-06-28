@@ -1,25 +1,30 @@
 # Used by various reporting to describe the set
 
-dataSet: "Rotterdam2"
+#dataSet: "Rotterdam2"
+dataSet: "snp014"
 chip: "illumina GSA-MD 24 v1.0"
 documentationDataset: "https://github.com/fhi-beta/mobaDocsBackoffice/wiki/MoBaGenPub"
 documentationQC: "https://github.com/fhi-beta/mobaDocsBackoffice/wiki/pipeline"
 githubSource: "https://github.com/fhi-beta/mobaGenetics-qc"
-output_base: "/mnt/work/gutorm/qc/pipeOut"
+output_base: "/mnt/archive/snpQc/pipeOut"
 plinklocal: "/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/bin/plink-1.90b5.4/plink"
 
 
 # Lab QC report: /mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/lab-report/GSA2017_246_QC_report.pdf
 # The raw data (start-point)
-raw_bed_stem: "/mnt/archive/oldStructure/rotterdam2/raw-data/plink/GSA2017_246_025_ReRun"
+raw_bed_stem: "/mnt/archive/Momics/MomicsPub/snpArray/Datasets/snp014/raw-data/bedset/snp014"
+# Only while we checking if the recode ID is unecessary with the new pub-directory
+raw_bed_stem: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/data/raw-data/plink/GSA2017_246_025_ReRun"
 
 # MOBA info
-recode_ids: "/mnt/archive/oldStructure/rotterdam2/aux/recode-files/recode-files-original-fhi/recode-ids-rotterdam2.txt"
-recode_parents: "/mnt/archive/oldStructure/rotterdam2/aux/recode-files/recode-files-original-fhi/recode-parents-rotterdam2.txt"
-recode_sex: "/mnt/archive/oldStructure/rotterdam2/aux/recode-files/recode-files-original-fhi/recode-sex-rotterdam2.txt"
+# It might very well be that these will be moved out of the pipeline for now this is the recode info
+# that was used for rotterdam2. Especially recode_ids that has been done on the pub-directory
+recode_ids: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-ids-rotterdam2.txt"
+recode_parents: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-parents-rotterdam2.txt"
+recode_sex: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-sex-rotterdam2.txt"
 
 # GenomeStudio produced. Note that headers here are chip-dependent.
-snptable: "/mnt/archive/oldStructure/rotterdam2/raw-data/snptable/snp_table_rotterdam2.txt"
+snptable: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/data/raw-data/snptable/snp_table_rotterdam2.txt"
 # See https://genome.sph.umich.edu/wiki/Regions_of_high_linkage_disequilibrium_(LD)
 high_ld_regions_hg19: "/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/resources/high-ld-regions-hg19"
 
@@ -45,14 +50,16 @@ prune_cmd: --indep-pairwise 200 100 0.1
 # these two files have been produced by Jonas by hand and have better pedigree info than we had
 # We want to automate this - but for now (2019) we are just keeping it as it is
 # These files comes from a PC environment and have ^M in them
-infer_recfam: "/mnt/archive/oldStructure/rotterdam2/documentation/inferred-pedigree/permanent_reconstruct-fam.txt"
-infer_badids: "/mnt/archive/oldStructure/rotterdam2/documentation/inferred-pedigree/permanent_bad-sample-IIDs.txt"
+# Note that the whole section will probably be removed and put into another (pre?) pipeline
+infer_recfam: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_reconstruct-fam.txt"
+infer_badids: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_bad-sample-IIDs.txt"
 
 # See https://cran.r-project.org/web/packages/plinkQC/vignettes/Genomes1000.pdf
 # Reference is p37
 # These probably need to be part of the git distribution - but hey are BIG
-1000_genomes_stem: "/mnt/work/qc/1000Genomes/all_phase3"
-1000_genomes_pop: "/mnt/work/qc/1000Genomes/all_phase3.psam"
+# An alternative is to provide an link - and a copy on the pub directory (?)
+1000_genomes_stem: "/mnt/archive/snpQc/1000Genomes/all_phase3"
+1000_genomes_pop:  "/mnt/archive/snpQc/1000Genomes/all_phase3.psam"
 # prune parameters identic to those used for moba. Not necessary? (2020.02.19) Delete if not used 
 #1kgp_maf_thr: 0.1 
 #1kgp_prune_cmd: --indep-pairwise 200 100 0.1
@@ -105,7 +112,7 @@ core_sd_het: 4
 # contains HRC.r1-1.GRCh37.wgs.mac5.sites.tab. If not found - google it.
 # Used by the Will Rayner perl-script in mod5.
 # 2.8Gig
-hrc_sites: "/mnt/work/qc/hrc1.1/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
+hrc_sites: "/mnt/archive/snpQc/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
 
 
 
