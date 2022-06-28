@@ -59,10 +59,10 @@ is set to to FALSE.
 Set up on TSD, needs a litlle extra tweaking. 
 
 Unpack the zipped pipeline folder at preferred destination on TSD, move within the folder and use python3 to set up virtual environment and install snakemake:
-`
+```
 $python -m venv .venv
 $pip install snakemake
-`
+```
 
 Move renv/, renv.lock and .Rprofile out of Setup folder to root folder.
 
@@ -111,7 +111,7 @@ Important variables:
   will create temporary config files where the data is split into
   suitable batches.  This splitting process is entirely handled by the
   [Canned wrapper script](#canned-wrapper-script) described below
-- renv If you cannot use conda as described below, an alternative
+- `renv` If you cannot use conda as describe above, an alternative
   using pip & renv is possible.
   
 
@@ -141,7 +141,7 @@ specific file paths and names, especially data directory (idat and
 sample sheet file path), data type (450k or EPIC). 
 
 Additionally, add a file in input folder:
-manual\_remove\_samples\_bad_density.txt. This file is meant to contain
+`manual_remove_samples_bad_density.txt`. This file is meant to contain
 sample ids of samples you want to remove based on having outlying
 genomewide DNA methylation patterns. This should be filled with sample
 ids based on output from the first and second part of the
@@ -150,8 +150,8 @@ pipeline. Good to go!
 
 # Pre-quality control:
 Important pre-step: the sample sheet needs the beadchip array column
-to have column name: Sentrix\_ID, and the position on the array to have
-column name: Sentrix\_Position. It also needs a column sampleType (see
+to have column name: `Sentrix_ID`, and the position on the array to have
+column name: `Sentrix_Position`. It also needs a column sampleType (see
 below) This is important for minfi to automatically recognize correct
 columns to identify the .idat files.
 
@@ -195,23 +195,23 @@ want to run. The canned script echoes what it does, so you don't need
 to read up on [snakemake](https://snakemake.readthedocs.io/en/stable/)
 (for now).
 
-Do not create the final results (rule third\_part) before bad samples
+Do not create the final results (`rule third_part`) before bad samples
 have been removed, see the section below that describes how to create
-setname\_manual\_remove\_samples\_bad\_density.txt files.
+`setname_manual_remove_samples_bad_density.txt` files.
 
 
 You will need to edit the script runOneorMore.sh to set some crucial
 variables:
 
-- output\_path Where you want the results
-- data\_path Where idat-files are found. For MoMics users this will be
+- `output_path` Where you want the results
+- `data_path` Where idat-files are found. For MoMics users this will be
   .../Methylation/Datasets
-- global\_config Where to find the globalConfig.yaml described in a
+- `global_config` Where to find the globalConfig.yaml described in a
   separate section. It sets common parameters for all datasets you
   will run. For MoMics users this is set right as long as you have set
-  data\_path correctly (see above).
-- rule What part of the pipeline you want to run This should in most
-  cases be third_part. The exception is the first time you run the
+  `data_path` correctly (see above).
+- rule What part of the pipeline you want to run. This should in most
+  cases be `rule third_part`. The exception is the first time you run the
   pipeline as you need to generate lists over bad samples - for MoMics
   users these are already found and placed under the sets QC/input
   sub-directory.
@@ -220,14 +220,14 @@ variables:
 If you wish to run one local config file, met001.yaml for example, you
 do this with the following command:
 
-bash runOneorMore.sh path/met001.yaml 
+`bash runOneorMore.sh path/met001.yaml`
 
 For MoMics users the path will be .../Methylation/Datasets/met001/QC/input/
 
 You can give several input config files if desired (the syntax assumes
 bash and will run met001, met004 and met007):
 
-bash runOneorMore.sh Datasets/met\*/QC/input/met00[147]\*.yaml 
+`bash runOneorMore.sh Datasets/met\*/QC/input/met00[147]\*.yaml`
 
 If the amount of samples in a set are more than the max\_sample\_size
 specified in globalConfig.yaml, the data will be split automatically
@@ -236,21 +236,21 @@ batches.
 
 ### A warning on failing rule sample\_size\_check
 When snakemake is run (usually by runOneorMore.sh) now rules should
-fail _except_ sample\_size\_check.
+fail _except_ `rule sample_size_check`.
 
 This rule detects that there are two many samples in the set to handle
 for your limited memory. It will split the set up using a directory
-tmp_config. The results will be a lot of subsets that Snakemake will
+`tmp_config`. The results will be a lot of subsets that Snakemake will
 be run on.
 
 ## Removing bad samples
 The pipeline is organized in 3 parts, where one should inspect the
-plots produced located in plots/ after the first and second part. This
+plots produced located in `plots/` after the first and second part. This
 section describes the two first parts, leading to boxplots suitable
 for removing bad samples. 
 
 Based on the plots produced in first and second part, you should add
-sample IDs to the file input/(x)\_manual\_remove\_samples\_bad\_density.txt
+sample IDs to the file `input/(x)_manual_remove_samples_bad_density.txt`
 if you think they should be removed. Remove samples showing especially
 outlying patterns compared to the rest, based on the boxplot of
 control\_probes and genome wide density plot.
@@ -258,14 +258,15 @@ control\_probes and genome wide density plot.
 
 ## Finalizing the run
 
-After one has run the third\_part, the following command will clean up
+After one has run the `rule third_part`, the following command will clean up
 the output files, removing unnecessary files:
 
-$ snakemake --core 1 --configfile input/globalConfig.yaml input/met001.yaml --snakefile Snakefile clean\_up
-
+`
+$ snakemake --core 1 --configfile input/globalConfig.yaml input/met001.yaml --snakefile Snakefile clean_up
+`
 
 # Results
-All results are stored within the output\_path folder (see above), in
+All results are stored within the `output_path` folder (see above), in
 subdirectories named after the dataset.  (config file, minus the .yaml
 part) This is set automatically.
 
@@ -295,7 +296,7 @@ plots/:
 (Moved to https://github.com/folkehelseinstituttet/mobagen/wiki/Methylation)
 
 ## tmp_results
-tmp_results/:
+`tmp_results/`:
 
 in this folder, all intermediate results are stored. These are not important for the end results, but can be inspected if the pipeline crashes at some point.
 
