@@ -32,17 +32,22 @@ Then install (if not installed)
 An exported environment (suitable for running the pipeling) is available
 on Setup/metQc-env.yml or metQc-env.txt .  Among many things it will
 install R, python and snakemake. The txt-version was created by the
-command `conda list --explicit > metQc-env.txt`
+command 
+
+`conda list --explicit > metQc-env.txt`
 
 It is suitable for a linux-64 platform and can be used to create an
 environment (provided conda is installed) by 
+
 `conda create --name metQc --file metQc-env.txt`
 
 
 The yml version on the other hand is more generic and made by
+
 `conda env export > metQc-env.yml`
 
 It should work to create a working environment with 
+
 `conda env create --file metQc-env.yml`
 
 Since you use conda, you do not want to use renv (see the TSD section below),
@@ -54,8 +59,10 @@ is set to to FALSE.
 Set up on TSD, needs a litlle extra tweaking. 
 
 Unpack the zipped pipeline folder at preferred destination on TSD, move within the folder and use python3 to set up virtual environment and install snakemake:
+`
 $python -m venv .venv
 $pip install snakemake
+`
 
 Move renv/, renv.lock and .Rprofile out of Setup folder to root folder.
 
@@ -66,22 +73,22 @@ Start interative session with R from root pipeline folder. This will trigger ren
 Run the following commands:
 
 ### activate the virtual env:
-$ source .venv/bin/activate
+`$ source .venv/bin/activate`
 This activates the virtual environment, enabling snakemake.
 
 (If you wish to jump out of the virtual enviroment, do:
-$ deactivate
+`$ deactivate`
 )
 
 ### Start interactive R:
-R
+`R`
 
 #trigger dependency installation if initialization did not:
 
-renv::restore()
+`renv::restore()`
 
 ### exit R
-q()
+`q()`
 
 
 # Configuration
@@ -91,12 +98,12 @@ Edit the globale config file globalConfig.yaml, it must be customized
 for your environemnt. 
 
 Important variables:
-- root_data_path points to where idat-files and samplesheets are
+- `root_data_path` points to where idat-files and samplesheets are
   located. The exact locations are found in the local config-files.
 - output_path is where all the results logs and whatnot will end
   up. The pipeline might create terrabytes of data depending on your
   input
-- max_sample_size_* Unless you have loads of memory, you want to
+- `max_sample_size_*` Unless you have loads of memory, you want to
   reduce the size of samples being processed in one go. See the
   documentation and comments in the yaml-file for more details. If
   your samples size within a set is larger than this amount, the
@@ -118,13 +125,13 @@ to change anything.
 
 Important variables:
 
-- set\_name: The name of the set, will be used among other things to
+- `set_name`: The name of the set, will be used among other things to
   name the directories under output_path found in the global config
   file described above.
-- data\_type: Chip name
-- cell\_type: We assume all samples in the set have the same type.
-- local\_path: Where to find idat files
-- discarded\_samples: List of samples to be ignored, typically results
+- `data_type`: Chip name
+- `cell_type`: We assume all samples in the set have the same type.
+- `local_path`: Where to find idat files
+- `discarded_samples`: List of samples to be ignored, typically results
   of manual inspection. See [removing bad samples](#Removing bad
   samples) below.
 
