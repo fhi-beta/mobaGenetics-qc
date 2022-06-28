@@ -51,7 +51,7 @@ It should work to create a working environment with
 `conda env create --file metQc-env.yml`
 
 Since you use conda, you do not want to use renv (see the TSD section below),
-so make sure renv/, renv.lock and .Rprofile are located in Setup
+so make sure `renv/`, `renv.lock` and `.Rprofile` are located in Setup
 folder and make sure that in input/globalConfig.yaml the renv variable
 is set to to FALSE.
 
@@ -83,7 +83,7 @@ This activates the virtual environment, enabling snakemake.
 ### Start interactive R:
 `R`
 
-#trigger dependency installation if initialization did not:
+### trigger dependency installation if initialization did not:
 
 `renv::restore()`
 
@@ -156,16 +156,16 @@ below) This is important for minfi to automatically recognize correct
 columns to identify the .idat files.
 
 All samples you wish to run QC for must be listed in your
-sample\_sheet.csv, which must be located in the folder you specify in
-config.yaml. It should be placed together with the .idat files. 
+`sample_sheet.csv`, which must be located in the folder you specify in
+`config.yaml`. It should be placed together with the .idat files. 
 This .csv file is recognized automatically with the minfi function applied
-to read in the sample_sheet. 
+to read in `sample_sheet.csv`. 
 
 The sample sheet must contain a column SampleType in order to detect
 if you have a mix of children and older individuals by the script
-0\_checkSampleSize.R (snakemake rule sample\_size\_check). If so, the script
-will create an error with an error message, encouraging the user to
-split their samples into two .csv files, and running these
+`0_checkSampleSize.R` (snakemake `rule sample_size_check`). If so, the
+script will create an error with an error message, encouraging the
+user to split their samples into two .csv files, and running these
 seperately. This is because the quality of the QC will increase if
 such biologically related differences are not present.
 
@@ -186,9 +186,7 @@ the pipeline easier, especially if your resources are limited.
 
 At the base you will be running commands like 
 
-$ snakemake --core 1
---configfile input/globalConfig.yaml met001.yaml --snakefile
-Snakefile third\_part
+`$ snakemake --core 1 --configfile input/globalConfig.yaml met001.yaml --snakefile Snakefile third_part`
 
 where the last parameter is the snakemake rule (workflow part) you
 want to run. The canned script echoes what it does, so you don't need
