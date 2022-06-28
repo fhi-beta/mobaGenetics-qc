@@ -14,7 +14,7 @@
   - [Final](#final)
   - [Logs](#logs)
   - [Plots](#plots)
-  - [tmp_results](#tmp_results)
+  - [`tmp_results`](#tmp_results)
   - [results](#results-1)
 - [Quality Control Pipeline documentation/description](#quality-control-pipeline-documentationdescription)
 
@@ -50,10 +50,11 @@ It should work to create a working environment with
 
 `conda env create --file metQc-env.yml`
 
-Since you use conda, you do not want to use renv (see the TSD section below),
-so make sure `renv/`, `renv.lock` and `.Rprofile` are located in Setup
-folder and make sure that in input/globalConfig.yaml the renv variable
-is set to to FALSE.
+Since you use conda, you do not want to use renv (see the TSD section
+below), make sure that in `input/globalConfig.yaml` the renv variable is
+set to to FALSE.
+
+(It might that the `renv/`, `renv.lock` and `.Rprofile` still need to be located in `Setup` folder). 
 
 ## TSD
 Set up on TSD, needs a litlle extra tweaking. 
@@ -66,11 +67,12 @@ $pip install snakemake
 
 Move renv/, renv.lock and .Rprofile out of Setup folder to root folder.
 
-Change globalConfig.yaml renv variable to TRUE.
+Change `globalConfig.yaml` renv variable to TRUE.
 
-For installation of packages into local R library:
-Start interative session with R from root pipeline folder. This will trigger renv, which is version control and package management software for R.
-Run the following commands:
+For installation of packages into local R library: Start interative
+session with R from root pipeline folder. This will trigger renv,
+which is version control and package management software for R.  Run
+the following commands:
 
 ### activate the virtual env:
 `$ source .venv/bin/activate`
@@ -293,7 +295,7 @@ logs/:
 plots/:
 (Moved to https://github.com/folkehelseinstituttet/mobagen/wiki/Methylation)
 
-## tmp_results
+## `tmp_results`
 `tmp_results/`:
 
 in this folder, all intermediate results are stored. These are not important for the end results, but can be inspected if the pipeline crashes at some point.
