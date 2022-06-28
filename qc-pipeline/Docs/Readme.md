@@ -42,7 +42,7 @@ It should work to create a working environment with
 `conda env create --file snpQc-env.yml`
 
 ## Configure 
-You need to edit the `snamefiles/config.yaml` file until it works (many paths need editing)
+You need to edit the `snakefiles/config.yaml` file until it works (many paths need editing)
 
 ## Run
 
