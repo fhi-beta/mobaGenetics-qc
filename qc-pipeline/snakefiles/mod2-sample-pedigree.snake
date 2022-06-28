@@ -341,7 +341,7 @@ rule pedigree_ibd_estimate:
 
 
 # This rule is still in shell-syntax as we have not decided what the final solution should be.
-# We would like to automate the triad-patching
+# We would like to automate the triad-patching - but anyway the repair of triad/sample-mixes should be done outside this module.
 rule pedigree_fu_detector_solver:
     input:
         in_geno = rules.missing_genotype_markers.output.bedset,
