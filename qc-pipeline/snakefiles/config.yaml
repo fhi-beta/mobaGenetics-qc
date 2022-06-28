@@ -1,34 +1,59 @@
 # Used by various reporting to describe the set
 
+# These are local for the set
 #dataSet: "Rotterdam2"
 dataSet: "snp014"
 chip: "illumina GSA-MD 24 v1.0"
+# Lab QC report: /mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/lab-report/GSA2017_246_QC_report.pdf
+# The raw data (start-point). Note that these should be extracted know where the pubdirectory is, as well as the name of the dataSet.
+raw_bed_stem: "/mnt/archive/Momics/MomicsPub/snpArray/Datasets/snp014/raw-data/bedset/snp014"
+# Only while we checking if the recode ID is unecessary with the new pub-directory
+raw_bed_stem: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/data/raw-data/plink/GSA2017_246_025_ReRun"
+# GenomeStudio produced. Note that headers here are chip-dependent.
+snptable: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/data/raw-data/snptable/snp_table_rotterdam2.txt"
+
+
+# Global paths
 documentationDataset: "https://github.com/fhi-beta/mobaDocsBackoffice/wiki/MoBaGenPub"
 documentationQC: "https://github.com/fhi-beta/mobaDocsBackoffice/wiki/pipeline"
 githubSource: "https://github.com/fhi-beta/mobaGenetics-qc"
 output_base: "/mnt/archive/snpQc/pipeOut"
 plinklocal: "/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/bin/plink-1.90b5.4/plink"
 
+# from http://www.haplotype-reference-consortium.org/ http://www.haplotype-reference-consortium.org/site
+# contains HRC.r1-1.GRCh37.wgs.mac5.sites.tab. If not found - google it.
+# Used by the Will Rayner perl-script in mod5.
+# 2.8Gig
+hrc_sites: "/mnt/archive/snpQc/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
 
-# Lab QC report: /mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/lab-report/GSA2017_246_QC_report.pdf
-# The raw data (start-point)
-raw_bed_stem: "/mnt/archive/Momics/MomicsPub/snpArray/Datasets/snp014/raw-data/bedset/snp014"
-# Only while we checking if the recode ID is unecessary with the new pub-directory
-raw_bed_stem: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/data/raw-data/plink/GSA2017_246_025_ReRun"
 
-# MOBA info
+# See https://cran.r-project.org/web/packages/plinkQC/vignettes/Genomes1000.pdf
+# Reference is p37
+# These probably need to be part of the git distribution - but hey are BIG
+# An alternative is to provide an link - and a copy on the pub directory (?)
+1000_genomes_stem: "/mnt/archive/snpQc/1000Genomes/all_phase3"
+1000_genomes_pop:  "/mnt/archive/snpQc/1000Genomes/all_phase3.psam"
+# prune parameters identic to those used for moba. Not necessary? (2020.02.19) Delete if not used 
+#1kgp_maf_thr: 0.1 
+#1kgp_prune_cmd: --indep-pairwise 200 100 0.1
+
+# hapmap ... Old reference set b36 - We switch to G1000
+# note that there is a full set bedset here ...
+#hapmap,stem: /mnt/archive/helgeland/refdata/hapmap/hapmap_b36/hapmapb36"
+#hapmap_pop: "/mnt/archive/helgeland/refdata/hapmap/relationships_w_pops_121708.txt"
+
+
+# MOBA info - as they are for Rotterdam2, these belong to the "local-config". 
 # It might very well be that these will be moved out of the pipeline for now this is the recode info
 # that was used for rotterdam2. Especially recode_ids that has been done on the pub-directory
 recode_ids: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-ids-rotterdam2.txt"
 recode_parents: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-parents-rotterdam2.txt"
 recode_sex: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-sex-rotterdam2.txt"
 
-# GenomeStudio produced. Note that headers here are chip-dependent.
-snptable: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/data/raw-data/snptable/snp_table_rotterdam2.txt"
 # See https://genome.sph.umich.edu/wiki/Regions_of_high_linkage_disequilibrium_(LD)
 high_ld_regions_hg19: "/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/resources/high-ld-regions-hg19"
 
-# Thresholds and names of the columns in snptable-file
+# Thresholds and names of the columns in snptable-file (see above)
 cluster_sep_thr: 0.40
 cluster_sep_col_name: "GSAMD-24v1-0_20011747_A4.bpm.Cluster Sep"
 10%_GC_score_thr: 0.30
@@ -54,20 +79,6 @@ prune_cmd: --indep-pairwise 200 100 0.1
 infer_recfam: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_reconstruct-fam.txt"
 infer_badids: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_bad-sample-IIDs.txt"
 
-# See https://cran.r-project.org/web/packages/plinkQC/vignettes/Genomes1000.pdf
-# Reference is p37
-# These probably need to be part of the git distribution - but hey are BIG
-# An alternative is to provide an link - and a copy on the pub directory (?)
-1000_genomes_stem: "/mnt/archive/snpQc/1000Genomes/all_phase3"
-1000_genomes_pop:  "/mnt/archive/snpQc/1000Genomes/all_phase3.psam"
-# prune parameters identic to those used for moba. Not necessary? (2020.02.19) Delete if not used 
-#1kgp_maf_thr: 0.1 
-#1kgp_prune_cmd: --indep-pairwise 200 100 0.1
-
-# hapmap ... Old reference set b36 - We switch to G1000
-# note that there is a full set bedset here ...
-#hapmap,stem: /mnt/archive/helgeland/refdata/hapmap/hapmap_b36/hapmapb36"
-#hapmap_pop: "/mnt/archive/helgeland/refdata/hapmap/relationships_w_pops_121708.txt"
 
 # needed? CHECK!
 pca_thr: "6 0.015 NA 0.0355 NA"
@@ -107,12 +118,6 @@ core_mind: 0.02
 # Same limits for common/rare
 core_maf: 0.01
 core_sd_het: 4
-
-# from http://www.haplotype-reference-consortium.org/ http://www.haplotype-reference-consortium.org/site
-# contains HRC.r1-1.GRCh37.wgs.mac5.sites.tab. If not found - google it.
-# Used by the Will Rayner perl-script in mod5.
-# 2.8Gig
-hrc_sites: "/mnt/archive/snpQc/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
 
 
 
