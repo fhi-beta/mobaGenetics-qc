@@ -46,9 +46,14 @@ rule common_markers_moba_ref:
         tri_alleles = report((tmpMod3/rule_stem).with_suffix(".missnp"),
                               category="Module 3 1000Genomes prep",
                               caption=(resultPath/"pca_ref").with_suffix(".rst")),
-        # results_ref = report((resultPath/"pca_ref").with_suffix(".yaml"),
-        #                      category="Module 3 1000Genomes prep",
-        #                      caption=(resultPath/"pca_ref").with_suffix(".rst")),
+        # result ref takes forever to run, and it is handy to uncomment that part
+        # (should maybe have been isolated in a separate rule)
+        # If you commented out the code that documents reduction the 1000g set below
+        # (see "Begin Code that should"), then comment out the results_ref this rule as well.
+        # Or do a dirty hack below by 
+        results_ref = report((resultPath/"pca_ref").with_suffix(".yaml"),
+                              category="Module 3 1000Genomes prep",
+                              caption=(resultPath/"pca_ref").with_suffix(".rst")),
         results_moba = report((resultPath/"pca_moba").with_suffix(".yaml"),
                               category="Module 3 1000Genomes prep",
                               caption=(resultPath/"pca_moba").with_suffix(".rst")),
@@ -101,17 +106,20 @@ rule common_markers_moba_ref:
 
         # Document the reduction for ref (1000 genomes) ... but not all the markers
         # Btw, this take forever as inTrunk_ref+".bim" is huge so the code was
-        # removed. We have the common markers anyway ...
+        # removed. We have the common markers anyway ... from a 'previous' run.
+        # If you (un)comment out this, do the same for results_ref above
         print (f"{inTrunk_ref} -> {outTrunk_ref}")
-        # dropouts = mqc.checkUpdates(inTrunk_ref+".bim", outTrunk_ref+".bim",
-        #                             cols = [0,1,3,4,5],
-        #                             sanityCheck = "removal", fullList = False,
-        #                             allele_flip=True)
-        # dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        # dropouts["Rule"] = rule
-        # dropouts["Excluded markers"] = f"Common markers in {output.marker_list}, trialleles removed in {output.tri_alleles}"
-        # mqc.saveYamlResults(output.results_ref, dropouts)
-        # print (f"checking {inTrunk_moba} -> {outTrunk_moba}")
+        # BEGIN Code that should have been in a separate rule
+        dropouts = mqc.checkUpdates(inTrunk_ref+".bim", outTrunk_ref+".bim",
+                                     cols = [0,1,3,4,5],
+                                     sanityCheck = "removal", fullList = False,
+                                     allele_flip=True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        dropouts["Excluded markers"] = f"Common markers in {output.marker_list}, trialleles removed in {output.tri_alleles}"
+        mqc.saveYamlResults(output.results_ref, dropouts)
+        # END Code thatshould have been in a separate rule
+        print (f"checking {inTrunk_moba} -> {outTrunk_moba}")
         # Document the reduction for moba
         dropouts = mqc.checkUpdates(inTrunk_moba+".bim", outTrunk_moba+".bim",
                                     cols = [0,1,3,4,5],
