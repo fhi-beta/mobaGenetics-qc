@@ -20,24 +20,37 @@ Clone the git repository.
 Then install (if not installed)
 [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html).
 An exported environment (suitable for running the pipeling) is
-available on mobaGenetics-qc/aux/environment/snpQc-env.txt .  Among
-many things it will install R, python and snakemake. The txt-version
-was created, in a working environment, by the command
-
-`conda list --explicit > snpQc-env.txt`
-
-It is suitable for a linux-64 platform and can be used to create an
-environment (provided conda is installed) by 
+available on `mobaGenetics-qc/aux/environment/snpQc-env.txt` . The
+environemnt is suitable for a linux-64 platform and can be used to
+create an environment (provided conda is installed) by
 
 `conda create --name snpQc --file snpQc-env.txt`
 
+Among many things it will install R, python and snakemake for you. When done, 
+acitavte it:
 
-A yaml version might be produced later - but for now we will not
-maintain two configuration files.
+`conda active snpQc`
+
+and you should be good to go. 
+
+### Nitty gritty details on the conda install
+
+The `snpQc-env.txt' was created by the
+command
+
+`conda list --explicit > snpQc-env.txt`
+
+in an (ubuntu) environemnt (132Gb) that successfully runs the QC. In
+theory you could get problems, let us know if you identify some, like  minimum
+memory requirements.
+
+A yaml version might be produced later, it would be more robust so it
+would work on say Windoies.  For now we will not maintain two
+configuration files. If you want a yaml-version you can always do 
 
 `conda env export > snpQc-env.yml`
 
-It should work to create a working environment with 
+The yaml-file should the be used to recreate the environment with 
 
 `conda env create --file snpQc-env.yml`
 
