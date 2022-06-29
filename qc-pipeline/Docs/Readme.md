@@ -10,7 +10,15 @@
 # Introduction
 ( when Gutorm edits this in emacs it creates the nifty table of content automagically.)
 
-Work in progress.
+The overall structure of the QC will probably have the following stages
+
+1. Prepare a curated public raw-data set with bedset having correct
+   .fam file with respect to parents and sex. (This is not completely
+   done yet). There will be one such bedset for each data-set. 
+1. Create a QC-pipleine that can be run on all sets individually and that ultimately creates pre-imputation bedset
+1. Merge all sets that have been genotyped with the same chip, but also remove duplicate individuals within the merege sets. This will be called the chipMerged set and will be imputeded as well.
+1. Merge all chipMerged imputation results to a final imputed set. Duplicate individuals will again be removed.
+
 
 # Setup
 
@@ -22,7 +30,7 @@ Then install (if not installed)
 An exported environment (suitable for running the pipeling) is
 available on `mobaGenetics-qc/aux/environment/snpQc-env.txt` . The
 environemnt is suitable for a linux-64 platform and can be used to
-create an environment (provided conda is installed) by
+create an environment (provided `conda` is installed) by
 
 `conda create --name snpQc --file snpQc-env.txt`
 
@@ -35,13 +43,16 @@ and you should be good to go.
 
 ### Nitty gritty details on the conda install
 
+All packages are grabbed form conda-forge, it might be we change this
+the above to using mamba and mamba-forge.
+
 The `snpQc-env.txt' was created by the
 command
 
 `conda list --explicit > snpQc-env.txt`
 
 in an (ubuntu) environemnt (132Gb) that successfully runs the QC. In
-theory you could get problems, let us know if you identify some, like  minimum
+theory you still could get problems, let us know if you identify some - like  minimum
 memory requirements.
 
 A yaml version might be produced later, it would be more robust so it
@@ -60,6 +71,12 @@ You need to edit the `snakefiles/config.yaml` file until it works (many paths ne
 ## Run
 
 `snakemake -c8 rulename`
+
+As of 29.6.2022 you have to run 
+
+`snakemake -c8 rayner_report` and then `snakemake -c8` for the
+remaining. When the default rule is fixed, the first command will not
+be necessary.
 
 should work but does not yet work for all rules. (Due to certain steps
 not being finished and the default rule being poorly setup)
