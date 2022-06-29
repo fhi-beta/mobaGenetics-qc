@@ -1,5 +1,6 @@
 #### Table of contents <!-- :TOC: -->
 - [Introduction](#introduction)
+  - [Planned QC stages](#planned-qc-stages)
 - [Setup](#setup)
   - [Software install](#software-install)
   - [Configure](#configure)
@@ -10,14 +11,20 @@
 # Introduction
 ( when Gutorm edits this in emacs it creates the nifty table of content automagically.)
 
+## Planned QC stages
 The overall structure of the QC will probably have the following stages
 
 1. Prepare a curated public raw-data set with bedset having correct
    .fam file with respect to parents and sex. (This is not completely
    done yet). There will be one such bedset for each data-set. 
-1. Create a QC-pipleine that can be run on all sets individually and that ultimately creates pre-imputation bedset
-1. Merge all sets that have been genotyped with the same chip, but also remove duplicate individuals within the merege sets. This will be called the chipMerged set and will be imputeded as well.
-1. Merge all chipMerged imputation results to a final imputed set. Duplicate individuals will again be removed.
+1. Create a QC-pipline that can be run on all sets individually and
+   that ultimately creates pre-imputation bedset. This work is in
+   progress as of June 2022 and most of the pipeline has been written. 
+1. Merge all sets that have been genotyped with the same chip, but
+   also remove duplicate individuals within the merege sets. This will
+   be called the chipMerged set and will be imputeded as well.
+1. Merge all chipMerged imputation results to a final imputed
+   set. Duplicate individuals will again be removed.
 
 
 # Setup
