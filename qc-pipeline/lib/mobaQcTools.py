@@ -905,7 +905,8 @@ def hweg_qq_plot(pfile, prec=3, x='x'):
 
 
 def sex_check(rule,
-              in_bed, out_bed, f_treshold=0.2, m_treshold=0.8,
+              in_bed, out_bed,
+              f_treshold=0.2, m_treshold=0.8,
               result_file='/dev/null', plot_file=False):
     """ Checks if sex according to .fam-file matches genotype. Removes mismatches
 
@@ -943,7 +944,7 @@ def sex_check(rule,
     # check sex on Y chromosome
     subprocess.run([plink,
                     "--bfile", tmpPath/"pruned_for_sexcheck",
-                    "--check-sex", "y-only", str(m_treshold), str(f_treshold),
+                    "--check-sex", "y-only",
                     "--out", tmpPath/"sexcheck_report_y",
                     ], check=True)
 
