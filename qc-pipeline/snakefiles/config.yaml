@@ -17,7 +17,7 @@ snptable: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/da
 documentationDataset: "https://github.com/fhi-beta/mobaDocsBackoffice/wiki/MoBaGenPub"
 documentationQC: "https://github.com/fhi-beta/mobaDocsBackoffice/wiki/pipeline"
 githubSource: "https://github.com/fhi-beta/mobaGenetics-qc"
-output_base: "/mnt/archive/snpQc/pipeOut"
+output_base: "/mnt/archive/snpQc/pipeOut_dev"
 plinklocal: "/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/bin/plink-1.90b5.4/plink"
 
 # from http://www.haplotype-reference-consortium.org/ http://www.haplotype-reference-consortium.org/site
