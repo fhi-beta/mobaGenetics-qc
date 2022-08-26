@@ -933,24 +933,32 @@ def sex_check(rule,
                     "--out", tmpPath/"pruned_for_sexcheck",
                     "--make-bed"])
 
-    # check sex with plink
+    # check sex on X chromosome
     subprocess.run([plink,
                     "--bfile", tmpPath/"pruned_for_sexcheck",
                     "--check-sex", str(f_treshold), str(m_treshold),
-                    "--out", tmpPath/"sexcheck_report",
+                    "--out", tmpPath/"sexcheck_report_x",
+                    ], check=True)
+
+    # check sex on Y chromosome
+    subprocess.run([plink,
+                    "--bfile", tmpPath/"pruned_for_sexcheck",
+                    "--check-sex", str(f_treshold), str(m_treshold),
+                    "--out", tmpPath/"sexcheck_report_y",
                     ], check=True)
 
     # find famid/id of the ones failing sexheck
-    extract_list(tmpPath/"sexcheck_report.sexcheck",
-                 tmpPath/"sexcheck_report.remove",
-                 tmpPath/"sexcheck_report.details",
+    extract_list(tmpPath/"sexcheck_report_x.sexcheck",
+                 tmpPath/"sexcheck_report_x.remove",
+                 tmpPath/"sexcheck_report_x.details",
                  colName="^STATUS$",
                  sep=None, condition='==', treshold="PROBLEM",
                  key_cols=[0, 1], doc_cols=[0, 1, 5])
+
     # remove these
     subprocess.run([plink,
                     "--bfile", inTrunk,
-                    "--remove", tmpPath/"sexcheck_report.remove",
+                    "--remove", tmpPath/"sexcheck_report_x.remove",
                     "--out", outTrunk,
                     "--make-bed"
                     ], check=True)
@@ -961,11 +969,11 @@ def sex_check(rule,
     dropouts["Treshold"] = f"Female={f_treshold} Male={m_treshold}"
     dropouts["Rule"] = rule
     saveYamlResults(result_file, dropouts)
-    title = (f'Sex Check\n'
+    title = (f'Sex Check on chromosome X\n'
              f'{dropouts.get("actionTakenCount")} outside treshold\n'
              f'Treshold {dropouts.get("Treshold")}\n'
              f'{dropouts.get("Timestamp")}')
-    plot_hist(tmpPath/"sexcheck_report.sexcheck", plot_file,
+    plot_hist(tmpPath/"sexcheck_report_x.sexcheck", plot_file,
               column="F", title=title, separator='\s+',
               treshold=0, logx=False, bins=100)
     return

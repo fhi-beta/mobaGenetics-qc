@@ -1,4 +1,4 @@
-# Used by various reporting to describe the set
+# Used by various reports to describe the set
 
 # These are local for the set
 #dataSet: "Rotterdam2"
@@ -105,16 +105,16 @@ sd_het2: 4
 geno_rare: 0.020
 
 sex_check_female: 0.2
-sex_check_male: 0.8  # which are the default of plink 1.9 btw
+sex_check_male: 0.8  # plink 1.9 default
 sex_check_indep_pairwise: 20000 2000 0.5
 
 
-
-# used by all genders, several different rules
+# used for all samples in several different rules
 xmarkers_clean: 0.000001
 
 # parameters to finalize core
 core_mind: 0.02
+
 # Same limits for common/rare
 core_maf: 0.01
 core_sd_het: 4

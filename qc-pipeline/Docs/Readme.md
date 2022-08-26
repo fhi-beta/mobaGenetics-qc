@@ -1,5 +1,6 @@
 #### Table of contents <!-- :TOC: -->
 - [Introduction](#introduction)
+  - [Planned QC stages](#planned-qc-stages)
 - [Setup](#setup)
   - [Software install](#software-install)
   - [Configure](#configure)
@@ -10,7 +11,21 @@
 # Introduction
 ( when Gutorm edits this in emacs it creates the nifty table of content automagically.)
 
-Work in progress.
+## Planned QC stages
+The overall structure of the QC will probably have the following stages
+
+1. Prepare a curated public raw-data set with bedset having correct
+   .fam file with respect to parents and sex. (This is not completely
+   done yet). There will be one such bedset for each data-set. 
+1. Create a QC-pipline that can be run on all sets individually and
+   that ultimately creates pre-imputation bedset. This work is in
+   progress as of June 2022 and most of the pipeline has been written. 
+1. Merge all sets that have been genotyped with the same chip, but
+   also remove duplicate individuals within the merege sets. This will
+   be called the chipMerged set and will be imputeded as well.
+1. Merge all chipMerged imputation results to a final imputed
+   set. Duplicate individuals will again be removed.
+
 
 # Setup
 
@@ -20,24 +35,40 @@ Clone the git repository.
 Then install (if not installed)
 [conda](https://docs.conda.io/projects/conda/en/latest/user-guide/install/index.html).
 An exported environment (suitable for running the pipeling) is
-available on mobaGenetics-qc/aux/environment/snpQc-env.txt .  Among
-many things it will install R, python and snakemake. The txt-version
-was created, in a working environment, by the command
-
-`conda list --explicit > snpQc-env.txt`
-
-It is suitable for a linux-64 platform and can be used to create an
-environment (provided conda is installed) by 
+available on `mobaGenetics-qc/aux/environment/snpQc-env.txt` . The
+environemnt is suitable for a linux-64 platform and can be used to
+create an environment (provided `conda` is installed) by
 
 `conda create --name snpQc --file snpQc-env.txt`
 
+Among many things it will install R, python and snakemake for you. When done, 
+acitavte it:
 
-A yaml version might be produced later - but for now we will not
-maintain two configuration files.
+`conda active snpQc`
+
+and you should be good to go. 
+
+### Nitty gritty details on the conda install
+
+All packages are grabbed form conda-forge, it might be we change this
+the above to using mamba and mamba-forge.
+
+The `snpQc-env.txt' was created by the
+command
+
+`conda list --explicit > snpQc-env.txt`
+
+in an (ubuntu) environemnt (132Gb) that successfully runs the QC. In
+theory you still could get problems, let us know if you identify some - like  minimum
+memory requirements.
+
+A yaml version might be produced later, it would be more robust so it
+would work on say Windoies.  For now we will not maintain two
+configuration files. If you want a yaml-version you can always do 
 
 `conda env export > snpQc-env.yml`
 
-It should work to create a working environment with 
+The yaml-file should the be used to recreate the environment with 
 
 `conda env create --file snpQc-env.yml`
 
@@ -47,6 +78,12 @@ You need to edit the `snakefiles/config.yaml` file until it works (many paths ne
 ## Run
 
 `snakemake -c8 rulename`
+
+As of 29.6.2022 you have to run 
+
+`snakemake -c8 rayner_report` and then `snakemake -c8` for the
+remaining. When the default rule is fixed, the first command will not
+be necessary.
 
 should work but does not yet work for all rules. (Due to certain steps
 not being finished and the default rule being poorly setup)
