@@ -943,7 +943,7 @@ def sex_check(rule,
     # check sex on Y chromosome
     subprocess.run([plink,
                     "--bfile", tmpPath/"pruned_for_sexcheck",
-                    "--check-sex", "--y-only", str(f_treshold), str(m_treshold),
+                    "--check-sex", "y-only", str(f_treshold), str(m_treshold),
                     "--out", tmpPath/"sexcheck_report_y",
                     ], check=True)
 
