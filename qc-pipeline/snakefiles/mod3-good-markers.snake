@@ -884,6 +884,9 @@ rule sex_clean:
         excl_failed_hwe_female_x = rules.female_xmarkers.output.exclude_markers,
         excl_failed_hwe_par_regions = rules.par_regions.output.exclude_markers,
         excl_male_x_markers = rules.clean_male_x.output.exclude_markers,
+        # File containing the F-statistics for the sex chromosomes
+        f_x = os.path.join(tmpMod3, "{role}", "sexcheck_report_x.sexcheck"),
+        f_y = os.path.join(tmpMod3, "{role}", "sexcheck_report_y.sexcheck")
     output:
         bedset = (tmpMod3/"{role}"/rule_stem).with_suffix(".bed"), # clean_markers earlier
         bedsetbim = (tmpMod3/"{role}"/rule_stem).with_suffix(".bim"), # clean_markers earlier
@@ -892,10 +895,7 @@ rule sex_clean:
                         caption=(resultPath/rule_stem).with_suffix(".rst")),
         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
                          category="Module 3 Good markers",
-                         caption=(resultPath/rule_stem).with_suffix(".rst")),
-        # File containing the F-statistics for the sex chromosomes
-        f_x = os.path.join(tmpMod3, "{role}", "sexcheck_report_x.sexcheck"),
-        f_y = os.path.join(tmpMod3, "{role}", "sexcheck_report_y.sexcheck")
+                         caption=(resultPath/rule_stem).with_suffix(".rst"))
     benchmark:
         (tmpMod3/"{role}"/rule_stem).with_suffix(".benchmark")
     run:
