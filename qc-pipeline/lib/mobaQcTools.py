@@ -936,28 +936,11 @@ def sex_check(rule,
                     "--make-bed"])
 
     # check sex on X chromosome
-    print("sex_check_x")
     subprocess.run([plink,
                     "--bfile", tmpPath/"pruned_for_sexcheck",
                     "--check-sex", str(f_treshold), str(m_treshold),
                     "--out", tmpPath/"sexcheck_report_x",
                     ], check=True)
-
-    try:
-
-    # check sex on Y chromosome
-    # @TODO: currently we don't have Y chromosome data
-    # subprocess.run([plink,
-    #                 "--bfile", tmpPath/"pruned_for_sexcheck",
-    #                 "--check-sex", "y-only",
-    #                 "--out", tmpPath/"sexcheck_report_y",
-    #                 ], check=True)
-        print("sex_check_y export: {tmpPath} -> {os.path.join(tmpPath, 'sexcheck_report_y.sexcheck'}")
-        with open(os.path.join(tmpPath, "sexcheck_report_y.sexcheck")) as file_stream:
-            file_stream.write("FID\tIID\tPEDSEX\tSNPSEX\tSTATUS\tF" + os.linesep)
-
-    except Exception as e:
-        print("An error occurred while trying to write the sex_check_y export: {str(e)}")
 
     # find famid/id of the ones failing sexheck
     extract_list(tmpPath/"sexcheck_report_x.sexcheck",

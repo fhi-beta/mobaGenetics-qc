@@ -748,7 +748,7 @@ rule sex_check:
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
         # File containing the F-statistics for the sex chromosomes
         f_x = os.path.join(tmpMod3, "{role}", "sexcheck_report_x.sexcheck"),
-        f_y = os.path.join(tmpMod3, "{role}", "sexcheck_report_y.sexcheck"),
+        # f_y = os.path.join(tmpMod3, "{role}", "sexcheck_report_y.sexcheck"),
         # in addition to the removal list, a removal.samples.txt is produced, sporting only the sample-list
         plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
                          category="Module 3 Good markers",
@@ -886,7 +886,7 @@ rule sex_clean:
         excl_male_x_markers = rules.clean_male_x.output.exclude_markers,
         # File containing the F-statistics for the sex chromosomes
         f_x = os.path.join(tmpMod3, "{role}", "sexcheck_report_x.sexcheck"),
-        f_y = os.path.join(tmpMod3, "{role}", "sexcheck_report_y.sexcheck")
+        # f_y = os.path.join(tmpMod3, "{role}", "sexcheck_report_y.sexcheck")
     output:
         bedset = (tmpMod3/"{role}"/rule_stem).with_suffix(".bed"), # clean_markers earlier
         bedsetbim = (tmpMod3/"{role}"/rule_stem).with_suffix(".bim"), # clean_markers earlier
