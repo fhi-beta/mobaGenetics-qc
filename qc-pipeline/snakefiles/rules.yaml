@@ -2,20 +2,20 @@
 # Each rule should match a corresponding snakemake rule
 # These will be read into a dictionary and populated with results
 
-# Minidocs for some of the fields (more to come laters)
+# Minidocs for some of the fields (more to come later)
 #
 # * Rule        : The rulename in the snakemake file.
 # * Rule order  : Sort alphabetically by this to get the documentation/execution order.
-#                 There is no guarantee that they rules are run in that order, but
-#                 this is the normal order they should be documented in
+#                 There is no guarantee that the rules are run in that order, but
+#                 this is the order they should be documented.
 # * Timetamp    : When the results of this rule was logged (UTC aka GMT)
 # * rule type   : Either sample or marker
-# * rule action : Wht the rule does to the date. Either remove or update
+# * rule action : What the rule does to the data, e.g. remove, document, or update
 #
-# Some items are not shown here at all, but will be inserted as results of the QC
-# * in          : Number of markers/sample before rule
-# * out         : Number of markers/sample after rule
-# * actionTakenCount: Number of markers/samples affected by the rul
+# Some items are not shown here at all, but will be inserted upon execution of the pipeline
+# * in          : Number of markers/samples before rule
+# * out         : Number of markers/samples after rule
+# * actionTakenCount: Number of markers/samples affected by the rule
 
 
 remove_chr0:

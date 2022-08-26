@@ -11,6 +11,7 @@ shell.executable("/bin/bash")
 
 # Runtime variables
 include: "variables.py"
+
 # A file with rule properties and ordering
 with open("rules.yaml", 'r') as stream:
     rule_info = yaml.safe_load(stream)

@@ -746,11 +746,14 @@ rule sex_check:
         results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
                          category="Module 3 Good markers",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
+        # File containing the F-statistics for the sex chromosomes
+        f_x = os.path.join(tmpMod3, "{role}", "sexcheck_report_x.sexcheck"),
+        f_y = os.path.join(tmpMod3, "{role}", "sexcheck_report_y.sexcheck"),
         # in addition to the removal list, a removal.samples.txt is produced, sporting only the sample-list
         plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
                          category="Module 3 Good markers",
                          caption=(resultPath/rule_stem).with_suffix(".rst")),
-        # These two babies are refered to laters
+        # These two files are referred to later
         bim = (tmpMod3/"{role}"/rule_stem).with_suffix(".bim"),
         hh = (tmpMod3/"{role}"/rule_stem).with_suffix(".hh")
 
