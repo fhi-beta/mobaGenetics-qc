@@ -22,7 +22,8 @@ report: "report/qc.rst"
 rule all:
     input:
         # Module 3 results
-        (tmpMod3/"m3_output_good_markers").with_suffix(".txt") , 
+        (tmpMod3/"m3_output_good_markers").with_suffix(".txt"),
+        expand(str(tmpMod3/"{role}/sexcheck_report_x.sexcheck"), role=ROLES),
         # Module 4 results
         expand(str(resultPath/"{role}/m4_output_lmm_samples.yaml"), role=ROLES),
         expand(str(resultPath/"{role}/m4_output_unrelated_samples.yaml"), role=ROLES),
