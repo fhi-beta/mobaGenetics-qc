@@ -942,11 +942,14 @@ def sex_check(rule,
                     ], check=True)
 
     # check sex on Y chromosome
-    subprocess.run([plink,
-                    "--bfile", tmpPath/"pruned_for_sexcheck",
-                    "--check-sex", "y-only",
-                    "--out", tmpPath/"sexcheck_report_y",
-                    ], check=True)
+    # @TODO: currently we don't have Y chromosome data
+    # subprocess.run([plink,
+    #                 "--bfile", tmpPath/"pruned_for_sexcheck",
+    #                 "--check-sex", "y-only",
+    #                 "--out", tmpPath/"sexcheck_report_y",
+    #                 ], check=True)
+    with open(os.path.join(tmpPath, "sexcheck_report_y.sexcheck")) as file_stream:
+        file_stream.write("FID\tIID\tPEDSEX\tSNPSEX\tSTATUS\tF" + os.linesep)
 
     # find famid/id of the ones failing sexheck
     extract_list(tmpPath/"sexcheck_report_x.sexcheck",
