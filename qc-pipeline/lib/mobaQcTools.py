@@ -942,6 +942,8 @@ def sex_check(rule,
                     "--out", tmpPath/"sexcheck_report_x",
                     ], check=True)
 
+    try:
+
     # check sex on Y chromosome
     # @TODO: currently we don't have Y chromosome data
     # subprocess.run([plink,
@@ -949,8 +951,11 @@ def sex_check(rule,
     #                 "--check-sex", "y-only",
     #                 "--out", tmpPath/"sexcheck_report_y",
     #                 ], check=True)
-    with open(os.path.join(tmpPath, "sexcheck_report_y.sexcheck")) as file_stream:
-        file_stream.write("FID\tIID\tPEDSEX\tSNPSEX\tSTATUS\tF" + os.linesep)
+        with open(os.path.join(tmpPath, "sexcheck_report_y.sexcheck")) as file_stream:
+            file_stream.write("FID\tIID\tPEDSEX\tSNPSEX\tSTATUS\tF" + os.linesep)
+
+    except Exception as e:
+        print("An error occurred while trying to write the sex_check_y export: {str(e)}")
 
     # find famid/id of the ones failing sexheck
     extract_list(tmpPath/"sexcheck_report_x.sexcheck",
