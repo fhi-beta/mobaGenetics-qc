@@ -936,6 +936,7 @@ def sex_check(rule,
                     "--make-bed"])
 
     # check sex on X chromosome
+    print("sex_check_x")
     subprocess.run([plink,
                     "--bfile", tmpPath/"pruned_for_sexcheck",
                     "--check-sex", str(f_treshold), str(m_treshold),
@@ -951,6 +952,7 @@ def sex_check(rule,
     #                 "--check-sex", "y-only",
     #                 "--out", tmpPath/"sexcheck_report_y",
     #                 ], check=True)
+        print("sex_check_y export: {tmpPath} -> {os.path.join(tmpPath, 'sexcheck_report_y.sexcheck'}")
         with open(os.path.join(tmpPath, "sexcheck_report_y.sexcheck")) as file_stream:
             file_stream.write("FID\tIID\tPEDSEX\tSNPSEX\tSTATUS\tF" + os.linesep)
 
