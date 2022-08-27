@@ -1,4 +1,4 @@
-# Config files containing hard coded variables
+# External libraries
 sys.path.append('../lib')  # in order to find our local packages
 import mobaQcTools as mqc  # local moba package
 from shutil import copyfile
@@ -6,11 +6,12 @@ from shutil import copyfile
 # configfile: "configR3.yaml" # for running rotterdam3 tests
 configfile: "config.yaml" 
 
-#ensure bash as shell
+# Ensure bash as shell
 shell.executable("/bin/bash")
 
-# Runtime variables
+# Pipeline variables and setup
 include: "variables.py"
+include: "setup.py"
 
 # A file with rule properties and ordering
 with open("rules.yaml", 'r') as stream:

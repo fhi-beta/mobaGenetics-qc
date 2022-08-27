@@ -45,47 +45,4 @@ batches = ['snp014']
 chrom = list(range(1,24))
 chromx = list(range(1,23)) + ['X']
 ROLES = ["founders", "offspring"]
-#mod1 = os.path.join(config['output_base'], 'mod1-data-preparation')
-#modx = os.path.join(config['output_base'], 'modx-shaping-preparation')
-
-### generate paths ###################################
-if not os.path.exists(config['output_base']):
-    os.makedirs(config['output_base'])
-
-if not os.path.exists(tmp_path):
-    os.makedirs(tmp_path)
-
-for batch in batches:
-    batch_folder = os.path.join(config['output_base'], batch)
-    if not os.path.isdir(batch_folder):
-        os.mkdir(batch_folder)
-
-    batch_folder = os.path.join(tmp_path, batch)
-    if not os.path.isdir(batch_folder):
-        os.mkdir(batch_folder)
-
-    batch_folder = os.path.join(tmpMod1, batch)
-    if not os.path.isdir(batch_folder):
-        os.mkdir(batch_folder)
-
-    batch_folder = os.path.join(tmpMod2, batch)
-    if not os.path.isdir(batch_folder):
-        os.mkdir(batch_folder)
-
-    batch_folder = os.path.join(tmpMod3, batch)
-    if not os.path.isdir(batch_folder):
-        os.mkdir(batch_folder)
-
-    batch_folder = os.path.join(tmpMod4, batch)
-    if not os.path.isdir(batch_folder):
-        os.mkdir(batch_folder)
-
-    batch_folder = os.path.join(tmpMod5, batch)
-    if not os.path.isdir(batch_folder):
-        os.mkdir(batch_folder)
-
-    batch_folder = os.path.join(resultPath, batch)
-    if not os.path.isdir(batch_folder):
-        os.mkdir(batch_folder)
-
 
