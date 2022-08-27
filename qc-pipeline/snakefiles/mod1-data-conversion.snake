@@ -4,9 +4,9 @@
 rule_stem = 'remove_chr0'
 rule remove_chr0:
     input:
-        bedset = multiext(str(config['raw_folder']/"{batch}/raw-data/bedset/{batch}"),'.bed','.bim','.fam'),
+        bedset = multiext(str(config['raw_folder']) + "{batch}/raw-data/bedset/{batch}",'.bed','.bim','.fam'),
     output:
-        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem),'.bed','.bim','.fam'),
+        bedset = multiext(str(tmpMod1) + "/{batch}/" + str(rule_stem),'.bed','.bim','.fam'),
         results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
                          caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
