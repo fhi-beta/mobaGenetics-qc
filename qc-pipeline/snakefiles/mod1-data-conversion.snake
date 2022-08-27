@@ -256,7 +256,7 @@ rule_stem = 'gcscore_removal'
 rule remove_markers_gc_score:
     input:
         bedset = rules.remove_markers_cluster_sep.output.bedset,
-        snptable=config['snptable']
+        snptable = lambda wildcards: getSnpTable(wildcards.batch)
     output:
         bedset=multiext(str(tmpMod1/"{batch}"/rule_stem),'.bed','.bim','.fam'),
         results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
@@ -307,7 +307,7 @@ rule_stem = 'remove_markers_aa_theta_deviation'
 rule remove_markers_aa_theta_deviation:
     input:
         bedset = rules.remove_markers_gc_score.output.bedset,
-        snptable=config['snptable']
+        snptable = lambda wildcards: getSnpTable(wildcards.batch)
     output:
         bedset=multiext(str(tmpMod1/"{batch}"/rule_stem),'.bed','.bim','.fam'),
         results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
