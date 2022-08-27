@@ -1,15 +1,16 @@
 # Rule updates raw bedset with biobank provided pedigree information and gender
 # Sample IDs are updated to SentrixIDs
+import os.path
 
 rule_stem = 'remove_chr0'
 rule remove_chr0:
     input:
-        bedset = multiext(str(config['raw_folder']) + "{batch}/raw-data/bedset/{batch}",'.bed','.bim','.fam'),
+        bedset = multiext(os.path.join(config['raw_folder']), "{batch}", "raw-data", "bedset", "{batch}",'.bed','.bim','.fam'),
     output:
-        bedset = multiext(str(tmpMod1) + "/{batch}/" + str(rule_stem),'.bed','.bim','.fam'),
-        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
+        bedset = multiext(os.path.join(tmpMod1, "{batch}", rule_stem),'.bed','.bim','.fam'),
+        results = report(os.path.join(resultPath, "{batch}", rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
-                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
+                         caption=os.path.join(resultPath, "{batch}", rule_stem).with_suffix(".rst"))
 
     run:
         item_type = rule_info[rule]["rule type"]
@@ -200,18 +201,18 @@ rule_stem = 'clustersep_removal'
 rule remove_markers_cluster_sep:
     input:
         bedset = rules.update_sex.output.bedset,
-        snptable=config['snptable']
+        snptable = lambda wildcards: getSnpTable(wildcards.batch),
     output:
-        bedset=multiext(str(tmpMod1/"{batch}"/rule_stem),'.bed','.bim','.fam'),
-        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
+        bedset=multiext(os.path.join(tmpMod1, "{batch}", rule_stem),'.bed','.bim','.fam'),
+        results = report(os.path.join(resultPath, "{batch}", rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
-                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
-        plot = report((resultPath/"{batch}"/rule_stem).with_suffix(".png"),
+                         caption=os.path.join(resultPath, "{batch}", rule_stem).with_suffix(".rst")),
+        plot = report(os.path.join(resultPath, "{batch}", rule_stem).with_suffix(".png"),
                       category="Module 1 Data preparation",
-                      caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
+                      caption=os.path.join(resultPath, "{batch}", rule_stem).with_suffix(".rst")),
         # in addition to the removal list .txt, a *removal.txt.samples is produced, sporting only the sample-list
-        removal= (tmpMod1/"{batch}"/rule_stem).with_suffix(".txt"),
-        removal_markers = (tmpMod1/"{batch}"/rule_stem).with_suffix(".markers.txt"),
+        removal= os.path.join(tmpMod1, "{batch}", rule_stem).with_suffix(".txt"),
+        removal_markers = os.path.join(tmpMod1, "{batch}", rule_stem).with_suffix(".markers.txt"),
     params:
         treshold = config['cluster_sep_thr']
     message: "mod1 Remove markers by cluster metrics"

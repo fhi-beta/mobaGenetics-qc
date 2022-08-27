@@ -11,6 +11,7 @@ shell.executable("/bin/bash")
 
 # Pipeline variables and setup
 include: "variables.py"
+include: "batch_details.py"
 include: "setup.py"
 
 # A file with rule properties and ordering
