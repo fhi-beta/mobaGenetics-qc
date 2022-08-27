@@ -3,15 +3,15 @@ rule maf_removal_markers:   #Minor allele frequencies removal
     input:
         bedset = rules.m1_output.output.bedset,
     output:
-        bedset = multiext(str(tmpMod2/rule_stem), '.bed','.bim','.fam'),
-        callrate_sample = (tmpMod2/rule_stem).with_suffix('.imiss'),
-        callrate_marker = (tmpMod2/rule_stem).with_suffix('.lmiss'),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        bedset = multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed','.bim','.fam'),
+        callrate_sample = (tmpMod2/"{batch}"/rule_stem).with_suffix('.imiss'),
+        callrate_marker = (tmpMod2/"{batch}"/rule_stem).with_suffix('.lmiss'),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
-                         caption=(resultPath/rule_stem).with_suffix(".rst")),
-        plot = report((resultPath/rule_stem).with_suffix(".png"),
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/"{batch}"/rule_stem).with_suffix(".png"),
                       category="Module 2 Core samples and infere pedigree",
-                      caption=(resultPath/rule_stem).with_suffix(".rst"))
+                      caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
 
     params:
         treshold = config['maf_thr']
@@ -53,8 +53,8 @@ rule missing_genotype_samples:
         bedset = rules.maf_removal_markers.output.bedset
     output:
         # bedset earlier called superclean_maf_mind
-        bedset=multiext(str(tmpMod2/rule_stem),'.bed','.bim','.fam'),  
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        bedset=multiext(str(tmpMod2/"{batch}"/rule_stem),'.bed','.bim','.fam'),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/rule_stem).with_suffix(".rst"))
     params:
@@ -82,13 +82,13 @@ rule callrate_permanent_removal:
         # While this are callrates we computed at the --maf stage, while removing markers
         callrate_sample = rules.maf_removal_markers.output.callrate_sample
     output:
-        bedset=multiext(str(tmpMod2/rule_stem),'.bed','.bim','.fam'),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        bedset=multiext(str(tmpMod2/"{batch}"/rule_stem),'.bed','.bim','.fam'),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
-                         caption=(resultPath/rule_stem).with_suffix(".rst")),
-        plot = report((resultPath/rule_stem).with_suffix(".png"),
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/"{batch}"/rule_stem).with_suffix(".png"),
                       category="Module 2 Core samples and infere pedigree",
-                      caption=(resultPath/rule_stem).with_suffix(".rst"))
+                      caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
 
     run:
         oldPermTrunk =  mqc.plinkBase(input.mod1_bedset[0])   # what we had
@@ -122,13 +122,13 @@ rule missing_genotype_markers:
         # This is based on earlier temporary filters - the same that we used to remember samples permanently
         bedset = rules.missing_genotype_samples.output.bedset
     output:
-        bedset=multiext(str(tmpMod2/rule_stem),'.bed','.bim','.fam'),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        bedset=multiext(str(tmpMod2/"{batch}"/rule_stem),'.bed','.bim','.fam'),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
-                         caption=(resultPath/rule_stem).with_suffix(".rst")),
-        plot = report((resultPath/rule_stem).with_suffix(".png"),
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/"{batch}"/rule_stem).with_suffix(".png"),
                       category="Module 2 Core samples and infere pedigree",
-                      caption=(resultPath/rule_stem).with_suffix(".rst"))
+                      caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
     params:
         treshold = config['geno_thr']
     run:
@@ -149,10 +149,10 @@ rule exclude_unplaced_and_non_autosomal_markers:
         # This is based on earlier temporary filters - the same that we used to remember samples permanently
         bedset = rules.missing_genotype_markers.output.bedset
     output:
-        bedset = multiext(str(tmpMod2/rule_stem),'.bed','.bim','.fam'),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        bedset = multiext(str(tmpMod2/"{batch}"/rule_stem),'.bed','.bim','.fam'),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, "Excluded unplaced and non-autosomal {item_type} (--autosome)\n")
@@ -179,13 +179,13 @@ rule hardy_weinberg_filtered_markers:
         # This is based on earlier temporary filters - the same that we used to remember samples permanently
         bedset = rules.exclude_unplaced_and_non_autosomal_markers.output.bedset
     output:
-        bedset=multiext(str(tmpMod2/rule_stem) ,'.bed','.bim','.fam'),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        bedset=multiext(str(tmpMod2/"{batch}"/rule_stem) ,'.bed','.bim','.fam'),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
-                         caption=(resultPath/rule_stem).with_suffix(".rst")),
-        plot = report((resultPath/rule_stem).with_suffix(".png"),
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/"{batch}"/rule_stem).with_suffix(".png"),
                          category="Module 2 Core samples and infere pedigree",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
     params:
         treshold = config['hwe_thr']
     run:
@@ -204,10 +204,10 @@ rule exclude_strand_ambigious_markers:
         # This is based on earlier temporary filters
         bedset = rules.hardy_weinberg_filtered_markers.output.bedset
     output:
-        bedset=multiext(str(tmpMod2/rule_stem) ,'.bed','.bim','.fam'),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        bedset=multiext(str(tmpMod2/"{batch}"/rule_stem) ,'.bed','.bim','.fam'),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, "Excluding ambigious {item_type} (GC/CG/AT/TA\n")
@@ -230,10 +230,10 @@ rule exclude_high_ld_markers:
         bedset = rules.exclude_strand_ambigious_markers.output.bedset,
         high_ld_regions_hg19 = config["high_ld_regions_hg19"]
     output:
-        bedset=multiext(str(tmpMod2/rule_stem) ,'.bed','.bim','.fam'),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        bedset=multiext(str(tmpMod2/"{batch}"/rule_stem) ,'.bed','.bim','.fam'),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -261,11 +261,11 @@ rule prune_markers:
         # This is based on earlier temporary filters
         bedset = rules.exclude_high_ld_markers.output.bedset,
     output:
-        bedset=multiext(str(tmpMod2/rule_stem) ,'.bed','.bim','.fam'),
-        exclude_list = (tmpMod2/rule_stem).with_suffix(".prune.in"),  # called prune_markers_tmp.prune.in before. Will be used both in a temporary pass, but also during final core-set generation
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        bedset=multiext(str(tmpMod2/"{batch}"/rule_stem) ,'.bed','.bim','.fam'),
+        exclude_list = (tmpMod2/"{batch}"/rule_stem).with_suffix(".prune.in"),  # called prune_markers_tmp.prune.in before. Will be used both in a temporary pass, but also during final core-set generation
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
     params:
         prune_cmd = config["prune_cmd"].split()    # As plink will want a list
 
@@ -304,12 +304,12 @@ rule pedigree_ibd_estimate:
         in_all= rules.callrate_permanent_removal.output.bedset,
         clean_snps = rules.prune_markers.output.exclude_list
     output:
-        bedset=multiext(str(tmpMod2/rule_stem) ,'.bed','.bim','.fam'),
-        genome = (tmpMod2/rule_stem).with_suffix(".genome"),
-        inferpedx = tmpMod2/"inferpedx.sexcheck",
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        bedset=multiext(str(tmpMod2/"{batch}"/rule_stem) ,'.bed','.bim','.fam'),
+        genome = (tmpMod2/"{batch}"/rule_stem).with_suffix(".genome"),
+        inferpedx = tmpMod2/"{batch}/inferpedx.sexcheck",
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
 
     run:
         item_type = rule_info[rule]["rule type"]
@@ -352,16 +352,17 @@ rule pedigree_fu_detector_solver:
     output:
         # A list of samples that have passed sanitycheck
         # TRUE in this file is OK, FALSE is not
-        pheno_ok_flags = tmpMod2/'phenotypesOK.txt',  
+        pheno_ok_flags = tmpMod2/'{batch}/phenotypesOK.txt',
         # A better family file will be used later
         # In this file a fixed family has changed ID from n to n_i
         # Samples with phono_ok_falgs=FALSE, will have family ID prblm<count>
-        Rfixed_fam = tmpMod2/"inferped_updated.fam",
+        Rfixed_fam = tmpMod2/"{batch}/inferped_updated.fam",
     params:
         outdir = tmpMod2,
         resdir = resultPath,
-	inferfam = config['infer_recfam'],
-	inferbad = config['infer_badids']
+	    inferfam = config['infer_recfam'],
+	    inferbad = config['infer_badids']
+
     shell:
         """
         set -x
@@ -401,6 +402,7 @@ rule pedigree_fu_detector_solver:
 	    {output.pheno_ok_flags}
 
         """
+
 # Note the rule stem does not match the rule here, as the results are from the previous rule
 rule_stem = "pedigree_fu_detector_solver"
 rule document_pedigree_fu_detector_solver:
@@ -408,17 +410,17 @@ rule document_pedigree_fu_detector_solver:
         bedset = mqc.plinkBase(rules.pedigree_fu_detector_solver.input.ped_pruned[0]) + ".fam",
         fam_fix = rules.pedigree_fu_detector_solver.output.Rfixed_fam
     output: # Note that rst-path is copied in the run: body
-        result = report((resultPath/rule_stem).with_suffix(".yaml"),
+        result = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 2 Core samples and infere pedigree",
-                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
         # File with families/samples we didnt manage to fix
-        problems = report((resultPath/rule_stem).with_suffix(".prblm"),
+        problems = report((resultPath/"{batch}"/rule_stem).with_suffix(".prblm"),
                          category="Module 2 Core samples and infere pedigree",
-                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
         # The families we fixed
-        fixed = report((resultPath/rule_stem).with_suffix(".fix"),
+        fixed = report((resultPath/"{batch}"/rule_stem).with_suffix(".fix"),
                          category="Module 2 Core samples and infere pedigree",
-                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
         
     run:
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -472,18 +474,18 @@ rule m2_output:
     output:
         # Tagged to show who these are
         # This is the real output of mod2. It will be combined with good markers from a later module
-        bedset =  multiext(str(tmpMod2/'inferped_all_m2'),'.bed','.bim','.fam'),
+        bedset =  multiext(str(tmpMod2/"{batch}"/'inferped_all_m2'),'.bed','.bim','.fam'),
         # This is a party pruned set, that mod3 will continue to prune
-        mod3_bedset =  multiext(str(tmpMod2/'inferped_pruned_m2'),'.bed','.bim','.fam'),
+        mod3_bedset =  multiext(str(tmpMod2/"{batch}"/'inferped_pruned_m2'),'.bed','.bim','.fam'),
         # category is sorted as written below. We use - as prefix to force
         # final reports to be sorted first ...
         # We only report for mod5 results (where all markers kept)
-        report_markers = report((resultPath/rule_stem).with_suffix(".markers.yaml"),
+        report_markers = report((resultPath/"{batch}"/rule_stem).with_suffix(".markers.yaml"),
                                 category="- Module 2 Pedigree fix recap",
-                                caption=(resultPath/rule_stem).with_suffix(".markers.rst")),
-        report_samples = report((resultPath/rule_stem).with_suffix(".samples.yaml"),
+                                caption=(resultPath/"{batch}"/rule_stem).with_suffix(".markers.rst")),
+        report_samples = report((resultPath/"{batch}"/rule_stem).with_suffix(".samples.yaml"),
                                 category="- Module 2 Pedigree fix recap",
-                                caption=(resultPath/rule_stem).with_suffix(".samples.rst"))
+                                caption=(resultPath/"{batch}"/rule_stem).with_suffix(".samples.rst"))
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])        

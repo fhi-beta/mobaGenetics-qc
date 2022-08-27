@@ -22,25 +22,23 @@ report: "report/qc.rst"
 # rule all
 rule all:
     input:
-        # Module 3 results
-        (tmpMod3/"m3_output_good_markers").with_suffix(".txt"),
-        expand(str(tmpMod3/"{role}/sexcheck_report_x.sexcheck"), role=ROLES),
-        # expand(str(tmpMod3/"{role}/sexcheck_report_y.sexcheck"), role=ROLES),
-        # Module 4 results
-        expand(str(resultPath/"{role}/m4_output_lmm_samples.yaml"), role=ROLES),
-        expand(str(resultPath/"{role}/m4_output_unrelated_samples.yaml"), role=ROLES),
-        # Module 5 results
-        expand(str(tmpMod5)+"/mendelian_errors"+'{ext}', ext=['.bed','.bim','.fam'], chromo=chrom),
-        expand(str(tmpMod5)+"/mendelian_errors-updated-chr{chromo}"+'{ext}', ext=['.bed','.bim','.fam'], chromo=chrom),
-        resultPath/"rayner_report.rst",
-        # Forcing documentation of fu_detector of certain elements 
-        (resultPath/"pedigree_fu_detector_solver").with_suffix(".yaml"),
+        module_3_good_markers = expand((tmpMod3/"{batch}/m3_output_good_markers").with_suffix(".txt"), batch=batches),
+        sex_check = expand(str(tmpMod3/"{batch}/{role}/sexcheck_report_x.sexcheck"), role=ROLES, batch=batches),
+        
+        samples_lmm = expand(str(resultPath/"{batch}/{role}/m4_output_lmm_samples.yaml"), role=ROLES, batch=batches),
+        unrelated_samples = expand(str(resultPath/"{batch}/{role}/m4_output_unrelated_samples.yaml"), role=ROLES, batch=batches),
+        
+        mendelian_errors = expand(str(tmpMod5)+"/{batch}/mendelian_errors"+'{ext}', ext=['.bed','.bim','.fam'], chromo=chrom, batch=batches),
+        mendelian_errors_chr = expand(str(tmpMod5)+"/{batch}/mendelian_errors-updated-chr{chromo}"+'{ext}', ext=['.bed','.bim','.fam'], chromo=chrom, batch=batches),
+        rayner_report = expand(resultPath/"{batch}/rayner_report.rst", batch=batches),
+        
+        pedigree_report = expand((resultPath/"{batch}/pedigree_fu_detector_solver").with_suffix(".yaml"), batch=batches),
+        
         # For now: this is needed to force the plots into the report. Fix later
         # Uncomment when creating in the report with plots
-        expand(str(resultPath) + "/{role}/core_pca.png", role=ROLES),
-        expand(str(resultPath/"{role}/ibd_estimate.png"), role=ROLES),
-        expand(str(resultPath/"{role}/ibd_accum_exclusion.png"), role=ROLES),
-        expand(str(resultPath/"{role}/core_pca.png"), role=ROLES),        
+        pca = expand(str(resultPath) + "/{batch}/{role}/core_pca.png", role=ROLES, batch=batches),
+        ibd = expand(str(resultPath/"{batch}/{role}/ibd_estimate.png"), role=ROLES, batch=batches),
+        ibd_accum_exclusion = expand(str(resultPath/"{batch}/{role}/ibd_accum_exclusion.png"), role=ROLES, batch=batches)
 
         # remove this when m4 is done
 	# final output:

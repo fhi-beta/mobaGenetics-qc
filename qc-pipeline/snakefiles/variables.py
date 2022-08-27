@@ -10,6 +10,7 @@ import sys
 import yaml
 import io
 import shutil
+import os
 matplotlib.use('Agg')  
 
 # These global variables can be shared only between Snakefiles 
@@ -18,8 +19,10 @@ matplotlib.use('Agg')
 libdir = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'lib'))
 bcftools = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/bcftools-1.7/bcftools'))
 vcftools = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/vcftools-0.1.13/vcftools'))
+
 #plinklocal = Path(os.path.dirname(workflow.basedir)) / 'bin/plink-1.90b5.4/plink'
 plinklocal = Path(config["plinklocal"])
+
 # if plinklocal turned out well, do the same for all binaries
 flashpca = Path(os.path.dirname(workflow.basedir)) / 'bin/flashpca_x86-64'
 tmp_path = os.path.join(config['output_base'],'tmp')
@@ -30,7 +33,12 @@ tmpMod2 = base/'mod2-data-preparation/'
 tmpMod3 = base/'mod3-good-markers/'
 tmpMod4 = base/'mod4-samples-unrelated/'
 tmpMod5 = base/'mod5-shaping-preparation/'
-resultPath = base / "results/"
+resultPath = base / 'results/'
+
+### Batch settings
+# batches = ['snp001', 'snp002', 'snp003', 'snp007', 'snp008', 'snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018c', 'snp018d', 'snp018e']
+batches = ['snp014']
+
 
 ### workflow settings ##################################
 # chrom gen. list 1-23 (24 not in list)
@@ -46,5 +54,38 @@ if not os.path.exists(config['output_base']):
 
 if not os.path.exists(tmp_path):
     os.makedirs(tmp_path)
+
+for batch in batches:
+    batch_folder = os.path.join(config['output_base'], batch)
+    if not os.path.isdir(batch_folder):
+        os.mkdir(batch_folder)
+
+    batch_folder = os.path.join(tmp_path, batch)
+    if not os.path.isdir(batch_folder):
+        os.mkdir(batch_folder)
+
+    batch_folder = os.path.join(tmpMod1, batch)
+    if not os.path.isdir(batch_folder):
+        os.mkdir(batch_folder)
+
+    batch_folder = os.path.join(tmpMod2, batch)
+    if not os.path.isdir(batch_folder):
+        os.mkdir(batch_folder)
+
+    batch_folder = os.path.join(tmpMod3, batch)
+    if not os.path.isdir(batch_folder):
+        os.mkdir(batch_folder)
+
+    batch_folder = os.path.join(tmpMod4, batch)
+    if not os.path.isdir(batch_folder):
+        os.mkdir(batch_folder)
+
+    batch_folder = os.path.join(tmpMod5, batch)
+    if not os.path.isdir(batch_folder):
+        os.mkdir(batch_folder)
+
+    batch_folder = os.path.join(resultPath, batch)
+    if not os.path.isdir(batch_folder):
+        os.mkdir(batch_folder)
 
 

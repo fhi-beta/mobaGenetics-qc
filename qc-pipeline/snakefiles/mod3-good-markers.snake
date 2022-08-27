@@ -10,10 +10,10 @@ rule pedigree_fix_pruned:
         problems = rules.m2_output.input.problems
 
     output:
-        bedset = multiext(str(tmpMod3/rule_stem) ,'.bed','.bim','.fam'),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        bedset = multiext(str(tmpMod3/"{batch}"/rule_stem) ,'.bed','.bim','.fam'),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                     category="Module 3 Good markers",
-                    caption=(resultPath/rule_stem).with_suffix(".rst")),
+                    caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
     benchmark:
         (tmpMod3/rule_stem).with_suffix(".benchmark")
 
@@ -40,25 +40,25 @@ rule common_markers_moba_ref:
         bedset_ref = multiext(config["1000_genomes_stem"] ,'.bed','.bim','.fam'),
         bedset_moba = rules.pedigree_fix_pruned.output.bedset
     output:
-        bedset_ref = multiext(str(tmpMod3/"pca_ref") ,'.bed','.bim','.fam'),
-        bedset_moba = multiext(str(tmpMod3/"pca_moba") ,'.bed','.bim','.fam'),
-        marker_list = (tmpMod3/rule_stem).with_suffix(".txt"),
-        tri_alleles = report((tmpMod3/rule_stem).with_suffix(".missnp"),
+        bedset_ref = multiext(str(tmpMod3/"{batch}"/"pca_ref") ,'.bed','.bim','.fam'),
+        bedset_moba = multiext(str(tmpMod3/"{batch}"/"pca_moba") ,'.bed','.bim','.fam'),
+        marker_list = (tmpMod3/"{batch}"/rule_stem).with_suffix(".txt"),
+        tri_alleles = report((tmpMod3/"{batch}"/rule_stem).with_suffix(".missnp"),
                               category="Module 3 1000Genomes prep",
-                              caption=(resultPath/"pca_ref").with_suffix(".rst")),
+                              caption=(resultPath/"{batch}"/"pca_ref").with_suffix(".rst")),
         # result ref takes forever to run, and it is handy to uncomment that part
         # (should maybe have been isolated in a separate rule)
         # If you commented out the code that documents reduction the 1000g set below
         # (see "Begin Code that should"), then comment out the results_ref this rule as well.
         # Or do a dirty hack below by 
-        results_ref = report((resultPath/"pca_ref").with_suffix(".yaml"),
+        results_ref = report((resultPath/"{batch}"/"pca_ref").with_suffix(".yaml"),
                               category="Module 3 1000Genomes prep",
-                              caption=(resultPath/"pca_ref").with_suffix(".rst")),
+                              caption=(resultPath/"{batch}"/"pca_ref").with_suffix(".rst")),
         results_moba = report((resultPath/"pca_moba").with_suffix(".yaml"),
                               category="Module 3 1000Genomes prep",
-                              caption=(resultPath/"pca_moba").with_suffix(".rst")),
+                              caption=(resultPath/"{batch}"/"pca_moba").with_suffix(".rst")),
     benchmark:
-        (tmpMod3/rule_stem).with_suffix(".benchmark")
+        (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
 
     run:
         item_type = rule_info[rule]["rule type"]
@@ -85,7 +85,7 @@ rule common_markers_moba_ref:
                 "--make-bed" ], check=True)
         # alas these two are not identical enough -
         # discover tri-allele  problems by dummy-merging
-        # Note that we dont want to abort on plink-failure (as this will be)
+        # Note that we don't want to abort on plink-failure (as this will be)
         subprocess.run([plinklocal,
                 "--bfile", outTrunk_ref,
                 "--bmerge", outTrunk_moba,
@@ -243,10 +243,10 @@ rule pca_both:
         bedset_ref = rules.common_markers_moba_ref.output.bedset_ref,
         bedset_moba = rules.common_markers_moba_ref.output.bedset_moba,
     output:
-        bedset = multiext(str(tmpMod3/rule_stem) ,'.bed','.bim','.fam'),
-        pcs=tmpMod3/(rule_stem+".pcs"),
+        bedset = multiext(str(tmpMod3/"{batch}"/rule_stem) ,'.bed','.bim','.fam'),
+        pcs=tmpMod3/"{batch}"/(rule_stem+".pcs"),
     benchmark:
-        (tmpMod3/rule_stem).with_suffix(".benchmark")
+        (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -276,13 +276,13 @@ rule plot_pca_both:
         moba = mqc.plinkBase(rules.common_markers_moba_ref.output.bedset_moba[0]) + ".fam"
 
     output:
-        plot = report((resultPath/rule_stem).with_suffix(".png"),
+        plot = report((resultPath/"{batch}"/rule_stem).with_suffix(".png"),
                       category="Module 3 Good markers",
-                      caption=(resultPath/rule_stem).with_suffix(".rst"))
+                      caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
     # force this url into the report
     params: "Legend on https://www.internationalgenome.org/faq/which-populations-are-part-your-study/"
     benchmark:
-        (tmpMod3/rule_stem).with_suffix(".benchmark")
+        (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
     run:
         # To remove when this goes to mobaQcTools
         pc = pd.read_csv(input.pcs, usecols=['IID','PC1','PC2'], delim_whitespace=True)
@@ -331,16 +331,16 @@ rule extract_pca_outliers:
         pcs = rules.pca_both.output.pcs,            # principal components
         moba = rules.plot_pca_both.input.moba,      # moba samples
     output:
-        bedset=multiext(str(tmpMod3/rule_stem)
+        bedset=multiext(str(tmpMod3/"{batch}"/rule_stem)
                           ,'.bed','.bim','.fam'),
-        exclude_list = (tmpMod3/rule_stem).with_suffix(".txt"),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        exclude_list = (tmpMod3/"{batch}"/rule_stem).with_suffix(".txt"),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 3 Good markers",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
     params:
         treshold = -0.05752391   # Stupid and visual - for now
     benchmark:
-        (tmpMod3/rule_stem).with_suffix(".benchmark")
+        (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -385,14 +385,14 @@ rule tmp_extract_samples:
         # rolling back to the sampleset to be fed into mod5
         markers = rules.m2_output.output.bedset,
     output:
-        bedset=multiext(str(tmpMod3/rule_stem)
+        bedset=multiext(str(tmpMod3/"{batch}"/rule_stem)
                           ,'.bed','.bim','.fam'),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 3 Good markers",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
 
     benchmark:
-        (tmpMod3/rule_stem).with_suffix(".benchmark")
+        (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -428,16 +428,16 @@ rule split_founders_offspring:
         bedset = rules.tmp_extract_samples.output.bedset
     output:  # bedsets earlier called starting_clean 
              # note that the rule_stem is hardcoded here and in ibd_estimate (first place using the split)
-        bedset_founders =multiext(str(tmpMod3/"founders"/rule_stem) ,'.bed','.bim','.fam'),
-        bedset_offspring =multiext(str(tmpMod3/"offspring"/rule_stem) ,'.bed','.bim','.fam'),
-        results_founders = report(str(resultPath/rule_stem)+"_founders.yaml",
+        bedset_founders =multiext(str(tmpMod3/"{batch}"/"founders"/rule_stem) ,'.bed','.bim','.fam'),
+        bedset_offspring =multiext(str(tmpMod3/"{batch}"/"offspring"/rule_stem) ,'.bed','.bim','.fam'),
+        results_founders = report(str(resultPath/"{batch}"/rule_stem)+"_founders.yaml",
                          category="Module 3 Good markers",
-                         caption=str(resultPath/rule_stem)+"_founders.rst"),
-        results_offspring = report(str(resultPath/rule_stem)+"_offspring.yaml",
+                         caption=str(resultPath/"{batch}"/rule_stem)+"_founders.rst"),
+        results_offspring = report(str(resultPath/"{batch}"/rule_stem)+"_offspring.yaml",
                          category="Module 3 Good markers",
-                         caption=str(resultPath/rule_stem)+"_offspring.rst")
+                         caption=str(resultPath/"{batch}"/rule_stem)+"_offspring.rst")
     benchmark:
-        (tmpMod3/rule_stem).with_suffix(".benchmark")
+        (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -475,18 +475,18 @@ rule_stem = "ibd_estimate"
 rule ibd_estimate:  # code is more or less copied to core_ibd_estimate
     threads: 2
     input:
-        bedset = tmpMod3/"{role}/split_start.bed",  # will be used by as input to mod4. called starting_clean before
+        bedset = tmpMod3/"{batch}"/"{role}/split_start.bed",  # will be used by as input to mod4. called starting_clean before
         # Used for IBD estimation earlier as well
         clean_snps = rules.m2_output.input.prunedsnps
     output:
-        genome = (tmpMod3/"{role}"/rule_stem).with_suffix(".genome"),
-        ibd_reduced_genome = tmpMod3/"{role}"/"ibd_reduced.genome",   #input for R laters, 3 columns of genome file
-        preplot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
+        genome = (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".genome"),
+        ibd_reduced_genome = tmpMod3/"{batch}"/"{role}"/"ibd_reduced.genome",   #input for R laters, 3 columns of genome file
+        preplot = report((resultPath/"{batch}"/"{role}"/rule_stem).with_suffix(".png"),
                          category="Module 3 Good markers",
-                         caption=str(resultPath/rule_stem)+".rst"),
+                         caption=str(resultPath/"{batch}"/rule_stem)+".rst"),
 
     benchmark:
-        (tmpMod3/"{role}"/rule_stem).with_suffix(".benchmark")
+        (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -513,19 +513,19 @@ rule ibd_accum_exclusion:  # code is more or less copied to core_ibd_accum_exclu
         bed = rules.ibd_estimate.input.bedset,
         ibd_reduced_genome = rules.ibd_estimate.output.ibd_reduced_genome
     output:
-        exclusion = (tmpMod3/"{role}"/rule_stem).with_suffix(".txt"),
-        bedset = (tmpMod3/"{role}"/rule_stem).with_suffix(".bed"),
-        plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
+        exclusion = (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".txt"),
+        bedset = (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".bed"),
+        plot = report((resultPath/"{batch}"/"{role}"/rule_stem).with_suffix(".png"),
                          category="Module 3 Good markers",
-                         caption=str(resultPath/rule_stem)+".rst"),
-        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+                         caption=str(resultPath/"{batch}"/rule_stem)+".rst"),
+        results = report((resultPath/"{batch}"/"{role}"/rule_stem).with_suffix(".yaml"),
                          category="Module 3 Good markers",
-                         caption=str(resultPath/rule_stem)+".rst"),
+                         caption=str(resultPath/"{batch}"/rule_stem)+".rst"),
     params:
         pihat_thr = str(config["ibd_pihat_thr"]),
         hard_thr = str(config["ibd_hard_thr"])
     benchmark:
-        (tmpMod3/"{role}"/rule_stem).with_suffix(".benchmark")
+        (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -563,17 +563,17 @@ rule ibd_direct_exclusion: # code is more or less copied to core_ibd_direct_excl
         bedset = rules.ibd_accum_exclusion.output.bedset,
         genome = rules.ibd_estimate.output.genome
     output:
-        bedset = (tmpMod3/"{role}"/rule_stem).with_suffix(".bed"),
-        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+        bedset = (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".bed"),
+        results = report((resultPath/"{batch}"/"{role}"/rule_stem).with_suffix(".yaml"),
                          category="Module 3 Good markers",
-                         caption=str(resultPath/rule_stem)+".rst"),
+                         caption=str(resultPath/"{batch}"/rule_stem)+".rst"),
         # in addition to the removal list, a removal.samples.txt is produced, sporting only the sample-list
-        removal= (tmpMod3/"{role}"/rule_stem).with_suffix(".txt"),
-        removal_samples = (tmpMod3/"{role}"/rule_stem).with_suffix(".samples.txt"),
+        removal= (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".txt"),
+        removal_samples = (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".samples.txt"),
     params:
         treshold = config['ibd_straight_thr']
     benchmark:
-        (tmpMod3/"{role}"/rule_stem).with_suffix(".benchmark")
+        (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -608,13 +608,13 @@ rule geno_rates_mind3:         # part of earlier markerclean
         bedset = rules.ibd_direct_exclusion.output.bedset,
     output:
         # Result for every iteration, below is only the last
-        bedset = (tmpMod3/"{role}"/rule_stem).with_suffix(".bed"),
-        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+        bedset = (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".bed"),
+        results = report((resultPath/"{batch}"/"{role}"/rule_stem).with_suffix(".yaml"),
                          category="Module 3 Good markers",
-                         caption=str(resultPath/rule_stem)+".rst"),
-        plots = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
+                         caption=str(resultPath/"{batch}"/rule_stem)+".rst"),
+        plots = report((resultPath/"{batch}"/"{role}"/rule_stem).with_suffix(".png"),
                          category="Module 3 Good markers",
-                         caption=str(resultPath/rule_stem)+".rst"),
+                         caption=str(resultPath/"{batch}"/rule_stem)+".rst"),
     params:
         #3 cycles of mind/geno removal
         geno1 = config["geno_rate.geno1"],
@@ -624,7 +624,7 @@ rule geno_rates_mind3:         # part of earlier markerclean
         geno3 = config["geno_rate.geno3"],
         mind3 = config["geno_rate.mind3"]
     benchmark:
-        (tmpMod3/"{role}"/rule_stem).with_suffix(".benchmark")
+        (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -670,13 +670,13 @@ rule hwe_autos_geno:        # part of earlier markerclean
     input:
         bedset = rules.geno_rates_mind3.output.bedset,
     output:
-        bedset = (tmpMod3/"{role}"/rule_stem).with_suffix(".bed"),  # called clean_autosomes before
-        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+        bedset = (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".bed"),  # called clean_autosomes before
+        results = report((resultPath/"{batch}"/"{role}"/rule_stem).with_suffix(".yaml"),
                          category="Module 3 Good markers",
-                         caption=str(resultPath/rule_stem)+".rst"),
-        plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
+                         caption=str(resultPath/"{batch}"/rule_stem)+".rst"),
+        plot = report((resultPath/"{batch}"/"{role}"/rule_stem).with_suffix(".png"),
                          category="Module 3 Good markers",
-                         caption=str(resultPath/rule_stem)+".rst"),
+                         caption=str(resultPath/"{batch}"/rule_stem)+".rst"),
     params:
         #2 cycles hwe/maf + a geno
         hwe1 = config["hwe1"],
@@ -687,7 +687,7 @@ rule hwe_autos_geno:        # part of earlier markerclean
         sd_het2 = config["sd_het2"],
         geno_rare = config["geno_rare"]
     benchmark:
-        (tmpMod3/"{role}"/rule_stem).with_suffix(".benchmark")
+        (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -742,27 +742,27 @@ rule sex_check:
     input:
         bedset = rules.hwe_autos_geno.output.bedset,
     output:
-        bedset = (tmpMod3/"{role}"/rule_stem).with_suffix(".bed"),  # called removed_failing_sexcheck
-        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+        bedset = (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".bed"),  # called removed_failing_sexcheck
+        results = report((resultPath/"{batch}"/"{role}"/rule_stem).with_suffix(".yaml"),
                          category="Module 3 Good markers",
-                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
         # File containing the F-statistics for the sex chromosomes
-        f_x = os.path.join(tmpMod3, "{role}", "sexcheck_report_x.sexcheck"),
+        f_x = os.path.join(tmpMod3, "{batch}", "{role}", "sexcheck_report_x.sexcheck"),
         # f_y = os.path.join(tmpMod3, "{role}", "sexcheck_report_y.sexcheck"),
         # in addition to the removal list, a removal.samples.txt is produced, sporting only the sample-list
-        plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
+        plot = report((resultPath/"{batch}"/"{role}"/rule_stem).with_suffix(".png"),
                          category="Module 3 Good markers",
-                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
         # These two files are referred to later
-        bim = (tmpMod3/"{role}"/rule_stem).with_suffix(".bim"),
-        hh = (tmpMod3/"{role}"/rule_stem).with_suffix(".hh")
+        bim = (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".bim"),
+        hh = (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".hh")
 
 
     params:
         female_treshold = config['sex_check_female'],
         male_treshold = config['sex_check_male']
     benchmark:
-        (tmpMod3/"{role}"/rule_stem).with_suffix(".benchmark")
+        (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -780,20 +780,20 @@ rule female_xmarkers:
     input:
         bedset = rules.sex_check.output.bedset,
     output:
-        bedset = (tmpMod3/"{role}"/rule_stem).with_suffix(".bed"),
-        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+        bedset = (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".bed"),
+        results = report((resultPath/"{batch}"/"{role}"/rule_stem).with_suffix(".yaml"),
                          category="Module 3 Good markers",
-                         caption=(resultPath/rule_stem).with_suffix(".rst")),
-        exclude_markers = report((tmpMod3/"{role}"/rule_stem).with_suffix(".exclude"),
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
+        exclude_markers = report((tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".exclude"),
                          category="Module 3 Good markers",
-                                 caption=(resultPath/rule_stem).with_suffix(".rst")),
-        plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
+                                 caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/"{batch}"/"{role}"/rule_stem).with_suffix(".png"),
                          category="Module 3 Good markers",
-                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
     params:
         treshold = config['xmarkers_clean'],
     benchmark:
-        (tmpMod3/"{role}"/rule_stem).with_suffix(".benchmark")
+        (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".benchmark")
     run:
  	# note 1: all samples are now marked as FOUNDERS (no need for "--nonfounders" flag)
  	# note 2: all samples have missing phenotype (no need for "include-nonctrl" flag)
@@ -817,20 +817,20 @@ rule par_regions:
     input:
         bedset = rules.female_xmarkers.output.bedset,  # not same pipe as rot2, but ok since different chr
     output:
-        bedset = (tmpMod3/"{role}"/rule_stem).with_suffix(".bed"),
-        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+        bedset = (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".bed"),
+        results = report((resultPath/"{batch}"/"{role}"/rule_stem).with_suffix(".yaml"),
                          category="Module 3 Good markers",
-                         caption=(resultPath/rule_stem).with_suffix(".rst")),
-        exclude_markers = report((tmpMod3/"{role}"/rule_stem).with_suffix(".exclude"),
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
+        exclude_markers = report((tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".exclude"),
                          category="Module 3 Good markers",
-                                 caption=(resultPath/rule_stem).with_suffix(".rst")),
-        plot = report((resultPath/"{role}"/rule_stem).with_suffix(".png"),
+                                 caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/"{batch}"/"{role}"/rule_stem).with_suffix(".png"),
                          category="Module 3 Good markers",
-                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
     params:
         treshold = config['xmarkers_clean'],
     benchmark:
-        (tmpMod3/"{role}"/rule_stem).with_suffix(".benchmark")
+        (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".benchmark")
     run:
  	# note 1: all samples are now marked as FOUNDERS (no need for "--nonfounders" flag)
  	# note 2: all samples have missing phenotype (no need for "include-nonctrl" flag)
@@ -857,10 +857,10 @@ rule clean_male_x:
         hh = rules.sex_check.output.hh, 
         bim = rules.sex_check.output.bim, 
     output:
-        exclude_markers = report((tmpMod3/"{role}"/rule_stem).with_suffix(".exclude"),
+        exclude_markers = report((tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".exclude"),
                                  category="Module 3 Good markers",
-                                 caption=(resultPath/rule_stem).with_suffix(".rst")),
-        chr23 =  (tmpMod3/"{role}"/"sex_check").with_suffix(".bim23") # chr23 version of input.bim
+                                 caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
+        chr23 =  (tmpMod3/"{batch}"/"{role}"/"sex_check").with_suffix(".bim23") # chr23 version of input.bim
 
     benchmark:
         (tmpMod3/"{role}"/rule_stem).with_suffix(".benchmark")
@@ -885,19 +885,19 @@ rule sex_clean:
         excl_failed_hwe_par_regions = rules.par_regions.output.exclude_markers,
         excl_male_x_markers = rules.clean_male_x.output.exclude_markers,
         # File containing the F-statistics for the sex chromosomes
-        f_x = os.path.join(tmpMod3, "{role}", "sexcheck_report_x.sexcheck"),
+        f_x = os.path.join(tmpMod3, "{batch}", "{role}", "sexcheck_report_x.sexcheck"),
         # f_y = os.path.join(tmpMod3, "{role}", "sexcheck_report_y.sexcheck")
     output:
-        bedset = (tmpMod3/"{role}"/rule_stem).with_suffix(".bed"), # clean_markers earlier
-        bedsetbim = (tmpMod3/"{role}"/rule_stem).with_suffix(".bim"), # clean_markers earlier
-        exclude_markers = report((tmpMod3/"{role}"/rule_stem).with_suffix(".exclude"),
+        bedset = (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".bed"), # clean_markers earlier
+        bedsetbim = (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".bim"), # clean_markers earlier
+        exclude_markers = report((tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".exclude"),
                         category="Module 3 Good markers",
-                        caption=(resultPath/rule_stem).with_suffix(".rst")),
-        results = report((resultPath/"{role}"/rule_stem).with_suffix(".yaml"),
+                        caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
+        results = report((resultPath/"{batch}"/"{role}"/rule_stem).with_suffix(".yaml"),
                          category="Module 3 Good markers",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
     benchmark:
-        (tmpMod3/"{role}"/rule_stem).with_suffix(".benchmark")
+        (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -935,14 +935,14 @@ rule m3_output_good_markers:
     threads: 2
     input:
         bedset = rules.m2_output.output.bedset,
-        markers = expand(str(tmpMod3/'{role}')+'/sex_clean.bim', role=ROLES) # Final markerlists
+        markers = expand(str(tmpMod3/"{batch}"/'{role}')+'/sex_clean.bim', role=ROLES) # Final markerlists
     output:
-        good_markers = (tmpMod3/rule_stem).with_suffix(".txt"),  # called shared_markers.txt before
+        good_markers = (tmpMod3/"{batch}"/rule_stem).with_suffix(".txt"),  # called shared_markers.txt before
         # for module 4, input will be rules.ibd_estimate.input.bedset aka output from split_founders_offspring
-        mod5_input_bedset = multiext(str(tmpMod2/rule_stem) ,'.bed','.bim','.fam') ,
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        mod5_input_bedset = multiext(str(tmpMod2/"{batch}"/rule_stem) ,'.bed','.bim','.fam') ,
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="- Module 3 Good markers recap",
-                         caption=(resultPath/rule_stem).with_suffix(".rst")),
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
         # There is another 'output' that mod4 will use: The founders/offspring bedset just
         # after the split. See rule split_founders_offspring
 

@@ -1,17 +1,7 @@
-# Used by various reports to describe the set
 
-# These are local for the set
-#dataSet: "Rotterdam2"
-dataSet: "snp014"
-chip: "illumina GSA-MD 24 v1.0"
-# Lab QC report: /mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/lab-report/GSA2017_246_QC_report.pdf
-# The raw data (start-point). Note that these should be extracted know where the pubdirectory is, as well as the name of the dataSet.
-raw_bed_stem: "/mnt/archive/Momics/MomicsPub/snpArray/Datasets/snp014/raw-data/bedset/snp014"
-# Only while we checking if the recode ID is unecessary with the new pub-directory
-raw_bed_stem: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/data/raw-data/plink/GSA2017_246_025_ReRun"
-# GenomeStudio produced. Note that headers here are chip-dependent.
-snptable: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/data/raw-data/snptable/snp_table_rotterdam2.txt"
 
+# The folder where the raw data for all batches are saved
+raw_folder: "/mnt/archive/Momics/MomicsPub/snpArray/Datasets"
 
 # Global paths
 documentationDataset: "https://github.com/fhi-beta/mobaDocsBackoffice/wiki/MoBaGenPub"
@@ -60,6 +50,7 @@ cluster_sep_col_name: "GSAMD-24v1-0_20011747_A4.bpm.Cluster Sep"
 10%_GC_score_col_name: "10% GC"
 aa_theta_dev_thr: 0.04
 aa_theta_dev_col_name: "GSAMD-24v1-0_20011747_A4.bpm.AA T Dev"
+
 #
 # Minor allele frequency used in maf_removal plink --maf
 maf_thr: 0.10
@@ -71,7 +62,7 @@ geno_thr: 0.02
 hwe_thr: 0.0001
 # prune_markers --make founders (command and params).
 prune_cmd: --indep-pairwise 200 100 0.1
-#
+
 # these two files have been produced by Jonas by hand and have better pedigree info than we had
 # We want to automate this - but for now (2019) we are just keeping it as it is
 # These files comes from a PC environment and have ^M in them

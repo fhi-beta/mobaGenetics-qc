@@ -1,42 +1,42 @@
 # Rule updates raw bedset with biobank provided pedigree information and gender
 # Sample IDs are updated to SentrixIDs
 
-rule_stem ='remove_chr0'
+rule_stem = 'remove_chr0'
 rule remove_chr0:
     input:
-        bedset=multiext(config['raw_bed_stem'],'.bed','.bim','.fam'),
+        bedset = multiext(str(config['raw_bed_stem']/"{batch}/raw-data/bedset/{batch}"),'.bed','.bim','.fam'),
     output:
-        bedset=multiext(str(tmpMod1/rule_stem),'.bed','.bim','.fam'),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem),'.bed','.bim','.fam'),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
 
     run:
         item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])        
-        inTrunk =  mqc.plinkBase(input.bedset[0])
-        outTrunk =  mqc.plinkBase(output.bedset[0])
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk = mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
 
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
-                "--not-chr", "0", 
+                "--not-chr", "0",
                 "--out", outTrunk,
                 "--make-bed"
-        ], check=True)
+        ], check=True)/"{batch}"
 
         # Checking how many markers/chromosone 0 we removed  on this step
         # We turn of warning here as we know there might be duplicate markers to check for later
         dropouts = mqc.checkUpdates(inTrunk+".bim",
                                     outTrunk+".bim", cols=[0,1,3,4,5], indx=1,
                                     sanityCheck="none", fullList=True,
-                                    allele_flip=True) 
+                                    allele_flip=True)
 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
 
         mqc.saveYamlResults(output.results, dropouts)
         mqc.log(runlog, f'(NSNP_CHR0_LOST) Removed {dropouts["actionTakenCount"]} chromosone 0 out of {dropouts["in"]}, leaving {dropouts["out"]} markers\n')
-        
+
 
 # Check for duplicate markers, and remove all but one (keep best callrate)
 # The code here is copied and reused in remove_dup_markers_1kg
@@ -46,19 +46,19 @@ rule remove_duplicate_markers:
     input:
         bedset= rules.remove_chr0.output.bedset
     output:
-        bedset=multiext(str(tmpMod1/rule_stem),'.bed','.bim','.fam'),
-        excludeList = (tmpMod1/rule_stem).with_suffix(".txt"),
-        resultDetails = (resultPath/rule_stem).with_suffix(".csv"),
+        bedset=multiext(str(tmpMod1/"{batch}"/rule_stem),'.bed','.bim','.fam'),
+        excludeList = (tmpMod1/"{batch}"/rule_stem).with_suffix(".txt"),
+        resultDetails = (resultPath/"{batch}"/rule_stem).with_suffix(".csv"),
         # plink hardcodes this
-        plink_dup_list = (tmpMod1/"plink").with_suffix(".dupvar"),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        plink_dup_list = (tmpMod1/"{batch}"/"plink").with_suffix(".dupvar"),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
     params:
-        details = (resultPath/rule_stem).with_suffix(".yaml.details")
+        details = (resultPath/"{batch}"/rule_stem).with_suffix(".yaml.details")
     run:
         item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])        
+        mqc.log(runlog, rule_info[rule]["QC test"])
         inTrunk = mqc.plinkBase(input.bedset[0])
         outTrunk = mqc.plinkBase(output.bedset[0])
         callRateTrunk = mqc.plinkBase(output.excludeList)
@@ -68,7 +68,7 @@ rule remove_duplicate_markers:
                         "--bfile",inTrunk,
                         "--list-duplicate-vars"
         ], check=True, cwd=tmpMod1)
-        
+
         subprocess.run([plinklocal,
                         "--bfile", inTrunk,
                         "--out", callRateTrunk,
@@ -84,11 +84,11 @@ rule remove_duplicate_markers:
                         "--out", outTrunk,
                         "--make-bed"
         ], check=True)
-        
+
         dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",
                                     cols=[0,1,3,4,5],
                                     sanityCheck="removal",
-                                    fullList=True, allele_flip=True) 
+                                    fullList=True, allele_flip=True)
         dropouts["Callrates"] = output.resultDetails
 
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
@@ -103,13 +103,13 @@ rule update_sample_ids:
         bedset=rules.remove_duplicate_markers.output.bedset,
         recode=config['recode_ids']
     output:
-        bedset=multiext(str(tmpMod1/rule_stem) ,'.bed','.bim','.fam'),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        bedset=multiext(str(tmpMod1/"{batch}"/rule_stem) ,'.bed','.bim','.fam'),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
     run:
         item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])        
+        mqc.log(runlog, rule_info[rule]["QC test"])
         inTrunk = mqc.plinkBase(input.bedset[0])
         outTrunk = mqc.plinkBase(output.bedset[0])
 
@@ -122,7 +122,7 @@ rule update_sample_ids:
         updated = mqc.checkUpdates(inTrunk+".fam",outTrunk+".fam",cols=[0,1],
                                    indx=1,
                                    sanityCheck="updated", fullList=True,
-                                   mapFile=input.recode, mapIndx=1) 
+                                   mapFile=input.recode, mapIndx=1)
         updated.update(rule_info[rule])   # Metainfo and documentation about the rule
         updated["Rule"] = rule
         mqc.saveYamlResults(output.results, updated)
@@ -134,13 +134,13 @@ rule update_parents:
         bedset=rules.update_sample_ids.output.bedset,
         recode=config['recode_parents']
     output:
-        bedset=multiext(str(tmpMod1/rule_stem) ,'.bed','.bim','.fam'),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        bedset=multiext(str(tmpMod1/"{batch}"/rule_stem) ,'.bed','.bim','.fam'),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
     run:
         item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])        
+        mqc.log(runlog, rule_info[rule]["QC test"])
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
         subprocess.run([plinklocal,
@@ -165,14 +165,14 @@ rule update_sex:
         bedset=rules.update_parents.output.bedset,
         recode = config['recode_sex']
     output:
-        bedset = multiext(str(tmpMod1/rule_stem),'.bed','.bim','.fam'),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem),'.bed','.bim','.fam'),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))        
-        
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
+
     run:
         item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])        
+        mqc.log(runlog, rule_info[rule]["QC test"])
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
 
@@ -202,30 +202,30 @@ rule remove_markers_cluster_sep:
         bedset = rules.update_sex.output.bedset,
         snptable=config['snptable']
     output:
-        bedset=multiext(str(tmpMod1/rule_stem),'.bed','.bim','.fam'),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        bedset=multiext(str(tmpMod1/"{batch}"/rule_stem),'.bed','.bim','.fam'),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
-                         caption=(resultPath/rule_stem).with_suffix(".rst")),
-        plot = report((resultPath/rule_stem).with_suffix(".png"),
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/"{batch}"/rule_stem).with_suffix(".png"),
                       category="Module 1 Data preparation",
-                      caption=(resultPath/rule_stem).with_suffix(".rst")),
+                      caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
         # in addition to the removal list .txt, a *removal.txt.samples is produced, sporting only the sample-list
-        removal= (tmpMod1/rule_stem).with_suffix(".txt"), 
-        removal_markers = (tmpMod1/rule_stem).with_suffix(".markers.txt"),
+        removal= (tmpMod1/"{batch}"/rule_stem).with_suffix(".txt"),
+        removal_markers = (tmpMod1/"{batch}"/rule_stem).with_suffix(".markers.txt"),
     params:
         treshold = config['cluster_sep_thr']
-    message: "mod1 Remove markers by cluster metrics" 
+    message: "mod1 Remove markers by cluster metrics"
     run:
         item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])        
+        mqc.log(runlog, rule_info[rule]["QC test"])
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
 
         # identify markers for removal on cluster separation
-        (removed,total) = mqc.extract_list(input.snptable, 
-                output.removal_markers, output.removal, 
+        (removed,total) = mqc.extract_list(input.snptable,
+                output.removal_markers, output.removal,
                 colName=config['cluster_sep_col_name'], sep='\t',
-                condition="<", treshold=params.treshold, 
+                condition="<", treshold=params.treshold,
                 key_cols=[0], doc_cols=[0])
 
         subprocess.run([plinklocal,
@@ -243,42 +243,42 @@ rule remove_markers_cluster_sep:
         dropouts["Treshold"] = params.treshold
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
-        
+
         mqc.log(runlog, f'Removed {dropouts["actionTakenCount"]} markers(NSNP_CLUSTERSEP_LOST) out of {dropouts["in"]} (BEFORE_SNPTABLE), leaving {dropouts["out"]} markers. Treshhold {params.treshold}\n')
         # The following has a huge potential for speedup (using round as in mqc.dotplot()
         mqc.plot_point_and_line(dropouts, input.snptable, output.plot,
                                 config["cluster_sep_col_name"], separator='\t',
                                 ylabel="Separation", invert=False)
 
-        
+
 rule_stem = 'gcscore_removal'
 rule remove_markers_gc_score:
     input:
         bedset = rules.remove_markers_cluster_sep.output.bedset,
         snptable=config['snptable']
     output:
-        bedset=multiext(str(tmpMod1/rule_stem),'.bed','.bim','.fam'),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        bedset=multiext(str(tmpMod1/"{batch}"/rule_stem),'.bed','.bim','.fam'),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
-                         caption=(resultPath/rule_stem).with_suffix(".rst")),
-        plot = report((resultPath/rule_stem).with_suffix(".png"),category="Module 1 Data preparation",
-                                 caption=(resultPath/rule_stem).with_suffix(".rst")),
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/"{batch}"/rule_stem).with_suffix(".png"),category="Module 1 Data preparation",
+                                 caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
-        removal= (tmpMod1/rule_stem).with_suffix(".txt"),
-        removal_markers = (tmpMod1/rule_stem).with_suffix(".markers.txt"),
+        removal= (tmpMod1/"{batch}"/rule_stem).with_suffix(".txt"),
+        removal_markers = (tmpMod1/"{batch}"/rule_stem).with_suffix(".markers.txt"),
     params:
         treshold = config['10%_GC_score_thr']
     run:
         item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])        
+        mqc.log(runlog, rule_info[rule]["QC test"])
 
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
         # identify markers for removal 
-        (removed,total) = mqc.extract_list(input.snptable, 
-                output.removal_markers, output.removal, 
+        (removed,total) = mqc.extract_list(input.snptable,
+                output.removal_markers, output.removal,
                             colName=config["10%_GC_score_col_name"], sep='\t',
-                            condition = "<", treshold = params.treshold, 
+                            condition = "<", treshold = params.treshold,
                             key_cols=[0], doc_cols=[0] )
         subprocess.run([plinklocal,
                 "--bfile",inTrunk,
@@ -288,7 +288,7 @@ rule remove_markers_gc_score:
 
         dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",
                                     cols=[0,1,3,4,5], sanityCheck="removal",
-                                    fullList=True, allele_flip=True) 
+                                    fullList=True, allele_flip=True)
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Treshold"] = params.treshold
         dropouts["Rule"] = rule
@@ -308,28 +308,28 @@ rule remove_markers_aa_theta_deviation:
         bedset = rules.remove_markers_gc_score.output.bedset,
         snptable=config['snptable']
     output:
-        bedset=multiext(str(tmpMod1/rule_stem),'.bed','.bim','.fam'),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        bedset=multiext(str(tmpMod1/"{batch}"/rule_stem),'.bed','.bim','.fam'),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
-                         caption=(resultPath/rule_stem).with_suffix(".rst")),
-        plot = report((resultPath/rule_stem).with_suffix(".png"),category="Module 1 Data preparation",
-                                 caption=(resultPath/rule_stem).with_suffix(".rst")),
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
+        plot = report((resultPath/"{batch}"/rule_stem).with_suffix(".png"),category="Module 1 Data preparation",
+                                 caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
-        removal= (tmpMod1/rule_stem).with_suffix(".txt"),
-        removal_markers = (tmpMod1/rule_stem).with_suffix(".markers.txt"),
+        removal= (tmpMod1/"{batch}"/rule_stem).with_suffix(".txt"),
+        removal_markers = (tmpMod1/"{batch}"/rule_stem).with_suffix(".markers.txt"),
     params:
         treshold = config['aa_theta_dev_thr']
     run:
         item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])        
+        mqc.log(runlog, rule_info[rule]["QC test"])
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
 
         # identify markers for removal 
-        (removed,total) = mqc.extract_list(input.snptable, 
-                output.removal_markers, output.removal, 
+        (removed,total) = mqc.extract_list(input.snptable,
+                output.removal_markers, output.removal,
                                 colName=config["aa_theta_dev_col_name"], sep='\t',
-                                condition = ">", treshold=params.treshold, 
+                                condition = ">", treshold=params.treshold,
                                 key_cols=[0], doc_cols=[0])
 
         subprocess.run([plinklocal,
@@ -348,7 +348,7 @@ rule remove_markers_aa_theta_deviation:
 
         mqc.saveYamlResults(output.results, dropouts)
         mqc.log(runlog, f'Removed {dropouts["actionTakenCount"]} markers(NSNP_AATHETADEV_LOST) out of {dropouts["in"]} (NSNP_GC_LOST), leaving {dropouts["out"]} markers. Treshhold {params.treshold}\n')
-                     
+
         mqc.plot_point_and_line(dropouts, input.snptable, output.plot,
                                 config["aa_theta_dev_col_name"], separator='\t',
                                 ylabel="AA-\u03B8 deviation", invert=False)
@@ -366,18 +366,18 @@ rule m1_output:
         # Note that this is actually the output of module 1, this rule is just a report rule
         bedset_last = rules.remove_markers_aa_theta_deviation.output.bedset,
     output:
-        bedset = multiext(str(tmpMod1/rule_stem),'.bed','.bim','.fam'),
+        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem),'.bed','.bim','.fam'),
         # category is sorted as written below. We use - as prefix to force
         # final reports to be sorted first ...
-        report_markers = report((resultPath/rule_stem).with_suffix(".markers.yaml"),
+        report_markers = report((resultPath/"{batch}"/rule_stem).with_suffix(".markers.yaml"),
                         category="- Module 1 Data conversion recap",
-                        caption=(resultPath/rule_stem).with_suffix(".markers.rst")),
-        report_samples = report((resultPath/rule_stem).with_suffix(".samples.yaml"),
+                        caption=(resultPath/"{batch}"/rule_stem).with_suffix(".markers.rst")),
+        report_samples = report((resultPath/"{batch}"/rule_stem).with_suffix(".samples.yaml"),
                         category="- Module 1 Data conversion recap",
-                        caption=(resultPath/rule_stem).with_suffix(".samples.rst")),
+                        caption=(resultPath/"{batch}"/rule_stem).with_suffix(".samples.rst")),
     run:
         item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])        
+        mqc.log(runlog, rule_info[rule]["QC test"])
         firstTrunk =  mqc.plinkBase(input.bedset_first[0])
         lastTrunk =  mqc.plinkBase(input.bedset_last[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
@@ -406,5 +406,7 @@ rule m1_output:
         dropouts["Documentation details"] = docs
 
         mqc.saveYamlResults(output.report_samples, dropouts)
-# Pilepline continutes in module 2 
+
+
+# Pipeline continues in module 2
 

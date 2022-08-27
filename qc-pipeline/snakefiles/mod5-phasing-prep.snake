@@ -4,13 +4,13 @@ rule chr1_23:
     input:
         bedset = rules.m3_output_good_markers.output.mod5_input_bedset,
     output:
-        bedset=multiext(str(tmpMod5/rule_stem)
+        bedset=multiext(str(tmpMod5/"{batch}"/rule_stem)
                           ,'.bed','.bim','.fam'),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 5 Phasing and imputation preparation",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
     benchmark:
-        (tmpMod5/rule_stem).with_suffix(".benchmark")
+        (tmpMod5/"{batch}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -36,12 +36,12 @@ rule mendelian_errors:
     input:
         bedset = rules.chr1_23.output.bedset,
     output:
-        bedset=multiext(str(tmpMod5/rule_stem),'.bed','.bim','.fam'),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        bedset = multiext(str(tmpMod5/"{batch}"/rule_stem),'.bed','.bim','.fam'),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 5 Phasing and imputation preparation",
-                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
     benchmark:
-        (tmpMod5/rule_stem).with_suffix(".benchmark")
+        (tmpMod5/"{batch}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -87,13 +87,13 @@ rule rayner_verification:
         # This is produced by a shell-script we have no control over hence the odd bedset name
         bedset = multiext(mqc.plinkBase(rules.mendelian_errors.output.bedset[0])
                           +"-updated", '.bed','.bim','.fam'),
-        results = report((resultPath/rule_stem).with_suffix(".yaml"),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 5 Phasing and imputation preparation",
-                        caption=(resultPath/rule_stem).with_suffix(".rst")),
-        chrfiles = expand(str(tmpMod5/"mendelian_errors-updated-chr")
+                        caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
+        chrfiles = expand(str(tmpMod5/"{batch}"/"mendelian_errors-updated-chr")
                          + '{chrom}' + ".bim", chrom=range(1, 24)) # These are made by the 'rayner-script'
     benchmark:
-        (tmpMod5/rule_stem).with_suffix(".benchmark")
+        (tmpMod5/"{batch}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -133,12 +133,12 @@ rule_stem = "rayner_report"
 rule rayner_report:
     input:
         bedset = rules.rayner_verification.input.bedset,
-        chrfiles = expand(str(tmpMod5/"mendelian_errors-updated-chr")
+        chrfiles = expand(str(tmpMod5/"{batch}"/"mendelian_errors-updated-chr")
                           + '{chrom}' + ".bim", chrom=range(1, 24)),
     output:
-        results = report((resultPath/rule_stem).with_suffix(".rst"),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".rst"),
                           category="Module 5 Phasing and imputation preparation",
-                          caption=(resultPath/rule_stem).with_suffix(".rst"))
+                          caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])

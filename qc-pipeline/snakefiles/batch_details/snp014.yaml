@@ -1,0 +1,10 @@
+# Batch variables
+
+dataSet: "snp014"
+deprecated_name: "Rotterdam2"
+chip: "illumina GSA-MD 24 v1.0"
+# Lab QC report: /mnt/archive/ROTTERDAM2/delivery-fhi/data/raw-data/lab-report/GSA2017_246_QC_report.pdf
+
+# GenomeStudio produced. Note that headers here are chip-dependent.
+snptable: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/data/raw-data/snptable/snp_table_rotterdam2.txt"
+
