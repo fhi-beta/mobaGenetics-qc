@@ -5,12 +5,12 @@ import os.path
 rule_stem = 'remove_chr0'
 rule remove_chr0:
     input:
-        bedset = multiext(os.path.join(config['raw_folder']), "{batch}", "raw-data", "bedset", "{batch}",'.bed','.bim','.fam'),
+        bedset = multiext(os.path.join(config['raw_folder'], "{batch}", "raw-data", "bedset", "{batch}"),'.bed','.bim','.fam'),
     output:
         bedset = multiext(os.path.join(tmpMod1, "{batch}", rule_stem),'.bed','.bim','.fam'),
-        results = report(os.path.join(resultPath, "{batch}", rule_stem).with_suffix(".yaml"),
+        results = report(os.path.join(resultPath, "{batch}", rule_stem + ".yaml"),
                          category="Module 1 Data preparation",
-                         caption=os.path.join(resultPath, "{batch}", rule_stem).with_suffix(".rst"))
+                         caption=os.path.join(resultPath, "{batch}", rule_stem + ".rst"))
 
     run:
         item_type = rule_info[rule]["rule type"]
@@ -204,15 +204,15 @@ rule remove_markers_cluster_sep:
         snptable = lambda wildcards: getSnpTable(wildcards.batch),
     output:
         bedset=multiext(os.path.join(tmpMod1, "{batch}", rule_stem),'.bed','.bim','.fam'),
-        results = report(os.path.join(resultPath, "{batch}", rule_stem).with_suffix(".yaml"),
+        results = report(os.path.join(resultPath, "{batch}", rule_stem + ".yaml"),
                          category="Module 1 Data preparation",
-                         caption=os.path.join(resultPath, "{batch}", rule_stem).with_suffix(".rst")),
-        plot = report(os.path.join(resultPath, "{batch}", rule_stem).with_suffix(".png"),
+                         caption=os.path.join(resultPath, "{batch}", rule_stem + ".rst")),
+        plot = report(os.path.join(resultPath, "{batch}", rule_stem + ".png"),
                       category="Module 1 Data preparation",
-                      caption=os.path.join(resultPath, "{batch}", rule_stem).with_suffix(".rst")),
+                      caption=os.path.join(resultPath, "{batch}", rule_stem + ".rst")),
         # in addition to the removal list .txt, a *removal.txt.samples is produced, sporting only the sample-list
-        removal= os.path.join(tmpMod1, "{batch}", rule_stem).with_suffix(".txt"),
-        removal_markers = os.path.join(tmpMod1, "{batch}", rule_stem).with_suffix(".markers.txt"),
+        removal= os.path.join(tmpMod1, "{batch}", rule_stem + ".txt"),
+        removal_markers = os.path.join(tmpMod1, "{batch}", rule_stem + ".markers.txt"),
     params:
         treshold = config['cluster_sep_thr']
     message: "mod1 Remove markers by cluster metrics"
