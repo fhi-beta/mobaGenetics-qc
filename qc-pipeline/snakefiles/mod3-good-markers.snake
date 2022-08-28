@@ -935,7 +935,7 @@ rule m3_output_good_markers:
     threads: 2
     input:
         bedset = rules.m2_output.output.bedset,
-        markers = expand(str(tmpMod3/"{batch}"/'{role}')+'/sex_clean.bim', role=ROLES) # Final markerlists
+        markers = str(tmpMod3/"{batch}"/'{role}')+'/sex_clean.bim' # Final markerlists
     output:
         good_markers = (tmpMod3/"{batch}"/rule_stem).with_suffix(".txt"),  # called shared_markers.txt before
         # for module 4, input will be rules.ibd_estimate.input.bedset aka output from split_founders_offspring
