@@ -889,7 +889,7 @@ rule sex_clean:
         # f_y = os.path.join(tmpMod3, "{role}", "sexcheck_report_y.sexcheck")
     output:
         bedset = (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".bed"), # clean_markers earlier
-        bedsetbim = (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".bim"), # clean_markers earlier
+        bedsetbim = os.path.join(tmpMod3, "{batch}", '{role}', rule_stem + '.bim'), # clean_markers earlier
         exclude_markers = report((tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".exclude"),
                         category="Module 3 Good markers",
                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
@@ -935,7 +935,7 @@ rule m3_output_good_markers:
     threads: 2
     input:
         bedset = rules.m2_output.output.bedset,
-        markers = str(tmpMod3/"{batch}"/'{role}')+'/sex_clean.bim' # Final markerlists
+        markers = os.path.join(tmpMod3, "{batch}", '{role}', 'sex_clean.bim') # Final markerlists
     output:
         good_markers = (tmpMod3/"{batch}"/rule_stem).with_suffix(".txt"),  # called shared_markers.txt before
         # for module 4, input will be rules.ibd_estimate.input.bedset aka output from split_founders_offspring
