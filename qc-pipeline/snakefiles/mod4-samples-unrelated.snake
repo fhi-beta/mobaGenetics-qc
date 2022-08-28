@@ -269,8 +269,8 @@ rule core_pca:
 rule_stem = 'm4_core_individuals'        
 rule m4_core_individuals:
     input:
-        bedset_lmm = expand(str((tmpMod4/"{batch}"/"{role}"/"core_het.bed")), role=ROLES),  #earlier called core-lmm, 'related core'
-        bedset_unrelated = expand(str((tmpMod4/"{batch}"/"{role}"/"core_ibd_direct_exclusion.bed")), role=ROLES),
+        bedset_lmm = expand(str((tmpMod4/"{batch}"/"{role}"/"core_het.bed")), role=ROLES, batch=batches),  #earlier called core-lmm, 'related core'
+        bedset_unrelated = expand(str((tmpMod4/"{batch}"/"{role}"/"core_ibd_direct_exclusion.bed")), role=ROLES, batch=batches),
     output:
         #bedset_lmm = multiext(str(tmpMod2/"core_lmm") ,'.bed','.bim','.fam'),
         #bedset_unlrelated = multiext(str(tmpMod2/"core_unrelated") ,'.bed','.bim','.fam'),
