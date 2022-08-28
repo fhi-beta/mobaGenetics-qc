@@ -91,7 +91,7 @@ rule rayner_verification:
         results = report(os.path.join(resultPath, "{batch}", rule_stem + ".yaml"),
                         category="Module 5 Phasing and imputation preparation",
                         caption=os.path.join(resultPath, "{batch}", rule_stem + ".rst")),
-        chrfiles = expand(os.path.join(tmpMod5, "{batch}", "mendelian_errors-updated-chr{chrom}.bim"), chrom = range(1, 24), batch = batches) # These are made by the 'rayner-script'
+        # chrfiles = expand(os.path.join(tmpMod5, "{batch}", "mendelian_errors-updated-chr{chrom}.bim"), chrom = range(1, 24), batch = batches) # These are made by the 'rayner-script'
     benchmark:
         os.path.join(tmpMod5, "{batch}", rule_stem + ".benchmark")
     run:
@@ -133,7 +133,9 @@ rule_stem = "rayner_report"
 rule rayner_report:
     input:
         bedset = rules.rayner_verification.input.bedset,
-        chrfiles = expand(os.path.join(tmpMod5, "{batch}", "mendelian_errors-updated-chr{chrom}.bim"), chrom = range(1, 24))
+        bedset_updated = rules.rayner_verification.ouput.bedset
+    params:
+        chrfileBase = os.path.join(tmpMod5,"{batch}","mendelian_errors-updated-chr")
     output:
         results = report((resultPath/"{batch}"/rule_stem).with_suffix(".rst"),
                           category="Module 5 Phasing and imputation preparation",
@@ -149,8 +151,10 @@ rule rayner_report:
         sum = 0 # total snps in chr files created by Will Rayner script
         regx = re.compile('(\d+).bim')  # assuming that the chromosone number is just before .bim
         res = ""  # String that contains chromosone counts after WR
-        for f in input.chrfiles:
-            c = re.search(regx,f).group(1)  # this chromosone
+        for c in range(1, 24):
+            f = params.chrfileBase + c + ".bim"
+            if not os.path.exists(f):
+                raise FileNotFoundError(f"Rayner verification file not found for chromosome {c}.")
             n = mqc.line_count(f)           # number of snsps for this chromosone
             res += f"{c}:{n_chr_input[c]}->{n} "
             sum += n
