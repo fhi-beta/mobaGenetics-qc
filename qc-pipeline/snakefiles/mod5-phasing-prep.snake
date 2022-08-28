@@ -1,4 +1,6 @@
 # Remove markers above chr 23 as these are not eliglible for imputation
+import os.path
+
 rule_stem = "chr1_23"
 rule chr1_23:
     input:
@@ -88,10 +90,10 @@ rule rayner_verification:
         bedset = multiext(mqc.plinkBase(rules.mendelian_errors.output.bedset[0])
                           +"-updated", '.bed','.bim','.fam'),
         results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
-                         category="Module 5 Phasing and imputation preparation",
+                        category="Module 5 Phasing and imputation preparation",
                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
-        chrfiles = expand(str(tmpMod5/"{batch}"/"mendelian_errors-updated-chr")
-                         + '{chrom}' + ".bim", chrom=range(1, 24)) # These are made by the 'rayner-script'
+        chrfiles = expand(os.path.join(tmpMod5, "{batch}", "mendelian_errors-updated-chr" + '{chrom}' + ".bim"),
+                        chrom=range(1, 24), batch=batches) # These are made by the 'rayner-script'
     benchmark:
         (tmpMod5/"{batch}"/rule_stem).with_suffix(".benchmark")
     run:
