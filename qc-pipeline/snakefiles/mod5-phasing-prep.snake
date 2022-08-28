@@ -87,14 +87,13 @@ rule rayner_verification:
     output:
         # touch(tmpMod5/"RaynerVerificationNotDone"), # to force a run by deleting? This was a hack, should have been documented why
         # This is produced by a shell-script we have no control over hence the odd bedset name
-        bedset = multiext(mqc.plinkBase(rules.mendelian_errors.output.bedset[0])
-                          +"-updated", '.bed','.bim','.fam'),
+        bedset = multiext(os.path.join(tmpMod5, "{batch}", rule_stem + "-updated"),'.bed','.bim','.fam'),
         results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                         category="Module 5 Phasing and imputation preparation",
                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
-        chrfiles = os.path.join(tmpMod5, "{batch}", "mendelian_errors-updated-chr{chrom}.bim") # These are made by the 'rayner-script'
+        chrfiles = expand(os.path.join(tmpMod5, "{batch}", "mendelian_errors-updated-chr{chrom}.bim"), chrom = range(1, 24)) # These are made by the 'rayner-script'
     benchmark:
-        os.path.join(tmpMod5, "{batch}", rule_stem + "_chr{chrom}.benchmark")
+        os.path.join(tmpMod5, "{batch}", rule_stem + ".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
