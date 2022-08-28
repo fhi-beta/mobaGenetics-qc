@@ -863,7 +863,7 @@ rule clean_male_x:
         chr23 =  (tmpMod3/"{batch}"/"{role}"/"sex_check").with_suffix(".bim23") # chr23 version of input.bim
 
     benchmark:
-        (tmpMod3/"{role}"/rule_stem).with_suffix(".benchmark")
+        (tmpMod3/"{batch}"/"{role}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
