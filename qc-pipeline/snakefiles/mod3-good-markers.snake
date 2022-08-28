@@ -54,7 +54,7 @@ rule common_markers_moba_ref:
         results_ref = report((resultPath/"{batch}"/"pca_ref").with_suffix(".yaml"),
                               category="Module 3 1000Genomes prep",
                               caption=(resultPath/"{batch}"/"pca_ref").with_suffix(".rst")),
-        results_moba = report((resultPath/"pca_moba").with_suffix(".yaml"),
+        results_moba = report((resultPath/"{batch}"/"pca_moba").with_suffix(".yaml"),
                               category="Module 3 1000Genomes prep",
                               caption=(resultPath/"{batch}"/"pca_moba").with_suffix(".rst")),
     benchmark:
