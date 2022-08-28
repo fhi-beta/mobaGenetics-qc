@@ -133,9 +133,9 @@ rule_stem = "rayner_report"
 rule rayner_report:
     input:
         bedset = rules.rayner_verification.input.bedset,
-        bedset_updated = rules.rayner_verification.ouput.bedset
+        bedset_updated = rules.rayner_verification.output.bedset
     params:
-        chrfileBase = os.path.join(tmpMod5,"{batch}","mendelian_errors-updated-chr")
+        chrfileBase = os.path.join(tmpMod5, "{batch}", "mendelian_errors-updated-chr")
     output:
         results = report((resultPath/"{batch}"/rule_stem).with_suffix(".rst"),
                           category="Module 5 Phasing and imputation preparation",
