@@ -79,7 +79,7 @@ rule mendelian_errors:
         mqc.saveYamlResults(output.results, dropouts)
 
 
-rule_stem = "hrc_verification" # Not used for the output bed 
+rule_stem = "hrc_verification" # Not used for the output bed
 rule rayner_verification:
     input:
         bedset = rules.mendelian_errors.output.bedset,
@@ -94,7 +94,7 @@ rule rayner_verification:
                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
         chrfiles = os.path.join(tmpMod5, "{batch}", "mendelian_errors-updated-chr{chrom}.bim") # These are made by the 'rayner-script'
     benchmark:
-        (tmpMod5/"{batch}"/rule_stem).with_suffix(".benchmark")
+        os.path.join(tmpMod5, "{batch}", rule_stem + "_chr{chrom}.benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
