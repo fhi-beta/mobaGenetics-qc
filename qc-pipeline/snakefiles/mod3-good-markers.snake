@@ -15,7 +15,7 @@ rule pedigree_fix_pruned:
                     category="Module 3 Good markers",
                     caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
     benchmark:
-        (tmpMod3/rule_stem).with_suffix(".benchmark")
+        (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
 
     run:
         item_type = rule_info[rule]["rule type"]

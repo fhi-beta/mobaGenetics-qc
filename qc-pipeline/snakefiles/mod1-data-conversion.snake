@@ -309,7 +309,7 @@ rule remove_markers_aa_theta_deviation:
         bedset = rules.remove_markers_gc_score.output.bedset,
         snptable = lambda wildcards: getSnpTable(wildcards.batch)
     output:
-        bedset=multiext(str(tmpMod1/"{batch}"/rule_stem),'.bed','.bim','.fam'),
+        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
                          category="Module 1 Data preparation",
                          caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
