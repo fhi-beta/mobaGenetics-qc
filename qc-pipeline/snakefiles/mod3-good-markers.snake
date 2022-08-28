@@ -935,7 +935,7 @@ rule m3_output_good_markers:
     threads: 2
     input:
         bedset = rules.m2_output.output.bedset,
-        markers = os.path.join(tmpMod3, "{batch}", '{role}', 'sex_clean.bim') # Final markerlists
+        markers = expand(os.path.join(tmpMod3, "{batch}", '{role}', 'sex_clean.bim'), role = ROLES) # Final markerlists
     output:
         good_markers = (tmpMod3/"{batch}"/rule_stem).with_suffix(".txt"),  # called shared_markers.txt before
         # for module 4, input will be rules.ibd_estimate.input.bedset aka output from split_founders_offspring
@@ -951,7 +951,7 @@ rule m3_output_good_markers:
         mqc.log(runlog, rule_info[rule]["QC test"])
         inTrunk =  mqc.plinkBase(input.bedset[0])
         outTrunk = mqc.plinkBase(output.mod5_input_bedset[0])
-        # Moduel 5: find common markers and extract them from original set
+        # Module 5: find common markers and extract them from original set
         mqc.intersect_rsid(input.markers[1], input.markers[0],
                            output.good_markers, small_col=1, big_col=1)
         subprocess.run([plinklocal,
