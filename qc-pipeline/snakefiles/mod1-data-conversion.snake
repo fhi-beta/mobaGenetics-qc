@@ -64,7 +64,7 @@ rule remove_duplicate_markers:
         inTrunk = mqc.plinkBase(input.bedset[0])
         outTrunk = mqc.plinkBase(output.bedset[0])
         callRateTrunk = mqc.plinkBase(output.excludeList)
-        batch_wd = tmpMod1/"{wildcards.batch}"
+        batch_wd = str(tmpMod1/"{wildcards.batch}")
         print(batch_wd)
         # Create a plink.dupvar file
         # Plink-bug (1.90b5.4): Puts plink.dupvar in snakemake directory, so we change the working directory.
