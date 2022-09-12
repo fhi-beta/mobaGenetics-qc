@@ -64,12 +64,14 @@ rule remove_duplicate_markers:
         inTrunk = mqc.plinkBase(input.bedset[0])
         outTrunk = mqc.plinkBase(output.bedset[0])
         callRateTrunk = mqc.plinkBase(output.excludeList)
+        batch_wd = tmpMod1/"{batch}"
+        print(batch_wd)
         # Create a plink.dupvar file
         # Plink-bug (1.90b5.4): Puts plink.dupvar in snakemake directory, so we change the working directory.
         subprocess.run([plinklocal,
                         "--bfile",inTrunk,
                         "--list-duplicate-vars"
-        ], check=True, cwd=tmpMod1/"{batch}")
+        ], check=True, cwd=batch_wd)
 
         subprocess.run([plinklocal,
                         "--bfile", inTrunk,
