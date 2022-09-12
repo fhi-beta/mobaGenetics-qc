@@ -33,7 +33,7 @@ tmpMod2 = base/'mod2-data-preparation/'
 tmpMod3 = base/'mod3-good-markers/'
 tmpMod4 = base/'mod4-samples-unrelated/'
 tmpMod5 = base/'mod5-shaping-preparation/'
-resultPath = base / 'results/'
+resultPath = base/'results/'
 
 ### Batch settings
 # batches = ['snp001', 'snp002', 'snp003', 'snp007', 'snp008', 'snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018c', 'snp018d', 'snp018e']

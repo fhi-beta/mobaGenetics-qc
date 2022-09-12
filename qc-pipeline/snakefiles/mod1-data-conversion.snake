@@ -57,6 +57,7 @@ rule remove_duplicate_markers:
                          caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
     params:
         details = (resultPath/"{batch}"/rule_stem).with_suffix(".yaml.details")
+    threads: 1
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -64,11 +65,11 @@ rule remove_duplicate_markers:
         outTrunk = mqc.plinkBase(output.bedset[0])
         callRateTrunk = mqc.plinkBase(output.excludeList)
         # Create a plink.dupvar file
-        # Plink-bug (1.90b5.4): Puts plink.dupvar i snakemake directory. so we cwd ...
+        # Plink-bug (1.90b5.4): Puts plink.dupvar in snakemake directory, so we change the working directory.
         subprocess.run([plinklocal,
                         "--bfile",inTrunk,
                         "--list-duplicate-vars"
-        ], check=True, cwd=tmpMod1)
+        ], check=True, cwd=tmpMod1/"{batch}")
 
         subprocess.run([plinklocal,
                         "--bfile", inTrunk,
