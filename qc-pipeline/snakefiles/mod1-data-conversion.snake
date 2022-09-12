@@ -11,7 +11,7 @@ rule remove_chr0:
         results = report(os.path.join(resultPath, "{batch}", rule_stem + ".yaml"),
                          category="Module 1 Data preparation",
                          caption=os.path.join(resultPath, "{batch}", rule_stem + ".rst"))
-
+    threads: 1
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
@@ -23,7 +23,7 @@ rule remove_chr0:
                 "--not-chr", "0",
                 "--out", outTrunk,
                 "--make-bed"
-        ], check=True)/"{batch}"
+        ], check=True)
 
         # Checking how many markers/chromosone 0 we removed  on this step
         # We turn of warning here as we know there might be duplicate markers to check for later
