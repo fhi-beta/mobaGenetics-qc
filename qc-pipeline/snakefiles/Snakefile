@@ -37,19 +37,7 @@ report: "report/qc.rst"
 rule all:
     input:
         # Module 1:
-        bedset = multiext(str(tmpMod1 / "{batch}" / "m1_output"), '.bed', '.bim', '.fam'),
-        # category is sorted as written below. We use - as prefix to force
-        # final reports to be sorted first ...
-        report_markers = report(
-            (resultPath / "{batch}" / "m1_output").with_suffix(".markers.yaml"),
-            category = "- Module 1 Data conversion recap",
-            caption = (resultPath / "{batch}" / "m1_output").with_suffix(".markers.rst")
-        ),
-        report_samples = report(
-            (resultPath / "{batch}" / "m1_output").with_suffix(".samples.yaml"),
-            category = "- Module 1 Data conversion recap",
-            caption = (resultPath / "{batch}" / "m1_output").with_suffix(".samples.rst")
-        ),
+        bedset = expand(multiext(str(tmpMod1 / "{batch}" / "m1_output"), '.bed', '.bim', '.fam'), batch = batches)
 
         # module_3_good_markers = expand((tmpMod3/"{batch}/m3_output_good_markers").with_suffix(".txt"), batch=batches),
         # sex_check = expand(str(tmpMod3/"{batch}/{role}/sexcheck_report_x.sexcheck"), role=ROLES, batch=batches),

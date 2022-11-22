@@ -371,8 +371,8 @@ rule m1_output:
         bedset_last = rules.remove_markers_aa_theta_deviation.output.bedset,
     output:
         bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
-        # category is sorted as written below. We use - as prefix to force
-        # final reports to be sorted first ...
+        # Category is sorted as written below.
+        # We use - as prefix to force final reports to be sorted first.
         report_markers = report(
             (resultPath/"{batch}"/rule_stem).with_suffix(".markers.yaml"),
             category = "- Module 1 Data conversion recap",
