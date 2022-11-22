@@ -592,12 +592,12 @@ def missing_genotype_rate(rule,
 
 def detect_low_hwe_rate(in_bedset, out_bedset, treshold=0.1,
                         hwe_switches=["--autosome", "--hardy", "midp"]):
-    """Runs plink hwe and computes p-values but doesnt change .bed file
+    """Runs plink hwe and computes p-values but does not change .bed file
 
     P-values for markers will end up in out_bedset.hwe - a file
     suitable for extract_list but not for plink.
-    A subset below treshold will be found in out_bedset.exclude
-    (suitable for plink exclude) and out_bedset.details will contains
+    A subset below threshold will be found in out_bedset.exclude
+    (suitable for plink exclude) and out_bedset.details will contain
     details including p-values
 
     """
@@ -704,7 +704,7 @@ def excess_het(rule, autosomal,
     parameters --maf vs --max-maf)
 
     Saves results with saveYamlResults as well, and creates plots and various
-    backgroundfiles on the tmp-area.
+    background files in the tmp area.
 
     """
 
@@ -713,7 +713,7 @@ def excess_het(rule, autosomal,
     elif autosomal == "rare":
         maf = "--max-maf"
     else:
-        print(f"ERROR, Unexpected autosomal rarity {autosomal}. Everything is wrong from now")
+        raise Exception(f"ERROR: Unexpected autosomal rarity {autosomal}.")
         return
 
     subprocess.run([plink,

@@ -21,26 +21,41 @@ with open("rules.yaml", 'r') as stream:
 # Report (top level)
 report: "report/qc.rst"
 
-# rule all
+# rule all, lists the output of every module
 rule all:
     input:
-        module_3_good_markers = expand((tmpMod3/"{batch}/m3_output_good_markers").with_suffix(".txt"), batch=batches),
-        sex_check = expand(str(tmpMod3/"{batch}/{role}/sexcheck_report_x.sexcheck"), role=ROLES, batch=batches),
+        # Module 1:
+        bedset = multiext(str(tmpMod1 / "{batch}" / rule_stem), '.bed', '.bim', '.fam'),
+        # category is sorted as written below. We use - as prefix to force
+        # final reports to be sorted first ...
+        report_markers = report(
+            (resultPath / "{batch}" / rule_stem).with_suffix(".markers.yaml"),
+            category = "- Module 1 Data conversion recap",
+            caption = (resultPath / "{batch}" / rule_stem).with_suffix(".markers.rst")
+        ),
+        report_samples = report(
+            (resultPath / "{batch}" / rule_stem).with_suffix(".samples.yaml"),
+            category = "- Module 1 Data conversion recap",
+            caption = (resultPath / "{batch}" / rule_stem).with_suffix(".samples.rst")
+        ),
+
+        # module_3_good_markers = expand((tmpMod3/"{batch}/m3_output_good_markers").with_suffix(".txt"), batch=batches),
+        # sex_check = expand(str(tmpMod3/"{batch}/{role}/sexcheck_report_x.sexcheck"), role=ROLES, batch=batches),
         
-        samples_lmm = expand(str(resultPath/"{batch}/{role}/m4_output_lmm_samples.yaml"), role=ROLES, batch=batches),
-        unrelated_samples = expand(str(resultPath/"{batch}/{role}/m4_output_unrelated_samples.yaml"), role=ROLES, batch=batches),
+        # samples_lmm = expand(str(resultPath/"{batch}/{role}/m4_output_lmm_samples.yaml"), role=ROLES, batch=batches),
+        # unrelated_samples = expand(str(resultPath/"{batch}/{role}/m4_output_unrelated_samples.yaml"), role=ROLES, batch=batches),
         
-        mendelian_errors = expand(str(tmpMod5)+"/{batch}/mendelian_errors"+'{ext}', ext=['.bed','.bim','.fam'], batch=batches),
+        # mendelian_errors = expand(str(tmpMod5)+"/{batch}/mendelian_errors"+'{ext}', ext=['.bed','.bim','.fam'], batch=batches),
         # mendelian_errors_chr = expand(str(tmpMod5)+"/{batch}/mendelian_errors-updated-chr{chromo}"+'{ext}', ext=['.bed','.bim','.fam'], chromo=chrom, batch=batches),
-        rayner_report = expand(resultPath/"{batch}/rayner_report.rst", batch=batches),
+        # rayner_report = expand(resultPath/"{batch}/rayner_report.rst", batch=batches),
         
-        pedigree_report = expand((resultPath/"{batch}/pedigree_fu_detector_solver").with_suffix(".yaml"), batch=batches),
+        # pedigree_report = expand((resultPath/"{batch}/pedigree_fu_detector_solver").with_suffix(".yaml"), batch=batches),
         
         # For now: this is needed to force the plots into the report. Fix later
         # Uncomment when creating in the report with plots
-        pca = expand(str(resultPath) + "/{batch}/{role}/core_pca.png", role=ROLES, batch=batches),
-        ibd = expand(str(resultPath/"{batch}/{role}/ibd_estimate.png"), role=ROLES, batch=batches),
-        ibd_accum_exclusion = expand(str(resultPath/"{batch}/{role}/ibd_accum_exclusion.png"), role=ROLES, batch=batches)
+        # pca = expand(str(resultPath) + "/{batch}/{role}/core_pca.png", role=ROLES, batch=batches),
+        # ibd = expand(str(resultPath/"{batch}/{role}/ibd_estimate.png"), role=ROLES, batch=batches),
+        # ibd_accum_exclusion = expand(str(resultPath/"{batch}/{role}/ibd_accum_exclusion.png"), role=ROLES, batch=batches)
 
         # remove this when m4 is done
 	# final output:

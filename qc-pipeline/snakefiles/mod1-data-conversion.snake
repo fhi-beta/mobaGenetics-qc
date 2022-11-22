@@ -1,6 +1,7 @@
 # Rule updates raw bedset with biobank provided pedigree information and gender
 # Sample IDs are updated to SentrixIDs
 import os.path
+from datetime import datetime
 
 rule_stem = 'remove_chr0'
 rule remove_chr0:
@@ -36,7 +37,7 @@ rule remove_chr0:
         dropouts["Rule"] = rule
 
         mqc.saveYamlResults(output.results, dropouts)
-        mqc.log(runlog, f'(NSNP_CHR0_LOST) Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} chromosone 0 out of {dropouts["in"]}, leaving {dropouts["out"]} markers\n')
+        mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - (NSNP_CHR0_LOST) Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} chromosone 0 out of {dropouts["in"]}, leaving {dropouts["out"]} markers\n')
 
 
 # Check for duplicate markers, and remove all but one (keep best callrate)
@@ -98,7 +99,7 @@ rule remove_duplicate_markers:
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
-        mqc.log(runlog, f'Batch {wildcards.batch}: Due to duplicate markers, removed {dropouts["actionTakenCount"]} markers out of {dropouts["in"]}, leaving {dropouts["out"]} markers\n')
+        mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Due to duplicate markers, removed {dropouts["actionTakenCount"]} markers out of {dropouts["in"]}, leaving {dropouts["out"]} markers\n')
 
 
 rule_stem ='sampleIdUpdated'
@@ -130,7 +131,7 @@ rule update_sample_ids:
         updated.update(rule_info[rule])   # Metainfo and documentation about the rule
         updated["Rule"] = rule
         mqc.saveYamlResults(output.results, updated)
-        mqc.log(runlog,f'Sample id: Updated {updated["actionTakenCount"]} samples (NIND_NOTUPDATEDID) out of {updated["in"]} (NIND_TOUPDATEID)\n')
+        mqc.log(runlog,f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Sample id: Updated {updated["actionTakenCount"]} samples (NIND_NOTUPDATEDID) out of {updated["in"]} (NIND_TOUPDATEID)\n')
 
 rule_stem = 'parents-updated'
 rule update_parents:
@@ -160,8 +161,7 @@ rule update_parents:
         updated["Rule"] = rule
 
         mqc.saveYamlResults(output.results, updated)
-        mqc.log(runlog,f'Sample id: Updated {updated["actionTakenCount"]} samples (NIND_NOTUPDATEDPAR) out of {updated["in"]} (NIND_TOUPDATEPAR)\n')
-
+        mqc.log(runlog,f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Sample id: Updated {updated["actionTakenCount"]} samples (NIND_NOTUPDATEDPAR) out of {updated["in"]} (NIND_TOUPDATEPAR)\n')
 
 rule_stem = 'sex-updated'
 rule update_sex:
@@ -196,7 +196,7 @@ rule update_sex:
 
 
         mqc.saveYamlResults(output.results, updated)
-        mqc.log(runlog,f'Sex updated: Updated {updated["actionTakenCount"]} samples (NIND_NOTUPDATEDPAR) out of {updated["in"]} (NIND_TOUPDATEPAR)\n')
+        mqc.log(runlog,f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Sex updated: Updated {updated["actionTakenCount"]} samples (NIND_NOTUPDATEDPAR) out of {updated["in"]} (NIND_TOUPDATEPAR)\n')
 
 
 # Remove markers on snp table metrics
@@ -248,7 +248,7 @@ rule remove_markers_cluster_sep:
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
 
-        mqc.log(runlog, f'Removed {dropouts["actionTakenCount"]} markers(NSNP_CLUSTERSEP_LOST) out of {dropouts["in"]} (BEFORE_SNPTABLE), leaving {dropouts["out"]} markers. Treshhold {params.treshold}\n')
+        mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} markers(NSNP_CLUSTERSEP_LOST) out of {dropouts["in"]} (BEFORE_SNPTABLE), leaving {dropouts["out"]} markers. Treshhold {params.treshold}\n')
         # The following has a huge potential for speedup (using round as in mqc.dotplot()
         mqc.plot_point_and_line(dropouts, input.snptable, output.plot,
                                 config["cluster_sep_col_name"], separator='\t',
@@ -298,7 +298,7 @@ rule remove_markers_gc_score:
         dropouts["Rule"] = rule
         mqc.saveYamlResults(output.results, dropouts)
 
-        mqc.log(runlog, f'Removed {dropouts["actionTakenCount"]} markers(NSNP_GC_LOST) out of {dropouts["in"]} (NSNP_BEFORE_GC), leaving {dropouts["out"]} markers. Treshhold {params.treshold}\n')
+        mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} markers(NSNP_GC_LOST) out of {dropouts["in"]} (NSNP_BEFORE_GC), leaving {dropouts["out"]} markers. Treshhold {params.treshold}\n')
 
         mqc.plot_point_and_line(dropouts, input.snptable, output.plot,
                                 config["10%_GC_score_col_name"], separator='\t',
@@ -351,7 +351,7 @@ rule remove_markers_aa_theta_deviation:
         dropouts["Rule"] = rule
 
         mqc.saveYamlResults(output.results, dropouts)
-        mqc.log(runlog, f'Removed {dropouts["actionTakenCount"]} markers(NSNP_AATHETADEV_LOST) out of {dropouts["in"]} (NSNP_GC_LOST), leaving {dropouts["out"]} markers. Treshhold {params.treshold}\n')
+        mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} markers(NSNP_AATHETADEV_LOST) out of {dropouts["in"]} (NSNP_GC_LOST), leaving {dropouts["out"]} markers. Treshhold {params.treshold}\n')
 
         mqc.plot_point_and_line(dropouts, input.snptable, output.plot,
                                 config["aa_theta_dev_col_name"], separator='\t',
@@ -360,8 +360,8 @@ rule remove_markers_aa_theta_deviation:
 
 # This is a non-functional rule which sole intention is to recap and
 # show what happens in Module 1, It permits the module to have some
-# 'public' variables (output), that other rules can refer to.  It also
-# ensure that snakemake DAG output is easer to read.
+# 'public' variables (output), that other rules can refer to. It also
+# ensures that snakemake DAG output is easier to read.
 rule_stem = 'm1_output'
 rule m1_output:
     input:
@@ -370,15 +370,19 @@ rule m1_output:
         # Note that this is actually the output of module 1, this rule is just a report rule
         bedset_last = rules.remove_markers_aa_theta_deviation.output.bedset,
     output:
-        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem),'.bed','.bim','.fam'),
+        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         # category is sorted as written below. We use - as prefix to force
         # final reports to be sorted first ...
-        report_markers = report((resultPath/"{batch}"/rule_stem).with_suffix(".markers.yaml"),
-                        category="- Module 1 Data conversion recap",
-                        caption=(resultPath/"{batch}"/rule_stem).with_suffix(".markers.rst")),
-        report_samples = report((resultPath/"{batch}"/rule_stem).with_suffix(".samples.yaml"),
-                        category="- Module 1 Data conversion recap",
-                        caption=(resultPath/"{batch}"/rule_stem).with_suffix(".samples.rst")),
+        report_markers = report(
+            (resultPath/"{batch}"/rule_stem).with_suffix(".markers.yaml"),
+            category = "- Module 1 Data conversion recap",
+            caption = (resultPath/"{batch}"/rule_stem).with_suffix(".markers.rst")
+        ),
+        report_samples = report(
+            (resultPath/"{batch}"/rule_stem).with_suffix(".samples.yaml"),
+            category = "- Module 1 Data conversion recap",
+            caption = (resultPath/"{batch}"/rule_stem).with_suffix(".samples.rst")
+        ),
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])

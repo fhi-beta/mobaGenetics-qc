@@ -664,9 +664,9 @@ rule geno_rates_mind3:         # part of earlier markerclean
         # create a common caption
         mqc.make_rule_caption(rule, resultPath)
 
-rule_stem = 'hwe_autos_geno' # called clean_marker previously
-rule hwe_autos_geno:        # part of earlier markerclean
-    threads: 2
+rule_stem = 'hwe_autos_geno'
+rule hwe_autos_geno:
+    threads: 1
     input:
         bedset = rules.geno_rates_mind3.output.bedset,
     output:
@@ -696,15 +696,17 @@ rule hwe_autos_geno:        # part of earlier markerclean
         out_dir = Path(output.bedset).parent    # Directory according to output.bedset
         res_dir = Path(output.results).parent   # and corresponding for results
         lastTrunk = inTrunk
-        # Iterate 2 times, greating a chain of geno1->mind1->geno2->mind2 etc files
-        # We might have just as well off with cut'n paste here - the code is somewhat
-        # hard to read -
-        autosomal = "common"
+
+        # Iterate 2 times, creating a chain of geno1 -> mind1 -> geno2 -> mind2 etc files
+        markers_category = ["common", "rare"]
+
         for i in [1,2]:    # common_het logic not suited for more than 2 iterations
+
             file_name= rule + "_hwe" + str(i)
             outTrunk =  str(out_dir/file_name)
             res_file =  str(res_dir/file_name)+".yaml"
             plot_file =  str(res_dir/file_name)+".png"
+
             # Filters and plot
             mqc.low_hwe_rate(rule, lastTrunk, outTrunk,
                             treshold=getattr(params,f"hwe{i}"),
@@ -712,19 +714,18 @@ rule hwe_autos_geno:        # part of earlier markerclean
                             result_file=res_file,
                             plot_file=plot_file)
 
-
+            autosomal = markers_category[i]
             lastTrunk = outTrunk
             file_name= rule + "_het" + str(i)
             outTrunk =  str(out_dir/file_name)
-            res_file =  str(res_dir/file_name)+".yaml"
-            plot_file =  str(res_dir/file_name)+".png"
+            res_file =  str(res_dir/file_name) + ".yaml"
+            plot_file =  str(res_dir/file_name) + ".png"
             mqc.excess_het(rule, autosomal, lastTrunk, outTrunk,
                             treshold=getattr(params,f"maf{i}"),
                             sd=getattr(params,f"sd_het{i}"),
                             result_file=res_file,
                             plot_file=plot_file)
-            # dirty, but with only two iterations this works ...
-            autosomal = "rare"
+
             lastTrunk = outTrunk
 
         # a last round of marker removal
@@ -733,6 +734,7 @@ rule hwe_autos_geno:        # part of earlier markerclean
                         treshold=params.geno_rare,
                         result_file=output.results,
                         plot_file=output.plot)
+
         # and set a common caption
         mqc.make_rule_caption(rule, resultPath)
 
