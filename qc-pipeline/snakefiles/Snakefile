@@ -1,3 +1,15 @@
+##
+#
+# This snakefile executes the entire pipeline. The different parts of the pipeline are organized in modules represented in different snake files.
+# The pipeline is expected to run in the conda environment named 'snpQc' built using `aux/environment/snpQc-env.txt`.
+#
+# Commands to execute from the repository folder:
+# conda activate snpQc
+# snakemake --snakefile Snakefile --cores 32 --use-conda
+#
+##
+
+
 # External libraries
 sys.path.append('../lib')  # in order to find our local packages
 import mobaQcTools as mqc  # local moba package
@@ -25,18 +37,18 @@ report: "report/qc.rst"
 rule all:
     input:
         # Module 1:
-        bedset = multiext(str(tmpMod1 / "{batch}" / rule_stem), '.bed', '.bim', '.fam'),
+        bedset = multiext(str(tmpMod1 / "{batch}" / "m1_output"), '.bed', '.bim', '.fam'),
         # category is sorted as written below. We use - as prefix to force
         # final reports to be sorted first ...
         report_markers = report(
-            (resultPath / "{batch}" / rule_stem).with_suffix(".markers.yaml"),
+            (resultPath / "{batch}" / "m1_output").with_suffix(".markers.yaml"),
             category = "- Module 1 Data conversion recap",
-            caption = (resultPath / "{batch}" / rule_stem).with_suffix(".markers.rst")
+            caption = (resultPath / "{batch}" / "m1_output").with_suffix(".markers.rst")
         ),
         report_samples = report(
-            (resultPath / "{batch}" / rule_stem).with_suffix(".samples.yaml"),
+            (resultPath / "{batch}" / "m1_output").with_suffix(".samples.yaml"),
             category = "- Module 1 Data conversion recap",
-            caption = (resultPath / "{batch}" / rule_stem).with_suffix(".samples.rst")
+            caption = (resultPath / "{batch}" / "m1_output").with_suffix(".samples.rst")
         ),
 
         # module_3_good_markers = expand((tmpMod3/"{batch}/m3_output_good_markers").with_suffix(".txt"), batch=batches),
