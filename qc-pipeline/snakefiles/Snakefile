@@ -37,7 +37,9 @@ report: "report/qc.rst"
 rule all:
     input:
         # Module 1:
-        bedset = multiext(expand(str(tmpMod1 / "{batch}" / "m1_output"), batch = batches), '.bed', '.bim', '.fam')
+        bed_file = expand(str(tmpMod1 / "{batch}" / "m1_output.bed"), batch = batches),
+        bim_file = expand(str(tmpMod1 / "{batch}" / "m1_output.bim"), batch = batches),
+        fam_file = expand(str(tmpMod1 / "{batch}" / "m1_output.fam"), batch = batches),
 
         # module_3_good_markers = expand((tmpMod3/"{batch}/m3_output_good_markers").with_suffix(".txt"), batch=batches),
         # sex_check = expand(str(tmpMod3/"{batch}/{role}/sexcheck_report_x.sexcheck"), role=ROLES, batch=batches),
