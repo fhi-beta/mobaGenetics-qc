@@ -1,9 +1,9 @@
 ##
 #
-# This snakefile executes the entire pipeline. The different parts of the pipeline are organized in modules represented in different snake files.
+# This snakefile executes the QC pipeline. The different parts of the pipeline are organized in modules represented in different snake files.
 # The pipeline is expected to run in the conda environment named 'snpQc' built using `aux/environment/snpQc-env.txt`.
 #
-# Commands to execute from the repository folder:
+# Commands to execute from the qc-pipeline folder:
 # conda activate snpQc
 # snakemake --snakefile Snakefile --cores 32 --use-conda
 #
@@ -37,7 +37,7 @@ report: "report/qc.rst"
 rule all:
     input:
         # Module 1:
-        bedset = expand(multiext(str(tmpMod1 / "{batch}" / "m1_output"), '.bed', '.bim', '.fam'), batch = batches)
+        bedset = multiext(expand(str(tmpMod1 / "{batch}" / "m1_output"), batch = batches), '.bed', '.bim', '.fam')
 
         # module_3_good_markers = expand((tmpMod3/"{batch}/m3_output_good_markers").with_suffix(".txt"), batch=batches),
         # sex_check = expand(str(tmpMod3/"{batch}/{role}/sexcheck_report_x.sexcheck"), role=ROLES, batch=batches),
