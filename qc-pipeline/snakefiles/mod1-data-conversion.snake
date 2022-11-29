@@ -11,7 +11,7 @@ rule remove_chr0:
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
             category = "Module 1 Data preparation",
-            caption = os.path.join(resultPath, "{batch}", rule_stem + ".rst")
+            caption = resultPath/"{batch}"/(rule_stem + ".rst")
         )
     threads: 1
     run:
