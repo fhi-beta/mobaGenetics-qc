@@ -6,11 +6,11 @@ from datetime import datetime
 rule_stem = 'remove_chr0'
 rule remove_chr0:
     input:
-        bedset = multiext(os.path.join(config['raw_folder'], "{batch}", "raw-data", "bedset", "{batch}"), '.bed', '.bim', '.fam'),
+        bedset = multiext(config['raw_folder']/"{batch}"/"raw-data"/"bedset"/"{batch}", '.bed', '.bim', '.fam'),
     output:
-        bedset = multiext(os.path.join(tmpMod1, "{batch}", rule_stem), '.bed', '.bim', '.fam'),
+        bedset = multiext(tmpMod1/"{batch}"/rule_stem, '.bed', '.bim', '.fam'),
         results = report(
-            os.path.join(resultPath, "{batch}", rule_stem + ".yaml"),
+            resultPath/"{batch}"/rule_stem + ".yaml",
             category = "Module 1 Data preparation",
             caption = os.path.join(resultPath, "{batch}", rule_stem + ".rst")
         )
@@ -70,7 +70,6 @@ rule generate_start_stats:
     threads: 1
     run:
         try:
-
             # Plink base paths
             plink_input = mqc.plinkBase(input.bedset[0])
             plink_het_output = mqc.plinkBase(output.het)
@@ -126,6 +125,7 @@ rule generate_start_stats:
             template = f"An exception occured in rule {rule_stem}."
             print(e)
 
+
 # Check for duplicate markers, and remove all but one (keep best callrate)
 # The code here is copied and reused in remove_dup_markers_1kg
 # This rule could be smarter in the case no duplicate markers are found
@@ -134,9 +134,9 @@ rule remove_duplicate_markers:
     input:
         bedset = rules.remove_chr0.output.bedset,
     output:
-        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
-        excludeList = (tmpMod1/"{batch}"/rule_stem).with_suffix(".txt"),
-        resultDetails = (resultPath/"{batch}"/rule_stem).with_suffix(".csv"),
+        bedset = multiext(tmpMod1/"{batch}"/rule_stem, '.bed', '.bim', '.fam'),
+        excludeList = tmpMod1/"{batch}"/rule_stem.with_suffix(".txt"),
+        resultDetails = resultPath/"{batch}"/rule_stem.with_suffix(".csv"),
         # plink hardcodes this
         plink_dup_list = (tmpMod1/"{batch}"/"plink").with_suffix(".dupvar"),
         results = report(
