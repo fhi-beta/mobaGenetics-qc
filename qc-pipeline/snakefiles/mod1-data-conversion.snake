@@ -1,16 +1,15 @@
 # Rule updates raw bedset with biobank provided pedigree information and gender
 # Sample IDs are updated to SentrixIDs
-import os.path
 from datetime import datetime
 
 rule_stem = 'remove_chr0'
 rule remove_chr0:
     input:
-        bedset = multiext(config['raw_folder']/"{batch}"/"raw-data"/"bedset"/"{batch}", '.bed', '.bim', '.fam'),
+        bedset = multiext(Path(config['raw_folder'])/"{batch}"/"raw-data"/"bedset"/"{batch}", '.bed', '.bim', '.fam'),
     output:
         bedset = multiext(tmpMod1/"{batch}"/rule_stem, '.bed', '.bim', '.fam'),
         results = report(
-            resultPath/"{batch}"/rule_stem + ".yaml",
+            resultPath/"{batch}"/(rule_stem + ".yaml"),
             category = "Module 1 Data preparation",
             caption = os.path.join(resultPath, "{batch}", rule_stem + ".rst")
         )
@@ -135,17 +134,17 @@ rule remove_duplicate_markers:
         bedset = rules.remove_chr0.output.bedset,
     output:
         bedset = multiext(tmpMod1/"{batch}"/rule_stem, '.bed', '.bim', '.fam'),
-        excludeList = tmpMod1/"{batch}"/rule_stem.with_suffix(".txt"),
-        resultDetails = resultPath/"{batch}"/rule_stem.with_suffix(".csv"),
+        excludeList = tmpMod1/"{batch}"/(rule_stem + ".txt"),
+        resultDetails = resultPath/"{batch}"/(rule_stem + ".csv"),
         # plink hardcodes this
-        plink_dup_list = (tmpMod1/"{batch}"/"plink").with_suffix(".dupvar"),
+        plink_dup_list = tmpMod1/"{batch}"/"plink.dupvar",
         results = report(
-            (resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
+            resultPath/"{batch}"/(rule_stem + ".yaml"),
             category = "Module 1 Data preparation",
-            caption = (resultPath/"{batch}"/rule_stem).with_suffix(".rst")
+            caption = resultPath/"{batch}"/(rule_stem + ".rst")
         )
     params:
-        details = (resultPath/"{batch}"/rule_stem).with_suffix(".yaml.details")
+        details = resultPath/"{batch}"/(rule_stem + ".yaml.details")
     threads: 1
     run:
         try:
@@ -222,20 +221,20 @@ rule remove_markers_cluster_sep:
         bedset = rules.remove_duplicate_markers.output.bedset,
         snptable = lambda wildcards: getSnpTable(wildcards.batch),
     output:
-        bedset = multiext(os.path.join(tmpMod1, "{batch}", rule_stem), '.bed', '.bim', '.fam'),
+        bedset = multiext(tmpMod1/"{batch}"/rule_stem, '.bed', '.bim', '.fam'),
         results = report(
-            os.path.join(resultPath, "{batch}", rule_stem + ".yaml"),
+            resultPath/"{batch}"/(rule_stem + ".yaml"),
             category = "Module 1 Data preparation",
-            caption = os.path.join(resultPath, "{batch}", rule_stem + ".rst")
+            caption = resultPath/"{batch}"/(rule_stem + ".rst")
         ),
         plot = report(
-            os.path.join(resultPath, "{batch}", rule_stem + ".png"),
+            resultPath/"{batch}"/(rule_stem + ".png"),
             category = "Module 1 Data preparation",
-            caption = os.path.join(resultPath, "{batch}", rule_stem + ".rst")
+            caption = resultPath/"{batch}"/(rule_stem + ".rst")
         ),
         # in addition to the removal list .txt, a *removal.txt.samples is produced, sporting only the sample-list
-        removal= os.path.join(tmpMod1, "{batch}", rule_stem + ".txt"),
-        removal_markers = os.path.join(tmpMod1, "{batch}", rule_stem + ".markers.txt"),
+        removal= tmpMod1/"{batch}"/(rule_stem + ".txt"),
+        removal_markers = tmpMod1/"{batch}"/(rule_stem + ".markers.txt"),
     params:
         treshold = config['cluster_sep_thr']
     message: "mod1 Remove markers by cluster metrics"
@@ -304,19 +303,20 @@ rule remove_markers_gc_score:
         bedset = rules.remove_markers_cluster_sep.output.bedset,
         snptable = lambda wildcards: getSnpTable(wildcards.batch)
     output:
-        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
+        bedset = multiext(tmpMod1/"{batch}"/rule_stem, '.bed', '.bim', '.fam'),
         results = report(
-            (resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
+            resultPath/"{batch}"/(rule_stem + ".yaml"),
             category = "Module 1 Data preparation",
-            caption = (resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
+            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+        ),
         plot = report(
-            (resultPath/"{batch}"/rule_stem).with_suffix(".png"),
+            resultPath/"{batch}"/(rule_stem + ".png"),
             category = "Module 1 Data preparation",
-            caption = (resultPath/"{batch}"/rule_stem).with_suffix(".rst")
+            caption = resultPath/"{batch}"/(rule_stem + ".rst")
         ),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
-        removal= (tmpMod1/"{batch}"/rule_stem).with_suffix(".txt"),
-        removal_markers = (tmpMod1/"{batch}"/rule_stem).with_suffix(".markers.txt"),
+        removal= tmpMod1/"{batch}"/(rule_stem + ".txt"),
+        removal_markers = tmpMod1/"{batch}"/(rule_stem + ".markers.txt"),
     params:
         treshold = config['10%_GC_score_thr']
     run:
@@ -327,7 +327,7 @@ rule remove_markers_gc_score:
             inTrunk =  mqc.plinkBase(input.bedset[0])
             outTrunk =  mqc.plinkBase(output.bedset[0])
             # identify markers for removal
-            (removed,total) = mqc.extract_list(
+            (removed, total) = mqc.extract_list(
                 input.snptable,
                 output.removal_markers,
                 output.removal,
@@ -385,20 +385,20 @@ rule remove_markers_aa_theta_deviation:
         bedset = rules.remove_markers_gc_score.output.bedset,
         snptable = lambda wildcards: getSnpTable(wildcards.batch)
     output:
-        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
+        bedset = multiext(tmpMod1/"{batch}"/rule_stem, '.bed', '.bim', '.fam'),
         results = report(
-            (resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
+            resultPath/"{batch}"/(rule_stem + ".yaml"),
             category = "Module 1 Data preparation",
-            caption = (resultPath/"{batch}"/rule_stem).with_suffix(".rst")
+            caption = resultPath/"{batch}"/(rule_stem + ".rst")
         ),
         plot = report(
-            (resultPath/"{batch}"/rule_stem).with_suffix(".png"),
+            resultPath/"{batch}"/(rule_stem + ".png"),
             category = "Module 1 Data preparation",
-            caption = (resultPath/"{batch}"/rule_stem).with_suffix(".rst")
+            caption = resultPath/"{batch}"/(rule_stem + ".rst")
         ),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
-        removal = (tmpMod1/"{batch}"/rule_stem).with_suffix(".txt"),
-        removal_markers = (tmpMod1/"{batch}"/rule_stem).with_suffix(".markers.txt"),
+        removal = tmpMod1/"{batch}"/(rule_stem + ".txt"),
+        removal_markers = tmpMod1/"{batch}"/(rule_stem + ".markers.txt"),
     params:
         treshold = config['aa_theta_dev_thr']
     run:
@@ -473,18 +473,18 @@ rule m1_output:
         # Note that this is actually the output of module 1, this rule is just a report rule
         bedset_last = rules.remove_markers_aa_theta_deviation.output.bedset,
     output:
-        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
+        bedset = multiext(tmpMod1/"{batch}"/rule_stem, '.bed', '.bim', '.fam'),
         # Category is sorted as written below.
         # We use - as prefix to force final reports to be sorted first.
         report_markers = report(
-            (resultPath/"{batch}"/rule_stem).with_suffix(".markers.yaml"),
+            resultPath/"{batch}"/(rule_stem + ".markers.yaml"),
             category = "- Module 1 Data conversion recap",
-            caption = (resultPath/"{batch}"/rule_stem).with_suffix(".markers.rst")
+            caption = resultPath/"{batch}"/(rule_stem + ".markers.rst")
         ),
         report_samples = report(
-            (resultPath/"{batch}"/rule_stem).with_suffix(".samples.yaml"),
+            resultPath/"{batch}"/(rule_stem + ".samples.yaml"),
             category = "- Module 1 Data conversion recap",
-            caption = (resultPath/"{batch}"/rule_stem).with_suffix(".samples.rst")
+            caption = resultPath/"{batch}"/(rule_stem + ".samples.rst")
         ),
     run:
         try:
