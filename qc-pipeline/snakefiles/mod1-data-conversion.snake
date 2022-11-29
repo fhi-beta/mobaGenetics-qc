@@ -65,16 +65,21 @@ rule generate_raw_stats:
     threads: 1
     run:
         try:
-            print(f"start {input.bedset[0]}")
-            print(f"plink {plinkBase(input.bedset[0])}")
-            print(f"plink {plinkBase(output.het)}")
+
+            # Plink base paths
+            plink_input = mqc.plinkBase(input.bedset[0])
+            plink_het_output = mqc.plinkBase(output.het)
+            plink_hwe_output = mqc.plinkBase(output.hwe)
+            plink_freq_output = mqc.plinkBase(output.freq)
+            plink_miss_output = mqc.plinkBase(output.lmiss)
+
             # Heterozygocity rate
             subprocess.run(
                 [
                     plinklocal,
-                    "--bfile", plinkBase(input.bedset[0]),
+                    "--bfile", plink_input,
                     "--het",
-                    "--out", plinkBase(output.het)
+                    "--out", plink_het_output
                 ],
                 check=True
             )
@@ -83,9 +88,9 @@ rule generate_raw_stats:
             subprocess.run(
                 [
                     plinklocal,
-                    "--bfile", plinkBase(input.bedset[0]),
+                    "--bfile", plink_input,
                     "--hardy",
-                    "--out", plinkBase(output.hwe)
+                    "--out", plink_hwe_output
                 ],
                 check=True
             )
@@ -94,9 +99,9 @@ rule generate_raw_stats:
             subprocess.run(
                 [
                     plinklocal,
-                    "--bfile", plinkBase(input.bedset[0]),
+                    "--bfile", plink_input,
                     "--freq",
-                    "--out", plinkBase(output.freq)
+                    "--out", plink_freq_output
                 ],
                 check=True
             )
@@ -105,13 +110,13 @@ rule generate_raw_stats:
             subprocess.run(
                 [
                     plinklocal,
-                    "--bfile", plinkBase(input.bedset[0]),
+                    "--bfile", plink_input,
                     "--missing",
-                    "--out", plinkBase(output.lmiss)
+                    "--out", plink_miss_output
                 ],
                 check=True
             )
-            print("end")
+
         except Exception as e:
             template = f"An exception occured in rule {rule_stem}."
             print(e)
