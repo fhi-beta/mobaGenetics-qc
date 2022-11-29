@@ -2,10 +2,13 @@
 # Sample IDs are updated to SentrixIDs
 from datetime import datetime
 
+# Paths
+raw_folder_path = Path(config['raw_folder'])
+
 rule_stem = 'remove_chr0'
 rule remove_chr0:
     input:
-        bedset = multiext(Path(config['raw_folder'])/"{batch}"/"raw-data"/"bedset"/"{batch}", '.bed', '.bim', '.fam'),
+        bedset = multiext(raw_folder_path/"{batch}"/"raw-data"/"bedset"/"{batch}", '.bed', '.bim', '.fam'),
     output:
         bedset = multiext(tmpMod1/"{batch}"/rule_stem, '.bed', '.bim', '.fam'),
         results = report(
