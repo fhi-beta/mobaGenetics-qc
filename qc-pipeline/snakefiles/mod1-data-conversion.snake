@@ -52,6 +52,7 @@ rule remove_chr0:
 
 
 # Generate statistics on raw dataset before anything happens to the data
+rule_stem = 'generate_raw_stats'
 rule generate_raw_stats:
     input:
         bedset = rules.remove_chr0.output.bedset
@@ -63,54 +64,57 @@ rule generate_raw_stats:
         imiss = str(tmpMod1/"{batch}"/'mod1_start_missing.imiss'),
     threads: 1
     run:
+        try:
+            print(f"start {input.bedset[0]}")
+            print(f"plink {plinkBase(input.bedset[0])}")
+            print(f"plink {plinkBase(output.het)}")
+            # Heterozygocity rate
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", plinkBase(input.bedset[0]),
+                    "--het",
+                    "--out", plinkBase(output.het)
+                ],
+                check=True
+            )
 
-        print(f"start {input.bedset[0]}")
-        print(f"plink {plinkBase(input.bedset[0])}")
-        print(f"plink {plinkBase(output.het)}")
-        # Heterozygocity rate
-        subprocess.run(
-            [
-                plinklocal,
-                "--bfile", plinkBase(input.bedset[0]),
-                "--het",
-                "--out", plinkBase(output.het)
-            ],
-            check=True
-        )
+            # HWE
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", plinkBase(input.bedset[0]),
+                    "--hardy",
+                    "--out", plinkBase(output.hwe)
+                ],
+                check=True
+            )
 
-        # HWE
-        subprocess.run(
-            [
-                plinklocal,
-                "--bfile", plinkBase(input.bedset[0]),
-                "--hardy",
-                "--out", plinkBase(output.hwe)
-            ],
-            check=True
-        )
+            # Frequencies
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", plinkBase(input.bedset[0]),
+                    "--freq",
+                    "--out", plinkBase(output.freq)
+                ],
+                check=True
+            )
 
-        # Frequencies
-        subprocess.run(
-            [
-                plinklocal,
-                "--bfile", plinkBase(input.bedset[0]),
-                "--freq",
-                "--out", plinkBase(output.freq)
-            ],
-            check=True
-        )
-
-        # Missingness
-        subprocess.run(
-            [
-                plinklocal,
-                "--bfile", plinkBase(input.bedset[0]),
-                "--missing",
-                "--out", plinkBase(output.lmiss)
-            ],
-            check=True
-        )
-        print("end")
+            # Missingness
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", plinkBase(input.bedset[0]),
+                    "--missing",
+                    "--out", plinkBase(output.lmiss)
+                ],
+                check=True
+            )
+            print("end")
+        except Exception as e:
+            template = f"An exception occured in rule {rule_stem}."
+            print(e)
 
 # Check for duplicate markers, and remove all but one (keep best callrate)
 # The code here is copied and reused in remove_dup_markers_1kg
