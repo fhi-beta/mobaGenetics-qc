@@ -56,11 +56,11 @@ rule generate_raw_stats:
     input:
         bedset = rules.remove_chr0.output.bedset
     output:
-        het = tmpMod1/"{batch}"/'mod1_start_het.het',
-        hwe = tmpMod1/"{batch}"/'mod1_start_hwe.hwe',
-        freq = tmpMod1/"{batch}"/'mod1_start_freq.frq',
-        lmiss = tmpMod1/"{batch}"/'mod1_start_missing.lmiss',
-        imiss = tmpMod1/"{batch}"/'mod1_start_missing.imiss',
+        het = str(tmpMod1/"{batch}"/'mod1_start_het.het'),
+        hwe = str(tmpMod1/"{batch}"/'mod1_start_hwe.hwe'),
+        freq = str(tmpMod1/"{batch}"/'mod1_start_freq.frq'),
+        lmiss = str(tmpMod1/"{batch}"/'mod1_start_missing.lmiss'),
+        imiss = str(tmpMod1/"{batch}"/'mod1_start_missing.imiss'),
     threads: 1
     run:
         print("start")
