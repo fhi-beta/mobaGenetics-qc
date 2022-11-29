@@ -63,6 +63,7 @@ rule generate_raw_stats:
         imiss = str(tmpMod1/"{batch}"/'mod1_start_missing.imiss'),
     threads: 1
     run:
+        print("start")
         print(f"plink {input.bedset[0].stem} {output.het.stem}")
         # Heterozygocity rate
         subprocess.run(
@@ -107,6 +108,7 @@ rule generate_raw_stats:
             ],
             check=True
         )
+        print("end")
 
 # Check for duplicate markers, and remove all but one (keep best callrate)
 # The code here is copied and reused in remove_dup_markers_1kg
