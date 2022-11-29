@@ -63,15 +63,16 @@ rule generate_raw_stats:
         imiss = str(tmpMod1/"{batch}"/'mod1_start_missing.imiss'),
     threads: 1
     run:
-        print("start")
-        print(f"plink {Path(input.bedset[0]).stem} {Path(output.het).stem}")
+
+        print(f"start {input.bedset[0]}")
+        print(f"plink {plinkBase(input.bedset[0])} {plinkBase(output.het)}")
         # Heterozygocity rate
         subprocess.run(
             [
                 plinklocal,
-                "--bfile", Path(input.bedset[0]).stem,
+                "--bfile", plinkBase(input.bedset[0]),
                 "--het",
-                "--out", Path(output.het).stem
+                "--out", plinkBase(output.het)
             ],
             check=True
         )
@@ -80,9 +81,9 @@ rule generate_raw_stats:
         subprocess.run(
             [
                 plinklocal,
-                "--bfile", Path(input.bedset[0]).stem,
+                "--bfile", plinkBase(input.bedset[0]),
                 "--hardy",
-                "--out", Path(output.hwe).stem
+                "--out", plinkBase(output.hwe)
             ],
             check=True
         )
@@ -91,9 +92,9 @@ rule generate_raw_stats:
         subprocess.run(
             [
                 plinklocal,
-                "--bfile", Path(input.bedset[0]).stem,
+                "--bfile", plinkBase(input.bedset[0]),
                 "--freq",
-                "--out", Path(output.freq).stem
+                "--out", plinkBase(output.freq)
             ],
             check=True
         )
@@ -102,9 +103,9 @@ rule generate_raw_stats:
         subprocess.run(
             [
                 plinklocal,
-                "--bfile", Path(input.bedset[0]).stem,
+                "--bfile", plinkBase(input.bedset[0]),
                 "--missing",
-                "--out", Path(output.lmiss).stem
+                "--out", plinkBase(output.lmiss)
             ],
             check=True
         )
