@@ -136,7 +136,7 @@ rule remove_duplicate_markers:
     input:
         bedset = rules.remove_chr0.output.bedset,
     output:
-        bedset = multiext(tmpMod1/"{batch}"/rule_stem, '.bed', '.bim', '.fam'),
+        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         excludeList = tmpMod1/"{batch}"/(rule_stem + ".txt"),
         resultDetails = resultPath/"{batch}"/(rule_stem + ".csv"),
         # plink hardcodes this
@@ -224,7 +224,7 @@ rule remove_markers_cluster_sep:
         bedset = rules.remove_duplicate_markers.output.bedset,
         snptable = lambda wildcards: getSnpTable(wildcards.batch),
     output:
-        bedset = multiext(tmpMod1/"{batch}"/rule_stem, '.bed', '.bim', '.fam'),
+        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
             category = "Module 1 Data preparation",
@@ -306,7 +306,7 @@ rule remove_markers_gc_score:
         bedset = rules.remove_markers_cluster_sep.output.bedset,
         snptable = lambda wildcards: getSnpTable(wildcards.batch)
     output:
-        bedset = multiext(tmpMod1/"{batch}"/rule_stem, '.bed', '.bim', '.fam'),
+        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
             category = "Module 1 Data preparation",
@@ -388,7 +388,7 @@ rule remove_markers_aa_theta_deviation:
         bedset = rules.remove_markers_gc_score.output.bedset,
         snptable = lambda wildcards: getSnpTable(wildcards.batch)
     output:
-        bedset = multiext(tmpMod1/"{batch}"/rule_stem, '.bed', '.bim', '.fam'),
+        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
             category = "Module 1 Data preparation",
@@ -476,7 +476,7 @@ rule m1_output:
         # Note that this is actually the output of module 1, this rule is just a report rule
         bedset_last = rules.remove_markers_aa_theta_deviation.output.bedset,
     output:
-        bedset = multiext(tmpMod1/"{batch}"/rule_stem, '.bed', '.bim', '.fam'),
+        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         # Category is sorted as written below.
         # We use - as prefix to force final reports to be sorted first.
         report_markers = report(
