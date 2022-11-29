@@ -63,6 +63,7 @@ rule generate_raw_stats:
         imiss = str(tmpMod1/"{batch}"/'mod1_start_missing.imiss'),
     threads: 1
     run:
+        print(f"plink {input.bedset[0].stem} {output.het.stem}")
         # Heterozygocity rate
         subprocess.run(
             [
