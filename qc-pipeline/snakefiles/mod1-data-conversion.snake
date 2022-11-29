@@ -65,7 +65,8 @@ rule generate_raw_stats:
     run:
 
         print(f"start {input.bedset[0]}")
-        print(f"plink {plinkBase(input.bedset[0])} {plinkBase(output.het)}")
+        print(f"plink {plinkBase(input.bedset[0])}")
+        print(f"plink {plinkBase(output.het)}")
         # Heterozygocity rate
         subprocess.run(
             [
