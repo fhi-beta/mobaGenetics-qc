@@ -113,7 +113,8 @@ rule generate_raw_stats:
 rule_stem = 'remove_duplicate_markers'
 rule remove_duplicate_markers:
     input:
-        bedset = rules.remove_chr0.output.bedset
+        bedset = rules.remove_chr0.output.bedset,
+        imiss = str(tmpMod1/"{batch}"/'mod1_start_missing.imiss'),
     output:
         bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         excludeList = (tmpMod1/"{batch}"/rule_stem).with_suffix(".txt"),
