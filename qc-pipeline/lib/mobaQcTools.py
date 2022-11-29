@@ -182,7 +182,7 @@ def plinkBase(path):
     """ part of the file without the last extention (such as .fam .bed .bim)
 
     plink often works on a trunk and creates extra files: a becomes a.fam, a.bed, a.bid
-    This function reates this trunk, so /foo/bar/gazonk.fam becomes /foo/bar/gazonk
+    This function creates this trunk, so /foo/bar/gazonk.fam becomes /foo/bar/gazonk
     The resulting trunk is typically used as input to plink
     Only the last '.' is removed so /foo.foo/bar/gazonk.x.fam will become /foo.foo/bar/gazonk.x
     """

@@ -51,6 +51,62 @@ rule remove_chr0:
         mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - (NSNP_CHR0_LOST) Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} chromosone 0 out of {dropouts["in"]}, leaving {dropouts["out"]} markers\n')
 
 
+# Generate statistics on raw dataset before anything happens to the data
+rule generate_raw_stats:
+    input:
+        bedset = rules.remove_chr0.output.bedset
+    output:
+        het = str(tmpMod1/"{batch}"/'mod1_start_het.het'),
+        hwe = str(tmpMod1/"{batch}"/'mod1_start_hwe.hwe'),
+        freq = str(tmpMod1/"{batch}"/'mod1_start_freq.frq'),
+        lmiss = str(tmpMod1/"{batch}"/'mod1_start_missing.lmiss'),
+        imiss = str(tmpMod1/"{batch}"/'mod1_start_missing.imiss'),
+    threads: 1
+    run:
+        # Heterozygocity rate
+        subprocess.run(
+            [
+                plinklocal,
+                "--bfile", input.bedset[0].stem,
+                "--het",
+                "--out", output.het.stem
+            ],
+            check=True
+        )
+
+        # HWE
+        subprocess.run(
+            [
+                plinklocal,
+                "--bfile", input.bedset[0].stem,
+                "--hardy",
+                "--out", output.hwe.stem
+            ],
+            check=True
+        )
+
+        # Frequencies
+        subprocess.run(
+            [
+                plinklocal,
+                "--bfile", input.bedset[0].stem,
+                "--freq",
+                "--out", output.freq.stem
+            ],
+            check=True
+        )
+
+        # Missingness
+        subprocess.run(
+            [
+                plinklocal,
+                "--bfile", input.bedset[0].stem,
+                "--missing",
+                "--out", output.lmiss.stem
+            ],
+            check=True
+        )
+
 # Check for duplicate markers, and remove all but one (keep best callrate)
 # The code here is copied and reused in remove_dup_markers_1kg
 # This rule could be smarter in the case no duplicate markers are found
@@ -112,7 +168,7 @@ rule remove_duplicate_markers:
         subprocess.run(
             [
                 plinklocal,
-                "--bfile",inTrunk,
+                "--bfile", inTrunk,
                 "--exclude", output.excludeList,
                 "--out", outTrunk,
                 "--make-bed"

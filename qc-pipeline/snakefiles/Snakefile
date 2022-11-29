@@ -37,9 +37,14 @@ report: "report/qc.rst"
 rule all:
     input:
         # Module 1:
-        bed_file = expand(str(tmpMod1 / "{batch}" / "m1_output.bed"), batch = batches),
-        bim_file = expand(str(tmpMod1 / "{batch}" / "m1_output.bim"), batch = batches),
-        fam_file = expand(str(tmpMod1 / "{batch}" / "m1_output.fam"), batch = batches),
+        mod1_start_het = str(tmpMod1/"{batch}"/'mod1_start_het.het'),
+        mod1_start_hwe = str(tmpMod1/"{batch}"/'mod1_start_hwe.hwe'),
+        mod1_start_freq = str(tmpMod1/"{batch}"/'mod1_start_freq.frq'),
+        mod1_start_lmiss = str(tmpMod1/"{batch}"/'mod1_start_missing.lmiss'),
+        mod1_start_imiss = str(tmpMod1/"{batch}"/'mod1_start_missing.imiss'),
+        mod1_end_bed_file = expand(str(tmpMod1 / "{batch}" / "m1_output.bed"), batch = batches),
+        mod1_end_bim_file = expand(str(tmpMod1 / "{batch}" / "m1_output.bim"), batch = batches),
+        mod1_end_fam_file = expand(str(tmpMod1 / "{batch}" / "m1_output.fam"), batch = batches),
 
         # module_3_good_markers = expand((tmpMod3/"{batch}/m3_output_good_markers").with_suffix(".txt"), batch=batches),
         # sex_check = expand(str(tmpMod3/"{batch}/{role}/sexcheck_report_x.sexcheck"), role=ROLES, batch=batches),
