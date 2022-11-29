@@ -32,14 +32,6 @@ hrc_sites: "/mnt/archive/snpQc/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
 #hapmap,stem: /mnt/archive/helgeland/refdata/hapmap/hapmap_b36/hapmapb36"
 #hapmap_pop: "/mnt/archive/helgeland/refdata/hapmap/relationships_w_pops_121708.txt"
 
-
-# MOBA info - as they are for Rotterdam2, these belong to the "local-config". 
-# It might very well be that these will be moved out of the pipeline for now this is the recode info
-# that was used for rotterdam2. Especially recode_ids that has been done on the pub-directory
-recode_ids: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-ids-rotterdam2.txt"
-recode_parents: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-parents-rotterdam2.txt"
-recode_sex: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-sex-rotterdam2.txt"
-
 # See https://genome.sph.umich.edu/wiki/Regions_of_high_linkage_disequilibrium_(LD)
 high_ld_regions_hg19: "/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/resources/high-ld-regions-hg19"
 

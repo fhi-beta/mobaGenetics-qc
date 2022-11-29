@@ -1,7 +1,7 @@
 # Usage: snakemake --config-file configs/your-config
 
 # Due to some hacks, the below will produce a warning about
-# configfiles not being found. You can ignore that
+# config files not being found. You can ignore that
 sys.path.append('../../../qc-pipeline/lib/')  # in order to find our local packages
 import mobaQcTools as mqc  # local moba package
 

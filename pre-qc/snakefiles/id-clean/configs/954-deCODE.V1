@@ -18,7 +18,7 @@ raw_bed_dir_out: "/home/gthh/work/gutorm/MobaGenetics/Datasets/Norment2/raw-data
 
 # Note that for the norment '954' (Jan20) set, these files are used for both chips
 remap_id: "/mnt/work2/NORMENT1/JAN20/sampleCheck/retrievalID_to_sentrixId"
-# The maOpping above will produce something suitable for plink
+# The mapping above will produce something suitable for plink
 recode_ids: "/mnt/work2/NORMENT1/JAN20/sampleCheck/retrievalID_to_sentrixId_4_plink"
 
 
