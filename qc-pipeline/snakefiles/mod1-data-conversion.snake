@@ -64,7 +64,7 @@ rule generate_raw_stats:
     threads: 1
     run:
         print("start")
-        print(f"plink {input.bedset[0].stem} {output.het.stem}")
+        print(f"plink {Path(input.bedset[0]).stem} {Path(output.het).stem}")
         # Heterozygocity rate
         subprocess.run(
             [
