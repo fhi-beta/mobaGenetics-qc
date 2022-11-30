@@ -42,14 +42,16 @@ rule all:
         mod1_start_freq = expand(tmpMod1/"{batch}"/'mod1_start_freq.frq', batch = batches),
         mod1_start_lmiss = expand(tmpMod1/"{batch}"/'mod1_start_missing.lmiss', batch = batches),
         mod1_start_imiss = expand(tmpMod1/"{batch}"/'mod1_start_missing.imiss', batch = batches),
-        mod1_end_het = expand(tmpMod1/"{batch}"/'mod1_end_het.het', batch = batches),
-        mod1_end_hwe = expand(tmpMod1/"{batch}"/'mod1_end_hwe.hwe', batch = batches),
-        mod1_end_freq = expand(tmpMod1/"{batch}"/'mod1_end_freq.frq', batch = batches),
-        mod1_end_lmiss = expand(tmpMod1/"{batch}"/'mod1_end_missing.lmiss', batch = batches),
-        mod1_end_imiss = expand(tmpMod1/"{batch}"/'mod1_end_missing.imiss', batch = batches),
         mod1_end_bed_file = expand(tmpMod1 / "{batch}" / "m1_output.bed", batch = batches),
         mod1_end_bim_file = expand(tmpMod1 / "{batch}" / "m1_output.bim", batch = batches),
         mod1_end_fam_file = expand(tmpMod1 / "{batch}" / "m1_output.fam", batch = batches),
+
+        # Module 2:
+        mod2_start_het= expand(tmpMod1 / "{batch}" / 'mod2_start_het.het',batch=batches),
+        mod2_start_hwe= expand(tmpMod1 / "{batch}" / 'mod2_start_hwe.hwe',batch=batches),
+        mod2_start_freq= expand(tmpMod1 / "{batch}" / 'mod2_start_freq.frq',batch=batches),
+        mod2_start_lmiss= expand(tmpMod1 / "{batch}" / 'mod2_start_missing.lmiss',batch=batches),
+        mod2_start_imiss= expand(tmpMod1 / "{batch}" / 'mod2_start_missing.imiss',batch=batches),
 
         # module_3_good_markers = expand((tmpMod3/"{batch}/m3_output_good_markers").with_suffix(".txt"), batch=batches),
         # sex_check = expand(str(tmpMod3/"{batch}/{role}/sexcheck_report_x.sexcheck"), role=ROLES, batch=batches),

@@ -1,3 +1,74 @@
+
+# Generate statistics on raw dataset before anything happens to the data
+rule_stem = 'generate_start_stats'
+rule generate_start_stats:
+    input:
+        bedset = rules.m1_output.output.bedset
+    output:
+        het = tmpMod2/"{batch}"/'mod2_start_het.het',
+        hwe = tmpMod2/"{batch}"/'mod2_start_hwe.hwe',
+        freq = tmpMod2/"{batch}"/'mod2_start_freq.frq',
+        lmiss = tmpMod2/"{batch}"/'mod2_start_missing.lmiss',
+        imiss = tmpMod2/"{batch}"/'mod2_start_missing.imiss',
+    threads: 1
+    run:
+        try:
+            # Plink base paths
+            plink_input = mqc.plinkBase(input.bedset[0])
+            plink_het_output = mqc.plinkBase(output.het)
+            plink_hwe_output = mqc.plinkBase(output.hwe)
+            plink_freq_output = mqc.plinkBase(output.freq)
+            plink_miss_output = mqc.plinkBase(output.lmiss)
+
+            # Heterozygocity rate
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", plink_input,
+                    "--het",
+                    "--out", plink_het_output
+                ],
+                check=True
+            )
+
+            # HWE
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", plink_input,
+                    "--hardy",
+                    "--out", plink_hwe_output
+                ],
+                check=True
+            )
+
+            # Frequencies
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", plink_input,
+                    "--freq",
+                    "--out", plink_freq_output
+                ],
+                check=True
+            )
+
+            # Missingness
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", plink_input,
+                    "--missing",
+                    "--out", plink_miss_output
+                ],
+                check=True
+            )
+
+        except Exception as e:
+            template = f"An exception occured in rule {rule_stem}."
+            print(e)
+
+
 rule_stem = 'maf_removal_markers'
 rule maf_removal_markers:   #Minor allele frequencies removal
     input:
@@ -12,39 +83,42 @@ rule maf_removal_markers:   #Minor allele frequencies removal
         plot = report((resultPath/"{batch}"/rule_stem).with_suffix(".png"),
                       category="Module 2 Core samples and infere pedigree",
                       caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
-
     params:
         treshold = config['maf_thr']
-
     run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, "Initial cleaning: Low minor allele frequencies removal(--maf)\n")
-        inTrunk =  mqc.plinkBase(input.bedset[0])
-        outTrunk =  mqc.plinkBase(output.bedset[0])
+        try:
+            item_type = rule_info[rule]["rule type"]
+            mqc.log(runlog, "Initial cleaning: Low minor allele frequencies removal(--maf)\n")
+            inTrunk =  mqc.plinkBase(input.bedset[0])
+            outTrunk =  mqc.plinkBase(output.bedset[0])
 
-        subprocess.run([plinklocal,
-                "--bfile",inTrunk,
-                "--maf", str(params.treshold),
-                "--out", outTrunk,      # previously named superclean_maf
-                "--make-bed" ], check=True)
-        dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",
-                                    cols = [0,1,3,4,5],
-                                    sanityCheck = "removal",
-                                    fullList = True, allele_flip=True)
-        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Treshold"] = params.treshold
-        dropouts["Rule"] = rule
-        mqc.saveYamlResults(output.results, dropouts)
+            subprocess.run([plinklocal,
+                    "--bfile",inTrunk,
+                    "--maf", str(params.treshold),
+                    "--out", outTrunk,      # previously named superclean_maf
+                    "--make-bed" ], check=True)
+            dropouts = mqc.checkUpdates(inTrunk+".bim",outTrunk+".bim",
+                                        cols = [0,1,3,4,5],
+                                        sanityCheck = "removal",
+                                        fullList = True, allele_flip=True)
+            dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+            dropouts["Treshold"] = params.treshold
+            dropouts["Rule"] = rule
+            mqc.saveYamlResults(output.results, dropouts)
 
-        # call rates for maf will be maf_removal_markers.output.bedset imiss and lmiss
-        # these will be reused later
-        subprocess.run([plinklocal,
-                "--bfile", outTrunk,
-                "--missing",
-                "--out", outTrunk ], check=True)
+            # call rates for maf will be maf_removal_markers.output.bedset imiss and lmiss
+            # these will be reused later
+            subprocess.run([plinklocal,
+                    "--bfile", outTrunk,
+                    "--missing",
+                    "--out", outTrunk ], check=True)
 
-        mqc.plot_point_and_line(dropouts, output.callrate_marker, output.plot,
-                                column="F_MISS",ylabel="1 - missingness")
+            mqc.plot_point_and_line(dropouts, output.callrate_marker, output.plot,
+                                    column="F_MISS",ylabel="1 - missingness")
+
+        except Exception as e:
+            template = f"An exception occured in rule {rule_stem}."
+            print(e)
 
 
 rule_stem = 'missing_genotype_samples'
@@ -60,15 +134,20 @@ rule missing_genotype_samples:
     params:
         treshold = config['mind_thr']
     run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, "Missing genotype {item_type} (--mind)\n")
-        inTrunk =  mqc.plinkBase(input.bedset[0])
-        outTrunk =  mqc.plinkBase(output.bedset[0])
-        # First extract temporary samples based on earlier filtered markers (maf_removal_markers)
-        # Next these will be used to extract samples permanently (rule clean_samples:)
-        mqc.missing_genotype_rate(rule,
-                        inTrunk, outTrunk, sample=True, treshold=params.treshold,
-                        result_file=output.results)
+        try:
+            item_type = rule_info[rule]["rule type"]
+            mqc.log(runlog, "Missing genotype {item_type} (--mind)\n")
+            inTrunk =  mqc.plinkBase(input.bedset[0])
+            outTrunk =  mqc.plinkBase(output.bedset[0])
+            # First extract temporary samples based on earlier filtered markers (maf_removal_markers)
+            # Next these will be used to extract samples permanently (rule clean_samples:)
+            mqc.missing_genotype_rate(rule,
+                            inTrunk, outTrunk, sample=True, treshold=params.treshold,
+                            result_file=output.results)
+
+        except Exception as e:
+            template = f"An exception occured in rule {rule_stem}."
+            print(e)
 
 
 rule_stem = "callrate_permanent_removal"
@@ -91,29 +170,34 @@ rule callrate_permanent_removal:
                       caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
 
     run:
-        oldPermTrunk =  mqc.plinkBase(input.mod1_bedset[0])   # what we had
-        inTrunk =  mqc.plinkBase(input.bedset[0])        # what we temporary filtered markers on
-        permTrunk =  mqc.plinkBase(output.bedset[0])     # what we are making
+        try:
+            oldPermTrunk =  mqc.plinkBase(input.mod1_bedset[0])   # what we had
+            inTrunk =  mqc.plinkBase(input.bedset[0])        # what we temporary filtered markers on
+            permTrunk =  mqc.plinkBase(output.bedset[0])     # what we are making
 
-        # PERMANENT removal of very-missing individuals from FULL dataset
-        subprocess.run([plinklocal,
-                "--bfile",oldPermTrunk,
-                "--keep",inTrunk + ".fam", # keeping those samples that just passed the --mind threshold
-                "--out", permTrunk,        # earlier called full_mind
-                "--make-bed" ], check=True)
-        dropouts = mqc.checkUpdates(oldPermTrunk+".fam", permTrunk+".fam",
-                                    cols = [0,1],
-                                    sanityCheck = "removal",
-                                    fullList = True)
+            # PERMANENT removal of very-missing individuals from FULL dataset
+            subprocess.run([plinklocal,
+                    "--bfile",oldPermTrunk,
+                    "--keep",inTrunk + ".fam", # keeping those samples that just passed the --mind threshold
+                    "--out", permTrunk,        # earlier called full_mind
+                    "--make-bed" ], check=True)
+            dropouts = mqc.checkUpdates(oldPermTrunk+".fam", permTrunk+".fam",
+                                        cols = [0,1],
+                                        sanityCheck = "removal",
+                                        fullList = True)
 
-        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Rule"] = rule
-        mqc.saveYamlResults(output.results, dropouts)
+            dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+            dropouts["Rule"] = rule
+            mqc.saveYamlResults(output.results, dropouts)
 
-        # call rates for samples were previously computed,
-        # we now know how many actually got cut
-        mqc.plot_point_and_line(dropouts, input.callrate_sample, output.plot,
-                                column="F_MISS",ylabel="1 - missingness")
+            # call rates for samples were previously computed,
+            # we now know how many actually got cut
+            mqc.plot_point_and_line(dropouts, input.callrate_sample, output.plot,
+                                    column="F_MISS",ylabel="1 - missingness")
+
+        except Exception as e:
+            template = f"An exception occured in rule {rule_stem}."
+            print(e)
 
 
 rule_stem = 'missing_genotype_markers' # used for outputfilenames
@@ -132,15 +216,20 @@ rule missing_genotype_markers:
     params:
         treshold = config['geno_thr']
     run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, "Missing genotype {item_type} (--geno)\n")
-        inTrunk =  mqc.plinkBase(input.bedset[0])
-        outTrunk =  mqc.plinkBase(output.bedset[0])
+        try:
+            item_type = rule_info[rule]["rule type"]
+            mqc.log(runlog, "Missing genotype {item_type} (--geno)\n")
+            inTrunk =  mqc.plinkBase(input.bedset[0])
+            outTrunk =  mqc.plinkBase(output.bedset[0])
 
-        dropouts = mqc.missing_genotype_rate(rule,
-                        inTrunk, outTrunk, sample=False, treshold=params.treshold,
-                        result_file=output.results,
-                        plot_file=output.plot)
+            dropouts = mqc.missing_genotype_rate(rule,
+                            inTrunk, outTrunk, sample=False, treshold=params.treshold,
+                            result_file=output.results,
+                            plot_file=output.plot)
+
+        except Exception as e:
+            template = f"An exception occured in rule {rule_stem}."
+            print(e)
 
 
 rule_stem = 'tmp_exclude_non-autosomal+unplaced_markers' # used for outputfilenames
@@ -154,24 +243,30 @@ rule exclude_unplaced_and_non_autosomal_markers:
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
     run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, "Excluded unplaced and non-autosomal {item_type} (--autosome)\n")
-        inTrunk =  mqc.plinkBase(input.bedset[0])
-        outTrunk =  mqc.plinkBase(output.bedset[0])
-        subprocess.run([plinklocal,
-                "--bfile",inTrunk,
-                "--autosome",                     # identifies markers
-                "--out", outTrunk,                # called superclean_autosomal
-                "--make-bed" ], check=True)
+        try:
+            item_type = rule_info[rule]["rule type"]
+            mqc.log(runlog, "Excluded unplaced and non-autosomal {item_type} (--autosome)\n")
+            inTrunk =  mqc.plinkBase(input.bedset[0])
+            outTrunk =  mqc.plinkBase(output.bedset[0])
+            subprocess.run([plinklocal,
+                    "--bfile",inTrunk,
+                    "--autosome",                     # identifies markers
+                    "--out", outTrunk,                # called superclean_autosomal
+                    "--make-bed" ], check=True)
 
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
-                                    cols = [0,1,3,4,5],
-                                    sanityCheck = "removal",
-                                    fullList = True, allele_flip=True)
-        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Rule"] = rule
+            dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
+                                        cols = [0,1,3,4,5],
+                                        sanityCheck = "removal",
+                                        fullList = True, allele_flip=True)
+            dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+            dropouts["Rule"] = rule
 
-        mqc.saveYamlResults(output.results, dropouts)
+            mqc.saveYamlResults(output.results, dropouts)
+
+        except Exception as e:
+            template = f"An exception occured in rule {rule_stem}."
+            print(e)
+
 
 rule_stem = 'tmp_hwe_filtered_markers' # used for outputfilenames
 rule hardy_weinberg_filtered_markers:
@@ -189,14 +284,19 @@ rule hardy_weinberg_filtered_markers:
     params:
         treshold = config['hwe_thr']
     run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, "Missing Hardy-Weinberg filtering {item_type} (--hwe)\n")
-        inTrunk =  mqc.plinkBase(input.bedset[0])
-        outTrunk = mqc.plinkBase(output.bedset[0])
+        try:
+            item_type = rule_info[rule]["rule type"]
+            mqc.log(runlog, "Missing Hardy-Weinberg filtering {item_type} (--hwe)\n")
+            inTrunk =  mqc.plinkBase(input.bedset[0])
+            outTrunk = mqc.plinkBase(output.bedset[0])
 
-        mqc.low_hwe_rate(rule, inTrunk, outTrunk, treshold=params.treshold,
-                     hwe_switches = ["--hardy"],
-                     result_file = output.results, plot_file=output.plot)
+            mqc.low_hwe_rate(rule, inTrunk, outTrunk, treshold=params.treshold,
+                         hwe_switches = ["--hardy"],
+                         result_file = output.results, plot_file=output.plot)
+
+        except Exception as e:
+            template = f"An exception occured in rule {rule_stem}."
+            print(e)
 
 rule_stem = 'tmp_excluded_strand_amb_markers' # used for outputfilenames
 rule exclude_strand_ambigious_markers:
@@ -209,19 +309,24 @@ rule exclude_strand_ambigious_markers:
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
     run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, "Excluding ambigious {item_type} (GC/CG/AT/TA\n")
-        inTrunk =  mqc.plinkBase(input.bedset[0])
-        outTrunk =  mqc.plinkBase(output.bedset[0])
+        try:
+            item_type = rule_info[rule]["rule type"]
+            mqc.log(runlog, "Excluding ambigious {item_type} (GC/CG/AT/TA\n")
+            inTrunk =  mqc.plinkBase(input.bedset[0])
+            outTrunk =  mqc.plinkBase(output.bedset[0])
 
-        mqc.exclude_strand_ambigious_markers(inTrunk, outTrunk, plinklocal)
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
-                                    cols=[0,1,3,4,5],
-                                    sanityCheck="removal", fullList = True,
-                                    allele_flip=True)
-        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Rule"] = rule
-        mqc.saveYamlResults(output.results, dropouts)
+            mqc.exclude_strand_ambigious_markers(inTrunk, outTrunk, plinklocal)
+            dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
+                                        cols=[0,1,3,4,5],
+                                        sanityCheck="removal", fullList = True,
+                                        allele_flip=True)
+            dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+            dropouts["Rule"] = rule
+            mqc.saveYamlResults(output.results, dropouts)
+
+        except Exception as e:
+            template = f"An exception occured in rule {rule_stem}."
+            print(e)
 
 rule_stem = 'tmp_high_ld_excluded_markers' # used for outputfilenames
 rule exclude_high_ld_markers:
@@ -235,25 +340,31 @@ rule exclude_high_ld_markers:
                          category="Module 2 Core samples and infere pedigree",
                          caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
     run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])
-        inTrunk =  mqc.plinkBase(input.bedset[0])
-        outTrunk =  mqc.plinkBase(output.bedset[0])
+        try:
+            item_type = rule_info[rule]["rule type"]
+            mqc.log(runlog, rule_info[rule]["QC test"])
+            inTrunk =  mqc.plinkBase(input.bedset[0])
+            outTrunk =  mqc.plinkBase(output.bedset[0])
 
 
-        subprocess.run([plinklocal,
-                "--bfile",inTrunk,
-                "--exclude", "range", input.high_ld_regions_hg19,    # identifies markers
-                "--out", outTrunk,                                   # called superclean_no_ag_ct_ld before
-                "--make-bed"  ], check=True)
+            subprocess.run([plinklocal,
+                    "--bfile",inTrunk,
+                    "--exclude", "range", input.high_ld_regions_hg19,    # identifies markers
+                    "--out", outTrunk,                                   # called superclean_no_ag_ct_ld before
+                    "--make-bed"  ], check=True)
 
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
-                                    cols=[0,1,3,4,5],
-                                    sanityCheck="removal",
-                                    fullList=True, allele_flip=True)
-        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Rule"] = rule
-        mqc.saveYamlResults(output.results, dropouts)
+            dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
+                                        cols=[0,1,3,4,5],
+                                        sanityCheck="removal",
+                                        fullList=True, allele_flip=True)
+            dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+            dropouts["Rule"] = rule
+            mqc.saveYamlResults(output.results, dropouts)
+
+        except Exception as e:
+            template = f"An exception occured in rule {rule_stem}."
+            print(e)
+
 
 rule_stem = 'tmp_prune_markers' # used for outputfilenames
 rule prune_markers:
@@ -270,31 +381,36 @@ rule prune_markers:
         prune_cmd = config["prune_cmd"].split()    # As plink will want a list
 
     run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])
-        inTrunk =  mqc.plinkBase(input.bedset[0])
-        outTrunk =  mqc.plinkBase(output.bedset[0])
+        try:
+            item_type = rule_info[rule]["rule type"]
+            mqc.log(runlog, rule_info[rule]["QC test"])
+            inTrunk =  mqc.plinkBase(input.bedset[0])
+            outTrunk =  mqc.plinkBase(output.bedset[0])
 
-        subprocess.run([plinklocal,
-                "--bfile", inTrunk,
-                "--make-founders",
-                "--out", outTrunk]    # no bed-file prodused, just .prune.in (exclude_list)
-                + params.prune_cmd , check=True)  # note that we here add a list to another list ...
+            subprocess.run([plinklocal,
+                    "--bfile", inTrunk,
+                    "--make-founders",
+                    "--out", outTrunk]    # no bed-file prodused, just .prune.in (exclude_list)
+                    + params.prune_cmd , check=True)  # note that we here add a list to another list ...
 
 
-        subprocess.run([plinklocal,
-                "--bfile", inTrunk,
-                "--extract", output.exclude_list,
-                "--out", outTrunk,                  # called superclean_pruned before
-                "--make-bed" ], check=True)
+            subprocess.run([plinklocal,
+                    "--bfile", inTrunk,
+                    "--extract", output.exclude_list,
+                    "--out", outTrunk,                  # called superclean_pruned before
+                    "--make-bed" ], check=True)
 
-        dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
-                                    cols=[0,1,3,4,5],
-                                    sanityCheck="removal", fullList=True,
-                                    allele_flip=True)
-        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Rule"] = rule
-        mqc.saveYamlResults(output.results, dropouts)
+            dropouts = mqc.checkUpdates(inTrunk+".bim", outTrunk+".bim",
+                                        cols=[0,1,3,4,5],
+                                        sanityCheck="removal", fullList=True,
+                                        allele_flip=True)
+            dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+            dropouts["Rule"] = rule
+            mqc.saveYamlResults(output.results, dropouts)
+
+        except Exception as e:
+            template = f"An exception occured in rule {rule_stem}."
+            print(e)
 
 
 rule_stem = 'pedigree_ibd_estimate' # used for outputfilenames
@@ -312,32 +428,37 @@ rule pedigree_ibd_estimate:
                          caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
 
     run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])
-        inGenoTrunk =  mqc.plinkBase(input.in_geno[0])
-        outTrunk =  mqc.plinkBase(output.bedset[0])
+        try:
+            item_type = rule_info[rule]["rule type"]
+            mqc.log(runlog, rule_info[rule]["QC test"])
+            inGenoTrunk =  mqc.plinkBase(input.in_geno[0])
+            outTrunk =  mqc.plinkBase(output.bedset[0])
 
-  	# plink will recommend sex assignments based on X het and Y calls
-        subprocess.run([plinklocal,
-                "--bfile", inGenoTrunk,
-                "--check-sex", "ycount",
-                "--out", mqc.plinkBase(output.inferpedx)  ], check=True) # local stem: don't want to overwrite logfiles
+        # plink will recommend sex assignments based on X het and Y calls
+            subprocess.run([plinklocal,
+                    "--bfile", inGenoTrunk,
+                    "--check-sex", "ycount",
+                    "--out", mqc.plinkBase(output.inferpedx)  ], check=True) # local stem: don't want to overwrite logfiles
 
-        # get PIHAT estimates
-        subprocess.run([plinklocal,
-                "--bfile", inGenoTrunk,
-                "--extract", input.clean_snps,
-                "--genome", "--min", "0.10",                 # not parametrized for now
-                "--out", outTrunk,                           # called inferped_pruned before
-                "--make-bed" ], check=True)
+            # get PIHAT estimates
+            subprocess.run([plinklocal,
+                    "--bfile", inGenoTrunk,
+                    "--extract", input.clean_snps,
+                    "--genome", "--min", "0.10",                 # not parametrized for now
+                    "--out", outTrunk,                           # called inferped_pruned before
+                    "--make-bed" ], check=True)
 
-        dropouts = mqc.checkUpdates(inGenoTrunk+".bim", outTrunk+".bim",
-                                    cols=[0,1,3,4,5],
-                                    sanityCheck="remove", fullList=True,
-                                    allele_flip=True)
-        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Rule"] = rule
-        mqc.saveYamlResults(output.results, dropouts)
+            dropouts = mqc.checkUpdates(inGenoTrunk+".bim", outTrunk+".bim",
+                                        cols=[0,1,3,4,5],
+                                        sanityCheck="remove", fullList=True,
+                                        allele_flip=True)
+            dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+            dropouts["Rule"] = rule
+            mqc.saveYamlResults(output.results, dropouts)
+
+        except Exception as e:
+            template = f"An exception occured in rule {rule_stem}."
+            print(e)
 
 
 # This rule is still in shell-syntax as we have not decided what the final solution should be.
@@ -423,37 +544,42 @@ rule document_pedigree_fu_detector_solver:
                          caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst")),
         
     run:
-        mqc.log(runlog, rule_info[rule]["QC test"])
-        rst_file = (resultPath/"pedigree_fu_detector_solver").with_suffix(".rst")
-        # During fu_detector, we left trace about problematic triads naming the families *prblm
-        mqc.egrep('prblm', input.fam_fix, output.problems)  
-        mqc.egrep('^[0-9]+_i', input.fam_fix, output.fixed)  
+        try:
+            mqc.log(runlog, rule_info[rule]["QC test"])
+            rst_file = (resultPath/"pedigree_fu_detector_solver").with_suffix(".rst")
+            # During fu_detector, we left trace about problematic triads naming the families *prblm
+            mqc.egrep('prblm', input.fam_fix, output.problems)
+            mqc.egrep('^[0-9]+_i', input.fam_fix, output.fixed)
 
-        dropouts = mqc.checkUpdates(input.bedset, input.fam_fix,
-                                    cols = [0,1],
-                                    sanityCheck="update", fullList=True)
-        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Rule"] = rule
-        dropouts["Description"] += f" Fixed family rows found in {output.fixed} while problems are found in {output.problems}"
+            dropouts = mqc.checkUpdates(input.bedset, input.fam_fix,
+                                        cols = [0,1],
+                                        sanityCheck="update", fullList=True)
+            dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+            dropouts["Rule"] = rule
+            dropouts["Description"] += f" Fixed family rows found in {output.fixed} while problems are found in {output.problems}"
 
-        # But we need more info about this strange rule
-        # so we add stuff to it
-        # We count mono, duo and triplets in the fam
-        # file, but only if the family-id starts with a
-        # number. Problematic items are called prblmxxx and wont match
-        probs = mqc.line_count(output.problems)
-        fixes = mqc.line_count(output.fixed)
-        fams = mqc.count_families(input.fam_fix, "^\d+")
-        msg = (f"Of the original {dropouts['in']} samples, {probs} are marked problematic\n"
-               f"{fams[1]} of the families contain 1 member\n"
-               f"{fams[2]} of the families contain 2 members\n"
-               f"{fams[3]} of the families contain 3 members\n"
-               f"Predigree fixed families have _i appended to their family-number file ({fixes} samples)\n")
-        dropouts["Details"] = msg
-        mqc.saveYamlResults(output.result, dropouts)
-        # Now append to what saveYamlResults put in rst file
-        with open(rst_file, "a") as f:
-            f.write(msg)
+            # But we need more info about this strange rule
+            # so we add stuff to it
+            # We count mono, duo and triplets in the fam
+            # file, but only if the family-id starts with a
+            # number. Problematic items are called prblmxxx and wont match
+            probs = mqc.line_count(output.problems)
+            fixes = mqc.line_count(output.fixed)
+            fams = mqc.count_families(input.fam_fix, "^\d+")
+            msg = (f"Of the original {dropouts['in']} samples, {probs} are marked problematic\n"
+                   f"{fams[1]} of the families contain 1 member\n"
+                   f"{fams[2]} of the families contain 2 members\n"
+                   f"{fams[3]} of the families contain 3 members\n"
+                   f"Predigree fixed families have _i appended to their family-number file ({fixes} samples)\n")
+            dropouts["Details"] = msg
+            mqc.saveYamlResults(output.result, dropouts)
+            # Now append to what saveYamlResults put in rst file
+            with open(rst_file, "a") as f:
+                f.write(msg)
+
+        except Exception as e:
+            template = f"An exception occured in rule {rule_stem}."
+            print(e)
 
 # This recaps and show what happens in Modules 2. It permits the
 # module to have some 'public' variables, that other rules can refer
@@ -487,48 +613,53 @@ rule m2_output:
                                 category="- Module 2 Pedigree fix recap",
                                 caption=(resultPath/"{batch}"/rule_stem).with_suffix(".samples.rst"))
     run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])        
-        m1Trunk =  mqc.plinkBase(input.bedset_m1[0])
-        inTrunk_all_markers = mqc.plinkBase(input.bedset_all_markers[0])
-        outTrunk_all_markers =  mqc.plinkBase(output.bedset[0])
-        inTrunk_pruned_markers = mqc.plinkBase(input.bedset_pruned_markers[0])
-        outTrunk_pruned_markers =  mqc.plinkBase(output.mod3_bedset[0])
-        docs = "For more documentation see https://github.com/folkehelseinstituttet/mobaGenetics-qc/wiki/Module2 . In the html file see info on individual module steps through the section for results of Module 2"
+        try:
+            item_type = rule_info[rule]["rule type"]
+            mqc.log(runlog, rule_info[rule]["QC test"])
+            m1Trunk =  mqc.plinkBase(input.bedset_m1[0])
+            inTrunk_all_markers = mqc.plinkBase(input.bedset_all_markers[0])
+            outTrunk_all_markers =  mqc.plinkBase(output.bedset[0])
+            inTrunk_pruned_markers = mqc.plinkBase(input.bedset_pruned_markers[0])
+            outTrunk_pruned_markers =  mqc.plinkBase(output.mod3_bedset[0])
+            docs = "For more documentation see https://github.com/folkehelseinstituttet/mobaGenetics-qc/wiki/Module2 . In the html file see info on individual module steps through the section for results of Module 2"
 
-        # Create new bedsets with the new pedigree/.fam 
-	# # produce bedset with ALL markers and INFERRED family info
-	# produce/modify bedset with PRUNED markers by replacing earlier .fam file with fixed one
-	# (inferped_pruned.bed and .bim were made by previous rule)
+            # Create new bedsets with the new pedigree/.fam
+        # # produce bedset with ALL markers and INFERRED family info
+        # produce/modify bedset with PRUNED markers by replacing earlier .fam file with fixed one
+        # (inferped_pruned.bed and .bim were made by previous rule)
 
-        for i in ['.bed', '.bim']:
-            # the full markerset
-            copyfile(inTrunk_all_markers+i, outTrunk_all_markers+i)
-            # markers (temporarily removed)
-            copyfile(inTrunk_pruned_markers+i, outTrunk_pruned_markers+i)
-        # However, fam-file is new as made by pedigree_fu_detector_solver:
-            copyfile(input.fam_fix, outTrunk_all_markers+".fam")
-            copyfile(input.fam_fix, outTrunk_pruned_markers+".fam")
+            for i in ['.bed', '.bim']:
+                # the full markerset
+                copyfile(inTrunk_all_markers+i, outTrunk_all_markers+i)
+                # markers (temporarily removed)
+                copyfile(inTrunk_pruned_markers+i, outTrunk_pruned_markers+i)
+            # However, fam-file is new as made by pedigree_fu_detector_solver:
+                copyfile(input.fam_fix, outTrunk_all_markers+".fam")
+                copyfile(input.fam_fix, outTrunk_pruned_markers+".fam")
 
-        # report markers (we only do this for mod5 output aka outTrunk_all_markers
-        dropouts = mqc.checkUpdates(m1Trunk+".bim",
-                                    outTrunk_all_markers+".bim",
-                                    cols=[0,1,3,4,5],
-                                    sanityCheck="removal",
-                                    fullList=True, allele_flip=True)
-        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Rule"] = rule
-        dropouts["Documentation details"] = docs
-        mqc.saveYamlResults(output.report_markers, dropouts)
+            # report markers (we only do this for mod5 output aka outTrunk_all_markers
+            dropouts = mqc.checkUpdates(m1Trunk+".bim",
+                                        outTrunk_all_markers+".bim",
+                                        cols=[0,1,3,4,5],
+                                        sanityCheck="removal",
+                                        fullList=True, allele_flip=True)
+            dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+            dropouts["Rule"] = rule
+            dropouts["Documentation details"] = docs
+            mqc.saveYamlResults(output.report_markers, dropouts)
 
-        # report samples, same logic as markers
-        dropouts = mqc.checkUpdates(m1Trunk+".fam",
-                                    outTrunk_all_markers+".fam",
-                                    cols=[0,1],
-                                    sanityCheck="update", fullList=True)
-        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Rule"] = rule
-        dropouts["Documentation details"] = docs
+            # report samples, same logic as markers
+            dropouts = mqc.checkUpdates(m1Trunk+".fam",
+                                        outTrunk_all_markers+".fam",
+                                        cols=[0,1],
+                                        sanityCheck="update", fullList=True)
+            dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+            dropouts["Rule"] = rule
+            dropouts["Documentation details"] = docs
 
-        mqc.saveYamlResults(output.report_samples, dropouts)
+            mqc.saveYamlResults(output.report_samples, dropouts)
+
+        except Exception as e:
+            template = f"An exception occured in rule {rule_stem}."
+            print(e)
 
