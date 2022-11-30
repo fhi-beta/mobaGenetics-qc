@@ -59,8 +59,8 @@ rule remove_chr0:
 
 
 # Generate statistics on raw dataset before anything happens to the data
-rule_stem = 'generate_start_stats'
-rule generate_start_stats:
+rule_stem = 'mod1_generate_start_stats'
+rule mod1_generate_start_stats:
     input:
         bedset = rules.remove_chr0.output.bedset
     output:

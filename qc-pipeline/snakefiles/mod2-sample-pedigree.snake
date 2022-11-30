@@ -1,7 +1,7 @@
 
 # Generate statistics on raw dataset before anything happens to the data
-rule_stem = 'generate_start_stats'
-rule generate_start_stats:
+rule_stem = 'mod2_generate_start_stats'
+rule mod2_generate_start_stats:
     input:
         bedset = rules.m1_output.output.bedset
     output:
