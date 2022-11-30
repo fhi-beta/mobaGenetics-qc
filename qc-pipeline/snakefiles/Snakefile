@@ -47,11 +47,14 @@ rule all:
         mod1_end_fam_file = expand(tmpMod1 / "{batch}" / "m1_output.fam", batch = batches),
 
         # Module 2:
-        mod2_start_het= expand(tmpMod2 / "{batch}" / 'mod2_start_het.het',batch=batches),
-        mod2_start_hwe= expand(tmpMod2 / "{batch}" / 'mod2_start_hwe.hwe',batch=batches),
-        mod2_start_freq= expand(tmpMod2 / "{batch}" / 'mod2_start_freq.frq',batch=batches),
-        mod2_start_lmiss= expand(tmpMod2 / "{batch}" / 'mod2_start_missing.lmiss',batch=batches),
-        mod2_start_imiss= expand(tmpMod2 / "{batch}" / 'mod2_start_missing.imiss',batch=batches),
+        mod2_start_het= expand(tmpMod2 / "{batch}" / 'mod2_start_het.het', batch = batches),
+        mod2_start_hwe= expand(tmpMod2 / "{batch}" / 'mod2_start_hwe.hwe', batch = batches),
+        mod2_start_freq= expand(tmpMod2 / "{batch}" / 'mod2_start_freq.frq', batch = batches),
+        mod2_start_lmiss= expand(tmpMod2 / "{batch}" / 'mod2_start_missing.lmiss', batch = batches),
+        mod2_start_imiss= expand(tmpMod2 / "{batch}" / 'mod2_start_missing.imiss', batch = batches),
+        prunedsnps = expand(tmpMod2/"{batch}"/"mod2_prune_markers.prune.in", batch = batches),
+        sex_check = expand(tmpMod2/"{batch}"/"mod2_ibd.sexcheck", batch = batches),
+        ibd_results = expand(tmpMod2/"{batch}"/"mod2_ibd.genome", batch = batches),
 
         # module_3_good_markers = expand((tmpMod3/"{batch}/m3_output_good_markers").with_suffix(".txt"), batch=batches),
         # sex_check = expand(str(tmpMod3/"{batch}/{role}/sexcheck_report_x.sexcheck"), role=ROLES, batch=batches),

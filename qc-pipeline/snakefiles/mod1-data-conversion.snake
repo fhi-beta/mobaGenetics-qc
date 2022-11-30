@@ -54,7 +54,7 @@ rule remove_chr0:
             mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - (NSNP_CHR0_LOST) Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} chromosone 0 out of {dropouts["in"]}, leaving {dropouts["out"]} markers\n')
 
         except Exception as e:
-            template = f"An exception occured in rule {rule_stem}."
+            template = f"An exception occurred in rule {rule}."
             print(e)
 
 
@@ -124,7 +124,7 @@ rule mod1_generate_start_stats:
             )
 
         except Exception as e:
-            template = f"An exception occured in rule {rule_stem}."
+            template = f"An exception occurred in rule {rule}."
             print(e)
 
 
@@ -214,7 +214,7 @@ rule remove_duplicate_markers:
             mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Due to duplicate markers, removed {dropouts["actionTakenCount"]} markers out of {dropouts["in"]}, leaving {dropouts["out"]} markers\n')
 
         except Exception as e:
-            template = f"An exception occured in rule {rule_stem}."
+            template = f"An exception occurred in rule {rule}."
             print(e)
 
 # Remove markers on snp table metrics
@@ -297,7 +297,7 @@ rule remove_markers_cluster_sep:
             )
 
         except Exception as e:
-            template = f"An exception occured in rule {rule_stem}."
+            template = f"An exception occurred in rule {rule}."
             print(e)
 
 rule_stem = 'remove_markers_gc_score'
@@ -378,7 +378,7 @@ rule remove_markers_gc_score:
             )
 
         except Exception as e:
-            template = f"An exception occured in rule {rule_stem}."
+            template = f"An exception occurred in rule {rule}."
             print(e)
 
 
@@ -461,13 +461,9 @@ rule remove_markers_aa_theta_deviation:
             )
 
         except Exception as e:
-            template = f"An exception occured in rule {rule_stem}."
+            template = f"An exception occurred in rule {rule}."
             print(e)
 
-# This is a non-functional rule which sole intention is to recap and
-# show what happens in Module 1, It permits the module to have some
-# 'public' variables (output), that other rules can refer to. It also
-# ensures that snakemake DAG output is easier to read.
 rule_stem = 'm1_output'
 rule m1_output:
     input:
@@ -532,7 +528,7 @@ rule m1_output:
             mqc.saveYamlResults(output.report_samples, dropouts)
 
         except Exception as e:
-            template = f"An exception occured in rule {rule_stem}."
+            template = f"An exception occurred in rule {rule}."
             print(e)
 
 

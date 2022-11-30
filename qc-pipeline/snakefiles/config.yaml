@@ -44,14 +44,16 @@ aa_theta_dev_thr: 0.04
 aa_theta_dev_col_name: "GSAMD-24v1-0_20011747_A4.bpm.AA T Dev"
 
 #
-# Minor allele frequency used in maf_removal plink --maf
-maf_thr: 0.10
-# Missing genotype threshold (samples) plink --mind
-mind_thr: 0.05
+# Minor allele frequency threshold used during pedigree inference
+pedigree_maf_thr: 0.10
+# Missing genotype threshold (samples) used during pedigree inference
+pedigree_mind_thr: 0.05
+# Hardy-Weinberg equilibrium threshold (samples) used during pedigree inference
+pedigree_hwe_thr: 0.0001
+# Genome threshold used during pedigree inference
+genome_thr: --min 0.10
 # Missing genotype threshold (markers) plink --geno
 geno_thr: 0.02
-# Hardy-Weinberg equilibrium tests plink --hwe
-hwe_thr: 0.0001
 # prune_markers --make founders (command and params).
 prune_cmd: --indep-pairwise 200 100 0.1
 
