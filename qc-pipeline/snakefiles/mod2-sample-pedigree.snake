@@ -453,13 +453,13 @@ rule exclude_high_ld_markers:
             print(e)
 
 
-rule_stem = 'prune_markers'
-rule prune_markers:
+rule_stem = 'mod2_prune_markers'
+rule mod2_prune_markers:
     input:
         bedset = rules.exclude_high_ld_markers.output.bedset,
     output:
         bedset = multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
-        exclude_list = tmpMod2/"{batch}"/"mod2_prune_markers.prune.in",
+        exclude_list = tmpMod2/"{batch}"/(rule_stem + ".prune.in"),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
             category = "Module 2 Core samples and pedigree inference",
