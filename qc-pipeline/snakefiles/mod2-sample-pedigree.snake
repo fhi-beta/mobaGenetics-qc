@@ -479,10 +479,11 @@ rule prune_markers:
                     plinklocal,
                     "--bfile", inTrunk,
                     "--make-founders"
-                ] + params.prune_cmd.split() + [
+                ] + \
+                params.prune_cmd.split() + \
+                [
                         "--out", outTrunk
-                    ]
-                ),
+                ],
                 check = True
             )
 
@@ -545,7 +546,8 @@ rule pedigree_ibd_estimate:
                             "--check-sex", "ycount",
                             "--out", mqc.plinkBase(output.inferpedx)
                 ],
-                check = True)
+                check = True
+            )
 
             subprocess.run(
                 [
@@ -556,8 +558,7 @@ rule pedigree_ibd_estimate:
                 ] + params.threshold.split() + [
                         "--out", outTrunk,
                         "--make-bed"
-                    ]
-                ),
+                ],
                 check = True
             )
 
