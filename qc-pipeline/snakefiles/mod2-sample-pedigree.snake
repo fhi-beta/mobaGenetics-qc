@@ -617,7 +617,11 @@ rule m2_output:
 
             # copy bedsets
             for extension in ['.bed', '.bim']:
+                print(inTrunk_all_markers + extension)
+                print(outTrunk_all_markers + extension)
                 copyfile(inTrunk_all_markers + extension, outTrunk_all_markers + extension)
+                print(inTrunk_pruned_markers + extension)
+                print(outTrunk_pruned_markers + extension)
                 copyfile(inTrunk_pruned_markers + extension, outTrunk_pruned_markers + extension)
 
             # Copy new fam files
