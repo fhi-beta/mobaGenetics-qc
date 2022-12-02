@@ -520,7 +520,7 @@ rule pedigree_ibd_estimate:
     input:
         in_geno = rules.missing_genotype_markers.output.bedset,
         in_all = rules.callrate_permanent_removal.output.bedset,
-        clean_snps = rules.prune_markers.output.exclude_list
+        clean_snps = rules.mod2_prune_markers.output.exclude_list
     output:
         bedset = multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         genome = tmpMod2/"{batch}"/"mod2_ibd.genome",
@@ -583,7 +583,7 @@ rule_stem = 'm2_output'
 rule m2_output:
     input:
         bedset_m1 = rules.m1_output.output.bedset,
-        prunedsnps = rules.prune_markers.output.exclude_list,
+        prunedsnps = rules.mod2_prune_markers.output.exclude_list,
         sex_check = rules.pedigree_ibd_estimate.output.sex_check,
         ibd_results = rules.pedigree_ibd_estimate.output.genome,
     output:
