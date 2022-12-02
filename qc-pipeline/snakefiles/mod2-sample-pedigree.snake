@@ -1,5 +1,3 @@
-from methylation.Snakefile import outputFolder
-
 # Generate statistics on raw dataset before anything happens to the data
 rule_stem = 'mod2_generate_start_stats'
 rule mod2_generate_start_stats:
