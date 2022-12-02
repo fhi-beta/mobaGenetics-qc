@@ -483,9 +483,7 @@ rule mod2_prune_markers:
                     plinklocal,
                     "--bfile", inTrunk,
                     "--make-founders"
-                ] + \
-                params.prune_cmd.split() + \
-                [
+                ] + params.prune_cmd.split() + [
                         "--out", outTrunk
                 ],
                 check = True
@@ -548,7 +546,7 @@ rule pedigree_ibd_estimate:
                     plinklocal,
                             "--bfile", inGenoTrunk,
                             "--check-sex", "ycount",
-                            "--out", mqc.plinkBase(output.inferpedx)
+                            "--out", mqc.plinkBase(output.sex_check)
                 ],
                 check = True
             )
