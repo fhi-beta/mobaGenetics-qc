@@ -588,7 +588,7 @@ rule m2_output:
         bedset_pruned_markers = rules.pedigree_ibd_estimate.output.bedset,
         prunedsnps = rules.mod2_prune_markers.output.exclude_list,
         sex_check = rules.pedigree_ibd_estimate.output.sex_check,
-        ibd_results = rules.pedigree_ibd_estimate.output.genome,
+        genome = rules.pedigree_ibd_estimate.output.genome,
     output:
         mod2_bedset =  multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         mod2_pruned_bedset = multiext(str(tmpMod2/"{batch}"/(rule_stem + "_pruned")), '.bed', '.bim', '.fam'),
@@ -618,11 +618,7 @@ rule m2_output:
 
             # copy bedsets
             for extension in ['.bed', '.bim']:
-                print(inTrunk_all_markers + extension)
-                print(outTrunk_all_markers + extension)
                 copyfile(inTrunk_all_markers + extension, outTrunk_all_markers + extension)
-                print(inTrunk_pruned_markers + extension)
-                print(outTrunk_pruned_markers + extension)
                 copyfile(inTrunk_pruned_markers + extension, outTrunk_pruned_markers + extension)
 
             # Copy new fam files
