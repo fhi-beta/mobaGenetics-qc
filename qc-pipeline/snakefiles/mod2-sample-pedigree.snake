@@ -474,6 +474,8 @@ rule mod2_prune_markers:
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
 
+            print("DEBUG")
+
             subprocess.run(
                 [
                     plinklocal,
