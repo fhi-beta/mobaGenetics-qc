@@ -585,6 +585,7 @@ rule m2_output:
     input:
         bedset_m1 = rules.m1_output.output.bedset,
         bedset_all_markers = rules.callrate_permanent_removal.output.bedset,
+        bedset_pruned_markers = rules.pedigree_ibd_estimate.output.bedset,
         prunedsnps = rules.mod2_prune_markers.output.exclude_list,
         sex_check = rules.pedigree_ibd_estimate.output.sex_check,
         ibd_results = rules.pedigree_ibd_estimate.output.genome,
@@ -611,7 +612,7 @@ rule m2_output:
             m1Trunk = mqc.plinkBase(input.bedset_m1[0])
             inTrunk_all_markers = mqc.plinkBase(input.bedset_all_markers[0])
             outTrunk_all_markers =  mqc.plinkBase(output.mod2_bedset[0])
-            inTrunk_pruned_markers = mqc.plinkBase(input.prunedsnps[0])
+            inTrunk_pruned_markers = mqc.plinkBase(input.bedset_pruned_markers[0])
             outTrunk_pruned_markers =  mqc.plinkBase(output.mod2_pruned_bedset[0])
             docs = "For more documentation see https://github.com/folkehelseinstituttet/mobaGenetics-qc/wiki/Module2 . In the html file see info on individual module steps through the section for results of Module 2"
 
