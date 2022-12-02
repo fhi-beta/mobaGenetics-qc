@@ -575,8 +575,6 @@ rule pedigree_ibd_estimate:
             dropouts["Rule"] = rule
             mqc.saveYamlResults(output.results, dropouts)
 
-            print ("rule done")
-
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
             print(e)
@@ -619,9 +617,7 @@ rule m2_output:
 
             # copy bedsets
             for extension in ['.bed', '.bim']:
-                # the full markerset
                 copyfile(inTrunk_all_markers + extension, outTrunk_all_markers + extension)
-                # markers (temporarily removed)
                 copyfile(inTrunk_pruned_markers + extension, outTrunk_pruned_markers + extension)
 
             # Copy new fam files
