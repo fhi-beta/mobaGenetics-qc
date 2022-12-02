@@ -23,7 +23,7 @@ try:
     # It is only needed for functions that need the rules/config files
     cwd = Path.cwd()
     snake_dir = cwd/"../snakefiles"
-    
+
     with open(snake_dir/"rules.yaml", 'r') as stream:
         rule_info = yaml.safe_load(stream)
     with open(snake_dir/"config.yaml", 'r') as stream:
@@ -40,11 +40,11 @@ def test_me(foo="bar"):
 
     """
     subprocess.run([plink,
-            "--bfile", "foo",
-            "--chr", "23",
-            "--out", "bar",
-            "--indep-pairphase"] + config["sex_check_indep_pairwise"].split(),
-            check=True)
+                    "--bfile", "foo",
+                    "--chr", "23",
+                    "--out", "bar",
+                    "--indep-pairphase"] + config["sex_check_indep_pairwise"].split(),
+                   check=True)
 
     print(inspect.getdoc(make_rule_caption))
     # print(inspect.signature(test_me))
@@ -177,7 +177,7 @@ def saveYamlResults(files, yamlStruct):
         file.write(f'- {yamlStruct["out"]} left\n\n')
         file.write(f'{yamlStruct["Timestamp"]}\n')
 
-        
+
 def plinkBase(path):
     """ part of the file without the last extention (such as .fam .bed .bim)
 
@@ -408,10 +408,10 @@ def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
         "out": len(outDict),
         "xitems": [],    # poplulated later by samples/markers if fullList is True
         "actionTakenCount": 0 # Not found in dictionary, so it is the effect of the qc-rule on the inputfile
-        }
+    }
     haveDict = False
     if mapFile != "":   # Setting up a dictionary 'lookup' to lookup the
-                        # original value if postQc has changed
+        # original value if postQc has changed
         lookup = lookupDict(mapFile, mapIndx)
         haveDict = True
         result["mapFile"] = mapFile
@@ -430,7 +430,7 @@ def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
             #print (key)
             flipkey = " ".join((parts.group(1),parts.group(3),parts.group(2)))
         if (outDict.get(key, 0) + outDict.get(flipkey, 0)) == 0 :
-        # If we didnt find this, even by (possible) flipping alleles
+            # If we didnt find this, even by (possible) flipping alleles
             result["actionTakenCount"] += 1
             item = str(allcols[indx])    # being the sample or the marker
             if fullList:
@@ -524,7 +524,7 @@ def create_exclude_list(duplicates, callRates, resultfile, excludelist):
 
     # sort, group and keep all but the largest callrate
     drop = all.sort_values(by=['duplicate_group', 'F_MISS'],
-        ascending=False).groupby('duplicate_group').apply(lambda g: g.iloc[1:])
+                           ascending=False).groupby('duplicate_group').apply(lambda g: g.iloc[1:])
 
     # Result file
     drop.loc[:, ['chr', 'pos', 'alleles', 'SNP','F_MISS']].to_csv(resultfile,sep=" ", index=False)
@@ -533,9 +533,15 @@ def create_exclude_list(duplicates, callRates, resultfile, excludelist):
     print("**** .... and we should make a yaml file with summary in it")
 
 
-def missing_genotype_rate(rule,
-                          in_bedset, out_bedset, sample=True, treshold=0.1,
-                          result_file='/dev/null', plot_file=False):
+def missing_genotype_rate(
+        rule,
+        in_bedset,
+        out_bedset,
+        sample = True,
+        threshold=0.1,
+        result_file = '/dev/null',
+        plot_file = False
+):
     """Runs plink --geno or --mind and produces output
 
     Wrapper around plink and saveYamlResults as well as plots showing
@@ -563,29 +569,48 @@ def missing_genotype_rate(rule,
         plink_switch = "--geno"
         miss_ext = ".lmiss"
 
-    subprocess.run([plink,
-                "--bfile",in_bedset,
-                plink_switch, str(treshold),
-                "--out", out_bedset,
-                "--make-bed"], check=True)
+    subprocess.run(
+        [
+            plink,
+            "--bfile", in_bedset,
+            plink_switch, str(threshold),
+            "--out", out_bedset,
+            "--make-bed"
+        ],
+        check = True
+    )
 
-    dropouts = checkUpdates(in_bedset+extension,
-                            out_bedset+extension, cols=[0, 1],
-                            sanityCheck="removal", fullList=True)
+    dropouts = checkUpdates(
+        in_bedset + extension,
+        out_bedset + extension,
+        cols = [0, 1],
+        sanityCheck = "removal",
+        fullList = True
+    )
     dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-    dropouts["Treshold"] = treshold
+    dropouts["Treshold"] = threshold
     dropouts["Rule"] = rule
     dropouts["rule type"] = kindof  # rule says sample/marker - we know what is really is
     saveYamlResults(result_file, dropouts)
-    # A plot might be ordered
+
     if plot_file:
         # call rates for markers/samples before they got removed
-        subprocess.run([plink,
-                        "--bfile", in_bedset,
-                        "--missing",
-                        "--out", in_bedset], check=True)
-        plot_point_and_line(dropouts, in_bedset+miss_ext, plot_file,
-                            column="F_MISS", ylabel="1 - missingness")
+        subprocess.run(
+            [
+                plink,
+                "--bfile", in_bedset,
+                "--missing",
+                "--out", in_bedset
+            ],
+            check = True
+        )
+        plot_point_and_line(
+            dropouts,
+            in_bedset+miss_ext,
+            plot_file,
+            column = "F_MISS",
+            ylabel = "1 - missingness"
+        )
 
     return dropouts
 
@@ -842,7 +867,7 @@ def copy_file(f, ext=".bak"):
     print(f"DEBUG> Making a backup of {f} to {f+ext}.")
     copyfile(f, f+ext)
 
-    
+
 def dotplot(genomedata, prec=2,x='x',y='y',c='c'):
     """ Returns a plotnine object ready to be printet, but where extra lines can be added
 
@@ -886,7 +911,7 @@ def hweg_qq_plot(pfile, prec=3, x='x'):
     try:
         df = pd.read_csv(pfile, usecols=[x],
                          delim_whitespace=True).sort_values(by=[x],
-                         na_position='first', ascending=False)
+                                                            na_position='first', ascending=False)
     except Exception as e:
         print(f"{my_name}: {str(e)}")
         return
@@ -1062,14 +1087,14 @@ def create_fam_map(fam_file, map_in_file,  map_out_file):
     try:
         # 4 columns 0-3
         fam = pd.read_csv(fam_file, header=None,
-                         delim_whitespace=True)
+                          delim_whitespace=True)
         # 2 columns 4-5
         map = pd.read_csv(map_in_file, header=None,
-                         delim_whitespace=True)
+                          delim_whitespace=True)
     except Exception as e:
         print(f"{my_name}: {str(e)}")
         return
-    
+
     # print(map)
     all = fam.merge(map, left_on=[1], right_on=[0],
                     indicator=True, validate="1:1")
@@ -1082,10 +1107,10 @@ def create_fam_map(fam_file, map_in_file,  map_out_file):
 
 
 def main():
-# if you want to test a function
+    # if you want to test a function
     print("Main called")
     y = checkUpdates("/mnt/work/gutorm/1000Genomes/all_phase3.bim",
-                 "/mnt/work2/gutorm/pipeOut/mod3-good-markers/pca_ref.bim", cols=[0,1,3,4,5], indx=1, sanityCheck="none",
+                     "/mnt/work2/gutorm/pipeOut/mod3-good-markers/pca_ref.bim", cols=[0,1,3,4,5], indx=1, sanityCheck="none",
                      fullList=True, allele_flip=True)
     print(y)
 if __name__ == "__main__":

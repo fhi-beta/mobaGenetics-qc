@@ -155,7 +155,7 @@ rule missing_genotype_samples:
             caption = resultPath/(rule_stem + ".rst")
         )
     params:
-        treshold = config['pedigree_mind_thr']
+        threshold = config['pedigree_mind_thr']
     run:
         try:
             item_type = rule_info[rule]["rule type"]
@@ -170,7 +170,7 @@ rule missing_genotype_samples:
                 inTrunk,
                 outTrunk,
                 sample = True,
-                treshold = params.treshold,
+                threshold = params.threshold,
                 result_file = output.results
             )
 
