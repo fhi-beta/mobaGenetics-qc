@@ -590,8 +590,8 @@ rule m2_output:
         sex_check = rules.pedigree_ibd_estimate.output.sex_check,
         ibd_results = rules.pedigree_ibd_estimate.output.genome,
     output:
-        bedset =  multiext(str(tmpMod2/"{batch}"/'inferped_all_m2'), '.bed', '.bim', '.fam'),
-        mod2_pruned_bedset = multiext(str(tmpMod2/"{batch}"/'inferped_pruned_m2'), '.bed', '.bim', '.fam'),
+        bedset =  multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
+        mod2_pruned_bedset = multiext(str(tmpMod2/"{batch}"/(rule_stem + "_pruned")), '.bed', '.bim', '.fam'),
         prunedsnps = tmpMod2/"{batch}"/(rule_stem + ".prune.in"),
         genome = tmpMod2/"{batch}"/(rule_stem + ".genome"),
         sex_check = tmpMod2/"{batch}"/(rule_stem + ".sexcheck"),
