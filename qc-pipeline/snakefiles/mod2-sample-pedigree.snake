@@ -65,7 +65,7 @@ rule mod2_generate_start_stats:
             )
 
         except Exception as e:
-            template = f"An exception occurred in rule {rule}."
+            print(f"An exception occurred in rule {rule}.")
             print(e)
 
 
@@ -139,7 +139,7 @@ rule maf_removal_markers:
             )
 
         except Exception as e:
-            template = f"An exception occurred in rule {rule}."
+            print(f"An exception occurred in rule {rule}.")
             print(e)
 
 
@@ -175,7 +175,7 @@ rule missing_genotype_samples:
             )
 
         except Exception as e:
-            template = f"An exception occurred in rule {rule}."
+            print(f"An exception occurred in rule {rule}.")
             print(e)
 
 
@@ -238,7 +238,7 @@ rule callrate_permanent_removal:
             )
 
         except Exception as e:
-            template = f"An exception occurred in rule {rule}."
+            print(f"An exception occurred in rule {rule}.")
             print(e)
 
 
@@ -278,7 +278,7 @@ rule missing_genotype_markers:
             )
 
         except Exception as e:
-            template = f"An exception occurred in rule {rule}."
+            print(f"An exception occurred in rule {rule}.")
             print(e)
 
 
@@ -324,7 +324,7 @@ rule exclude_unplaced_and_non_autosomal_markers:
             mqc.saveYamlResults(output.results, dropouts)
 
         except Exception as e:
-            template = f"An exception occurred in rule {rule}."
+            print(f"An exception occurred in rule {rule}.")
             print(e)
 
 
@@ -364,7 +364,7 @@ rule hardy_weinberg_filtered_markers:
             )
 
         except Exception as e:
-            template = f"An exception occurred in rule {rule}."
+            print(f"An exception occurred in rule {rule}.")
             print(e)
 
 
@@ -401,7 +401,7 @@ rule exclude_strand_ambigious_markers:
             mqc.saveYamlResults(output.results, dropouts)
 
         except Exception as e:
-            template = f"An exception occurred in rule {rule}."
+            print(f"An exception occurred in rule {rule}.")
             print(e)
 
 
@@ -449,7 +449,7 @@ rule exclude_high_ld_markers:
             mqc.saveYamlResults(output.results, dropouts)
 
         except Exception as e:
-            template = f"An exception occurred in rule {rule}."
+            print(f"An exception occurred in rule {rule}.")
             print(e)
 
 
@@ -511,7 +511,7 @@ rule mod2_prune_markers:
             mqc.saveYamlResults(output.results, dropouts)
 
         except Exception as e:
-            template = f"An exception occurred in rule {rule}."
+            print(f"An exception occurred in rule {rule}.")
             print(e)
 
 
@@ -575,7 +575,7 @@ rule pedigree_ibd_estimate:
             mqc.saveYamlResults(output.results, dropouts)
 
         except Exception as e:
-            template = f"An exception occurred in rule {rule}."
+            print(f"An exception occurred in rule {rule}.")
             print(e)
 
 
@@ -653,6 +653,6 @@ rule m2_output:
             mqc.saveYamlResults(output.report_samples, dropouts)
 
         except Exception as e:
-            template = f"An exception occurred in rule {rule}."
+            print(f"An exception occurred in rule {rule}.")
             print(e)
 
