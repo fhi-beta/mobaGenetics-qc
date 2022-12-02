@@ -469,12 +469,12 @@ rule mod2_prune_markers:
         prune_cmd = config["prune_cmd"]
     run:
         try:
+
+            print("DEBUG")
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, rule_info[rule]["QC test"])
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
-
-            print("DEBUG")
 
             subprocess.run(
                 [
