@@ -4,7 +4,7 @@
 
 # Minidocs for some of the fields (more to come later)
 #
-# * Rule        : The rulename in the snakemake file.
+# * Rule        : The name of the rule in the snakemake file.
 # * Rule order  : Sort alphabetically by this to get the documentation/execution order.
 #                 There is no guarantee that the rules are run in that order, but
 #                 this is the order they should be documented.
@@ -201,9 +201,9 @@ exclude_high_ld_markers:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-prune_markers:
+mod2_prune_markers:
   QC test: Temporary prune markers due to linkage disequilibrium. 
-  Description: Uses plink --make-founders  indep-pairwise . Produces a list of markers that will be used during ibd-estimations later (in modules 3 and 4)
+  Description: Uses plink --make-founders  indep-pairwise . Produces a list of markers that will be used during ibd-estimations in modules 3 and 4
   Rule order: mod2-h
   rule type: markers
   rule action: remove
