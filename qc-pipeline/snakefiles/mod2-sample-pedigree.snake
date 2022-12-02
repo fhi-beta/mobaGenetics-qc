@@ -586,11 +586,12 @@ rule_stem = 'm2_output'
 rule m2_output:
     input:
         bedset_m1 = rules.m1_output.output.bedset,
+        bedset_all_markers = rules.callrate_permanent_removal.output.bedset,
         prunedsnps = rules.mod2_prune_markers.output.exclude_list,
         sex_check = rules.pedigree_ibd_estimate.output.sex_check,
         ibd_results = rules.pedigree_ibd_estimate.output.genome,
     output:
-        bedset =  multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
+        mod2_bedset =  multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         mod2_pruned_bedset = multiext(str(tmpMod2/"{batch}"/(rule_stem + "_pruned")), '.bed', '.bim', '.fam'),
         prunedsnps = tmpMod2/"{batch}"/(rule_stem + ".prune.in"),
         genome = tmpMod2/"{batch}"/(rule_stem + ".genome"),
@@ -611,24 +612,22 @@ rule m2_output:
             mqc.log(runlog, rule_info[rule]["QC test"])
             m1Trunk = mqc.plinkBase(input.bedset_m1[0])
             inTrunk_all_markers = mqc.plinkBase(input.bedset_all_markers[0])
-            outTrunk_all_markers =  mqc.plinkBase(output.bedset[0])
-            inTrunk_pruned_markers = mqc.plinkBase(input.bedset_pruned_markers[0])
-            outTrunk_pruned_markers =  mqc.plinkBase(output.mod3_bedset[0])
+            outTrunk_all_markers =  mqc.plinkBase(output.mod2_bedset[0])
+            inTrunk_pruned_markers = mqc.plinkBase(input.prunedsnps[0])
+            outTrunk_pruned_markers =  mqc.plinkBase(output.mod2_pruned_bedset[0])
             docs = "For more documentation see https://github.com/folkehelseinstituttet/mobaGenetics-qc/wiki/Module2 . In the html file see info on individual module steps through the section for results of Module 2"
 
-            # Create new bedsets with the new pedigree/.fam
-            # produce bedset with all markers and newly inferred family info
-            # produce/modify bedset with pruned markers by replacing earlier .fam file with new one
-            # (inferped_pruned.bed and .bim were made by previous rule)
-
-            for i in ['.bed', '.bim']:
+            # copy bedsets
+            for extension in ['.bed', '.bim']:
                 # the full markerset
-                copyfile(inTrunk_all_markers + i, outTrunk_all_markers + i)
+                copyfile(inTrunk_all_markers + extension, outTrunk_all_markers + extension)
                 # markers (temporarily removed)
-                copyfile(inTrunk_pruned_markers + i, outTrunk_pruned_markers + i)
-                # However, fam-file is new:
-                copyfile(input.fam_fix, outTrunk_all_markers + ".fam")
-                copyfile(input.fam_fix, outTrunk_pruned_markers + ".fam")
+                copyfile(inTrunk_pruned_markers + extension, outTrunk_pruned_markers + extension)
+
+            # Copy new fam files
+            # @TODO: update once triads are fixed
+            copyfile(inTrunk_all_markers + ".fam", outTrunk_all_markers + ".fam")
+            copyfile(inTrunk_pruned_markers + ".fam", outTrunk_pruned_markers + ".fam")
 
             # Copy other outcomes of the module
             copyfile(input.prunedsnps, output.prunedsnps)
