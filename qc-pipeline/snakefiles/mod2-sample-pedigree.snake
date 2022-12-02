@@ -479,9 +479,7 @@ rule prune_markers:
                     plinklocal,
                     "--bfile", inTrunk,
                     "--make-founders"
-                ] +
-                    params.prune_cmd.split() +
-                    [
+                ] + params.prune_cmd.split() + [
                         "--out", outTrunk
                     ]
                 ),
@@ -555,9 +553,7 @@ rule pedigree_ibd_estimate:
                     "--bfile", inGenoTrunk,
                     "--extract", input.clean_snps,
                     "--genome"
-                ] +
-                    params.threshold.split() +
-                    [
+                ] + params.threshold.split() + [
                         "--out", outTrunk,
                         "--make-bed"
                     ]
