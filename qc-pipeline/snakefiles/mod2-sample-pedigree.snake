@@ -1,3 +1,4 @@
+from methylation.Snakefile import outputFolder
 
 # Generate statistics on raw dataset before anything happens to the data
 rule_stem = 'mod2_generate_start_stats'
@@ -525,8 +526,8 @@ rule pedigree_ibd_estimate:
         clean_snps = rules.mod2_prune_markers.output.exclude_list
     output:
         bedset = multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
-        genome = tmpMod2/"{batch}"/"mod2_ibd.genome",
-        sex_check = tmpMod2/"{batch}"/"mod2_ibd.sexcheck",
+        genome = tmpMod2/"{batch}"/(rule_stem + ".genome"),
+        sex_check = tmpMod2/"{batch}"/(rule_stem + ".sexcheck"),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
             category = "Module 2 Core samples and pedigree inference",
@@ -576,6 +577,8 @@ rule pedigree_ibd_estimate:
             dropouts["Rule"] = rule
             mqc.saveYamlResults(output.results, dropouts)
 
+            print ("rule done")
+
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
             print(e)
@@ -591,6 +594,9 @@ rule m2_output:
     output:
         bedset =  multiext(str(tmpMod2/"{batch}"/'inferped_all_m2'), '.bed', '.bim', '.fam'),
         mod2_pruned_bedset = multiext(str(tmpMod2/"{batch}"/'inferped_pruned_m2'), '.bed', '.bim', '.fam'),
+        prunedsnps = tmpMod2/"{batch}"/(rule_stem + ".prune.in"),
+        genome = tmpMod2/"{batch}"/(rule_stem + ".genome"),
+        sex_check = tmpMod2/"{batch}"/(rule_stem + ".sexcheck"),
         report_markers = report(
             resultPath/"{batch}"/(rule_stem + ".markers.yaml"),
             category = "- Module 2 Pedigree fix recap",
@@ -625,6 +631,11 @@ rule m2_output:
                 # However, fam-file is new:
                 copyfile(input.fam_fix, outTrunk_all_markers + ".fam")
                 copyfile(input.fam_fix, outTrunk_pruned_markers + ".fam")
+
+            # Copy other outcomes of the module
+            copyfile(input.prunedsnps, output.prunedsnps)
+            copyfile(input.genome, output.genome)
+            copyfile(input.sex_check, output.sex_check)
 
             # report markers (we only do this for mod5 output aka outTrunk_all_markers)
             dropouts = mqc.checkUpdates(
