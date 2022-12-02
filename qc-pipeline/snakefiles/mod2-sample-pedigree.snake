@@ -470,11 +470,13 @@ rule mod2_prune_markers:
     run:
         try:
 
-            print("DEBUG")
             item_type = rule_info[rule]["rule type"]
+            print("DEBUG1")
             mqc.log(runlog, rule_info[rule]["QC test"])
+            print("DEBUG2")
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
+            print("DEBUG3")
 
             subprocess.run(
                 [
