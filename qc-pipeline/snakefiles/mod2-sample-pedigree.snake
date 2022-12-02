@@ -88,11 +88,11 @@ rule maf_removal_markers:
             caption = resultPath/"{batch}"/(rule_stem + ".rst")
         )
     params:
-        treshold = config['pedigree_maf_thr']
+        threshold = config['pedigree_maf_thr']
     run:
         try:
             item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog, f"Initial cleaning: Low minor allele frequencies removal (--maf {params.treshold})\n")
+            mqc.log(runlog, f"Initial cleaning: Low minor allele frequencies removal (--maf {params.threshold})\n")
             inTrunk =  mqc.plinkBase(input.bedset[0])
             outTrunk =  mqc.plinkBase(output.bedset[0])
 
@@ -100,7 +100,7 @@ rule maf_removal_markers:
                 [
                     plinklocal,
                     "--bfile", inTrunk,
-                    "--maf", str(params.treshold),
+                    "--maf", str(params.threshold),
                     "--out", outTrunk,
                     "--make-bed"
                 ],
@@ -115,7 +115,7 @@ rule maf_removal_markers:
                 allele_flip=True
             )
             dropouts.update(rule_info[rule])
-            dropouts["Treshold"] = params.treshold
+            dropouts["Threshold"] = params.threshold
             dropouts["Rule"] = rule
             mqc.saveYamlResults(output.results, dropouts)
 
@@ -259,11 +259,11 @@ rule missing_genotype_markers:
             caption = resultPath/"{batch}"/(rule_stem + ".rst")
         )
     params:
-        treshold = config['geno_thr']
+        threshold = config['geno_thr']
     run:
         try:
             item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog, f"Missing genotype {item_type} (--geno {params.treshold})\n")
+            mqc.log(runlog, f"Missing genotype {item_type} (--geno {params.threshold})\n")
             inTrunk =  mqc.plinkBase(input.bedset[0])
             outTrunk =  mqc.plinkBase(output.bedset[0])
 
@@ -272,7 +272,7 @@ rule missing_genotype_markers:
                 inTrunk,
                 outTrunk,
                 sample = False,
-                treshold = params.treshold,
+                threshold = params.threshold,
                 result_file = output.results,
                 plot_file = output.plot
             )
@@ -345,11 +345,11 @@ rule hardy_weinberg_filtered_markers:
             caption = resultPath/"{batch}"/(rule_stem + ".rst")
         )
     params:
-        treshold = config['pedigree_hwe_thr']
+        threshold = config['pedigree_hwe_thr']
     run:
         try:
             item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog, "Missing Hardy-Weinberg filtering {item_type} (--hwe {params.treshold})\n")
+            mqc.log(runlog, "Missing Hardy-Weinberg filtering {item_type} (--hwe {params.threshold})\n")
             inTrunk =  mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
 
@@ -357,7 +357,7 @@ rule hardy_weinberg_filtered_markers:
                 rule,
                 inTrunk,
                 outTrunk,
-                treshold = params.treshold,
+                threshold = params.threshold,
                 hwe_switches = ["--hardy"],
                 result_file = output.results,
                 plot_file = output.plot

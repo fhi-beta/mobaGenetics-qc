@@ -239,7 +239,7 @@ rule remove_markers_cluster_sep:
         removal= tmpMod1/"{batch}"/(rule_stem + ".txt"),
         removal_markers = tmpMod1/"{batch}"/(rule_stem + ".markers.txt"),
     params:
-        treshold = config['cluster_sep_thr']
+        threshold = config['cluster_sep_thr']
     message: "mod1 Remove markers by cluster metrics"
     run:
         try:
@@ -255,7 +255,7 @@ rule remove_markers_cluster_sep:
                 colName = config['cluster_sep_col_name'],
                 sep = '\t',
                 condition = "<",
-                treshold = params.treshold,
+                threshold = params.threshold,
                 key_cols = [0],
                 doc_cols = [0]
             )
@@ -280,11 +280,11 @@ rule remove_markers_cluster_sep:
                 allele_flip = True
             )
             dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-            dropouts["Treshold"] = params.treshold
+            dropouts["Threshold"] = params.threshold
             dropouts["Rule"] = rule
             mqc.saveYamlResults(output.results, dropouts)
 
-            mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} markers(NSNP_CLUSTERSEP_LOST) out of {dropouts["in"]} (BEFORE_SNPTABLE), leaving {dropouts["out"]} markers. Treshhold {params.treshold}\n')
+            mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} markers(NSNP_CLUSTERSEP_LOST) out of {dropouts["in"]} (BEFORE_SNPTABLE), leaving {dropouts["out"]} markers. Treshhold {params.threshold}\n')
             # The following has a huge potential for speedup (using round as in mqc.dotplot()
             mqc.plot_point_and_line(
                 dropouts,
@@ -321,7 +321,7 @@ rule remove_markers_gc_score:
         removal= tmpMod1/"{batch}"/(rule_stem + ".txt"),
         removal_markers = tmpMod1/"{batch}"/(rule_stem + ".markers.txt"),
     params:
-        treshold = config['10%_GC_score_thr']
+        threshold = config['10%_GC_score_thr']
     run:
         try:
             item_type = rule_info[rule]["rule type"]
@@ -337,7 +337,7 @@ rule remove_markers_gc_score:
                 colName = config["10%_GC_score_col_name"],
                 sep = '\t',
                 condition = "<",
-                treshold = params.treshold,
+                threshold = params.threshold,
                 key_cols=[0],
                 doc_cols=[0]
             )
@@ -361,11 +361,11 @@ rule remove_markers_gc_score:
                 allele_flip = True
             )
             dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-            dropouts["Treshold"] = params.treshold
+            dropouts["Threshold"] = params.threshold
             dropouts["Rule"] = rule
             mqc.saveYamlResults(output.results, dropouts)
 
-            mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} markers(NSNP_GC_LOST) out of {dropouts["in"]} (NSNP_BEFORE_GC), leaving {dropouts["out"]} markers. Treshhold {params.treshold}\n')
+            mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} markers(NSNP_GC_LOST) out of {dropouts["in"]} (NSNP_BEFORE_GC), leaving {dropouts["out"]} markers. Treshhold {params.threshold}\n')
 
             mqc.plot_point_and_line(
                 dropouts,
@@ -403,7 +403,7 @@ rule remove_markers_aa_theta_deviation:
         removal = tmpMod1/"{batch}"/(rule_stem + ".txt"),
         removal_markers = tmpMod1/"{batch}"/(rule_stem + ".markers.txt"),
     params:
-        treshold = config['aa_theta_dev_thr']
+        threshold = config['aa_theta_dev_thr']
     run:
         try:
             item_type = rule_info[rule]["rule type"]
@@ -419,7 +419,7 @@ rule remove_markers_aa_theta_deviation:
                 colName = config["aa_theta_dev_col_name"],
                 sep = '\t',
                 condition = ">",
-                treshold = params.treshold,
+                threshold = params.threshold,
                 key_cols = [0],
                 doc_cols = [0]
             )
@@ -444,11 +444,11 @@ rule remove_markers_aa_theta_deviation:
                 allele_flip = True
             )
             dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-            dropouts["Treshold"] = params.treshold
+            dropouts["Threshold"] = params.threshold
             dropouts["Rule"] = rule
 
             mqc.saveYamlResults(output.results, dropouts)
-            mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} markers(NSNP_AATHETADEV_LOST) out of {dropouts["in"]} (NSNP_GC_LOST), leaving {dropouts["out"]} markers. Treshhold {params.treshold}\n')
+            mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} markers(NSNP_AATHETADEV_LOST) out of {dropouts["in"]} (NSNP_GC_LOST), leaving {dropouts["out"]} markers. Treshhold {params.threshold}\n')
 
             mqc.plot_point_and_line(
                 dropouts,

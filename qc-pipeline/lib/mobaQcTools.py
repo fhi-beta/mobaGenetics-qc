@@ -72,7 +72,7 @@ def make_rule_caption(rule, dir):
 
 def plot_hist(dataFile, resultFile, column="name of the column",
               title="no legend??", separator='\s+',
-              treshold=0, logx=False, bins=100):
+              threshold=0, logx=False, bins=100):
     """ plots and saves a histogram
 
     Very basic Histogram. Could be prettied up a lot
@@ -91,8 +91,8 @@ def plot_hist(dataFile, resultFile, column="name of the column",
     p = p9.ggplot(data=df, mapping=p9.aes(x=column))
     hist = p + p9.geom_histogram(bins=bins)
     hist += p9.labs(title=title, x=column)
-    if treshold != 0:
-        hist += p9.geom_vline(xintercept=treshold, color='red')
+    if threshold != 0:
+        hist += p9.geom_vline(xintercept=threshold, color='red')
     if logx:
         hist += p9.scale_x_log10(name=f"log10({column})")
     p9.ggsave(plot=hist, filename=resultFile, dpi=300)
@@ -119,24 +119,24 @@ def plot_point_and_line(qc_results, dataFile, resultFile,
     try:
         df = pd.read_csv(dataFile, sep=separator,
                          usecols=[column])
-        treshold = qc_results.get("Treshold", 0)
+        threshold = qc_results.get("Threshold", 0)
     except Exception as e:
         print(f"{my_name}: Could not read plotdata {column} from {dataFile} or qc-results, {str(e)}")
         return
 
     if invert:
         df = 1-df
-        treshold = 1-treshold
+        threshold = 1-threshold
 
     xlabel = qc_results.get("rule type")
-    title = f'{qc_results.get("QC test")}\ntreshold={treshold}'
+    title = f'{qc_results.get("QC test")}\nthreshold={threshold}'
     df = df.sort_values(column).reset_index(drop=True)
     p = p9.ggplot(df, p9.aes(x=df.index, y=column))
     line = p + p9.geom_line() + p9.geom_point()
-    if treshold > 0 and treshold < 1 :
-        line += p9.geom_hline(yintercept=treshold, color='red')
-        # ylabel += f"   (treshold={treshold})"
-        xlabel += f' ({qc_results.get("actionTakenCount")} outside treshold)'
+    if threshold > 0 and threshold < 1 :
+        line += p9.geom_hline(yintercept=threshold, color='red')
+        # ylabel += f"   (threshold={threshold})"
+        xlabel += f' ({qc_results.get("actionTakenCount")} outside threshold)'
     line += p9.labs(title=title, y=ylabel, x=xlabel)
     p9.ggsave(plot=line, filename=resultFile, dpi=300,
               width=4, height=3, units="cm")
@@ -227,7 +227,7 @@ compOperands = {
 
 
 def extract_list(innFile, outFile, threshold_doc_file="/dev/null",
-                 colName="none", sep='\t', condition="<", treshold=0,
+                 colName="none", sep='\t', condition="<", threshold=0,
                  key_cols=[0], doc_cols=[0, 1]):
     """A typical preprocessor to utilities like plink, extracts relevant samples/markers
 
@@ -241,7 +241,7 @@ def extract_list(innFile, outFile, threshold_doc_file="/dev/null",
       The contents of colName will always be added
 
     Only columns were the column colName (regexp) matches the
-    condition of treshold will be written treshold can be a string,
+    condition of threshold will be written threshold can be a string,
     this is testet only for condition '==' Returns (number of sample
     extracted, total samples)
 
@@ -281,11 +281,11 @@ def extract_list(innFile, outFile, threshold_doc_file="/dev/null",
             try: val = float(val)  # hack to avoid errors if we want to compare strings
             except: pass
 
-            if compare(val , treshold):
+            if compare(val , threshold):
                 # File with only keys, create the relevant subset first
                 subsetc = [allcols[index] for index in key_cols]
                 sample.write(f"{outsep.join(map(str,subsetc))}\n")
-                # File with more columns, and always include the treshold column
+                # File with more columns, and always include the threshold column
                 # subsetc is a relevant subset of the columns
                 subsetc = [allcols[index] for index in doc_cols]
                 subset.write(f"{outsep.join(map(str,subsetc))} {val}\n")
@@ -588,7 +588,7 @@ def missing_genotype_rate(
         fullList = True
     )
     dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-    dropouts["Treshold"] = threshold
+    dropouts["Threshold"] = threshold
     dropouts["Rule"] = rule
     dropouts["rule type"] = kindof  # rule says sample/marker - we know what is really is
     saveYamlResults(result_file, dropouts)
@@ -615,7 +615,7 @@ def missing_genotype_rate(
     return dropouts
 
 
-def detect_low_hwe_rate(in_bedset, out_bedset, treshold=0.1,
+def detect_low_hwe_rate(in_bedset, out_bedset, threshold=0.1,
                         hwe_switches=["--autosome", "--hardy", "midp"]):
     """Runs plink hwe and computes p-values but does not change .bed file
 
@@ -634,12 +634,12 @@ def detect_low_hwe_rate(in_bedset, out_bedset, treshold=0.1,
     hwe_p_values = out_bedset+".hwe"
     extract_list(hwe_p_values, out_bedset+".exclude",
                  threshold_doc_file=out_bedset+".details", sep=None,
-                 colName="^P$", condition="<", treshold=treshold,
+                 colName="^P$", condition="<", threshold=threshold,
                  key_cols=[1], doc_cols=[0, 1])
     return
 
 def low_hwe_rate(rule, in_bedset, out_bedset,
-                 treshold=0.1,
+                 threshold=0.1,
                  hwe_switches=["--autosome", "--hardy", "midp"],
                  result_file='/dev/null', plot_file='/dev/null'):
     """ Runs plink hwe and removes low p-values markers.  Produces output, including plot
@@ -651,7 +651,7 @@ def low_hwe_rate(rule, in_bedset, out_bedset,
     Has a potentional to wrap more --plink commands
 
     """
-    detect_low_hwe_rate(in_bedset, out_bedset, treshold,
+    detect_low_hwe_rate(in_bedset, out_bedset, threshold,
                         hwe_switches)
     hwe_p_values = out_bedset+".hwe"
     # low values detected, now extract, make results and plot
@@ -664,15 +664,15 @@ def low_hwe_rate(rule, in_bedset, out_bedset,
     dropouts = checkUpdates(in_bedset+".bim", out_bedset+".bim", cols=[0, 1],
                             sanityCheck="removal", fullList=True)
     dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-    dropouts["Treshold"] = treshold
+    dropouts["Threshold"] = threshold
     dropouts["Rule"] = rule
     saveYamlResults(result_file, dropouts)
 
     p = hweg_qq_plot(hwe_p_values, prec=2, x='P')
-    # QQish plot with tresholds returned in p. Add, threshold, title and save
-    t_line = p9.geom_hline(yintercept=-1*math.log10(treshold), color='red')
-    p += t_line    # treshold. Note that plot removed above
-    title = f'HWE > -log({treshold}) \n{dropouts.get("actionTakenCount")} outside treshold\n{dropouts.get("Timestamp")}'
+    # QQish plot with thresholds returned in p. Add, threshold, title and save
+    t_line = p9.geom_hline(yintercept=-1*math.log10(threshold), color='red')
+    p += t_line    # threshold. Note that plot removed above
+    title = f'HWE > -log({threshold}) \n{dropouts.get("actionTakenCount")} outside threshold\n{dropouts.get("Timestamp")}'
     p += p9.labs(title=title)
     p9.ggsave(plot=p, filename=plot_file, dpi=600)
     return
@@ -717,7 +717,7 @@ def het_extract(het_file, out_file, sd):
 
 
 def excess_het(rule, autosomal,
-               in_bedset, out_bedset, treshold=0.1, sd=2,
+               in_bedset, out_bedset, threshold=0.1, sd=2,
                result_file='/dev/null', plot_file=False):
     """Runs plink het maf autosomal and produces output, including plot
 
@@ -744,7 +744,7 @@ def excess_het(rule, autosomal,
     subprocess.run([plink,
                     "--bfile", in_bedset,
                     "--autosome",
-                    maf, str(treshold),
+                    maf, str(threshold),
                     "--het",
                     "--out", out_bedset], check=True)
     # We here have a .het file where low p-values for markers are to be removed
@@ -761,16 +761,16 @@ def excess_het(rule, autosomal,
     dropouts = checkUpdates(in_bedset+".fam", out_bedset+".fam", cols=[0, 1],
                             sanityCheck="removal", fullList=True)
     dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-    dropouts["Treshold"] = f"{treshold} using distance {sd} standard deviations"
+    dropouts["Threshold"] = f"{threshold} using distance {sd} standard deviations"
     dropouts["Rule"] = rule
     dropouts["Details"] = f"{out_bedset}.exclude with extension .details (filtered) and .total (all)"
     saveYamlResults(result_file, dropouts)
     title = (f'Sample heterozygosity ({autosomal} markes)\n'
-             f'{dropouts.get("actionTakenCount")} outside treshold\n'
-             f'--maf > {treshold} HET exceeds {sd} std.dev\n{dropouts.get("Timestamp")}')
+             f'{dropouts.get("actionTakenCount")} outside threshold\n'
+             f'--maf > {threshold} HET exceeds {sd} std.dev\n{dropouts.get("Timestamp")}')
     plot_hist(out_bedset+".exclude.total", plot_file,
               column="het_rate", title=title, separator='\s+',
-              treshold=0, logx=False)
+              threshold=0, logx=False)
     return
 
 
@@ -932,7 +932,7 @@ def hweg_qq_plot(pfile, prec=3, x='x'):
 
 def sex_check(rule,
               in_bed, out_bed,
-              f_treshold=0.2, m_treshold=0.8,
+              f_threshold=0.2, m_threshold=0.8,
               result_file='/dev/null', plot_file=False):
     """ Checks if sex according to .fam-file matches genotype. Removes mismatches
 
@@ -963,7 +963,7 @@ def sex_check(rule,
     # check sex on X chromosome
     subprocess.run([plink,
                     "--bfile", tmpPath/"pruned_for_sexcheck",
-                    "--check-sex", str(f_treshold), str(m_treshold),
+                    "--check-sex", str(f_threshold), str(m_threshold),
                     "--out", tmpPath/"sexcheck_report_x",
                     ], check=True)
 
@@ -972,7 +972,7 @@ def sex_check(rule,
                  tmpPath/"sexcheck_report_x.remove",
                  tmpPath/"sexcheck_report_x.details",
                  colName="^STATUS$",
-                 sep=None, condition='==', treshold="PROBLEM",
+                 sep=None, condition='==', threshold="PROBLEM",
                  key_cols=[0, 1], doc_cols=[0, 1, 5])
 
     # remove these
@@ -986,16 +986,16 @@ def sex_check(rule,
     dropouts = checkUpdates(inTrunk+".fam", outTrunk+".fam", cols=[0, 1],
                             sanityCheck="removal", fullList=True)
     dropouts.update(rule_info[rule])   # Extra documentation about the rule
-    dropouts["Treshold"] = f"Female={f_treshold} Male={m_treshold}"
+    dropouts["Threshold"] = f"Female={f_threshold} Male={m_threshold}"
     dropouts["Rule"] = rule
     saveYamlResults(result_file, dropouts)
     title = (f'Sex Check on chromosome X\n'
-             f'{dropouts.get("actionTakenCount")} outside treshold\n'
-             f'Treshold {dropouts.get("Treshold")}\n'
+             f'{dropouts.get("actionTakenCount")} outside threshold\n'
+             f'Threshold {dropouts.get("Threshold")}\n'
              f'{dropouts.get("Timestamp")}')
     plot_hist(tmpPath/"sexcheck_report_x.sexcheck", plot_file,
               column="F", title=title, separator='\s+',
-              treshold=0, logx=False, bins=100)
+              threshold=0, logx=False, bins=100)
     return
 
 
