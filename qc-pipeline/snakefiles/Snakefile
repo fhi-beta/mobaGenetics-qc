@@ -10,11 +10,6 @@
 ##
 
 
-# Pipeline variables and setup
-include: "variables.py"
-include: "batch_details.py"
-include: "setup.py"
-
 # External libraries
 sys.path.append('../lib')  # in order to find our local packages
 import mobaQcTools as mqc  # local moba package
@@ -25,6 +20,11 @@ configfile: "config.yaml"
 
 # Ensure bash as shell
 shell.executable("/bin/bash")
+
+# Pipeline variables and setup
+include: "variables.py"
+include: "batch_details.py"
+include: "setup.py"
 
 # A file with rule properties and ordering
 with open("rules.yaml", 'r') as stream:
