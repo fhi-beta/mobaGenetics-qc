@@ -58,9 +58,9 @@ rule all:
         mod2_end_pruned_bed_file = expand(tmpMod2 / "{batch}" / "m2_output_pruned.bed", batch = batches),
         mod2_end_pruned_bim_file = expand(tmpMod2 / "{batch}" / "m2_output_pruned.bim", batch = batches),
         mod2_end_pruned_fam_file = expand(tmpMod2 / "{batch}" / "m2_output_pruned.fam", batch = batches),
-        prunedsnps = expand(tmpMod2/"{batch}"/"m2_output.prune.in", batch = batches),
+        pruned_snps = expand(tmpMod2/"{batch}"/"m2_output.prune.in", batch = batches),
         sex_check = expand(tmpMod2/"{batch}"/"m2_output.sexcheck", batch = batches),
-        ibd_results = expand(tmpMod2/"{batch}"/"m2_output.genome", batch = batches),
+        king_relatedness = expand(tmpMod2/"{batch}"/"m2_output.relatedness", batch = batches),
 
         # module_3_good_markers = expand((tmpMod3/"{batch}/m3_output_good_markers").with_suffix(".txt"), batch=batches),
         # sex_check = expand(str(tmpMod3/"{batch}/{role}/sexcheck_report_x.sexcheck"), role=ROLES, batch=batches),
