@@ -458,7 +458,7 @@ rule mod2_prune_markers:
         bedset = rules.exclude_high_ld_markers.output.bedset,
     output:
         bedset = multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
-        exclude_list = tmpMod2/"{batch}"/(rule_stem + ".prune.in"),
+        pruned_list = tmpMod2/"{batch}"/(rule_stem + ".prune.in"),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
             category = "Module 2 Core samples and pedigree inference",
@@ -492,7 +492,7 @@ rule mod2_prune_markers:
                 [
                     plinklocal,
                             "--bfile", inTrunk,
-                            "--extract", output.exclude_list,
+                            "--extract", output.pruned_list,
                             "--out", outTrunk,
                             "--make-bed"
                 ],
@@ -516,29 +516,22 @@ rule mod2_prune_markers:
             print(e)
 
 
-rule_stem = 'pedigree_ibd_estimate'
-rule pedigree_ibd_estimate:
+rule_stem = 'check_sex'
+rule check_sex:
     input:
-        in_geno = rules.missing_genotype_markers.output.bedset,
-        in_all = rules.callrate_permanent_removal.output.bedset,
-        clean_snps = rules.mod2_prune_markers.output.exclude_list
+        in_geno = rules.missing_genotype_markers.output.bedset
     output:
-        bedset = multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
-        genome = tmpMod2/"{batch}"/(rule_stem + ".genome"),
         sex_check = tmpMod2/"{batch}"/(rule_stem + ".sexcheck"),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
             category = "Module 2 Core samples and pedigree inference",
             caption = resultPath/"{batch}"/(rule_stem + ".rst")
         )
-    params:
-        threshold = config["genome_thr"]
     run:
         try:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, rule_info[rule]["QC test"])
             inGenoTrunk = mqc.plinkBase(input.in_geno[0])
-            outTrunk = mqc.plinkBase(output.bedset[0])
 
             subprocess.run(
                 [
@@ -550,15 +543,37 @@ rule pedigree_ibd_estimate:
                 check = True
             )
 
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+
+rule_stem = 'ibd_prune'
+rule ibd_prune:
+    input:
+        in_geno = rules.missing_genotype_markers.output.bedset,
+        clean_snps = rules.mod2_prune_markers.output.pruned_list
+    output:
+        bedset = multiext(str(tmpMod2/"{batch}"/rule_stem) ,'.bed','.bim','.fam'),
+        results = report(
+            resultPath/"{batch}"/(rule_stem + ".yaml"),
+            category = "Module 2 Core samples and pedigree inference",
+            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+        )
+    run:
+        try:
+            item_type = rule_info[rule]["rule type"]
+            mqc.log(runlog, rule_info[rule]["QC test"])
+            inGenoTrunk = mqc.plinkBase(input.in_geno[0])
+            outTrunk = mqc.plinkBase(output.bedset[0])
+
             subprocess.run(
                 [
                     plinklocal,
                     "--bfile", inGenoTrunk,
                     "--extract", input.clean_snps,
-                    "--genome"
-                ] + params.threshold.split() + [
-                        "--out", outTrunk,
-                        "--make-bed"
+                    "--out", outTrunk,
+                    "--make-bed"
                 ],
                 check = True
             )
@@ -580,21 +595,58 @@ rule pedigree_ibd_estimate:
             print(e)
 
 
+rule_stem = 'pedigree_ibd_estimate'
+rule pedigree_ibd_estimate:
+    input:
+        in_geno = rules.ibd_prune.output.bedset,
+    params:
+        king_prefix = tmpMod2/"{batch}"/rule_stem,
+    output:
+        king_relatedness = tmpMod2/"{batch}"/(rule_stem + ".relatedness"),
+        results = report(
+            resultPath/"{batch}"/(rule_stem + ".yaml"),
+            category = "Module 2 Core samples and pedigree inference",
+            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+        )
+    threads: 8
+    run:
+        try:
+            item_type = rule_info[rule]["rule type"]
+            mqc.log(runlog, rule_info[rule]["QC test"])
+            inGenoTrunk = mqc.plinkBase(input.in_geno[0])
+            outTrunk = mqc.plinkBase(output.bedset[0])
+
+            subprocess.run(
+                [
+                    kinglocal,king -b ex.bed --related
+                    "-b", inGenoTrunk,
+                    "--related",
+                    "--cpus", str(threads),
+                    "--prefix", outTrunk
+                ],
+                check = True
+            )
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+
 rule_stem = 'm2_output'
 rule m2_output:
     input:
         bedset_m1 = rules.m1_output.output.bedset,
         bedset_all_markers = rules.callrate_permanent_removal.output.bedset,
-        bedset_pruned_markers = rules.pedigree_ibd_estimate.output.bedset,
-        prunedsnps = rules.mod2_prune_markers.output.exclude_list,
-        sex_check = rules.pedigree_ibd_estimate.output.sex_check,
-        genome = rules.pedigree_ibd_estimate.output.genome,
+        bedset_pruned_markers = rules.ibd_prune.output.bedset,
+        pruned_snps = rules.mod2_prune_markers.output.pruned_list,
+        sex_check = rules.check_sex.output.sex_check,
+        king_relatedness = rules.pedigree_ibd_estimate.output.king_relatedness,
     output:
         mod2_bedset =  multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         mod2_pruned_bedset = multiext(str(tmpMod2/"{batch}"/(rule_stem + "_pruned")), '.bed', '.bim', '.fam'),
         prunedsnps = tmpMod2/"{batch}"/(rule_stem + ".prune.in"),
-        genome = tmpMod2/"{batch}"/(rule_stem + ".genome"),
         sex_check = tmpMod2/"{batch}"/(rule_stem + ".sexcheck"),
+        king_relatedness = tmpMod2/"{batch}"/(rule_stem + ".relatedness"),
         report_markers = report(
             resultPath/"{batch}"/(rule_stem + ".markers.yaml"),
             category = "- Module 2 Pedigree fix recap",

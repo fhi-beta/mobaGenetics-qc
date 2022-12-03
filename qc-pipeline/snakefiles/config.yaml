@@ -8,7 +8,8 @@ documentationDataset: "https://github.com/fhi-beta/mobaDocsBackoffice/wiki/MoBaG
 documentationQC: "https://github.com/fhi-beta/mobaDocsBackoffice/wiki/pipeline"
 githubSource: "https://github.com/fhi-beta/mobaGenetics-qc"
 output_base: "/mnt/archive/snpQc/pipeOut_dev"
-plinklocal: "/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/bin/plink-1.90b5.4/plink"
+plinklocal: "/mnt/work/marc/github/mobaGenetics-qc/qc-pipeline/bin/plink-1.90b5.4/plink"
+kinglocal: "/mnt/work/marc/github/mobaGenetics-qc/qc-pipeline/bin/Linux-king/king"
 
 # from http://www.haplotype-reference-consortium.org/ http://www.haplotype-reference-consortium.org/site
 # contains HRC.r1-1.GRCh37.wgs.mac5.sites.tab. If not found - google it.
@@ -50,8 +51,6 @@ pedigree_maf_thr: 0.10
 pedigree_mind_thr: 0.05
 # Hardy-Weinberg equilibrium threshold (samples) used during pedigree inference
 pedigree_hwe_thr: 0.0001
-# Genome threshold used during pedigree inference
-genome_thr: --min 0.10
 # Missing genotype threshold (markers) plink --geno
 geno_thr: 0.02
 # prune_markers --make founders (command and params).

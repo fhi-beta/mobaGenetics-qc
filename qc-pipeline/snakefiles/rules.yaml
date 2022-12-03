@@ -209,11 +209,31 @@ mod2_prune_markers:
   rule action: remove
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
-  Timestamp: 
+  Timestamp:
+
+check_sex:
+  QC test: Checks sex
+  Description: Plink --sexcheck
+  Rule order: mod2-i
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp:
+
+ibd_prune:
+  QC test: Prunes prior to relatedness estimation
+  Description: Plink --extract
+  Rule order: mod2-i
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp:
 
 pedigree_ibd_estimate:
-  QC test: Prepares for pedigree fix of inconsistent samples. Checks sex and estimates ibd
-  Description: Plink --sexcheck and --extract --genome
+  QC test: Relatedness test
+  Description: king --relatedness
   Rule order: mod2-i
   rule type: markers
   rule action: remove
