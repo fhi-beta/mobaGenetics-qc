@@ -594,7 +594,7 @@ rule pedigree_ibd_estimate:
     input:
         in_geno = rules.ibd_prune.output.bedset,
     output:
-        king_relatedness = tmpMod2/"{batch}"/(rule_stem + ".relatedness"),
+        king_relatedness = tmpMod2/"{batch}"/(rule_stem + ".kin0"),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
             category = "Module 2 Core samples and pedigree inference",
@@ -637,7 +637,7 @@ rule m2_output:
         mod2_pruned_bedset = multiext(str(tmpMod2/"{batch}"/(rule_stem + "_pruned")), '.bed', '.bim', '.fam'),
         pruned_snps = tmpMod2/"{batch}"/(rule_stem + ".prune.in"),
         sex_check = tmpMod2/"{batch}"/(rule_stem + ".sexcheck"),
-        king_relatedness = tmpMod2/"{batch}"/(rule_stem + ".relatedness"),
+        king_relatedness = tmpMod2/"{batch}"/(rule_stem + ".kin0"),
         report_markers = report(
             resultPath/"{batch}"/(rule_stem + ".markers.yaml"),
             category = "- Module 2 Pedigree fix recap",

@@ -10,6 +10,11 @@
 ##
 
 
+# Pipeline variables and setup
+include: "variables.py"
+include: "batch_details.py"
+include: "setup.py"
+
 # External libraries
 sys.path.append('../lib')  # in order to find our local packages
 import mobaQcTools as mqc  # local moba package
@@ -20,11 +25,6 @@ configfile: "config.yaml"
 
 # Ensure bash as shell
 shell.executable("/bin/bash")
-
-# Pipeline variables and setup
-include: "variables.py"
-include: "batch_details.py"
-include: "setup.py"
 
 # A file with rule properties and ordering
 with open("rules.yaml", 'r') as stream:
@@ -60,7 +60,7 @@ rule all:
         mod2_end_pruned_fam_file = expand(tmpMod2 / "{batch}" / "m2_output_pruned.fam", batch = batches),
         pruned_snps = expand(tmpMod2/"{batch}"/"m2_output.prune.in", batch = batches),
         sex_check = expand(tmpMod2/"{batch}"/"m2_output.sexcheck", batch = batches),
-        king_relatedness = expand(tmpMod2/"{batch}"/"m2_output.relatedness", batch = batches),
+        king_relatedness = expand(tmpMod2/"{batch}"/"m2_output.kin0", batch = batches),
 
         # module_3_good_markers = expand((tmpMod3/"{batch}/m3_output_good_markers").with_suffix(".txt"), batch=batches),
         # sex_check = expand(str(tmpMod3/"{batch}/{role}/sexcheck_report_x.sexcheck"), role=ROLES, batch=batches),
