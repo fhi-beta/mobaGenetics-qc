@@ -535,7 +535,6 @@ rule check_sex:
                 ],
                 check = True
             )
-            print("sex check done")
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -594,8 +593,6 @@ rule_stem = 'pedigree_ibd_estimate'
 rule pedigree_ibd_estimate:
     input:
         in_geno = rules.ibd_prune.output.bedset,
-    params:
-        king_prefix = tmpMod2/"{batch}"/rule_stem,
     output:
         king_relatedness = tmpMod2/"{batch}"/(rule_stem + ".relatedness"),
         results = report(
@@ -608,7 +605,7 @@ rule pedigree_ibd_estimate:
         try:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, rule_info[rule]["QC test"])
-            outTrunk = mqc.plinkBase(output.bedset[0])
+            outTrunk = mqc.plinkBase(king_relatedness)
 
             subprocess.run(
                 [
