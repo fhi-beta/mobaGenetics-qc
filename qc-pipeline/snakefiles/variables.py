@@ -20,11 +20,11 @@ libdir = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'lib'))
 bcftools = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/bcftools-1.7/bcftools'))
 vcftools = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/vcftools-0.1.13/vcftools'))
 
-#plinklocal = Path(os.path.dirname(workflow.basedir)) / 'bin/plink-1.90b5.4/plink'
-plinklocal = Path(config["plinklocal"])
+plinklocal = Path(os.path.dirname(workflow.basedir))/'bin'/'plink-1.90b5.4'/'plink'
 
 # if plinklocal turned out well, do the same for all binaries
-flashpca = Path(os.path.dirname(workflow.basedir)) / 'bin/flashpca_x86-64'
+flashpca = Path(os.path.dirname(workflow.basedir)) / 'bin'/'flashpca_x86-64'
+kinglocal = Path(os.path.dirname(workflow.basedir)) / 'bin'/'Linux-king'/'king'
 tmp_path = os.path.join(config['output_base'],'tmp')
 runlog = Path(config['output_base']) / 'runlog.txt'
 base = Path(config['output_base'])
