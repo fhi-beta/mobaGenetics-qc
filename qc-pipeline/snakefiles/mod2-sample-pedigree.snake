@@ -470,12 +470,9 @@ rule mod2_prune_markers:
         try:
 
             item_type = rule_info[rule]["rule type"]
-            print("DEBUG1")
             mqc.log(runlog, rule_info[rule]["QC test"])
-            print("DEBUG2")
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
-            print("DEBUG3")
 
             subprocess.run(
                 [
@@ -532,16 +529,18 @@ rule check_sex:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, rule_info[rule]["QC test"])
             inGenoTrunk = mqc.plinkBase(input.in_geno[0])
+            ouput_file = mqc.plinkBase(output.sex_check)
 
             subprocess.run(
                 [
                     plinklocal,
                             "--bfile", inGenoTrunk,
                             "--check-sex", "ycount",
-                            "--out", mqc.plinkBase(output.sex_check)
+                            "--out", ouput_file
                 ],
                 check = True
             )
+            print("sex check done")
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -552,6 +551,7 @@ rule_stem = 'ibd_prune'
 rule ibd_prune:
     input:
         in_geno = rules.missing_genotype_markers.output.bedset,
+        sex_check = rules.check_sex.output.sex_check,
         clean_snps = rules.mod2_prune_markers.output.pruned_list
     output:
         bedset = multiext(str(tmpMod2/"{batch}"/rule_stem) ,'.bed','.bim','.fam'),
