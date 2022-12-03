@@ -518,12 +518,7 @@ rule check_sex:
     input:
         in_geno = rules.missing_genotype_markers.output.bedset
     output:
-        sex_check = tmpMod2/"{batch}"/(rule_stem + ".sexcheck"),
-        results = report(
-            resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
-        )
+        sex_check = tmpMod2/"{batch}"/(rule_stem + ".sexcheck")
     run:
         try:
             item_type = rule_info[rule]["rule type"]
