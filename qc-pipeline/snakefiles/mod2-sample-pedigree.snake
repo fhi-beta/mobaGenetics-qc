@@ -613,13 +613,12 @@ rule pedigree_ibd_estimate:
         try:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, rule_info[rule]["QC test"])
-            inGenoTrunk = mqc.plinkBase(input.in_geno[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
 
             subprocess.run(
                 [
-                    kinglocal,king -b ex.bed --related
-                    "-b", inGenoTrunk,
+                    kinglocal,
+                    "-b", input.in_geno[0],
                     "--related",
                     "--cpus", str(threads),
                     "--prefix", outTrunk
