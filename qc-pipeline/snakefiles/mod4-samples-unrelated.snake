@@ -100,7 +100,7 @@ rule core_ibd_estimate:  # code is more or less copied from ibd_estimate
     threads: 2
     input:
         bedset = rules.core_het.output.bedset,
-        prunedsnps = rules.mod2_prune_markers.output.exclude_list,
+        prunedsnps = rules.mod2_prune_markers.output.pruned_snps,
     output:
         genome = (tmpMod4/"{batch}"/"{role}"/rule_stem).with_suffix(".genome"),
         verify_ibd_reduced_genome = tmpMod4/"{batch}"/"{role}"/"verify_ibd_reduced.genome",   #input for R laters, 3 columns of genome file
@@ -228,7 +228,7 @@ rule core_pca:
     threads: 2
     input:
         bedset = rules.core_ibd_direct_exclusion.output.bedset,
-        prunedsnps = rules.mod2_prune_markers.output.exclude_list, # markers for pca on, found way back
+        prunedsnps = rules.mod2_prune_markers.output.pruned_snps,
 
     output:
         bedset = (tmpMod4/"{batch}"/"{role}"/rule_stem).with_suffix(".bed"),  #called pcadir/pruned before
