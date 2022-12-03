@@ -100,7 +100,7 @@ rule core_ibd_estimate:  # code is more or less copied from ibd_estimate
     threads: 2
     input:
         bedset = rules.core_het.output.bedset,
-        prunedsnps = rules.mod2_prune_markers.output.pruned_snps,
+        pruned_snps = rules.m2_output.output.pruned_snps,
     output:
         genome = (tmpMod4/"{batch}"/"{role}"/rule_stem).with_suffix(".genome"),
         verify_ibd_reduced_genome = tmpMod4/"{batch}"/"{role}"/"verify_ibd_reduced.genome",   #input for R laters, 3 columns of genome file
@@ -117,7 +117,7 @@ rule core_ibd_estimate:  # code is more or less copied from ibd_estimate
 
         subprocess.run([plinklocal,
                         "--bfile", inTrunk,
-                        "--extract", input.prunedsnps,
+                        "--extract", input.pruned_snps,
                         "--genome",
                         "--out", outTrunk ], check=True)
         # create a plot for this - corresponds to the old draw-pihat-plots.R
@@ -228,7 +228,7 @@ rule core_pca:
     threads: 2
     input:
         bedset = rules.core_ibd_direct_exclusion.output.bedset,
-        prunedsnps = rules.mod2_prune_markers.output.pruned_snps,
+        pruned_snps = rules.m2_output.output.pruned_snps,
 
     output:
         bedset = (tmpMod4/"{batch}"/"{role}"/rule_stem).with_suffix(".bed"),  #called pcadir/pruned before
@@ -249,7 +249,7 @@ rule core_pca:
 
         subprocess.run([plinklocal,
                         "--bfile", inTrunk,
-                        "--extract", input.prunedsnps,
+                        "--extract", input.pruned_snps,
                         "--out", outTrunk,
                         "--make-bed"    ], check=True)
 
