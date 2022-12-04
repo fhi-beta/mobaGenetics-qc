@@ -12,7 +12,7 @@
 
 # External libraries
 sys.path.append('../lib')  # in order to find our local packages
-import mobaQcTools as mqc  # local moba package
+import mobaQcTools as mqc  # local moba utils package
 from shutil import copyfile
 
 # configfile: "configR3.yaml" # for running rotterdam3 tests

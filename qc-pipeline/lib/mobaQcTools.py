@@ -735,7 +735,7 @@ def excess_het(rule, autosomal,
     return
 
 
-def exclude_strand_ambigious_markers(input, output):
+def exclude_strand_ambigious_markers(input, output, plinklocal = plinklocal):
     """ Runs plink to exlucde A/T and C/G SNPs
     input is the trunk of a .bed/.bim/.fam triplet
     ouput will be the corresponding set, without excluded markers
@@ -743,21 +743,27 @@ def exclude_strand_ambigious_markers(input, output):
     plink will produce the output-bedset
     """
     try:
-        df = pd.read_csv(input+".bim", delim_whitespace=True, header=None).astype(str)
+        df = pd.read_csv(input + ".bim", delim_whitespace = True, header = None).astype(str)
     except Exception as e:
         print(f"Could not open .bim-file of bedset {input}, {str(e)}")
         return
+
     mask = ((df[4] == 'G') & (df[5] == 'C') |
             (df[4] == 'C') & (df[5] == 'G') |
             (df[4] == 'A') & (df[5] == 'T') |
             (df[4] == 'T') & (df[5] == 'A'))
-    (df[mask])[1].to_csv(output+".excl",index=False, header=False)
+    (df[mask])[1].to_csv(output + ".excl", index = False, header = False)
 
-    subprocess.run([plinklocal,
-                    "--bfile",input,
-                    "--exclude", output+".excl",
-                    "--out", output,
-                    "--make-bed"], check=True)
+    subprocess.run(
+        [
+            plinklocal,
+            "--bfile", input,
+            "--exclude", output + ".excl",
+            "--out", output,
+            "--make-bed"
+        ],
+        check = True
+    )
 
 
 def fix_rsid_map(mapfile, newmap):
