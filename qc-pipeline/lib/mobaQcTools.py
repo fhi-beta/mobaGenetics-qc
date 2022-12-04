@@ -532,7 +532,7 @@ def missing_genotype_rate(
 
     subprocess.run(
         [
-            plink,
+            plinklocal,
             "--bfile", in_bedset,
             plink_switch, str(threshold),
             "--out", out_bedset,
@@ -558,7 +558,7 @@ def missing_genotype_rate(
         # call rates for markers/samples before they got removed
         subprocess.run(
             [
-                plink,
+                plinklocal,
                 "--bfile", in_bedset,
                 "--missing",
                 "--out", in_bedset
