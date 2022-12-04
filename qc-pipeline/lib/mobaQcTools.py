@@ -735,7 +735,7 @@ def excess_het(rule, autosomal,
     return
 
 
-def exclude_strand_ambigious_markers(input, output, plink):
+def exclude_strand_ambigious_markers(input, output):
     """ Runs plink to exlucde A/T and C/G SNPs
     input is the trunk of a .bed/.bim/.fam triplet
     ouput will be the corresponding set, without excluded markers

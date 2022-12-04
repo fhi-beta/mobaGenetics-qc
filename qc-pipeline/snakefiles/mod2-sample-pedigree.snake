@@ -385,7 +385,7 @@ rule exclude_strand_ambigious_markers:
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
 
-            mqc.exclude_strand_ambigious_markers(inTrunk, outTrunk, plinklocal)
+            mqc.exclude_strand_ambigious_markers(inTrunk, outTrunk)
             dropouts = mqc.checkUpdates(
                 inTrunk + ".bim",
                 outTrunk+".bim",
