@@ -379,6 +379,7 @@ rule exclude_strand_ambigious_markers:
             caption = resultPath/"{batch}"/(rule_stem + ".rst")
         )
     run:
+        print("debug")
         try:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, "Excluding ambigious {item_type} (GC/CG/AT/TA)\n")
