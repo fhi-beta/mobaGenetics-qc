@@ -15,44 +15,6 @@ import inspect    # to find stack-info, such as the functions name
 import matplotlib
 matplotlib.use('Agg')
 
-# snake_dir = Path("/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/snakefiles")
-# print (f"DDDDDDDDEEEEBUG!  {snake_dir}   xxx")
-# Grab the same configfiles as snakefile has
-try:
-    # This is kinda ugly - it only works for the ../snakefiles directory
-    # It is only needed for functions that need the rules/config files
-    cwd = Path.cwd()
-    snake_dir = cwd/"../snakefiles"
-
-    with open(snake_dir/"rules.yaml", 'r') as stream:
-        rule_info = yaml.safe_load(stream)
-    with open(snake_dir/"config.yaml", 'r') as stream:
-        config = yaml.safe_load(stream)
-    plink = config["plinklocal"]
-
-except Exception as e:
-    print(f"Warning mobaQcTools.py: Could not load configfiles, {str(e)}")
-
-
-
-def test_me(foo="bar"):
-    """ For random tests
-
-    """
-    subprocess.run([plink,
-                    "--bfile", "foo",
-                    "--chr", "23",
-                    "--out", "bar",
-                    "--indep-pairphase"] + config["sex_check_indep_pairwise"].split(),
-                   check=True)
-
-    print(inspect.getdoc(make_rule_caption))
-    # print(inspect.signature(test_me))
-    # print(inspect.currentframe())
-    # logging.warning("ooops")
-    # logging.warning(getattr(logging, loglevel.upper()))
-    # print (inspect.stack()[0])
-
 
 def make_rule_caption(rule, dir):
     """ Creates a caption for rule
@@ -75,7 +37,6 @@ def plot_hist(dataFile, resultFile, column="name of the column",
               threshold=0, logx=False, bins=100):
     """ plots and saves a histogram
 
-    Very basic Histogram. Could be prettied up a lot
     Prints out lots of warning, but see https://stackoverflow.com/questions/55805431/is-there-a-way-to-prevent-plotnine-from-printing-user-warnings-when-saving-ggplo
     Default separator is whitespace, but it needs to be overriden every now and then ... (typically by pure tab '\t')
     If (optional) logx is True, x-values are log10 transformed.
@@ -626,7 +587,7 @@ def detect_low_hwe_rate(in_bedset, out_bedset, threshold=0.1,
     details including p-values
 
     """
-    subprocess.run([plink,
+    subprocess.run([plinklocal,
                     "--bfile", in_bedset,
                     "--out", out_bedset]
                    + hwe_switches, check=True)  # hwe_switches is a list
@@ -655,7 +616,7 @@ def low_hwe_rate(rule, in_bedset, out_bedset,
                         hwe_switches)
     hwe_p_values = out_bedset+".hwe"
     # low values detected, now extract, make results and plot
-    subprocess.run([plink,
+    subprocess.run([plinklocal,
                     "--bfile", in_bedset,
                     "--exclude", out_bedset+".exclude",
                     "--out", out_bedset,
@@ -741,7 +702,7 @@ def excess_het(rule, autosomal,
         raise Exception(f"ERROR: Unexpected autosomal rarity {autosomal}.")
         return
 
-    subprocess.run([plink,
+    subprocess.run([plinklocal,
                     "--bfile", in_bedset,
                     "--autosome",
                     maf, str(threshold),
@@ -752,7 +713,7 @@ def excess_het(rule, autosomal,
     het_extract(het_p_values, out_bedset+".exclude", sd)
     # het_extract found .exclude for removal and .total for historgram
 
-    subprocess.run([plink,
+    subprocess.run([plinklocal,
                     "--bfile", in_bedset,
                     "--remove", out_bedset+".exclude",
                     "--out", out_bedset,
@@ -792,7 +753,7 @@ def exclude_strand_ambigious_markers(input, output, plink):
             (df[4] == 'T') & (df[5] == 'A'))
     (df[mask])[1].to_csv(output+".excl",index=False, header=False)
 
-    subprocess.run([plink,
+    subprocess.run([plinklocal,
                     "--bfile",input,
                     "--exclude", output+".excl",
                     "--out", output,
@@ -947,21 +908,21 @@ def sex_check(rule,
     inTrunk = plinkBase(in_bed)
     outTrunk = plinkBase(out_bed)
     # prime/chr23
-    subprocess.run([plink,
+    subprocess.run([plinklocal,
                     "--bfile", inTrunk,
                     "--chr", "23",
                     "--out", tmpPath/"pruned_sex_markers",
                     "--indep-pairphase"] +  # more params ...
                    config["sex_check_indep_pairwise"].split(),
                    check=True)
-    subprocess.run([plink,
+    subprocess.run([plinklocal,
                     "--bfile", inTrunk,
                     "--extract", tmpPath/"pruned_sex_markers.prune.in",
                     "--out", tmpPath/"pruned_for_sexcheck",
                     "--make-bed"])
 
     # check sex on X chromosome
-    subprocess.run([plink,
+    subprocess.run([plinklocal,
                     "--bfile", tmpPath/"pruned_for_sexcheck",
                     "--check-sex", str(f_threshold), str(m_threshold),
                     "--out", tmpPath/"sexcheck_report_x",
@@ -976,7 +937,7 @@ def sex_check(rule,
                  key_cols=[0, 1], doc_cols=[0, 1, 5])
 
     # remove these
-    subprocess.run([plink,
+    subprocess.run([plinklocal,
                     "--bfile", inTrunk,
                     "--remove", tmpPath/"sexcheck_report_x.remove",
                     "--out", outTrunk,
