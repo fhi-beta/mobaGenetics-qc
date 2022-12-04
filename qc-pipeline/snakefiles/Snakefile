@@ -10,28 +10,36 @@
 ##
 
 
+# Pipeline variables and setup
+include: "parameters/variables.py"
+include: "parameters/batch_details.py"
+include: "parameters/setup.py"
+
 # External libraries
 sys.path.append('../lib')  # in order to find our local packages
 import mobaQcTools as mqc  # local moba utils package
 from shutil import copyfile
 
 # configfile: "configR3.yaml" # for running rotterdam3 tests
-configfile: "config.yaml" 
+configfile: "parameters/config.yaml"
 
 # Ensure bash as shell
 shell.executable("/bin/bash")
 
-# Pipeline variables and setup
-include: "variables.py"
-include: "batch_details.py"
-include: "setup.py"
-
 # A file with rule properties and ordering
-with open("rules.yaml", 'r') as stream:
+with open("parameters/rules.yaml",'r') as stream:
     rule_info = yaml.safe_load(stream)
 
 # Report (top level)
 report: "report/qc.rst"
+
+# The different modules
+include: "mod1-data-conversion.snake"
+include: "mod2-sample-pedigree.snake"
+include: "mod3-good-markers.snake"
+include: "mod4-samples-unrelated.snake"
+include: "mod5-phasing-prep.snake"
+
 
 # rule all, lists the output of every module
 rule all:
@@ -86,13 +94,6 @@ rule all:
 	# expand(config['output_base'] + '{role}/pca/final_pca_covars.txt', role=ROLES),
 	# config['output_base'] + 'sample_flag_list.txt'
 
-
-# Include modules
-include: "mod1-data-conversion.snake"
-include: "mod2-sample-pedigree.snake"
-include: "mod3-good-markers.snake"
-include: "mod4-samples-unrelated.snake"
-include: "mod5-phasing-prep.snake"
 
 # for small tests. 
 rule test:

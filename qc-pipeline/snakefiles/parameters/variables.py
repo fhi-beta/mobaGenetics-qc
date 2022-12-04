@@ -20,11 +20,12 @@ libdir = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'lib'))
 bcftools = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/bcftools-1.7/bcftools'))
 vcftools = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/vcftools-0.1.13/vcftools'))
 
+# Local binaries
 plinklocal = Path(os.path.dirname(workflow.basedir))/'bin'/'plink-1.90b5.4'/'plink'
-
-# if plinklocal turned out well, do the same for all binaries
 flashpca = Path(os.path.dirname(workflow.basedir)) / 'bin'/'flashpca_x86-64'
 kinglocal = Path(os.path.dirname(workflow.basedir)) / 'bin'/'Linux-king'/'king'
+
+# Folder paths
 tmp_path = os.path.join(config['output_base'],'tmp')
 runlog = Path(config['output_base']) / 'runlog.txt'
 base = Path(config['output_base'])
@@ -41,7 +42,6 @@ batches = ['snp014']
 
 
 ### workflow settings ##################################
-# chrom gen. list 1-23 (24 not in list)
 chrom = list(range(1,24))
 chromx = list(range(1,23)) + ['X']
 ROLES = ["founders", "offspring"]
