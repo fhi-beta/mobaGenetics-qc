@@ -275,7 +275,9 @@ rule missing_genotype_markers:
                 sample = False,
                 threshold = params.threshold,
                 result_file = output.results,
-                plot_file = output.plot
+                plot_file = output.plot,
+                plinklocal = plinklocal,
+                rule_info = rule_info
             )
 
         except Exception as e:
@@ -361,7 +363,9 @@ rule hardy_weinberg_filtered_markers:
                 threshold = params.threshold,
                 hwe_switches = ["--hardy"],
                 result_file = output.results,
-                plot_file = output.plot
+                plot_file = output.plot,
+                plinklocal = plinklocal,
+                rule_info = rule_info
             )
 
         except Exception as e:
@@ -387,7 +391,12 @@ rule exclude_strand_ambigious_markers:
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
 
-            mqc.exclude_strand_ambigious_markers(inTrunk, outTrunk)
+            mqc.exclude_strand_ambigious_markers(
+                inTrunk,
+                outTrunk,
+                plinklocal = plinklocal,
+                rule_info = rule_info
+            )
             dropouts = mqc.checkUpdates(
                 inTrunk + ".bim",
                 outTrunk+".bim",

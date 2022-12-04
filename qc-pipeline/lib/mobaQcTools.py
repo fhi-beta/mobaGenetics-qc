@@ -578,8 +578,13 @@ def missing_genotype_rate(
     return dropouts
 
 
-def detect_low_hwe_rate(in_bedset, out_bedset, threshold=0.1,
-                        hwe_switches=["--autosome", "--hardy", "midp"]):
+def detect_low_hwe_rate(
+        in_bedset,
+        out_bedset,
+        threshold = 0.1,
+        hwe_switches = ["--autosome", "--hardy", "midp"],
+        plinklocal = None
+):
     """Runs plink hwe and computes p-values but does not change .bed file
 
     P-values for markers will end up in out_bedset.hwe - a file
@@ -589,22 +594,41 @@ def detect_low_hwe_rate(in_bedset, out_bedset, threshold=0.1,
     details including p-values
 
     """
-    subprocess.run([plinklocal,
-                    "--bfile", in_bedset,
-                    "--out", out_bedset]
-                   + hwe_switches, check=True)  # hwe_switches is a list
+    subprocess.run(
+        [
+            plinklocal,
+            "--bfile", in_bedset,
+            "--out", out_bedset
+        ] + hwe_switches,
+        check = True
+    )
+
     # We here have a .hwe file where low p-values for markers are to be removed
-    hwe_p_values = out_bedset+".hwe"
-    extract_list(hwe_p_values, out_bedset+".exclude",
-                 threshold_doc_file=out_bedset+".details", sep=None,
-                 colName="^P$", condition="<", threshold=threshold,
-                 key_cols=[1], doc_cols=[0, 1])
+    hwe_p_values = out_bedset + ".hwe"
+    extract_list(
+        hwe_p_values,
+        out_bedset + ".exclude",
+        threshold_doc_file = out_bedset + ".details",
+        sep = None,
+        colName = "^P$",
+        condition = "<",
+        threshold = threshold,
+        key_cols = [1],
+        doc_cols = [0, 1]
+    )
     return
 
-def low_hwe_rate(rule, in_bedset, out_bedset,
-                 threshold=0.1,
-                 hwe_switches=["--autosome", "--hardy", "midp"],
-                 result_file='/dev/null', plot_file='/dev/null'):
+def low_hwe_rate(
+        rule,
+        in_bedset,
+        out_bedset,
+        threshold = 0.1,
+        hwe_switches = ["--autosome", "--hardy", "midp"],
+        result_file = '/dev/null',
+        plot_file = '/dev/null',
+        plinklocal = None,
+        rule_info = None
+):
     """ Runs plink hwe and removes low p-values markers.  Produces output, including plot
 
     Wrapper around plink to do Hardy Weinberg Equilibrium tests and plot distribution.
@@ -614,18 +638,35 @@ def low_hwe_rate(rule, in_bedset, out_bedset,
     Has a potentional to wrap more --plink commands
 
     """
-    detect_low_hwe_rate(in_bedset, out_bedset, threshold,
-                        hwe_switches)
-    hwe_p_values = out_bedset+".hwe"
-    # low values detected, now extract, make results and plot
-    subprocess.run([plinklocal,
-                    "--bfile", in_bedset,
-                    "--exclude", out_bedset+".exclude",
-                    "--out", out_bedset,
-                    "--make-bed"], check=True)
+    detect_low_hwe_rate(
+        in_bedset,
+        out_bedset,
+        threshold,
+        hwe_switches,
+        plinklocal = plinklocal
+    )
 
-    dropouts = checkUpdates(in_bedset+".bim", out_bedset+".bim", cols=[0, 1],
-                            sanityCheck="removal", fullList=True)
+    hwe_p_values = out_bedset + ".hwe"
+
+    # low values detected, now extract, make results and plot
+    subprocess.run(
+        [
+            plinklocal,
+            "--bfile", in_bedset,
+            "--exclude", out_bedset + ".exclude",
+            "--out", out_bedset,
+            "--make-bed"
+        ],
+        check = True
+    )
+
+    dropouts = checkUpdates(
+        in_bedset + ".bim",
+        out_bedset + ".bim",
+        cols = [0, 1],
+        sanityCheck = "removal",
+        fullList = True
+    )
     dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
     dropouts["Threshold"] = threshold
     dropouts["Rule"] = rule
@@ -679,9 +720,18 @@ def het_extract(het_file, out_file, sd):
     failed.to_csv(out_file+".details", sep=" ", index=False)
 
 
-def excess_het(rule, autosomal,
-               in_bedset, out_bedset, threshold=0.1, sd=2,
-               result_file='/dev/null', plot_file=False):
+def excess_het(
+        rule,
+        autosomal,
+        in_bedset,
+        out_bedset,
+        threshold = 0.1,
+        sd = 2,
+        result_file = '/dev/null',
+        plot_file = False,
+        plinklocal = None,
+        rule_info = None
+):
     """Runs plink het maf autosomal and produces output, including plot
 
     Wrapper around plink to do check sample heterozygosity and plot
@@ -704,25 +754,43 @@ def excess_het(rule, autosomal,
         raise Exception(f"ERROR: Unexpected autosomal rarity {autosomal}.")
         return
 
-    subprocess.run([plinklocal,
-                    "--bfile", in_bedset,
-                    "--autosome",
-                    maf, str(threshold),
-                    "--het",
-                    "--out", out_bedset], check=True)
+    subprocess.run(
+        [
+            plinklocal,
+            "--bfile", in_bedset,
+            "--autosome",
+            maf, str(threshold),
+            "--het",
+            "--out",
+            out_bedset
+        ],
+        check = True
+    )
+
     # We here have a .het file where low p-values for markers are to be removed
     het_p_values = out_bedset+".het"
     het_extract(het_p_values, out_bedset+".exclude", sd)
     # het_extract found .exclude for removal and .total for historgram
 
-    subprocess.run([plinklocal,
-                    "--bfile", in_bedset,
-                    "--remove", out_bedset+".exclude",
-                    "--out", out_bedset,
-                    "--make-bed"], check=True)
+    subprocess.run(
+        [
+            plinklocal,
+            "--bfile", in_bedset,
+            "--remove", out_bedset + ".exclude",
+            "--out", out_bedset,
+            "--make-bed"
+        ],
+        check = True
+    )
 
-    dropouts = checkUpdates(in_bedset+".fam", out_bedset+".fam", cols=[0, 1],
-                            sanityCheck="removal", fullList=True)
+    dropouts = checkUpdates(
+        in_bedset + ".fam",
+        out_bedset + ".fam",
+        cols = [0, 1],
+        sanityCheck = "removal",
+        fullList = True
+    )
+
     dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
     dropouts["Threshold"] = f"{threshold} using distance {sd} standard deviations"
     dropouts["Rule"] = rule
@@ -737,7 +805,11 @@ def excess_het(rule, autosomal,
     return
 
 
-def exclude_strand_ambigious_markers(input, output):
+def exclude_strand_ambigious_markers(
+        input,
+        output,
+        plinklocal = None
+):
     """ Runs plink to exlucde A/T and C/G SNPs
     input is the trunk of a .bed/.bim/.fam triplet
     ouput will be the corresponding set, without excluded markers
@@ -899,10 +971,17 @@ def hweg_qq_plot(pfile, prec=3, x='x'):
     return p
 
 
-def sex_check(rule,
-              in_bed, out_bed,
-              f_threshold=0.2, m_threshold=0.8,
-              result_file='/dev/null', plot_file=False):
+def sex_check(
+        rule,
+        in_bed,
+        out_bed,
+        f_threshold = 0.2,
+        m_threshold = 0.8,
+        result_file = '/dev/null',
+        plot_file = False,
+        plinklocal = None,
+        rule_info = None
+):
     """ Checks if sex according to .fam-file matches genotype. Removes mismatches
 
     Wrapper around several plink commands. in/out_bedset are plink .bed-files.
@@ -916,41 +995,63 @@ def sex_check(rule,
     inTrunk = plinkBase(in_bed)
     outTrunk = plinkBase(out_bed)
     # prime/chr23
-    subprocess.run([plinklocal,
-                    "--bfile", inTrunk,
-                    "--chr", "23",
-                    "--out", tmpPath/"pruned_sex_markers",
-                    "--indep-pairphase"] +  # more params ...
-                   config["sex_check_indep_pairwise"].split(),
-                   check=True)
-    subprocess.run([plinklocal,
-                    "--bfile", inTrunk,
-                    "--extract", tmpPath/"pruned_sex_markers.prune.in",
-                    "--out", tmpPath/"pruned_for_sexcheck",
-                    "--make-bed"])
+    sex_check_parameters = config["sex_check_indep_pairwise"].split()
+    subprocess.run(
+        [
+            plinklocal,
+            "--bfile", inTrunk,
+            "--chr", "23",
+            "--out", tmpPath/"pruned_sex_markers",
+            "--indep-pairphase"
+        ] + sex_check_parameters,
+        check = True
+    )
+
+    subprocess.run(
+        [
+            plinklocal,
+            "--bfile", inTrunk,
+            "--extract", tmpPath/"pruned_sex_markers.prune.in",
+            "--out", tmpPath/"pruned_for_sexcheck",
+            "--make-bed"
+        ]
+    )
 
     # check sex on X chromosome
-    subprocess.run([plinklocal,
-                    "--bfile", tmpPath/"pruned_for_sexcheck",
-                    "--check-sex", str(f_threshold), str(m_threshold),
-                    "--out", tmpPath/"sexcheck_report_x",
-                    ], check=True)
+    subprocess.run(
+        [
+            plinklocal,
+            "--bfile", tmpPath/"pruned_for_sexcheck",
+            "--check-sex", str(f_threshold), str(m_threshold),
+            "--out", tmpPath/"sexcheck_report_x",
+            ],
+        check = True
+    )
 
     # find famid/id of the ones failing sexheck
-    extract_list(tmpPath/"sexcheck_report_x.sexcheck",
-                 tmpPath/"sexcheck_report_x.remove",
-                 tmpPath/"sexcheck_report_x.details",
-                 colName="^STATUS$",
-                 sep=None, condition='==', threshold="PROBLEM",
-                 key_cols=[0, 1], doc_cols=[0, 1, 5])
+    extract_list(
+        tmpPath/"sexcheck_report_x.sexcheck",
+        tmpPath/"sexcheck_report_x.remove",
+        tmpPath/"sexcheck_report_x.details",
+        colName = "^STATUS$",
+        sep = None,
+        condition = '==',
+        threshold = "PROBLEM",
+        key_cols = [0, 1],
+        doc_cols = [0, 1, 5]
+    )
 
     # remove these
-    subprocess.run([plinklocal,
-                    "--bfile", inTrunk,
-                    "--remove", tmpPath/"sexcheck_report_x.remove",
-                    "--out", outTrunk,
-                    "--make-bed"
-                    ], check=True)
+    subprocess.run(
+        [
+            plinklocal,
+            "--bfile", inTrunk,
+            "--remove", tmpPath/"sexcheck_report_x.remove",
+            "--out", outTrunk,
+            "--make-bed"
+        ],
+        check=True
+    )
 
     dropouts = checkUpdates(inTrunk+".fam", outTrunk+".fam", cols=[0, 1],
                             sanityCheck="removal", fullList=True)
