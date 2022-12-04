@@ -18,6 +18,8 @@ include: "parameters/variables.py"
 include: "parameters/batch_details.py"
 include: "parameters/setup.py"
 
+print(plinklocal)
+
 # External libraries
 sys.path.append('../lib')  # in order to find our local packages
 import mobaQcTools as mqc  # local moba utils package

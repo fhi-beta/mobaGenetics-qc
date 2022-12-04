@@ -1,5 +1,3 @@
-
-
 # The folder where the raw data for all batches are saved
 raw_folder: "/mnt/archive/Momics/MomicsPub/snpArray/Datasets"
 
