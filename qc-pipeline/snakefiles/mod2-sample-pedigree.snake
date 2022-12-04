@@ -604,12 +604,7 @@ rule pedigree_ibd_estimate:
     input:
         in_geno = rules.ibd_prune.output.bedset,
     output:
-        king_relatedness = tmpMod2/"{batch}"/(rule_stem + ".kin0"),
-        results = report(
-            resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
-        )
+        king_relatedness = tmpMod2/"{batch}"/(rule_stem + ".kin0")
     threads: 8
     run:
         try:
