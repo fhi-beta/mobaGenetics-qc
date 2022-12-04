@@ -670,8 +670,8 @@ rule m2_output:
             copyfile(inTrunk_pruned_markers + ".fam", outTrunk_pruned_markers + ".fam")
 
             # Copy other outcomes of the module
-            copyfile(input.prunedsnps, output.prunedsnps)
-            copyfile(input.genome, output.genome)
+            copyfile(input.pruned_snps, output.pruned_snps)
+            copyfile(input.king_relatedness, output.king_relatedness)
             copyfile(input.sex_check, output.sex_check)
 
             # report markers (we only do this for mod5 output aka outTrunk_all_markers)
