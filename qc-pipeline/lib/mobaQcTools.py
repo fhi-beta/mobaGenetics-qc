@@ -502,7 +502,8 @@ def missing_genotype_rate(
         threshold = 0.1,
         result_file = '/dev/null',
         plot_file = False,
-        plinklocal = 'not_set',
+        plinklocal = None,
+        rule_info = None
 ):
     """Runs plink --geno or --mind and produces output
 

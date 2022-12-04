@@ -171,7 +171,8 @@ rule missing_genotype_samples:
                 sample = True,
                 threshold = params.threshold,
                 result_file = output.results,
-                plinklocal = plinklocal
+                plinklocal = plinklocal,
+                rule_info = rule_info
             )
 
         except Exception as e:
