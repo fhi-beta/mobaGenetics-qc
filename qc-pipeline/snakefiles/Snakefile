@@ -10,6 +10,9 @@
 ##
 
 
+# Config file
+configfile: "parameters/config.yaml"
+
 # Pipeline variables and setup
 include: "parameters/variables.py"
 include: "parameters/batch_details.py"
@@ -19,9 +22,6 @@ include: "parameters/setup.py"
 sys.path.append('../lib')  # in order to find our local packages
 import mobaQcTools as mqc  # local moba utils package
 from shutil import copyfile
-
-# configfile: "configR3.yaml" # for running rotterdam3 tests
-configfile: "parameters/config.yaml"
 
 # Ensure bash as shell
 shell.executable("/bin/bash")
