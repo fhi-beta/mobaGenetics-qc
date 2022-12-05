@@ -280,6 +280,11 @@ updated_fam_data <- id_to_family_sex_mother_father %>%
     pheno = -9
   )
 
+if (length(unique(updated_fam_data$id)) != nrow(updated_fam_data)) {
+
+    stop("Non-unique identifier introduced in fam file.")
+
+}
 
 # Save
 
