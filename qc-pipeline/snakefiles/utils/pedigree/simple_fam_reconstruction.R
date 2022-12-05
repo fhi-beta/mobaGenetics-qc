@@ -158,8 +158,8 @@ ibd_plot <- ggplot() +
   guides(
     color = guide_legend(
       override.aes = list(alpha = 1)
-      )
     )
+  )
 
 plot_name <- "ibd_plot.png"
 
@@ -234,11 +234,21 @@ if (sum(is.na(id_to_family_sex$sex)) > 0) {
 # Map parents
 
 mother_ids <- registry_data$SENTRIX_ID[registry_data$ROLE == "Mother"]
-child_mother_table <- rbind(
-  related_table[related_table$InfType == "PO" & related_table$ID2 %in% mother_ids, c("ID1", "ID2")],
-  related_table[related_table$InfType == "PO" & related_table$ID1 %in% mother_ids, c("ID2", "ID1")]
-)
-names(child_mother_table) <- c("id", "mother_id")
+child_mother_table_1 <- related_table[related_table$InfType == "PO" & related_table$ID2 %in% mother_ids, c("ID1", "ID2")]
+child_mother_table_2 <- related_table[related_table$InfType == "PO" & related_table$ID1 %in% mother_ids, c("ID1", "ID2")]
+child_mother_table <- data.frame(
+  id = c(child_mother_table_1[, 1], child_mother_table_1[, 2]),
+  mother_id = c(child_mother_table_1[, 2], child_mother_table_1[, 1])
+) %>% 
+  distrinct() %>% 
+  group_by(id) %>% 
+  arrange(
+    mother_id
+  ) %>% 
+  filter(
+    row_number() == 1
+  ) %>% 
+  ungroup()
 
 id_to_family_sex_mother <- id_to_family_sex %>% 
   left_join(
@@ -250,11 +260,21 @@ id_to_family_sex_mother <- id_to_family_sex %>%
   )
 
 father_ids <- registry_data$SENTRIX_ID[registry_data$ROLE == "Father"]
-child_father_table <- rbind(
-  related_table[related_table$InfType == "PO" & related_table$ID2 %in% father_ids, c("ID1", "ID2")],
-  related_table[related_table$InfType == "PO" & related_table$ID1 %in% father_ids, c("ID2", "ID1")]
-)
-names(child_father_table) <- c("id", "father_id")
+child_father_table_1 <- related_table[related_table$InfType == "PO" & related_table$ID2 %in% father_ids, c("ID1", "ID2")]
+child_father_table_2 <- related_table[related_table$InfType == "PO" & related_table$ID1 %in% father_ids, c("ID1", "ID2")]
+child_father_table <- data.frame(
+  id = c(child_father_table_1[, 1], child_father_table_1[, 2]),
+  father_id = c(child_father_table_1[, 2], child_father_table_1[, 1])
+) %>% 
+  distrinct() %>% 
+  group_by(id) %>% 
+  arrange(
+    father_id
+  ) %>% 
+  summarize(
+    row_number() == 1
+  ) %>% 
+  ungroup()
 
 id_to_family_sex_mother_father <- id_to_family_sex_mother %>% 
   left_join(
@@ -281,9 +301,9 @@ updated_fam_data <- id_to_family_sex_mother_father %>%
   )
 
 if (length(unique(updated_fam_data$id)) != nrow(updated_fam_data)) {
-
-    stop("Non-unique identifier introduced in fam file.")
-
+  
+  stop("Non-unique identifier introduced in fam file.")
+  
 }
 
 # Save
