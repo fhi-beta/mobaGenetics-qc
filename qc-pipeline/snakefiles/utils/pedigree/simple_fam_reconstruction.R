@@ -88,6 +88,7 @@ fam_data  <- read.table(
   sep = " ",
   stringsAsFactors = F
 )
+
 sample_ids <- fam_data[, 2]
 
 genomic_relatedness_table$relationship <- factor(genomic_relatedness_table$InfType, levels = c("Dup/MZ", "PO", "FS", "2nd", "3rd", "4th", "UN"))
@@ -240,7 +241,7 @@ child_mother_table <- data.frame(
   id = c(child_mother_table_1[, 1], child_mother_table_1[, 2]),
   mother_id = c(child_mother_table_1[, 2], child_mother_table_1[, 1])
 ) %>% 
-  distrinct() %>% 
+  distinct() %>% 
   group_by(id) %>% 
   arrange(
     mother_id
@@ -266,12 +267,12 @@ child_father_table <- data.frame(
   id = c(child_father_table_1[, 1], child_father_table_1[, 2]),
   father_id = c(child_father_table_1[, 2], child_father_table_1[, 1])
 ) %>% 
-  distrinct() %>% 
+  distinct() %>% 
   group_by(id) %>% 
   arrange(
     father_id
   ) %>% 
-  summarize(
+  filter(
     row_number() == 1
   ) %>% 
   ungroup()
