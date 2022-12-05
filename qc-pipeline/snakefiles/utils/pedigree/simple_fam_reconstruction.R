@@ -135,7 +135,7 @@ for (relationship in levels(genomic_relatedness_table$relationship)) {
 
 ibd_plot <- ggplot() +
   geom_point(
-    data = genomic_relatedness_table_2,
+    data = genomic_relatedness_table,
     mapping = aes(
       x = IBD1Seg,
       y = IBD2Seg,
