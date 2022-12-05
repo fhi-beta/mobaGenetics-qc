@@ -6,5 +6,6 @@ dependencies:
   - r-shiny
   - r-visnetwork
   - r-dplyr
+  - r-ggplot2
   - r-dt
   - r-igraph
