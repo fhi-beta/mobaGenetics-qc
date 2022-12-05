@@ -636,7 +636,7 @@ rule fam_reconstruction:
         bedset_all_markers = rules.callrate_permanent_removal.output.bedset,
         registry_file = '/mnt/work/qc/dataChecksMobaData/triads.csv'  # Temporary solution until the MBR is available
     params:
-        title = "Fam file reconstruction in {batch}"
+        title = "\"Fam file reconstruction in {batch}\""
     output:
         updated_fam = tmpMod2/"{batch}"/(rule_stem + ".fam"),
         md_file = github_docs/"{batch}"/(rule_stem + ".md"),
