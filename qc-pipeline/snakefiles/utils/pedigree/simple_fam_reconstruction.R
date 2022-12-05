@@ -11,7 +11,7 @@ args <- commandArgs(TRUE)
 
 if (length(args) != 7) {
   
-  stop(paste("Seven arguments expected: genome file, sex check file, registry file, current fam file, destination file, md file, title.", length(args), "found:", args))
+  stop(paste0("Seven arguments expected: genome file, sex check file, registry file, current fam file, destination file, md file, title. ", length(args), " found: ", paste(args, collapse = ", ")))
   
 }
 
