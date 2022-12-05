@@ -645,7 +645,7 @@ rule fam_reconstruction:
     threads: 1
     shell:
         """
-        Rscript snakefiles/utils/pedigree/simple_fam_reconstruction.R \
+        Rscript utils/pedigree/simple_fam_reconstruction.R \
             {input.king_relatedness} \
             {input.sex_check} \
             {input.registry_file} \
