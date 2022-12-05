@@ -19,7 +19,7 @@ include: "parameters/batch_details.py"
 include: "parameters/setup.py"
 
 # External libraries
-sys.path.append('../lib')  # in order to find our local packages
+sys.path.append('utils')  # in order to find our local packages
 import mobaQcTools as mqc  # local moba utils package
 from shutil import copyfile
 

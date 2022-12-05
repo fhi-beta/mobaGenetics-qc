@@ -628,6 +628,34 @@ rule pedigree_ibd_estimate:
             print(e)
 
 
+rule_stem = 'fam_reconstruction'
+rule fam_reconstruction:
+    input:
+        king_relatedness = rules.pedigree_ibd_estimate.output.king_relatedness,
+        sex_check = rules.check_sex.output.sex_check,
+        bedset_all_markers = rules.callrate_permanent_removal.output.bedset,
+        registry_file = '/mnt/work/qc/dataChecksMobaData/triads.csv'  # Temporary solution until the MBR is available
+    params:
+        title = "Fam file reconstruction in {batch}"
+    output:
+        updated_fam = tmpMod2/"{batch}"/(rule_stem + ".fam"),
+        md_file = docs/"{batch}"/(rule_stem + ".md"),
+    conda:
+        "envs/r_4.2.yaml"
+    threads: 1
+    shell:
+        """
+        Rscript snakefiles/utils/pedigree/simple_fam_reconstruction.R \
+            {input.king_relatedness} \
+            {input.sex_check} \
+            {input.registry_file} \
+            {input.bedset_all_markers[2]} \
+            {output.updated_fam} \
+            {output.md_file} \
+            {params.title}
+        """
+
+
 rule_stem = 'm2_output'
 rule m2_output:
     input:
@@ -637,6 +665,7 @@ rule m2_output:
         pruned_snps = rules.mod2_prune_markers.output.pruned_list,
         sex_check = rules.check_sex.output.sex_check,
         king_relatedness = rules.pedigree_ibd_estimate.output.king_relatedness,
+        fam_file = rules.fam_reconstruction.output.updated_fam
     output:
         mod2_bedset =  multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         mod2_pruned_bedset = multiext(str(tmpMod2/"{batch}"/(rule_stem + "_pruned")), '.bed', '.bim', '.fam'),
@@ -670,9 +699,8 @@ rule m2_output:
                 copyfile(inTrunk_pruned_markers + extension, outTrunk_pruned_markers + extension)
 
             # Copy new fam files
-            # @TODO: update once triads are fixed
-            copyfile(inTrunk_all_markers + ".fam", outTrunk_all_markers + ".fam")
-            copyfile(inTrunk_pruned_markers + ".fam", outTrunk_pruned_markers + ".fam")
+            copyfile(input.fam_file, outTrunk_all_markers + ".fam")
+            copyfile(input.fam_file, outTrunk_pruned_markers + ".fam")
 
             # Copy other outcomes of the module
             copyfile(input.pruned_snps, output.pruned_snps)
