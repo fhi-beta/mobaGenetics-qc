@@ -639,7 +639,7 @@ rule fam_reconstruction:
         title = "Fam file reconstruction in {batch}"
     output:
         updated_fam = tmpMod2/"{batch}"/(rule_stem + ".fam"),
-        md_file = "docs"/"{batch}"/(rule_stem + ".md"),
+        md_file = github_docs/"{batch}"/(rule_stem + ".md"),
     conda:
         "envs/r_4.2.yaml"
     threads: 1

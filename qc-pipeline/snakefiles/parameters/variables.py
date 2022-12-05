@@ -26,9 +26,10 @@ flashpca = Path(os.path.dirname(workflow.basedir)) / 'bin'/'flashpca_x86-64'
 kinglocal = Path(os.path.dirname(workflow.basedir)) / 'bin'/'Linux-king'/'king'
 
 # Folder paths
-tmp_path = os.path.join(config['output_base'],'tmp')
+tmp_path = Path(config['output_base']) / 'tmp'
 runlog = Path(config['output_base']) / 'runlog.txt'
 base = Path(config['output_base'])
+github_docs = Path(os.path.dirname(workflow.basedir)) / 'docs'
 tmpMod1 = base/'mod1-data-preparation/'
 tmpMod2 = base/'mod2-data-preparation/'
 tmpMod3 = base/'mod3-good-markers/'
