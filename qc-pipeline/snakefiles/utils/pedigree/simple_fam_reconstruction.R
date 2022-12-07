@@ -134,7 +134,7 @@ for (relationship in levels(genomic_relatedness_table$relationship)) {
   )
 }
 write(
-  x = "<BR>",
+  x = "",
   file = md_file,
   append = T
 )
