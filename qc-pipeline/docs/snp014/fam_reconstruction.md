@@ -8,4 +8,5 @@
 | 3rd degree| 0 |
 | 4th degree| 0 |
 | Unrelated| 0 |
+<BR>
 ![](fam_reconstruction/ibd_plot.png)
