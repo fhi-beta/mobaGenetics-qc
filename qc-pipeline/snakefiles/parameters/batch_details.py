@@ -1,9 +1,11 @@
 #!/usr/bin/python3
 
 batch_genotyping_chip = {
+    "snp012": "illumina GSA-MD 24 v1.0",
     "snp014": "illumina GSA-MD 24 v1.0"
 }
 batch_mobagenetics_10_name = {
+    "snp012": "Rotterdam1",
     "snp014": "Rotterdam2"
 }
 batch_snp_table = {

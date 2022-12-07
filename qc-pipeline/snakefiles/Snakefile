@@ -30,6 +30,15 @@ shell.executable("/bin/bash")
 with open("parameters/rules.yaml",'r') as stream:
     rule_info = yaml.safe_load(stream)
 
+# A bit of sanity check
+for batch in batches:
+    if batch not in batch_genotyping_chip:
+        raise Exception(f"Batch '{batch}' not in batch_genotyping_chip.")
+    if batch not in batch_mobagenetics_10_name:
+        raise Exception(f"Batch '{batch}' not in batch_mobagenetics_10_name.")
+    if batch not in batch_snp_table:
+        raise Exception(f"Batch '{batch}' not in batch_snp_table.")
+
 # Report (top level)
 report: "report/qc.rst"
 
