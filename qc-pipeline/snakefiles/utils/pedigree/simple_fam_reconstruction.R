@@ -133,6 +133,11 @@ for (relationship in levels(genomic_relatedness_table$relationship)) {
     append = T
   )
 }
+write(
+  x = "<BR>",
+  file = md_file,
+  append = T
+)
 
 ibd_plot <- ggplot() +
   geom_point(
@@ -142,7 +147,7 @@ ibd_plot <- ggplot() +
       y = IBD2Seg,
       col = relationship
     ),
-    alpha = 0.2
+    alpha = 0.8
   ) +
   scale_x_continuous(
     name = "IBD1 segment",
