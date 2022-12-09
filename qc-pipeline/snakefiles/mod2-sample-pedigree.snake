@@ -640,6 +640,7 @@ rule fam_reconstruction:
     output:
         updated_fam = tmpMod2/"{batch}"/(rule_stem + ".fam"),
         md_file = github_docs/"{batch}"/(rule_stem + ".md"),
+        pedigree_sample_exclusion = tmpMod2/"{batch}"/(rule_stem + "_pedigree_sample_exclusion")
     conda:
         "envs/r_4.2.yaml"
     threads: 1
@@ -651,24 +652,137 @@ rule fam_reconstruction:
             {input.registry_file} \
             {input.bedset_all_markers[2]} \
             {output.updated_fam} \
+            {output.pedigree_sample_exclusion} \
             {output.md_file} \
             {params.title}
         """
+
+
+rule_stem = 'fam_update'
+rule fam_update:
+    input:
+        bedset_all_markers = rules.callrate_permanent_removal.output.bedset,
+        bedset_pruned_markers = rules.ibd_prune.output.bedset,
+    output:
+        bedset_all_markers =  multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
+        bedset_pruned_markers = multiext(str(tmpMod2/"{batch}"/(rule_stem + "_pruned")), '.bed', '.bim', '.fam'),
+        results = report(
+            resultPath/"{batch}"/(rule_stem + ".yaml"),
+            category = "Module 2 Core samples and pedigree inference",
+            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+        )
+    threads: 1
+    run:
+        try:
+            item_type = rule_info[rule]["rule type"]
+            mqc.log(runlog, rule_info[rule]["QC test"])
+            inTrunk_all_markers = mqc.plinkBase(input.bedset_all_markers)
+            outTrunk_all_markers = mqc.plinkBase(output.bedset_all_markers)
+            inTrunk_pruned_markers = mqc.plinkBase(input.bedset_pruned_markers)
+            outTrunk_pruned_markers = mqc.plinkBase(output.bedset_pruned_markers)
+
+            # copy bedsets
+            for extension in ['.bed', '.bim']:
+                copyfile(inTrunk_all_markers + extension,outTrunk_all_markers + extension)
+                copyfile(inTrunk_pruned_markers + extension,outTrunk_pruned_markers + extension)
+
+            # Copy new fam files
+            copyfile(input.fam_file, outTrunk_all_markers + ".fam")
+            copyfile(input.fam_file, outTrunk_pruned_markers + ".fam")
+
+            dropouts = mqc.checkUpdates(
+                inTrunk_all_markers + ".bim",
+                outTrunk_all_markers + ".bim",
+                cols = [0, 1, 3, 4, 5],
+                sanityCheck = "remove",
+                fullList = True,
+                allele_flip = True
+            )
+            dropouts.update(rule_info[rule])
+            dropouts["Rule"] = rule
+            mqc.saveYamlResults(output.results, dropouts)
+
+
+        except Exception as e:
+                    print(f"An exception occurred in rule {rule}.")
+                    print(e)
+
+
+rule_stem = 'exclude_conflictual_relationships'
+rule exclude_conflictual_relationships:
+    input:
+        bedset_all_markers = rules.fam_update.output.bedset_all_markers,
+        bedset_pruned_markers = rules.fam_update.output.bedset_pruned_markers,
+        pedigree_sample_exclusion = rules.fam_reconstruction.output.pedigree_sample_exclusion
+    output:
+        bedset_all_markers =  multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
+        bedset_pruned_markers = multiext(str(tmpMod2/"{batch}"/(rule_stem + "_pruned")), '.bed', '.bim', '.fam'),
+        results = report(
+            resultPath/"{batch}"/(rule_stem + ".yaml"),
+            category = "Module 2 Core samples and pedigree inference",
+            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+        )
+    run:
+        try:
+            item_type = rule_info[rule]["rule type"]
+            mqc.log(runlog, rule_info[rule]["QC test"])
+            inTrunk_all_markers = mqc.plinkBase(input.bedset_all_markers)
+            outTrunk_all_markers = mqc.plinkBase(output.bedset_all_markers)
+            inTrunk_pruned_markers = mqc.plinkBase(input.bedset_pruned_markers)
+            outTrunk_pruned_markers = mqc.plinkBase(output.bedset_pruned_markers)
+
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", inTrunk_all_markers,
+                    "--remove", input.pedigree_sample_exclusion,
+                    "--out", outTrunk_all_markers,
+                    "--make-bed"
+                ],
+                check = True
+            )
+
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", inTrunk_pruned_markers,
+                    "--remove", input.pedigree_sample_exclusion,
+                    "--out", outTrunk_pruned_markers,
+                    "--make-bed"
+                ],
+                check = True
+            )
+
+            dropouts = mqc.checkUpdates(
+                inTrunk_all_markers + ".bim",
+                outTrunk_all_markers + ".bim",
+                cols = [0, 1, 3, 4, 5],
+                sanityCheck = "remove",
+                fullList = True,
+                allele_flip = True
+            )
+            dropouts.update(rule_info[rule])
+            dropouts["Rule"] = rule
+            mqc.saveYamlResults(output.results, dropouts)
+
+
+        except Exception as e:
+                    print(f"An exception occurred in rule {rule}.")
+                    print(e)
 
 
 rule_stem = 'm2_output'
 rule m2_output:
     input:
         bedset_m1 = rules.m1_output.output.bedset,
-        bedset_all_markers = rules.callrate_permanent_removal.output.bedset,
-        bedset_pruned_markers = rules.ibd_prune.output.bedset,
+        bedset_all_markers = rules.exclude_conflictual_relationships.output.bedset,
+        bedset_pruned_markers = rules.exclude_conflictual_relationships.output.bedset,
         pruned_snps = rules.mod2_prune_markers.output.pruned_list,
         sex_check = rules.check_sex.output.sex_check,
-        king_relatedness = rules.pedigree_ibd_estimate.output.king_relatedness,
-        fam_file = rules.fam_reconstruction.output.updated_fam
+        king_relatedness = rules.pedigree_ibd_estimate.output.king_relatedness
     output:
-        mod2_bedset =  multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
-        mod2_pruned_bedset = multiext(str(tmpMod2/"{batch}"/(rule_stem + "_pruned")), '.bed', '.bim', '.fam'),
+        bedset =  multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
+        pruned_bedset = multiext(str(tmpMod2/"{batch}"/(rule_stem + "_pruned")), '.bed', '.bim', '.fam'),
         pruned_snps = tmpMod2/"{batch}"/(rule_stem + ".prune.in"),
         sex_check = tmpMod2/"{batch}"/(rule_stem + ".sexcheck"),
         king_relatedness = tmpMod2/"{batch}"/(rule_stem + ".kin0"),
@@ -694,13 +808,9 @@ rule m2_output:
             docs = "For more documentation see https://github.com/folkehelseinstituttet/mobaGenetics-qc/wiki/Module2 . In the html file see info on individual module steps through the section for results of Module 2"
 
             # copy bedsets
-            for extension in ['.bed', '.bim']:
+            for extension in ['.bed', '.bim', '.fam']:
                 copyfile(inTrunk_all_markers + extension, outTrunk_all_markers + extension)
                 copyfile(inTrunk_pruned_markers + extension, outTrunk_pruned_markers + extension)
-
-            # Copy new fam files
-            copyfile(input.fam_file, outTrunk_all_markers + ".fam")
-            copyfile(input.fam_file, outTrunk_pruned_markers + ".fam")
 
             # Copy other outcomes of the module
             copyfile(input.pruned_snps, output.pruned_snps)

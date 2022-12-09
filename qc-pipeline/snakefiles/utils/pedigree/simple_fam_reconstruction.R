@@ -9,9 +9,9 @@
 # Command line arguments
 args <- commandArgs(TRUE)
 
-if (length(args) != 7) {
+if (length(args) != 8) {
   
-  stop(paste0("Seven arguments expected: genome file, sex check file, registry file, current fam file, destination file, md file, title. ", length(args), " found: ", paste(args, collapse = ", ")))
+  stop(paste0("Eight arguments expected: genome file, sex check file, registry file, current fam file, destination file, exclusion file, md file, title. ", length(args), " found: ", paste(args, collapse = ", ")))
   
 }
 
@@ -49,9 +49,11 @@ if (!file.exists(fam_file)) {
 
 destination_file <- args[5]
 
-md_file <- args[6]
+exclusion_file <- args[6]
 
-title <- args[7]
+md_file <- args[7]
+
+title <- args[8]
 
 
 # Libraries
@@ -112,6 +114,12 @@ if (!dir.exists(docs_dir)) {
   dir.create(docs_dir)
   
 }
+
+write(
+  x = "## Relationship inference",
+  file = md_file,
+  append = T
+)
 
 write(
   x = "| Relationship |   |",
@@ -312,6 +320,7 @@ if (length(unique(updated_fam_data$id)) != nrow(updated_fam_data)) {
   
 }
 
+
 # Save
 
 write.table(
@@ -325,5 +334,32 @@ write.table(
 )
 
 
+# Write a list of samples to be excluded due to mismatch between the genetic relationship and registry information
+child_ids <- registry_data$SENTRIX_ID[registry_data$ROLE == "Child"]
+conflicts <- related_table[related_table$InfType == "PO" & related_table$ID1 %in% child_ids & related_table$ID2 %in% child_ids, c("ID1", "ID2")]
+to_remove_ids <- c(conflicts$ID1, conflicts$ID2)
+to_remove_fam <- updated_fam_data[updated_fam_data$id %in% to_remove_ids, c("family", "id")]
+
+write.table(
+  x = to_remove_fam,
+  file = destination_file,
+  append = F,
+  col.names = F,
+  row.names = F,
+  sep = " ",
+  quote = F
+)
+
+write(
+  x = "## Exclusion",
+  file = md_file,
+  append = T
+)
+
+write(
+  x = paste0("- Number of children with parent-offspring relationship: ", nrow(to_remove_fam)),
+  file = md_file,
+  append = T
+)
 
 

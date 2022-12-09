@@ -235,49 +235,38 @@ pedigree_ibd_estimate:
   QC test: Relatedness test
   Description: king --relatedness
   Rule order: mod2-i
-  rule type: markers
-  rule action: remove
-  # Placeholders that the pipeline will fill in
-  Rule: Will be the same as the key of this entry
-  Timestamp: 
-    
-pedigree_fu_detector_solver:
-  QC test: Tries to fix triads/missplaced sample
-  Description: "A R-script inferped_FuckupDetectorAndSolver.R is run and it's result will be used as two new bedset.
-    Both will be earlier pruned/full sets, but with a new .fam(ily) file. There will be left traces of problematic families/triads in the .fam files: the family id will be changed to prblm*"
-  Rule order: mod2-j
   rule type: samples
-  rule action: update
+  rule action: analysis
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
-  Timestamp: 
+  Timestamp:
 
-document_pedigree_fu_detector_solver:
-  QC test: Documents changes to family file after trying to fix pedigree.
-  Description: This file will be used for the rest of the pipeline. Fixed families have _i appended to them, unfixed problems have families named prblm* .
-  Rule order: mod2-k
+fam_update:
+  QC test: Update of fam files.
+  Description: Updates the fam files using the results of the pedigree_ibd_estimate rule.
+  Rule order: mod2-i
   rule type: samples
   rule action: update
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp:
+
+exclude_conflictual_relationships:
+  QC test: Exclude samples with genetic relationship conflicting with information from the population registry.
+  Description: Plink --remove
+  Rule order: mod2-i
+  rule type: samples
+  rule action: remove
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp:
 
 m2_output:
-  QC test: Recap of module 2. Replaces pedigrees
-  Description: "There are two outputbedsets: One for module 3 (reduced marker set) and one for module 5 (full markerset). The one with the full markerset is treated as the final results. The reduced markerset will be reduced even more during module3."
+  QC test: Recap of module 2.
+  Description: "There are two outputbedsets: One for module 3 (pruned marker set) and one for module 5 (full markerset). The one with the full markerset is treated as the final results. The pruned markerset will be further processed during module3."
   Rule order: mod2Final
   rule type: markers/samples
   rule action: update or remove
-  # Placeholders that the pipeline will fill in
-  Rule: Will be the same as the key of this entry
-  Timestamp:
-    
-pedigree_fix_pruned:
-  QC test: Removes pedigree-problematic samples form the pruned set detected in pedigree_fu_detector_solver
-  Description: Some of these detection steps have been manual (2019).
-  Rule order: mod3-1a
-  rule type: samples
-  rule action: remove
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp:
