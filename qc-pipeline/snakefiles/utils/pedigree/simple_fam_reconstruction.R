@@ -342,7 +342,7 @@ to_remove_fam <- updated_fam_data[updated_fam_data$id %in% to_remove_ids, c("fam
 
 write.table(
   x = to_remove_fam,
-  file = destination_file,
+  file = exclusion_file,
   append = F,
   col.names = F,
   row.names = F,
