@@ -775,8 +775,8 @@ rule_stem = 'm2_output'
 rule m2_output:
     input:
         bedset_m1 = rules.m1_output.output.bedset,
-        bedset_all_markers = rules.exclude_conflictual_relationships.output.bedset,
-        bedset_pruned_markers = rules.exclude_conflictual_relationships.output.bedset,
+        bedset_all_markers = rules.exclude_conflictual_relationships.output.bedset_all_markers,
+        bedset_pruned_markers = rules.exclude_conflictual_relationships.output.bedset_pruned_markers,
         pruned_snps = rules.mod2_prune_markers.output.pruned_list,
         sex_check = rules.check_sex.output.sex_check,
         king_relatedness = rules.pedigree_ibd_estimate.output.king_relatedness
