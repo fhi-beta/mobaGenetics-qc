@@ -33,11 +33,11 @@ with open("parameters/rules.yaml",'r') as stream:
 # A bit of sanity check
 for batch in batches:
     if batch not in batch_genotyping_chip:
-        raise Exception(f"Batch '{batch}' not in batch_genotyping_chip.")
+        raise Exception(f"Batch '{batch}' not in 'batch_genotyping_chip', please edit 'batch_details.py' accordingly.")
     if batch not in batch_mobagenetics_10_name:
-        raise Exception(f"Batch '{batch}' not in batch_mobagenetics_10_name.")
+        raise Exception(f"Batch '{batch}' not in 'batch_mobagenetics_10_name', please edit 'batch_details.py' accordingly.")
     if batch not in batch_snp_table:
-        raise Exception(f"Batch '{batch}' not in batch_snp_table.")
+        raise Exception(f"Batch '{batch}' not in 'batch_snp_table', please edit 'batch_details.py' accordingly.")
 
 # Report (top level)
 report: "report/qc.rst"
