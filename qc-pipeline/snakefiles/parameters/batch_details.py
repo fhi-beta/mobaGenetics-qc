@@ -1,10 +1,16 @@
 #!/usr/bin/python3
 
 batch_genotyping_chip = {
-    "snp012": "illumina GSA-MD 24 v1.0",
-    "snp014": "illumina GSA-MD 24 v1.0"
+    "snp001": "Illumina Human Core Exome 12 v.1.1",
+    "snp002": "Illumina Human Core Exome 12 v.1.1",
+    "snp003": "Illumina Human Core Exome 24 v.1.0",
+    "snp012": "Illumina Global Screening Array MD v1.0",
+    "snp014": "Illumina Global Screening Array MD v1.0"
 }
 batch_mobagenetics_10_name = {
+    "snp001": "Harvest m12b",
+    "snp002": "Harvest m12a",
+    "snp003": "Harvest m24",
     "snp012": "Rotterdam1",
     "snp014": "Rotterdam2"
 }
