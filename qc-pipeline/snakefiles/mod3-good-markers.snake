@@ -72,7 +72,7 @@ rule_stem = 'common_markers_moba_ref'
 rule common_markers_moba_ref:
     input:
         bedset_ref = multiext(config["1000_genomes_stem"] ,'.bed','.bim','.fam'),
-        bedset_moba = rules.m2_output.output.bedset_pruned_markers
+        bedset_moba = rules.m2_output.output.pruned_bedset
     output:
         bedset_ref = multiext(str(tmpMod3/"{batch}"/"pca_ref") ,'.bed','.bim','.fam'),
         bedset_moba = multiext(str(tmpMod3/"{batch}"/"pca_moba") ,'.bed','.bim','.fam'),
