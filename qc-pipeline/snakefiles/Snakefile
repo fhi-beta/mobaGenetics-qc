@@ -27,7 +27,7 @@ from shutil import copyfile
 shell.executable("/bin/bash")
 
 # A file with rule properties and ordering
-with open("parameters/rules.yaml",'r') as stream:
+with open("parameters/rules.yaml", 'r') as stream:
     rule_info = yaml.safe_load(stream)
 
 # A bit of sanity check

@@ -675,8 +675,10 @@ rule fam_update:
     threads: 1
     run:
         try:
+            print("rule")
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, rule_info[rule]["QC test"])
+            print("trunks")
             inTrunk_all_markers = mqc.plinkBase(input.bedset_all_markers)
             outTrunk_all_markers = mqc.plinkBase(output.bedset_all_markers)
             inTrunk_pruned_markers = mqc.plinkBase(input.bedset_pruned_markers)
