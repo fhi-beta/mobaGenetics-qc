@@ -675,27 +675,22 @@ rule fam_update:
     threads: 1
     run:
         try:
-            print("rule")
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, rule_info[rule]["QC test"])
-            print("trunks")
             inTrunk_all_markers = mqc.plinkBase(input.bedset_all_markers[0])
             outTrunk_all_markers = mqc.plinkBase(output.bedset_all_markers[0])
             inTrunk_pruned_markers = mqc.plinkBase(input.bedset_pruned_markers[0])
             outTrunk_pruned_markers = mqc.plinkBase(output.bedset_pruned_markers[0])
 
             # copy bedsets
-            print("copy bedsets")
             for extension in ['.bed', '.bim']:
                 copyfile(inTrunk_all_markers + extension, outTrunk_all_markers + extension)
                 copyfile(inTrunk_pruned_markers + extension, outTrunk_pruned_markers + extension)
 
             # Copy new fam files
-            print("copy fam")
             copyfile(input.updated_fam, outTrunk_all_markers + ".fam")
             copyfile(input.updated_fam, outTrunk_pruned_markers + ".fam")
 
-            print("docs")
             dropouts = mqc.checkUpdates(
                 inTrunk_all_markers + ".bim",
                 outTrunk_all_markers + ".bim",
@@ -808,9 +803,9 @@ rule m2_output:
             mqc.log(runlog, rule_info[rule]["QC test"])
             m1Trunk = mqc.plinkBase(input.bedset_m1[0])
             inTrunk_all_markers = mqc.plinkBase(input.bedset_all_markers[0])
-            outTrunk_all_markers =  mqc.plinkBase(output.mod2_bedset[0])
+            outTrunk_all_markers =  mqc.plinkBase(output.bedset[0])
             inTrunk_pruned_markers = mqc.plinkBase(input.bedset_pruned_markers[0])
-            outTrunk_pruned_markers =  mqc.plinkBase(output.mod2_pruned_bedset[0])
+            outTrunk_pruned_markers =  mqc.plinkBase(output.pruned_bedset[0])
             docs = "For more documentation see https://github.com/folkehelseinstituttet/mobaGenetics-qc/wiki/Module2 . In the html file see info on individual module steps through the section for results of Module 2"
 
             # copy bedsets
