@@ -679,10 +679,10 @@ rule fam_update:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, rule_info[rule]["QC test"])
             print("trunks")
-            inTrunk_all_markers = mqc.plinkBase(input.bedset_all_markers)
-            outTrunk_all_markers = mqc.plinkBase(output.bedset_all_markers)
-            inTrunk_pruned_markers = mqc.plinkBase(input.bedset_pruned_markers)
-            outTrunk_pruned_markers = mqc.plinkBase(output.bedset_pruned_markers)
+            inTrunk_all_markers = mqc.plinkBase(input.bedset_all_markers[0])
+            outTrunk_all_markers = mqc.plinkBase(output.bedset_all_markers[0])
+            inTrunk_pruned_markers = mqc.plinkBase(input.bedset_pruned_markers[0])
+            outTrunk_pruned_markers = mqc.plinkBase(output.bedset_pruned_markers[0])
 
             # copy bedsets
             print("copy bedsets")
@@ -732,10 +732,10 @@ rule exclude_conflictual_relationships:
         try:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, rule_info[rule]["QC test"])
-            inTrunk_all_markers = mqc.plinkBase(input.bedset_all_markers)
-            outTrunk_all_markers = mqc.plinkBase(output.bedset_all_markers)
-            inTrunk_pruned_markers = mqc.plinkBase(input.bedset_pruned_markers)
-            outTrunk_pruned_markers = mqc.plinkBase(output.bedset_pruned_markers)
+            inTrunk_all_markers = mqc.plinkBase(input.bedset_all_markers[0])
+            outTrunk_all_markers = mqc.plinkBase(output.bedset_all_markers[0])
+            inTrunk_pruned_markers = mqc.plinkBase(input.bedset_pruned_markers[0])
+            outTrunk_pruned_markers = mqc.plinkBase(output.bedset_pruned_markers[0])
 
             subprocess.run(
                 [
