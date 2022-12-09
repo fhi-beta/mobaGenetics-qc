@@ -663,6 +663,7 @@ rule fam_update:
     input:
         bedset_all_markers = rules.callrate_permanent_removal.output.bedset,
         bedset_pruned_markers = rules.ibd_prune.output.bedset,
+        updated_fam = rules.fam_reconstruction.output.updated_fam,
     output:
         bedset_all_markers =  multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         bedset_pruned_markers = multiext(str(tmpMod2/"{batch}"/(rule_stem + "_pruned")), '.bed', '.bim', '.fam'),
@@ -687,8 +688,8 @@ rule fam_update:
                 copyfile(inTrunk_pruned_markers + extension,outTrunk_pruned_markers + extension)
 
             # Copy new fam files
-            copyfile(input.fam_file, outTrunk_all_markers + ".fam")
-            copyfile(input.fam_file, outTrunk_pruned_markers + ".fam")
+            copyfile(input.updated_fam, outTrunk_all_markers + ".fam")
+            copyfile(input.updated_fam, outTrunk_pruned_markers + ".fam")
 
             dropouts = mqc.checkUpdates(
                 inTrunk_all_markers + ".bim",

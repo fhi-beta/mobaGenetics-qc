@@ -340,9 +340,6 @@ conflicts <- related_table[related_table$InfType == "PO" & related_table$ID1 %in
 to_remove_ids <- c(conflicts$ID1, conflicts$ID2)
 to_remove_fam <- updated_fam_data[updated_fam_data$id %in% to_remove_ids, c("family", "id")]
 
-print(paste0("To remove: ", length(to_remove_ids)))
-print(paste0("To remove: ", nrow(to_remove_fam)))
-
 write.table(
   x = to_remove_fam,
   file = exclusion_file,
