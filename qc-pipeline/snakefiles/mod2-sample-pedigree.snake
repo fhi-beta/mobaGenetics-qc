@@ -683,14 +683,17 @@ rule fam_update:
             outTrunk_pruned_markers = mqc.plinkBase(output.bedset_pruned_markers)
 
             # copy bedsets
+            print("copy bedsets")
             for extension in ['.bed', '.bim']:
-                copyfile(inTrunk_all_markers + extension,outTrunk_all_markers + extension)
-                copyfile(inTrunk_pruned_markers + extension,outTrunk_pruned_markers + extension)
+                copyfile(inTrunk_all_markers + extension, outTrunk_all_markers + extension)
+                copyfile(inTrunk_pruned_markers + extension, outTrunk_pruned_markers + extension)
 
             # Copy new fam files
+            print("copy fam")
             copyfile(input.updated_fam, outTrunk_all_markers + ".fam")
             copyfile(input.updated_fam, outTrunk_pruned_markers + ".fam")
 
+            print("docs")
             dropouts = mqc.checkUpdates(
                 inTrunk_all_markers + ".bim",
                 outTrunk_all_markers + ".bim",
