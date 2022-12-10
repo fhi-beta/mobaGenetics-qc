@@ -1,0 +1,411 @@
+# Generate statistics on raw dataset before anything happens to the data
+rule_stem = 'mod3_generate_start_stats'
+rule mod3_generate_start_stats:
+    input:
+        bedset = rules.m2_output.output.bedset
+    output:
+        het = tmpMod3/"{batch}"/'mod3_start_het.het',
+        hwe = tmpMod3/"{batch}"/'mod3_start_hwe.hwe',
+        freq = tmpMod3/"{batch}"/'mod3_start_freq.frq',
+        lmiss = tmpMod3/"{batch}"/'mod3_start_missing.lmiss',
+        imiss = tmpMod3/"{batch}"/'mod3_start_missing.imiss',
+    threads: 1
+    run:
+        try:
+            # Plink base paths
+            plink_input = mqc.plinkBase(input.bedset[0])
+            plink_het_output = mqc.plinkBase(output.het)
+            plink_hwe_output = mqc.plinkBase(output.hwe)
+            plink_freq_output = mqc.plinkBase(output.freq)
+            plink_miss_output = mqc.plinkBase(output.lmiss)
+
+            # Heterozygocity rate
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", plink_input,
+                    "--het",
+                    "--out", plink_het_output
+                ],
+                check=True
+            )
+
+            # HWE
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", plink_input,
+                    "--hardy",
+                    "--out", plink_hwe_output
+                ],
+                check=True
+            )
+
+            # Frequencies
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", plink_input,
+                    "--freq",
+                    "--out", plink_freq_output
+                ],
+                check=True
+            )
+
+            # Missingness
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", plink_input,
+                    "--missing",
+                    "--out", plink_miss_output
+                ],
+                check=True
+            )
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+# Reduce 1000 genome markers to the one already pruned and sorted out for moba
+rule_stem = 'common_markers_moba_ref'
+rule common_markers_moba_ref:
+    input:
+        bedset_ref = multiext(config["1000_genomes_stem"] ,'.bed','.bim','.fam'),
+        bedset_moba = rules.m2_output.output.pruned_bedset
+    output:
+        bedset_ref = multiext(str(tmpMod3/"{batch}"/"pca_ref") ,'.bed','.bim','.fam'),
+        bedset_moba = multiext(str(tmpMod3/"{batch}"/"pca_moba") ,'.bed','.bim','.fam'),
+        marker_list = (tmpMod3/"{batch}"/rule_stem).with_suffix(".txt"),
+        tri_alleles = report((tmpMod3/"{batch}"/rule_stem).with_suffix(".missnp"),
+                              category="Module 3 1000Genomes prep",
+                              caption=(resultPath/"{batch}"/"pca_ref").with_suffix(".rst")),
+        # result ref takes forever to run, and it is handy to uncomment that part
+        # (should maybe have been isolated in a separate rule)
+        # If you commented out the code that documents reduction the 1000g set below
+        # (see "Begin Code that should"), then comment out the results_ref this rule as well.
+        # Or do a dirty hack below by 
+        results_ref = report((resultPath/"{batch}"/"pca_ref").with_suffix(".yaml"),
+                              category="Module 3 1000Genomes prep",
+                              caption=(resultPath/"{batch}"/"pca_ref").with_suffix(".rst")),
+        results_moba = report((resultPath/"{batch}"/"pca_moba").with_suffix(".yaml"),
+                              category="Module 3 1000Genomes prep",
+                              caption=(resultPath/"{batch}"/"pca_moba").with_suffix(".rst")),
+    benchmark:
+        (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
+
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk_ref =  mqc.plinkBase(input.bedset_ref[0])
+        inTrunk_moba =  mqc.plinkBase(input.bedset_moba[0])
+        outTrunk_ref =  mqc.plinkBase(output.bedset_ref[0])
+        outTrunk_moba =  mqc.plinkBase(output.bedset_moba[0])
+        triallelesTrunk =  mqc.plinkBase(output.tri_alleles)
+
+        # Common markers found in marker_list
+        mqc.intersect_rsid(inTrunk_moba+".bim", inTrunk_ref+".bim",  output.marker_list)
+        # Reduce both sets to the common markers
+        subprocess.run([plinklocal,
+                "--bfile", inTrunk_ref,
+                "--extract", output.marker_list,
+                "--out", outTrunk_ref,
+                "--allow-extra-chr",  # such as PAR1 ...
+                "--make-bed" ], check=True)
+        subprocess.run([plinklocal,
+                "--bfile", inTrunk_moba,
+                "--extract", output.marker_list,
+                "--out", outTrunk_moba,
+                "--make-bed" ], check=True)
+        # alas these two are not identical enough -
+        # discover tri-allele  problems by dummy-merging
+        # Note that we don't want to abort on plink-failure (as this will be)
+        subprocess.run([plinklocal,
+                "--bfile", outTrunk_ref,
+                "--bmerge", outTrunk_moba,
+                        "--out", triallelesTrunk ], check=False)
+        # ... And then remove these markers from both sets
+        # fyi: plink will append inputfiles  by ~ ... since input/output have same name
+        subprocess.run([plinklocal,
+                "--bfile", outTrunk_ref,
+                "--exclude", output.tri_alleles,
+                "--out", outTrunk_ref,
+                "--make-bed" ], check=True)
+
+        subprocess.run([plinklocal,
+                "--bfile", outTrunk_moba,
+                "--exclude", output.tri_alleles,
+                "--out", outTrunk_moba,
+                "--make-bed" ], check=True)
+
+        # Document the reduction for ref (1000 genomes) ... but not all the markers
+        # Btw, this take forever as inTrunk_ref+".bim" is huge so the code was
+        # removed. We have the common markers anyway ... from a 'previous' run.
+        # If you (un)comment out this, do the same for results_ref above
+        print (f"{inTrunk_ref} -> {outTrunk_ref}")
+        # BEGIN Code that should have been in a separate rule
+        dropouts = mqc.checkUpdates(inTrunk_ref+".bim", outTrunk_ref+".bim",
+                                     cols = [0,1,3,4,5],
+                                     sanityCheck = "removal", fullList = False,
+                                     allele_flip=True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        dropouts["Excluded markers"] = f"Common markers in {output.marker_list}, trialleles removed in {output.tri_alleles}"
+        mqc.saveYamlResults(output.results_ref, dropouts)
+        # END Code thatshould have been in a separate rule
+        print (f"checking {inTrunk_moba} -> {outTrunk_moba}")
+        # Document the reduction for moba
+        dropouts = mqc.checkUpdates(inTrunk_moba+".bim", outTrunk_moba+".bim",
+                                    cols = [0,1,3,4,5],
+                                    sanityCheck = "removal",
+                                    fullList = False, allele_flip=True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Rule"] = rule
+        dropouts["Excluded markers"] = f"Common markers in {output.marker_list}, trialleles removed in {output.tri_alleles}"
+        mqc.saveYamlResults(output.results_moba, dropouts)
+
+# 7.1.2020 projecting moba data on this did not work. For now we merge the data.
+# rule_stem = "pca_1kgp"
+# rule pca_1kgp:
+#     input:
+#         bedset = rules.common_markers_moba_ref.output.bedset_ref,
+#     output:
+#         ref_pcs=tmpMod3/rule_stem/'pcs_1kgp',
+#         ref_eigenvec=tmpMod3/rule_stem/'eigenvec_1kgp',
+#         ref_loadings=tmpMod3/rule_stem/'loadings_1kgp',
+#         ref_eigenval=tmpMod3/rule_stem/'eigenval_1kgp',
+#         ref_var_explained=tmpMod3/rule_stem/'var_explained_1kgp',
+#         ref_meansd=tmpMod3/rule_stem/'meansd_1kgp',
+#     run:
+#         item_type = rule_info[rule]["rule type"]
+#         mqc.log(runlog, rule_info[rule]["QC test"])
+#         inTrunk =  mqc.plinkBase(input.bedset[0])
+
+#         subprocess.run([flashpca,
+#                         "--bfile", inTrunk,
+#                         "--outpc", output.ref_pcs,
+#                         "--outmeansd", output.ref_meansd,
+#                         "--outload", output.ref_loadings,
+#                         "--outvec",  output.ref_eigenvec,
+#                         "--outval", output.ref_eigenval,
+#                         "--outpve", output.ref_var_explained ])
+
+# This projection does not work (7.1.2020). Must look at this laters
+# instead we run one single pca on a merged file, see pca_both below
+# rule_stem = "pca_moba"
+# rule pca_moba:
+#     input:
+#         bedset = rules.common_markers_moba_ref.output.bedset_moba,
+#         ref_meansd = rules.pca_1kgp.output.ref_meansd,    # projected onto pca from ...
+#         ref_loadings = rules.pca_1kgp.output.ref_loadings,# ... 1000 genomes pca
+#     output:
+#         moba_projection=tmpMod3/rule_stem/'projection_moba',
+# # plot?        ref_meansd=tresultPath/rule_stem).with_suffix(".yaml"),
+# #                         category="Module 2 1000Genomes prep",
+# #                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+
+#     run:
+#         item_type = rule_info[rule]["rule type"]
+#         mqc.log(runlog, rule_info[rule]["QC test"])
+#         inTrunk =  mqc.plinkBase(input.bedset[0])
+
+#         # --project moba data onto 1000 genomes loading
+#         subprocess.run([flashpca,
+#                         "--bfile", inTrunk,
+#                         "--project",
+#                         "--inmeansd", input.ref_meansd,
+#                         "--outproj", output.moba_projection,
+#                         "--inload", input.ref_loadings,
+#                         check=True])
+
+# plots a projection, does not work well 7.1.2020 Delete or fix later, see plot_pca_both below
+# Note that on https://github.com/gabraham/flashpca/blob/master/README.md it says to use
+# plink --reference-allele , but that is a plink2 command
+# rule_stem = "plot_pca"
+# rule plot_pca:
+#     input:
+#         pop_map = config["1000_genomes_pop"],       # maps samples to population-groups
+#         ref_pcs = rules.pca_1kgp.output.ref_pcs,
+#         moba_pcs = rules.pca_moba.output.moba_projection,
+
+#     output:
+#         plot = report((resultPath/rule_stem).with_suffix(".png"),
+#                       category="Module 2 1000Genomes prep")
+
+#     run:
+#         # To remove when this goes to mobaQcTools
+#         import pandas as pd
+#         import plotnine as p9
+#         import matplotlib
+#         matplotlib.use('Agg')
+
+#         pc = pd.read_csv(input.ref_pcs, usecols=['IID','PC1','PC2'],delim_whitespace=True)
+#         moba = pd.read_csv(input.moba_pcs, usecols=['IID','PC1','PC2'],delim_whitespace=True)
+#         # All data. We here later assume that moba ID and 1000 genomes ID are different
+#         all = pd.concat([pc,moba],ignore_index=True)
+
+#         # Populations for colouring -
+#         # see https://www.internationalgenome.org/faq/which-populations-are-part-your-study/ for details
+#         pop = pd.read_csv(input.pop_map,usecols=['#IID','SuperPop','Population'],delim_whitespace=True)
+#         # Simulate population for Moba
+#         popmoba = pd.read_csv(input.moba_pcs,usecols=['IID'],delim_whitespace=True)
+#         popmoba.columns = ["#IID"]  # rename to match earlier pop
+#         popmoba['SuperPop'] = '->MoBa'
+#         popmoba['Population'] = '->MoBa'
+#         all_pop = pd.concat([pop,popmoba],ignore_index=True)
+#         merged = pd.merge(left=all, right=all_pop, left_on='IID', right_on='#IID')
+#         print(merged)
+
+
+#         # Set up colours
+#         # colours = {'EUR': 'red',
+#         #            'EAS': 'darkblue',
+#         #            'AMR': 'violet',
+#         #            'SAS': 'orange',
+#         #            'AFR': 'yellow',
+#         #            'Moba':'black'}
+#         popc = "SuperPop"
+#         p = p9.ggplot(data=merged, mapping=p9.aes(x='PC1',y='PC2',color=popc, shape=popc))
+#         looks = p9.aes(color=popc, shape=popc)
+#         p +=  p9.geom_point()
+#         p += p9.scale_colour_brewer(type="qual", palette="Set1")  # better for colourblind
+#         p9.ggsave(plot=p, filename=output.plot, dpi=600)
+
+rule_stem = "pca_both"
+rule pca_both:
+    input:
+        bedset_ref = rules.common_markers_moba_ref.output.bedset_ref,
+        bedset_moba = rules.common_markers_moba_ref.output.bedset_moba,
+    output:
+        bedset = multiext(str(tmpMod3/"{batch}"/rule_stem) ,'.bed','.bim','.fam'),
+        pcs=tmpMod3/"{batch}"/(rule_stem+".pcs"),
+    benchmark:
+        (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk_ref =  mqc.plinkBase(input.bedset_ref[0])
+        inTrunk_moba =  mqc.plinkBase(input.bedset_moba[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+
+        subprocess.run([plinklocal,
+                        "--bfile", inTrunk_ref,
+                        "--bmerge", inTrunk_moba,
+                        "--out", outTrunk,
+                        "--make-bed"    ], check=True)
+
+        subprocess.run([flashpca,
+                        "--bfile", outTrunk,
+                        "--outpc", output.pcs,
+                        ], check=True)
+
+
+rule_stem = "plot_pca_both"
+rule plot_pca_both:
+    input:
+        pop_map = config["1000_genomes_pop"],       # maps samples to population-groups
+        pcs = rules.pca_both.output.pcs,            # principal components
+        moba = mqc.plinkBase(rules.common_markers_moba_ref.output.bedset_moba[0]) + ".fam"
+
+    output:
+        plot = report((resultPath/"{batch}"/rule_stem).with_suffix(".png"),
+                      category="Module 3 Good markers",
+                      caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
+    # force this url into the report
+    params: "Legend on https://www.internationalgenome.org/faq/which-populations-are-part-your-study/"
+    benchmark:
+        (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
+    run:
+        # To remove when this goes to mobaQcTools
+        pc = pd.read_csv(input.pcs, usecols=['IID','PC1','PC2'], delim_whitespace=True)
+        # Populations for colouring -
+        pop = pd.read_csv(input.pop_map,usecols=['#IID','SuperPop','Population'],delim_whitespace=True)
+        # Simulate population for Moba, read 2-column in fam-file
+        popmoba = pd.read_csv(input.moba,usecols=[1], header=None,
+                              delim_whitespace=True)
+        popmoba.columns = ["#IID"]  # rename to match earlier pop
+        moba_legend = '->MoBa'
+        popmoba['SuperPop'] = moba_legend
+        popmoba['Population'] = moba_legend
+        all_pop = pd.concat([pop,popmoba],ignore_index=True)
+        merged = pd.merge(left=pc, right=all_pop, left_on='IID', right_on='#IID')
+        # mqc.find_moba_pca_outlier(merged[merged.Population=='->MoBa'])
+        # Explode Europe to Countries in Population
+        merged.loc[merged['SuperPop'] == 'EUR', 'SuperPop'] = 'EUR_'+merged['Population']
+        legend_info = params[0]
+        # Set up colours   - not using this - did not get it right and dont want to spend time on it
+        # colours = {'EUR': 'red',
+        #            'EAS': 'darkblue',
+        #            'AMR': 'violet',
+        #            'SAS': 'orange',
+        #            'AFR': 'yellow',
+        #            'Moba':'black'}
+        popc = "SuperPop"
+        # Visualize what will be excluded
+        print("SUPERDIRTY PCA EXCLUSION!!!! (visualization for now ...)")
+        # rename moba-samples above cut-off
+        merged.loc[
+            (merged["PC1"]>rules.extract_pca_outliers.params.treshold) &
+            (merged[popc]==moba_legend), popc]  +=  "(outlier)"
+        p = p9.ggplot(data=merged, mapping=p9.aes(x='PC1',y='PC2',color=popc, shape=popc))
+        p +=  p9.geom_point()
+        p += p9.scale_colour_brewer(type="qual", palette="Set1")  # better for colourblind
+        p9.ggsave(plot=p, filename=output.plot, dpi=600)
+        # create the caption usually made by saveYamlResults
+        with open(str(resultPath/rule)+".rst", 'w') as file:
+            file.write(f'Rule {rule_info[rule]["Rule order"]} ({rule_info[rule]["rule action"]})\n')
+            file.write(f"{legend_info}\n")
+
+rule_stem = 'extracted_pca_outliers'
+rule extract_pca_outliers:
+    input:
+        bedset = rules.common_markers_moba_ref.output.bedset_moba,
+        pcs = rules.pca_both.output.pcs,            # principal components
+        moba = rules.plot_pca_both.input.moba,      # moba samples
+    output:
+        bedset=multiext(str(tmpMod3/"{batch}"/rule_stem)
+                          ,'.bed','.bim','.fam'),
+        exclude_list = (tmpMod3/"{batch}"/rule_stem).with_suffix(".txt"),
+        results = report((resultPath/"{batch}"/rule_stem).with_suffix(".yaml"),
+                         category="Module 3 Good markers",
+                         caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
+    params:
+        treshold = -0.05752391   # Stupid and visual - for now
+    benchmark:
+        (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        mqc.log(runlog, "PCA exlude {item_type} ({params.treshold})\n")
+
+        inTrunk =  mqc.plinkBase(input.bedset[0])
+        outTrunk =  mqc.plinkBase(output.bedset[0])
+        pca_treshold = params.treshold
+        pc = pd.read_csv(input.pcs, usecols=['IID','PC1','PC2'],delim_whitespace=True)
+        # List (only) moba samples that pca-wise are too spread
+        mobasamples = pd.read_csv(input.moba,usecols=[0,1], header=None,
+                                  delim_whitespace=True)
+        mobasamples.columns = ["FID","IID"]
+        # keep just moba-samples
+        moba_pca = pd.merge(left=pc, right=mobasamples, left_on='IID', right_on='IID')
+
+        # This is a superdirty hack to exclude the same number of samples as
+        # was excluded by the hapmap pca. Must be replace by a sensible function
+        # Samples to exclude found put in output.excludelist
+        print("SUPERDIRTY PCA EXCLUSION!!!!")
+        moba_pca.loc[(moba_pca.PC1 > params.treshold)].to_csv(output.exclude_list,
+                columns=['FID','IID'],index=False, header=False, sep = ' ')
+
+        subprocess.run([plinklocal,
+                "--bfile",inTrunk,
+                "--remove", output.exclude_list,
+                "--out", outTrunk,
+                "--make-bed" ], check=True)
+
+        dropouts = mqc.checkUpdates(inTrunk+".fam", outTrunk+".fam",
+                                    cols = [0,1],
+                                    sanityCheck = "removal", fullList = True)
+        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+        dropouts["Treshold"] = params.treshold
+        dropouts["Rule"] = rule
+        mqc.saveYamlResults(output.results, dropouts)
