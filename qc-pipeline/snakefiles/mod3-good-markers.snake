@@ -300,8 +300,6 @@ rule pca_both:
                         ], check=True)
 
 
-
-
 rule_stem = "plot_pca_both"
 rule plot_pca_both:
     input:
