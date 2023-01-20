@@ -34,7 +34,7 @@ with open("parameters/rules.yaml", 'r') as stream:
 for batch in batches:
     if batch not in batch_genotyping_chip:
         raise Exception(f"Batch '{batch}' not in 'batch_genotyping_chip', please edit 'batch_details.py' accordingly.")
-    if batch not in batch_mobagenetics_10_name:
+    if batch not in batch_name:
         raise Exception(f"Batch '{batch}' not in 'batch_mobagenetics_10_name', please edit 'batch_details.py' accordingly.")
     if batch not in batch_snp_table:
         raise Exception(f"Batch '{batch}' not in 'batch_snp_table', please edit 'batch_details.py' accordingly.")
@@ -79,6 +79,10 @@ rule all:
         pruned_snps = expand(tmpMod2/"{batch}"/"m2_output.prune.in", batch = batches),
         sex_check = expand(tmpMod2/"{batch}"/"m2_output.sexcheck", batch = batches),
         king_relatedness = expand(tmpMod2/"{batch}"/"m2_output.kin0", batch = batches),
+
+        # Module 3:
+        ref_meansd = tmpMod3/rule_stem/'meansd_1kgp',
+        ref_loadings = tmpMod3 / rule_stem / 'loadings_1kgp'
 
         # module_3_good_markers = expand((tmpMod3/"{batch}/m3_output_good_markers").with_suffix(".txt"), batch=batches),
         # sex_check = expand(str(tmpMod3/"{batch}/{role}/sexcheck_report_x.sexcheck"), role=ROLES, batch=batches),

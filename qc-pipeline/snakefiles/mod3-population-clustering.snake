@@ -67,7 +67,7 @@ rule mod3_generate_start_stats:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
-# Reduce 1000 genome markers to the one already pruned and sorted out for moba
+# Reduce 1000 genome markers to the ones pruned in module 2
 rule_stem = 'common_markers_moba_ref'
 rule common_markers_moba_ref:
     input:
@@ -77,20 +77,16 @@ rule common_markers_moba_ref:
         bedset_ref = multiext(str(tmpMod3/"{batch}"/"pca_ref") ,'.bed','.bim','.fam'),
         bedset_moba = multiext(str(tmpMod3/"{batch}"/"pca_moba") ,'.bed','.bim','.fam'),
         marker_list = (tmpMod3/"{batch}"/rule_stem).with_suffix(".txt"),
-        tri_alleles = report((tmpMod3/"{batch}"/rule_stem).with_suffix(".missnp"),
-                              category="Module 3 1000Genomes prep",
-                              caption=(resultPath/"{batch}"/"pca_ref").with_suffix(".rst")),
-        # result ref takes forever to run, and it is handy to uncomment that part
-        # (should maybe have been isolated in a separate rule)
-        # If you commented out the code that documents reduction the 1000g set below
-        # (see "Begin Code that should"), then comment out the results_ref this rule as well.
-        # Or do a dirty hack below by 
-        results_ref = report((resultPath/"{batch}"/"pca_ref").with_suffix(".yaml"),
-                              category="Module 3 1000Genomes prep",
-                              caption=(resultPath/"{batch}"/"pca_ref").with_suffix(".rst")),
-        results_moba = report((resultPath/"{batch}"/"pca_moba").with_suffix(".yaml"),
-                              category="Module 3 1000Genomes prep",
-                              caption=(resultPath/"{batch}"/"pca_moba").with_suffix(".rst")),
+        tri_alleles = report(
+            (tmpMod3/"{batch}"/rule_stem).with_suffix(".missnp"),
+            category = "Module 3 1000Genomes prep",
+            caption = (resultPath/"{batch}"/"pca_ref").with_suffix(".rst")
+        ),
+        results_moba = report(
+            (resultPath/"{batch}"/"pca_moba").with_suffix(".yaml"),
+                              category = "Module 3 1000Genomes prep",
+                              caption = (resultPath/"{batch}"/"pca_moba").with_suffix(".rst")
+        ),
     benchmark:
         (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
 
@@ -101,94 +97,118 @@ rule common_markers_moba_ref:
         inTrunk_moba =  mqc.plinkBase(input.bedset_moba[0])
         outTrunk_ref =  mqc.plinkBase(output.bedset_ref[0])
         outTrunk_moba =  mqc.plinkBase(output.bedset_moba[0])
+        outTrunk_ref_temp = outTrunk_ref + "_temp"
+        outTrunk_moba_temp = outTrunk_moba + "_temp"
         triallelesTrunk =  mqc.plinkBase(output.tri_alleles)
 
         # Common markers found in marker_list
-        mqc.intersect_rsid(inTrunk_moba+".bim", inTrunk_ref+".bim",  output.marker_list)
+        mqc.intersect_rsid(inTrunk_moba + ".bim", inTrunk_ref + ".bim",  output.marker_list)
+
         # Reduce both sets to the common markers
-        subprocess.run([plinklocal,
+        subprocess.run(
+            [
+                plinklocal,
                 "--bfile", inTrunk_ref,
                 "--extract", output.marker_list,
-                "--out", outTrunk_ref,
-                "--allow-extra-chr",  # such as PAR1 ...
-                "--make-bed" ], check=True)
-        subprocess.run([plinklocal,
+                "--out", outTrunk_ref_temp,
+                "--allow-extra-chr",
+                "--make-bed"
+            ],
+            check = True
+        )
+
+        subprocess.run(
+            [
+                plinklocal,
                 "--bfile", inTrunk_moba,
                 "--extract", output.marker_list,
-                "--out", outTrunk_moba,
-                "--make-bed" ], check=True)
+                "--out", outTrunk_moba_temp,
+                "--make-bed"
+            ],
+            check = True
+        )
+
         # alas these two are not identical enough -
-        # discover tri-allele  problems by dummy-merging
+        # discover tri-allele problems by dummy-merging
         # Note that we don't want to abort on plink-failure (as this will be)
-        subprocess.run([plinklocal,
-                "--bfile", outTrunk_ref,
-                "--bmerge", outTrunk_moba,
-                        "--out", triallelesTrunk ], check=False)
+        subprocess.run(
+            [
+                plinklocal,
+                "--bfile", outTrunk_ref_temp,
+                "--bmerge", outTrunk_moba_temp,
+                        "--out", triallelesTrunk
+            ],
+            check = False
+        )
+
         # ... And then remove these markers from both sets
-        # fyi: plink will append inputfiles  by ~ ... since input/output have same name
-        subprocess.run([plinklocal,
-                "--bfile", outTrunk_ref,
+        subprocess.run(
+            [
+                plinklocal,
+                "--bfile", outTrunk_ref_temp,
                 "--exclude", output.tri_alleles,
                 "--out", outTrunk_ref,
-                "--make-bed" ], check=True)
+                "--make-bed"
+            ],
+            check = True
+        )
 
-        subprocess.run([plinklocal,
-                "--bfile", outTrunk_moba,
+        subprocess.run(
+            [
+                plinklocal,
+                "--bfile", outTrunk_moba_temp,
                 "--exclude", output.tri_alleles,
                 "--out", outTrunk_moba,
-                "--make-bed" ], check=True)
+                "--make-bed"
+            ],
+            check = True
+        )
 
-        # Document the reduction for ref (1000 genomes) ... but not all the markers
-        # Btw, this take forever as inTrunk_ref+".bim" is huge so the code was
-        # removed. We have the common markers anyway ... from a 'previous' run.
-        # If you (un)comment out this, do the same for results_ref above
-        print (f"{inTrunk_ref} -> {outTrunk_ref}")
-        # BEGIN Code that should have been in a separate rule
-        dropouts = mqc.checkUpdates(inTrunk_ref+".bim", outTrunk_ref+".bim",
-                                     cols = [0,1,3,4,5],
-                                     sanityCheck = "removal", fullList = False,
-                                     allele_flip=True)
-        dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-        dropouts["Rule"] = rule
-        dropouts["Excluded markers"] = f"Common markers in {output.marker_list}, trialleles removed in {output.tri_alleles}"
-        mqc.saveYamlResults(output.results_ref, dropouts)
-        # END Code thatshould have been in a separate rule
         print (f"checking {inTrunk_moba} -> {outTrunk_moba}")
         # Document the reduction for moba
-        dropouts = mqc.checkUpdates(inTrunk_moba+".bim", outTrunk_moba+".bim",
-                                    cols = [0,1,3,4,5],
+        dropouts = mqc.checkUpdates(
+            inTrunk_moba + ".bim",
+            outTrunk_moba + ".bim",
+                                    cols = [0, 1, 3, 4, 5],
                                     sanityCheck = "removal",
-                                    fullList = False, allele_flip=True)
+                                    fullList = False,
+            allele_flip = True
+        )
+
         dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
         dropouts["Rule"] = rule
         dropouts["Excluded markers"] = f"Common markers in {output.marker_list}, trialleles removed in {output.tri_alleles}"
         mqc.saveYamlResults(output.results_moba, dropouts)
 
 # 7.1.2020 projecting moba data on this did not work. For now we merge the data.
-# rule_stem = "pca_1kgp"
-# rule pca_1kgp:
-#     input:
-#         bedset = rules.common_markers_moba_ref.output.bedset_ref,
-#     output:
-#         ref_pcs=tmpMod3/rule_stem/'pcs_1kgp',
-#         ref_eigenvec=tmpMod3/rule_stem/'eigenvec_1kgp',
-#         ref_loadings=tmpMod3/rule_stem/'loadings_1kgp',
-#         ref_eigenval=tmpMod3/rule_stem/'eigenval_1kgp',
-#         ref_var_explained=tmpMod3/rule_stem/'var_explained_1kgp',
-#         ref_meansd=tmpMod3/rule_stem/'meansd_1kgp',
-#     run:
-#         item_type = rule_info[rule]["rule type"]
-#         mqc.log(runlog, rule_info[rule]["QC test"])
-#         inTrunk =  mqc.plinkBase(input.bedset[0])
+rule_stem = "pca_1kgp"
+rule pca_1kgp:
+    input:
+        bedset = rules.common_markers_moba_ref.output.bedset_ref,
+    output:
+        ref_pcs = tmpMod3/rule_stem/'pcs_1kgp',
+        ref_eigenvec = tmpMod3/rule_stem/'eigenvec_1kgp',
+        ref_loadings = tmpMod3/rule_stem/'loadings_1kgp',
+        ref_eigenval = tmpMod3/rule_stem/'eigenval_1kgp',
+        ref_var_explained = tmpMod3/rule_stem/'var_explained_1kgp',
+        ref_meansd = tmpMod3/rule_stem/'meansd_1kgp',
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk =  mqc.plinkBase(input.bedset[0])
 
-#         subprocess.run([flashpca,
-#                         "--bfile", inTrunk,
-#                         "--outpc", output.ref_pcs,
-#                         "--outmeansd", output.ref_meansd,
-#                         "--outload", output.ref_loadings,
-#                         "--outvec",  output.ref_eigenvec,
-#                         "--outval", output.ref_eigenval,
-#                         "--outpve", output.ref_var_explained ])
+        subprocess.run(
+            [
+                flashpca,
+                "--bfile", inTrunk,
+                "--outpc", output.ref_pcs,
+                "--outmeansd", output.ref_meansd,
+                "--outload", output.ref_loadings,
+                "--outvec",  output.ref_eigenvec,
+                "--outval", output.ref_eigenval,
+                "--outpve", output.ref_var_explained
+            ]
+        )
 
 # This projection does not work (7.1.2020). Must look at this laters
 # instead we run one single pca on a merged file, see pca_both below
