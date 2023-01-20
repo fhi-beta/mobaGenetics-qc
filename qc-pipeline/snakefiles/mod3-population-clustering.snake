@@ -219,7 +219,7 @@ rule pca_moba:
         ref_meansd = rules.pca_1kgp.output.ref_meansd,
         ref_loadings = rules.pca_1kgp.output.ref_loadings,
     output:
-        moba_projection=tmpMod3/"{batch}"/rule_stem/'projection_moba'
+        moba_projection = tmpMod3/"{batch}"/rule_stem/'projection_moba'
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
