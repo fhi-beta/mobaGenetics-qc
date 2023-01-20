@@ -4,3 +4,4 @@
 __pycache__
 *.bak
 *.old
+.Rproj.user

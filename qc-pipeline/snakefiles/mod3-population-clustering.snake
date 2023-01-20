@@ -180,124 +180,15 @@ rule common_markers_moba_ref:
         dropouts["Excluded markers"] = f"Common markers in {output.marker_list}, trialleles removed in {output.tri_alleles}"
         mqc.saveYamlResults(output.results_moba, dropouts)
 
-# 7.1.2020 projecting moba data on this did not work. For now we merge the data.
-rule_stem = "pca_1kgp"
-rule pca_1kgp:
-    input:
-        bedset = rules.common_markers_moba_ref.output.bedset_ref,
-    output:
-        ref_pcs = tmpMod3/"{batch}"/rule_stem/'pcs_1kgp',
-        ref_eigenvec = tmpMod3/"{batch}"/rule_stem/'eigenvec_1kgp',
-        ref_loadings = tmpMod3/"{batch}"/rule_stem/'loadings_1kgp',
-        ref_eigenval = tmpMod3/"{batch}"/rule_stem/'eigenval_1kgp',
-        ref_var_explained = tmpMod3/"{batch}"/rule_stem/'var_explained_1kgp',
-        ref_meansd = tmpMod3/"{batch}"/rule_stem/'meansd_1kgp',
-    run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])
-        inTrunk =  mqc.plinkBase(input.bedset[0])
-
-        subprocess.run(
-            [
-                flashpca,
-                "--bfile", inTrunk,
-                "--outpc", output.ref_pcs,
-                "--outmeansd", output.ref_meansd,
-                "--outload", output.ref_loadings,
-                "--outvec",  output.ref_eigenvec,
-                "--outval", output.ref_eigenval,
-                "--outpve", output.ref_var_explained
-            ]
-        )
-
-# This projection does not work (7.1.2020). Must look at this laters
-# instead we run one single pca on a merged file, see pca_both below
-rule_stem = "pca_moba"
-rule pca_moba:
-    input:
-        bedset = rules.common_markers_moba_ref.output.bedset_moba,
-        ref_meansd = rules.pca_1kgp.output.ref_meansd,
-        ref_loadings = rules.pca_1kgp.output.ref_loadings,
-    output:
-        moba_projection = tmpMod3/"{batch}"/rule_stem/'projection_moba'
-    run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])
-        inTrunk =  mqc.plinkBase(input.bedset[0])
-
-        subprocess.run(
-            [
-                flashpca,
-                "--bfile", inTrunk,
-                "--project",
-                "--inmeansd", input.ref_meansd,
-                "--outproj", output.moba_projection,
-                "--inload", input.ref_loadings,
-                "-v"
-            ]
-        )
-
-# plots a projection, does not work well 7.1.2020 Delete or fix later, see plot_pca_both below
-# Note that on https://github.com/gabraham/flashpca/blob/master/README.md it says to use
-# plink --reference-allele , but that is a plink2 command
-# rule_stem = "plot_pca"
-# rule plot_pca:
-#     input:
-#         pop_map = config["1000_genomes_pop"],       # maps samples to population-groups
-#         ref_pcs = rules.pca_1kgp.output.ref_pcs,
-#         moba_pcs = rules.pca_moba.output.moba_projection,
-
-#     output:
-#         plot = report((resultPath/rule_stem).with_suffix(".png"),
-#                       category="Module 2 1000Genomes prep")
-
-#     run:
-#         # To remove when this goes to mobaQcTools
-#         import pandas as pd
-#         import plotnine as p9
-#         import matplotlib
-#         matplotlib.use('Agg')
-
-#         pc = pd.read_csv(input.ref_pcs, usecols=['IID','PC1','PC2'],delim_whitespace=True)
-#         moba = pd.read_csv(input.moba_pcs, usecols=['IID','PC1','PC2'],delim_whitespace=True)
-#         # All data. We here later assume that moba ID and 1000 genomes ID are different
-#         all = pd.concat([pc,moba],ignore_index=True)
-
-#         # Populations for colouring -
-#         # see https://www.internationalgenome.org/faq/which-populations-are-part-your-study/ for details
-#         pop = pd.read_csv(input.pop_map,usecols=['#IID','SuperPop','Population'],delim_whitespace=True)
-#         # Simulate population for Moba
-#         popmoba = pd.read_csv(input.moba_pcs,usecols=['IID'],delim_whitespace=True)
-#         popmoba.columns = ["#IID"]  # rename to match earlier pop
-#         popmoba['SuperPop'] = '->MoBa'
-#         popmoba['Population'] = '->MoBa'
-#         all_pop = pd.concat([pop,popmoba],ignore_index=True)
-#         merged = pd.merge(left=all, right=all_pop, left_on='IID', right_on='#IID')
-#         print(merged)
-
-
-#         # Set up colours
-#         # colours = {'EUR': 'red',
-#         #            'EAS': 'darkblue',
-#         #            'AMR': 'violet',
-#         #            'SAS': 'orange',
-#         #            'AFR': 'yellow',
-#         #            'Moba':'black'}
-#         popc = "SuperPop"
-#         p = p9.ggplot(data=merged, mapping=p9.aes(x='PC1',y='PC2',color=popc, shape=popc))
-#         looks = p9.aes(color=popc, shape=popc)
-#         p +=  p9.geom_point()
-#         p += p9.scale_colour_brewer(type="qual", palette="Set1")  # better for colourblind
-#         p9.ggsave(plot=p, filename=output.plot, dpi=600)
-
+# We would prefer to run the PCA on 1kg and project MoBa on the eigenvectors but merging is more robust and works just fine.
 rule_stem = "pca_both"
 rule pca_both:
     input:
         bedset_ref = rules.common_markers_moba_ref.output.bedset_ref,
         bedset_moba = rules.common_markers_moba_ref.output.bedset_moba,
     output:
-        bedset = multiext(str(tmpMod3/"{batch}"/rule_stem) ,'.bed','.bim','.fam'),
-        pcs=tmpMod3/"{batch}"/(rule_stem+".pcs"),
+        bedset = multiext(str(tmpMod3/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
+        pcs = tmpMod3/"{batch}"/(rule_stem+".pcs"),
     benchmark:
         (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
     run:
@@ -307,16 +198,25 @@ rule pca_both:
         inTrunk_moba =  mqc.plinkBase(input.bedset_moba[0])
         outTrunk =  mqc.plinkBase(output.bedset[0])
 
-        subprocess.run([plinklocal,
-                        "--bfile", inTrunk_ref,
-                        "--bmerge", inTrunk_moba,
-                        "--out", outTrunk,
-                        "--make-bed"    ], check=True)
+        subprocess.run(
+            [
+                plinklocal,
+                "--bfile", inTrunk_ref,
+                "--bmerge", inTrunk_moba,
+                "--out", outTrunk,
+                "--make-bed"
+            ],
+            check = True
+        )
 
-        subprocess.run([flashpca,
-                        "--bfile", outTrunk,
-                        "--outpc", output.pcs,
-                        ], check=True)
+        subprocess.run(
+            [
+                flashpca,
+                "--bfile", outTrunk,
+                "--outpc", output.pcs,
+            ],
+            check = True
+        )
 
 
 rule_stem = "plot_pca_both"
