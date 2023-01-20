@@ -81,8 +81,8 @@ rule all:
         king_relatedness = expand(tmpMod2/"{batch}"/"m2_output.kin0", batch = batches),
 
         # Module 3:
-        ref_meansd = tmpMod3/rule_stem/'meansd_1kgp',
-        ref_loadings = tmpMod3 / rule_stem / 'loadings_1kgp'
+        ref_meansd = tmpMod3/'pca_1kgp'/'meansd_1kgp',
+        ref_loadings = tmpMod3/'pca_1kgp'/'loadings_1kgp'
 
         # module_3_good_markers = expand((tmpMod3/"{batch}/m3_output_good_markers").with_suffix(".txt"), batch=batches),
         # sex_check = expand(str(tmpMod3/"{batch}/{role}/sexcheck_report_x.sexcheck"), role=ROLES, batch=batches),
