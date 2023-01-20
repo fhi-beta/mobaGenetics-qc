@@ -5,6 +5,7 @@ dependencies:
   - r-base=4.2
   - r-shiny
   - r-visnetwork
+  - r-tidyr
   - r-dplyr
   - r-ggplot2
   - r-dt
