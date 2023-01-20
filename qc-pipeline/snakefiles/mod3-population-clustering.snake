@@ -186,12 +186,12 @@ rule pca_1kgp:
     input:
         bedset = rules.common_markers_moba_ref.output.bedset_ref,
     output:
-        ref_pcs = tmpMod3/rule_stem/'pcs_1kgp',
-        ref_eigenvec = tmpMod3/rule_stem/'eigenvec_1kgp',
-        ref_loadings = tmpMod3/rule_stem/'loadings_1kgp',
-        ref_eigenval = tmpMod3/rule_stem/'eigenval_1kgp',
-        ref_var_explained = tmpMod3/rule_stem/'var_explained_1kgp',
-        ref_meansd = tmpMod3/rule_stem/'meansd_1kgp',
+        ref_pcs = tmpMod3/"{batch}"/rule_stem/'pcs_1kgp',
+        ref_eigenvec = tmpMod3/"{batch}"/rule_stem/'eigenvec_1kgp',
+        ref_loadings = tmpMod3/"{batch}"/rule_stem/'loadings_1kgp',
+        ref_eigenval = tmpMod3/"{batch}"/rule_stem/'eigenval_1kgp',
+        ref_var_explained = tmpMod3/"{batch}"/rule_stem/'var_explained_1kgp',
+        ref_meansd = tmpMod3/"{batch}"/rule_stem/'meansd_1kgp',
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
