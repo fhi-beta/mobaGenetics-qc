@@ -84,8 +84,8 @@ rule common_markers_moba_ref:
         ),
         results_moba = report(
             (resultPath/"{batch}"/"pca_moba").with_suffix(".yaml"),
-                              category = "Module 3 1000Genomes prep",
-                              caption = (resultPath/"{batch}"/"pca_moba").with_suffix(".rst")
+            category = "Module 3 1000Genomes prep",
+            caption = (resultPath/"{batch}"/"pca_moba").with_suffix(".rst")
         ),
     benchmark:
         (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
@@ -136,7 +136,7 @@ rule common_markers_moba_ref:
                 plinklocal,
                 "--bfile", outTrunk_ref_temp,
                 "--bmerge", outTrunk_moba_temp,
-                        "--out", triallelesTrunk
+                "--out", triallelesTrunk
             ],
             check = False
         )
@@ -169,9 +169,9 @@ rule common_markers_moba_ref:
         dropouts = mqc.checkUpdates(
             inTrunk_moba + ".bim",
             outTrunk_moba + ".bim",
-                                    cols = [0, 1, 3, 4, 5],
-                                    sanityCheck = "removal",
-                                    fullList = False,
+            cols = [0, 1, 3, 4, 5],
+            sanityCheck = "removal",
+            fullList = False,
             allele_flip = True
         )
 
@@ -212,31 +212,30 @@ rule pca_1kgp:
 
 # This projection does not work (7.1.2020). Must look at this laters
 # instead we run one single pca on a merged file, see pca_both below
-# rule_stem = "pca_moba"
-# rule pca_moba:
-#     input:
-#         bedset = rules.common_markers_moba_ref.output.bedset_moba,
-#         ref_meansd = rules.pca_1kgp.output.ref_meansd,    # projected onto pca from ...
-#         ref_loadings = rules.pca_1kgp.output.ref_loadings,# ... 1000 genomes pca
-#     output:
-#         moba_projection=tmpMod3/rule_stem/'projection_moba',
-# # plot?        ref_meansd=tresultPath/rule_stem).with_suffix(".yaml"),
-# #                         category="Module 2 1000Genomes prep",
-# #                         caption=(resultPath/rule_stem).with_suffix(".rst"))
+rule_stem = "pca_moba"
+rule pca_moba:
+    input:
+        bedset = rules.common_markers_moba_ref.output.bedset_moba,
+        ref_meansd = rules.pca_1kgp.output.ref_meansd,
+        ref_loadings = rules.pca_1kgp.output.ref_loadings,
+    output:
+        moba_projection=tmpMod3/"{batch}"/rule_stem/'projection_moba'
+    run:
+        item_type = rule_info[rule]["rule type"]
+        mqc.log(runlog, rule_info[rule]["QC test"])
+        inTrunk =  mqc.plinkBase(input.bedset[0])
 
-#     run:
-#         item_type = rule_info[rule]["rule type"]
-#         mqc.log(runlog, rule_info[rule]["QC test"])
-#         inTrunk =  mqc.plinkBase(input.bedset[0])
-
-#         # --project moba data onto 1000 genomes loading
-#         subprocess.run([flashpca,
-#                         "--bfile", inTrunk,
-#                         "--project",
-#                         "--inmeansd", input.ref_meansd,
-#                         "--outproj", output.moba_projection,
-#                         "--inload", input.ref_loadings,
-#                         check=True])
+        subprocess.run(
+            [
+                flashpca,
+                "--bfile", inTrunk,
+                "--project",
+                "--inmeansd", input.ref_meansd,
+                "--outproj", output.moba_projection,
+                "--inload", input.ref_loadings,
+                "-v"
+            ]
+        )
 
 # plots a projection, does not work well 7.1.2020 Delete or fix later, see plot_pca_both below
 # Note that on https://github.com/gabraham/flashpca/blob/master/README.md it says to use
