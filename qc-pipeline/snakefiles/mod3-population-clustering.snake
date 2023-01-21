@@ -224,7 +224,7 @@ rule plot_pca_both:
         pcs = rules.pca_both.output.pcs,
         pop_map = config["1000_genomes_pop"],
     params:
-        md_folder = github_docs/"{batch}",
+        md_file = github_docs/"{batch}"/(rule_stem + ".md"),
         title = "\"Principal Component Analysys (PCA) in {batch}\""
     output:
         updated_pop = tmpMod3/"{batch}"/"moba.populations"
@@ -236,7 +236,7 @@ rule plot_pca_both:
         Rscript utils/pca/plot_pca_population_cluster.R \
             {input.pcs} \
             {input.pop_map} \
-            {params.md_folder} \
+            {params.md_file} \
             {params.title} \
             {output.updated_pop}
         """
