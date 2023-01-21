@@ -178,8 +178,10 @@ for (pc_i in 1:9) {
   
   file_name <- paste0(pc_name_x, "_", pc_name_y, ".png")
   
+  print(paste0("Plotting to ", plot_folder, file_name))
+  
   png(
-    filename = paste0(plot_folder, file_name),
+    filename = file.path(plot_folder, file_name),
     width = 800,
     height = 600
   )
