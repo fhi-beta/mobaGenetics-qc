@@ -98,7 +98,7 @@ plot_data <- pcs %>%
 md_file <- file.path(docs_folder, "pca.md")
 
 write(
-  x = paste0("# ", title),
+  x = paste0("# ", md_title),
   file = md_file,
   append = F
 )
