@@ -224,9 +224,9 @@ rule plot_pca_both:
         pcs = rules.pca_both.output.pcs,
         pop_map = config["1000_genomes_pop"],
     params:
-        md_file = github_docs/"{batch}"/(rule_stem + ".md"),
         title = "\"Principal Component Analysys (PCA) in {batch}\""
     output:
+        md_file = github_docs/"{batch}"/(rule_stem + ".md"),
         updated_pop = tmpMod3/"{batch}"/"moba.populations"
     conda:
         "envs/r_4.2.yaml"
