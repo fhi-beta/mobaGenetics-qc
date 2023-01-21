@@ -11,7 +11,7 @@ args <- commandArgs(TRUE)
 
 if (length(args) != 5) {
   
-  stop(paste0("Four arguments expected: pcs file, thousand genomes population file, docs folder, md title, output file. ", length(args), " found: ", paste(args, collapse = ", ")))
+  stop(paste0("Four arguments expected: pcs file, thousand genomes population file, md file, md title, output file. ", length(args), " found: ", paste(args, collapse = ", ")))
   
 }
 
@@ -31,7 +31,8 @@ if (!file.exists(thousand_genomes_populations_file)) {
   
 }
 
-docs_folder <- args[3]
+md_file <- args[3]
+docs_folder <- basename(md_file)
 
 if (!dir.exists(docs_folder)) {
   
@@ -94,8 +95,6 @@ plot_data <- pcs %>%
 
 
 # Write docs
-
-md_file <- file.path(docs_folder, "pca.md")
 
 write(
   x = paste0("# ", md_title),
