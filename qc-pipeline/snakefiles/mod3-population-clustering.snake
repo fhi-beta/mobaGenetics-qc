@@ -236,7 +236,7 @@ rule plot_pca_both:
         Rscript utils/pca/plot_pca_population_cluster.R \
             {input.pcs} \
             {input.pop_map} \
-            {params.md_file} \
+            {output.md_file} \
             {params.title} \
             {output.updated_pop}
         """
