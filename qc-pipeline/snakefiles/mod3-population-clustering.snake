@@ -230,8 +230,6 @@ rule plot_pca_both:
         updated_pop = tmpMod3/"{batch}"/"moba.populations"
     conda:
         "envs/r_4.2.yaml"
-    benchmark:
-        (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
     threads: 1
     shell:
         """
