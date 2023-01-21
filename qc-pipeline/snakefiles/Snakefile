@@ -79,7 +79,7 @@ rule all:
         pruned_snps = expand(tmpMod2/"{batch}"/"m2_output.prune.in", batch = batches),
         sex_check = expand(tmpMod2/"{batch}"/"m2_output.sexcheck", batch = batches),
         king_relatedness = expand(tmpMod2/"{batch}"/"m2_output.kin0", batch = batches),
-        pca_docs = expand(github_docs/"{batch}"/"fam_reconstruction.md", batch = batches),
+        fam_docs = expand(github_docs/"{batch}"/"fam_reconstruction.md", batch = batches),
 
         # Module 3:
         moba_populations = expand(tmpMod3/"{batch}"/"moba.populations", batch = batches),
