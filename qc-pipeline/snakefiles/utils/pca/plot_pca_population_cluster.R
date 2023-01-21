@@ -135,6 +135,14 @@ for (sample_i in 1:nrow(n_samples)) {
 
 # Plot the PCs against each other
 
+plot_folder <- file.path(docs_folder, "plot")
+
+if (!dir.exists(plot_folder)) {
+  
+  dir.create(plot_folder)
+  
+}
+
 for (pc_i in 1:9) {
   
   pc_name_x <- paste0("pc", pc_i)
@@ -169,13 +177,21 @@ for (pc_i in 1:9) {
       name = pc_name_y
     )
   
+  file_name <- paste0(pc_name_x, "_", pc_name_y, ".png")
+  
   png(
-    filename = paste0("qc-pipeline/docs/snp012/pca/", pc_name_x, "_", pc_name_y, ".png"),
+    filename = paste0(plot_folder, file_name),
     width = 800,
     height = 600
   )
   grid.draw(plot)
   device <- dev.off()
+  
+  write(
+    x = paste0(!"[](plot/", file_name, ")"),
+    file = md_file,
+    append = T
+  )
   
 }
 
