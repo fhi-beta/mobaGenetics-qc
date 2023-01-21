@@ -3,7 +3,7 @@
 rule_stem = "tmp_extract_samples"
 rule tmp_extract_samples:
     input:
-        samples = rules.extract_pca_outliers.output.bedset,
+        # samples = rules.extract_pca_outliers.output.bedset,
         # rolling back to the sampleset to be fed into mod5
         markers = rules.m2_output.output.bedset,
     output:
