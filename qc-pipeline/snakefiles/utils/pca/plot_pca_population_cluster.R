@@ -188,7 +188,7 @@ for (pc_i in 1:9) {
   device <- dev.off()
   
   write(
-    x = paste0(!"[](plot/", file_name, ")"),
+    x = paste0("![](plot/", file_name, ")"),
     file = md_file,
     append = T
   )
