@@ -32,7 +32,7 @@ if (!file.exists(thousand_genomes_populations_file)) {
 }
 
 md_file <- args[3]
-docs_folder <- basename(md_file)
+docs_folder <- dirname(md_file)
 
 if (!dir.exists(docs_folder)) {
   
