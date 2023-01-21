@@ -188,7 +188,7 @@ rule pca_both:
         bedset_moba = rules.common_markers_moba_ref.output.bedset_moba,
     output:
         bedset = multiext(str(tmpMod3/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
-        pcs = tmpMod3/"{batch}"/(rule_stem+".pcs"),
+        pcs = tmpMod3/"{batch}"/(rule_stem + ".pcs"),
     benchmark:
         (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
     run:
@@ -217,6 +217,29 @@ rule pca_both:
             ],
             check = True
         )
+
+rule_stem = "plot_pca_both"
+rule plot_pca_both:
+    input:
+        pcs = rules.pca_both.output.pcs,
+        pop_map = config["1000_genomes_pop"],
+    params:
+        md_folder = github_docs / "{batch}",
+        title = "\"Principal Component Analysys (PCA) in {batch}\""
+    output:
+        updated_pop = tmpMod3/"{batch}"/"moba.populations"
+    conda:
+        "envs/r_4.2.yaml"
+    threads: 1
+    shell:
+        """
+        Rscript utils/pca/plot_pca_population_cluster.R \
+            {input.pcs} \
+            {input.pop_map} \
+            {params.md_folder} \
+            {params.title} \
+            {output.updated_pop}
+        """
 
 
 rule_stem = "plot_pca_both"
