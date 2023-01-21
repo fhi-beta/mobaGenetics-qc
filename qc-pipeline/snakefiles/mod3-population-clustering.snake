@@ -230,6 +230,8 @@ rule plot_pca_both:
         updated_pop = tmpMod3/"{batch}"/"moba.populations"
     conda:
         "envs/r_4.2.yaml"
+    benchmark:
+        (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
     threads: 1
     shell:
         """
@@ -240,63 +242,6 @@ rule plot_pca_both:
             {params.title} \
             {output.updated_pop}
         """
-
-
-rule_stem = "plot_pca_both"
-rule plot_pca_both:
-    input:
-        pop_map = config["1000_genomes_pop"],       # maps samples to population-groups
-        pcs = rules.pca_both.output.pcs,            # principal components
-        moba = mqc.plinkBase(rules.common_markers_moba_ref.output.bedset_moba[0]) + ".fam"
-
-    output:
-        plot = report((resultPath/"{batch}"/rule_stem).with_suffix(".png"),
-                      category="Module 3 Good markers",
-                      caption=(resultPath/"{batch}"/rule_stem).with_suffix(".rst"))
-    # force this url into the report
-    params: "Legend on https://www.internationalgenome.org/faq/which-populations-are-part-your-study/"
-    benchmark:
-        (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
-    run:
-        # To remove when this goes to mobaQcTools
-        pc = pd.read_csv(input.pcs, usecols=['IID','PC1','PC2'], delim_whitespace=True)
-        # Populations for colouring -
-        pop = pd.read_csv(input.pop_map,usecols=['#IID','SuperPop','Population'],delim_whitespace=True)
-        # Simulate population for Moba, read 2-column in fam-file
-        popmoba = pd.read_csv(input.moba,usecols=[1], header=None,
-                              delim_whitespace=True)
-        popmoba.columns = ["#IID"]  # rename to match earlier pop
-        moba_legend = '->MoBa'
-        popmoba['SuperPop'] = moba_legend
-        popmoba['Population'] = moba_legend
-        all_pop = pd.concat([pop,popmoba],ignore_index=True)
-        merged = pd.merge(left=pc, right=all_pop, left_on='IID', right_on='#IID')
-        # mqc.find_moba_pca_outlier(merged[merged.Population=='->MoBa'])
-        # Explode Europe to Countries in Population
-        merged.loc[merged['SuperPop'] == 'EUR', 'SuperPop'] = 'EUR_'+merged['Population']
-        legend_info = params[0]
-        # Set up colours   - not using this - did not get it right and dont want to spend time on it
-        # colours = {'EUR': 'red',
-        #            'EAS': 'darkblue',
-        #            'AMR': 'violet',
-        #            'SAS': 'orange',
-        #            'AFR': 'yellow',
-        #            'Moba':'black'}
-        popc = "SuperPop"
-        # Visualize what will be excluded
-        print("SUPERDIRTY PCA EXCLUSION!!!! (visualization for now ...)")
-        # rename moba-samples above cut-off
-        merged.loc[
-            (merged["PC1"]>rules.extract_pca_outliers.params.treshold) &
-            (merged[popc]==moba_legend), popc]  +=  "(outlier)"
-        p = p9.ggplot(data=merged, mapping=p9.aes(x='PC1',y='PC2',color=popc, shape=popc))
-        p +=  p9.geom_point()
-        p += p9.scale_colour_brewer(type="qual", palette="Set1")  # better for colourblind
-        p9.ggsave(plot=p, filename=output.plot, dpi=600)
-        # create the caption usually made by saveYamlResults
-        with open(str(resultPath/rule)+".rst", 'w') as file:
-            file.write(f'Rule {rule_info[rule]["Rule order"]} ({rule_info[rule]["rule action"]})\n')
-            file.write(f"{legend_info}\n")
 
 rule_stem = 'extracted_pca_outliers'
 rule extract_pca_outliers:
