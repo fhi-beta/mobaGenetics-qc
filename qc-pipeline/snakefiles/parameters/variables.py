@@ -22,6 +22,7 @@ vcftools = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/
 
 # Local binaries
 plinklocal = Path(os.path.dirname(workflow.basedir))/'bin'/'plink-1.90b5.4'/'plink'
+plink2local = Path(os.path.dirname(workflow.basedir))/'bin'/'plink-1.90b5.4'/'plink'
 flashpca = Path(os.path.dirname(workflow.basedir))/'bin'/'flashpca_x86-64'
 kinglocal = Path(os.path.dirname(workflow.basedir))/'bin'/'Linux-king'/'king'
 

@@ -13,6 +13,11 @@ output_base: "/mnt/archive/snpQc/pipeOut_dev"
 # 2.8Gig
 hrc_sites: "/mnt/archive/snpQc/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
 
+# From https://github.com/long-covid-hg/pca_projection/blob/main/docs/prerequisites.md#download-the-pre-computed-pca-loadings-and-reference-allele-frequencies
+# Contains precomputed PCA loadings and reference allele frequencies from Human Genome Diversity Project (HGDP) and the 1000 Genomes Project
+# Used for population clustering
+ref_pc_loadings: "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.GRCh37.plink.tsv"
+ref_pc_freq: "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.GRCh37.plink.afreq"
 
 # See https://cran.r-project.org/web/packages/plinkQC/vignettes/Genomes1000.pdf
 # Reference is p37
