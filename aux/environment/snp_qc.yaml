@@ -1,0 +1,6 @@
+name: snp_qc
+channels:
+  - bioconda
+dependencies:
+  - snakemake
+  - plink2
