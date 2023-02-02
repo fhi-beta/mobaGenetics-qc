@@ -331,4 +331,4 @@ https://conda.anaconda.org/conda-forge/noarch/r-waldo-0.4.0-r41hc72bb7e_0.tar.bz
 https://conda.anaconda.org/conda-forge/linux-64/r-testthat-3.1.4-r41h7525677_0.tar.bz2
 https://conda.anaconda.org/conda-forge/linux-64/r-isoband-0.2.5-r41h03ef668_0.tar.bz2
 https://conda.anaconda.org/conda-forge/noarch/r-ggplot2-3.3.6-r41hc72bb7e_0.tar.bz2
-https://anaconda.org/bioconda/plink2/2.00a3.3/download/linux-64/plink2-2.00a3.3-hb2a7ceb_0.tar.bz2
+https://conda.anaconda.org/bioconda/plink2/2.00a3.3/download/linux-64/plink2-2.00a3.3-hb2a7ceb_0.tar.bz2
