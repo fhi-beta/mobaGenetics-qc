@@ -271,6 +271,16 @@ m2_output:
   Rule: Will be the same as the key of this entry
   Timestamp:
 
+mod3_convert_plink2:
+  QC test: File conversion
+  Description: Converts the input of module 3 for plink2
+  Rule order: mod3.1
+  rule type: convert
+  rule action: convert
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp:
+
 common_markers_moba_ref:
   QC test: Find markers common to both Moba and reference set (1000 Genomes)
   Description: Also extract those markers and creates plink bedsets for them. Pruning has allready be done one moba-set, so that pruning will carry over to the reference set
