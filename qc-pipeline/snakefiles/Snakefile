@@ -4,7 +4,7 @@
 # The pipeline is expected to run in the conda environment named 'snpQc' built using `aux/environment/snpQc-env.txt`.
 #
 # Commands to execute from the qc-pipeline folder:
-# conda activate snpQc
+# conda activate snp_qc
 # snakemake --snakefile Snakefile --cores 32 --use-conda
 #
 ##

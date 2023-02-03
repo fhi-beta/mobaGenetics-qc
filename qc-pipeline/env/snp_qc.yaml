@@ -1,3 +1,5 @@
+# General environment to execute the pipeline
+# Create from the base directory of the repository using `mamba env create -f qc-pipeline/env/snp_qc.yaml`
 name: snp_qc
 channels:
   - conda-forge
@@ -5,3 +7,4 @@ channels:
 dependencies:
   - snakemake
   - plink2
+  - plotnine=0.10.1
