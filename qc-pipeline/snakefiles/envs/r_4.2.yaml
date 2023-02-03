@@ -11,3 +11,4 @@ dependencies:
   - r-ggplot2
   - r-dt
   - r-igraph
+  - r-ldlinkr

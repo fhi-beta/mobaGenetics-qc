@@ -76,19 +76,26 @@ rule mod3_convert_plink2:
         bedset_plink2 = multiext(str(tmpMod3/"{batch}"/rule_stem), '.pgen', '.pvar', '.psam')
     threads: 8
     run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])
-        inTrunk_ref =  mqc.plinkBase(input.bedset_plink1[0])
-        outTrunk =  mqc.plinkBase(output.bedset_plink2[0])
+        try:
 
-        subprocess.run(
-            [
-                "plink2",
-                "--bfile", inTrunk_ref,
-                "--out", outTrunk,
-                "--threads", str(threads),
-                "--make-pgen"
-            ],
-            check = True
-        )
+            item_type = rule_info[rule]["rule type"]
+            mqc.log(runlog, rule_info[rule]["QC test"])
+            inTrunk =  mqc.plinkBase(input.bedset_plink1[0])
+            outTrunk =  mqc.plinkBase(output.bedset_plink2[0])
+
+            subprocess.run(
+                [
+                    "plink2",
+                    "--bfile", inTrunk,
+                    "--out", outTrunk,
+                    "--threads", str(threads),
+                    "--make-pgen"
+                ],
+                check = True
+            )
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
 
