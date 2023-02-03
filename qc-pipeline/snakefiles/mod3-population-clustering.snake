@@ -86,7 +86,7 @@ rule mod3_convert_plink2:
                 "plink2",
                 "--bfile", inTrunk_ref,
                 "--out", outTrunk,
-                "--threads", {threads},
+                "--threads", str(threads),
                 "--make-pgen"
             ],
             check = True
