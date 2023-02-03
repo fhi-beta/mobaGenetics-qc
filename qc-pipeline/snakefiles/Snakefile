@@ -87,7 +87,7 @@ rule all:
         mod3_start_freq= expand(tmpMod3 / "{batch}" / 'mod3_start_freq.frq', batch = batches),
         mod3_start_lmiss= expand(tmpMod3 / "{batch}" / 'mod3_start_missing.lmiss', batch = batches),
         mod3_start_imiss= expand(tmpMod3 / "{batch}" / 'mod3_start_missing.imiss', batch = batches),
-        # plink2_pgen = expand(tmpMod3/"{batch}"/"mod3_convert_plink2.pgen", batch = batches)
+        plink2_pgen = expand(tmpMod3/"{batch}"/"mod3_convert_plink2.pgen", batch = batches)
 
         # module_3_good_markers = expand((tmpMod3/"{batch}/m3_output_good_markers").with_suffix(".txt"), batch=batches),
         # sex_check = expand(str(tmpMod3/"{batch}/{role}/sexcheck_report_x.sexcheck"), role=ROLES, batch=batches),
