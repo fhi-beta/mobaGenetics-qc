@@ -217,13 +217,9 @@ for (variant_i in 1:nrow(variant_table)) {
         
         if (nrow(proxy_table) > 0) {
           
-          proxies <- proxy_table
-          
-          proxies <- copy_to(
-            dest = db_connection, 
-            df = proxy_table, 
-            overwrite = F,
-            append = T
+          proxies <- proxies %>% rows_append(
+            y = proxy_table,
+            copy = T
           )
           
         } else {
