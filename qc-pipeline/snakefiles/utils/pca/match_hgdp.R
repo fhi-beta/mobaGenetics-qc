@@ -84,7 +84,7 @@ loadings_table <- loadings_table %>%
 
 matched_loadings <- list()
 
-for (variant_i in nrow(variant_table)) {
+for (variant_i in 1:nrow(variant_table)) {
   
   variant_id <- variant_table$id[variant_i]
   variant_chr <- variant_table$chr[variant_i]
@@ -92,7 +92,7 @@ for (variant_i in nrow(variant_table)) {
   variant_ref <- variant_table$ref[variant_i]
   variant_alt <- variant_table$alt[variant_i]
   
-  print(glue("Processing {variant_id} ({variant_i} of nrow(variant_table))"))
+  print(glue("Processing {variant_id} ({variant_i} of {nrow(variant_table)})"))
   
   temp_id <- paste(variant_chr, variant_pos, variant_ref, variant_alt, sep = ":")
   
