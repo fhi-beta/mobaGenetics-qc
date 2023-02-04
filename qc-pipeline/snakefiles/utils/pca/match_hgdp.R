@@ -195,7 +195,7 @@ for (variant_i in 1:nrow(variant_table)) {
               
               proxy_table <- LDproxy(
                 snp = id_to_query, 
-                pop = "EUR",# "ALL", 
+                pop = "ALL", 
                 genome_build = "grch37",
                 token = "972f33fe5966"
               ) %>% 
