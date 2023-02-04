@@ -6,41 +6,41 @@
 ##
 
 # Command line arguments
-
-args <- commandArgs(TRUE)
-
-if (length(args) != 4) {
-  
-  stop(paste0("Four arguments expected: pcs file, thousand genomes population file, md file, md title, output file. ", length(args), " found: ", paste(args, collapse = ", ")))
-  
-}
-
-variant_file <- args[1]
-
-if (!file.exists(variant_file)) {
-  
-  stop("Variant file not found")
-  
-}
-
-loadings_file <- args[2]
-
-if (!file.exists(loadings_file)) {
-  
-  stop("PC loadings not found")
-  
-}
-
-proxy_cache_folder <- args[3]
-
-export_file <- args[4]
+# 
+# args <- commandArgs(TRUE)
+# 
+# if (length(args) != 4) {
+#   
+#   stop(paste0("Four arguments expected: pcs file, thousand genomes population file, md file, md title, output file. ", length(args), " found: ", paste(args, collapse = ", ")))
+#   
+# }
+# 
+# variant_file <- args[1]
+# 
+# if (!file.exists(variant_file)) {
+#   
+#   stop("Variant file not found")
+#   
+# }
+# 
+# loadings_file <- args[2]
+# 
+# if (!file.exists(loadings_file)) {
+#   
+#   stop("PC loadings not found")
+#   
+# }
+# 
+# proxy_cache_file <- args[3]
+# 
+# export_file <- args[4]
 
 
 # DEBUG
-# variant_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/mod3_convert_plink2.pvar"
-# loadings_file <- "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.GRCh37.plink.tsv"
-# proxy_cache_folder <- "/mnt/archive/snpQc/pipeOut/tmp/ldlink_cache"
-# export_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/loadings_hdpg_1kg"
+variant_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/mod3_convert_plink2.pvar"
+loadings_file <- "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.GRCh37.plink.tsv"
+proxy_cache_file <- "/mnt/archive/snpQc/pipeOut/tmp/ldlink_cache/ldlink_cache_db"
+export_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/loadings_hdpg_1kg"
 
 
 # Libraries
@@ -78,6 +78,32 @@ original_names <- names(loadings_table)
 
 loadings_table <- loadings_table %>% 
   clean_names()
+
+
+# Set up ldlink cache
+
+db_connection <- DBI::dbConnect(RSQLite::SQLite(), proxy_cache_file)
+tables <- DBI::dbListTables(db_connection)
+
+if ("no_proxy" %in% tables) {
+  
+  no_proxy <- tbl(db_connection, "no_proxy") %>% pull(id)
+  
+} else {
+  
+  no_proxy <- c()
+  
+}
+
+if ("proxies" %in% tables) {
+  
+  proxies <- tbl(db_connection, "proxies")
+  
+} else {
+  
+  proxies <- NULL
+  
+}
 
 
 # Match the variants
@@ -157,7 +183,11 @@ for (variant_i in 1:nrow(variant_table)) {
           snp = temp_id, 
           pop = "ALL", 
           token = "972f33fe5966"
-        ) %>% 
+        )
+        
+        if (nrow(proxy_table) > 0) {
+        
+        proxy_table <- proxy_table %>% 
           clean_names()  %>% 
           filter(
             r2 >= 0.2
@@ -179,6 +209,12 @@ for (variant_i in 1:nrow(variant_table)) {
           col.names = T,
           row.names = F
         )
+        
+        } else {
+          
+          
+          
+        }
         
       } else {
         
