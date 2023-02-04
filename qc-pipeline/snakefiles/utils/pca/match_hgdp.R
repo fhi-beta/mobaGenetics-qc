@@ -92,6 +92,8 @@ for (variant_i in nrow(variant_table)) {
   variant_ref <- variant_table$ref[variant_i]
   variant_alt <- variant_table$alt[variant_i]
   
+  print(glue("Processing {variant_id} ({variant_i} of nrow(variant_table))"))
+  
   temp_id <- paste(variant_chr, variant_pos, variant_ref, variant_alt, sep = ":")
   
   loading_i <- which(loadings_table$id == temp_id)
@@ -274,7 +276,7 @@ for (variant_i in nrow(variant_table)) {
   }
 }
 
-matched_loadings <- do.call(matched_loadings, "rbind")
+matched_loadings <- do.call("rbind", matched_loadings)
 
 print(glue("{nrow(matched_loadings)} variants matched to loading ({nrow(variant_table)} variants in MoBa, {nrow(loadings_table)} variants in loadings)"))
 
