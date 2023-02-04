@@ -51,6 +51,7 @@ library(dplyr)
 library(glue)
 library(stringr)
 library(LDlinkR)
+library(DBI)
 
 
 # Load the data
@@ -82,8 +83,8 @@ loadings_table <- loadings_table %>%
 
 # Set up ldlink cache
 
-db_connection <- DBI::dbConnect(RSQLite::SQLite(), proxy_cache_file)
-tables <- DBI::dbListTables(db_connection)
+db_connection <- dbConnect(RSQLite::SQLite(), proxy_cache_file)
+tables <- dbListTables(db_connection)
 
 if ("no_proxy" %in% tables) {
   
@@ -97,7 +98,7 @@ if ("no_proxy" %in% tables) {
 
 if ("proxies" %in% tables) {
   
-  proxies <- tbl(db_connection, "proxies")
+  proxies <- dbReadTable(db_connection, "proxies")
   
 } else {
   
@@ -110,11 +111,6 @@ if ("proxies" %in% tables) {
     dprime = numeric(0),
     r2 = numeric(0),
     correlated_alleles = character(0)
-  )
-  proxies <- copy_to(
-    dest = db_connection, 
-    df = proxies, 
-    overwrite = T
   )
   
 }
@@ -175,9 +171,7 @@ for (variant_i in 1:nrow(variant_table)) {
       
     } else if (!variant_id %in% no_proxy) {
       
-      proxies_in_cache <- proxies %>% pull(query)
-      
-      if (!variant_id %in% proxies_in_cache) {
+      if (!variant_id %in% proxies$query) {
         
         id_is_rsid <- startsWith(variant_id, "rs") && is.finite(as.numeric(substring(variant_id, 3)))
         
@@ -191,35 +185,68 @@ for (variant_i in 1:nrow(variant_table)) {
           
         }
         
-        proxy_table <- LDproxy(
-          snp = id_to_query, 
-          pop = "ALL", 
-          genome_build = "grch37",
-          token = "972f33fe5966"
-        ) %>% 
-          clean_names()  %>% 
-          filter(
-            r2 >= 0.2
-          ) %>% 
-          mutate(
-            query = variant_id
-          ) %>% 
-          select(
-            query,
-            rs_number,
-            coord,
-            alleles,
-            distance,
-            dprime,
-            r2,
-            correlated_alleles
+        proxy_table <- NULL
+        attempts <- 0
+        
+        while(is.null(proxy_table)) {
+          
+          tryCatch(
+            {
+              
+              proxy_table <- LDproxy(
+                snp = id_to_query, 
+                pop = "EUR",# "ALL", 
+                genome_build = "grch37",
+                token = "972f33fe5966"
+              ) %>% 
+                clean_names()  %>% 
+                filter(
+                  r2 >= 0.2
+                ) %>% 
+                mutate(
+                  query = variant_id
+                ) %>% 
+                select(
+                  query,
+                  rs_number,
+                  coord,
+                  alleles,
+                  distance,
+                  dprime,
+                  r2,
+                  correlated_alleles
+                )
+              
+            }, error = function(error_condition) {
+              
+              if (attempts < 10) {
+                
+                Sys.sleep(1000 * attempts)
+                
+              } else {
+                
+                # Save cache and exit
+                
+                no_proxy_df <- data.frame(
+                  id = no_proxy,
+                  stringsAsFactors = F
+                )
+                dbWriteTable(db_connection, "no_proxy", no_proxy_df)
+                dbWriteTable(db_connection, "proxies", proxies)
+                
+                dbDisconnect(db_connection)
+                
+                stop(error_condition)
+                
+              }
+            }
           )
+        }
         
         if (nrow(proxy_table) > 0) {
           
-          proxies <- proxies %>% rows_append(
-            y = proxy_table,
-            copy = T
+          proxies <- proxies %>% bind_rows(
+            proxy_table
           )
           
         } else {
@@ -233,8 +260,7 @@ for (variant_i in 1:nrow(variant_table)) {
         proxy_table <- proxies %>% 
           filter(
             query == variant_id
-          ) %>% 
-          collect()
+          ) 
         
       }
       
@@ -340,4 +366,16 @@ write.table(
   row.names = F,
   quote = F
 )
+
+
+# Save cache
+
+no_proxy_df <- data.frame(
+  id = no_proxy,
+  stringsAsFactors = F
+)
+dbWriteTable(db_connection, "no_proxy", no_proxy_df)
+dbWriteTable(db_connection, "proxies", proxies)
+
+dbDisconnect(db_connection)
 
