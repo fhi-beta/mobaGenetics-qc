@@ -17,7 +17,7 @@ if (length(args) != 4) {
 
 variant_file <- args[1]
 
-if (!file.exists(pcs_file)) {
+if (!file.exists(variant_file)) {
   
   stop("Variant file not found")
   
@@ -25,7 +25,7 @@ if (!file.exists(pcs_file)) {
 
 loadings_file <- args[2]
 
-if (!file.exists(thousand_genomes_populations_file)) {
+if (!file.exists(loadings_file)) {
   
   stop("PC loadings not found")
   
@@ -40,6 +40,7 @@ export_file <- args[4]
 # variant_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/mod3_convert_plink2.pvar"
 # loadings_file <- "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.GRCh37.plink.tsv"
 # proxy_cache_folder <- "/mnt/archive/snpQc/pipeOut/tmp/ldlink_cache"
+# export_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/loadings_hdpg_1kg"
 
 
 # Libraries
