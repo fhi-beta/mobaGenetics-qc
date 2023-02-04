@@ -149,7 +149,7 @@ for (variant_i in nrow(variant_table)) {
       
       cache_file <- file.path(proxy_cache_folder, cache_file_name)
       
-      if (file.exists(cache_file)) {
+      if (!file.exists(cache_file)) {
         
         proxy_table <- LDproxy(
           snp = temp_id, 
