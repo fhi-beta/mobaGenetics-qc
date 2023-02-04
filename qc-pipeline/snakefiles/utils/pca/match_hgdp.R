@@ -91,7 +91,7 @@ if ("no_proxy" %in% tables) {
   
 } else {
   
-  no_proxy <- c()
+  no_proxy <- character(0)
   
 }
 
@@ -101,7 +101,21 @@ if ("proxies" %in% tables) {
   
 } else {
   
-  proxies <- NULL
+  proxies <- data.frame(
+    query = character(0),
+    rs_number = character(0),
+    coord = character(0),
+    alleles = character(0),
+    distance = numeric(0),
+    dprime = numeric(0),
+    r2 = numeric(0),
+    correlated_alleles = character(0)
+  )
+  proxies <- copy_to(
+    dest = db_connection, 
+    df = proxies, 
+    overwrite = T
+  )
   
 }
 
@@ -118,7 +132,7 @@ for (variant_i in 1:nrow(variant_table)) {
   variant_ref <- variant_table$ref[variant_i]
   variant_alt <- variant_table$alt[variant_i]
   
-  print(glue("Processing {variant_id} ({variant_i} of {nrow(variant_table)})"))
+  print(glue("{Sys.time()}    Processing {variant_id} ({variant_i} of {nrow(variant_table)})"))
   
   temp_id <- paste(variant_chr, variant_pos, variant_ref, variant_alt, sep = ":")
   
@@ -159,40 +173,39 @@ for (variant_i in 1:nrow(variant_table)) {
       
       matched_loadings[[length(matched_loadings) + 1]] <- temp
       
-    } else {
+    } else if (!variant_id %in% no_proxy) {
       
-      id_is_rsid <- startsWith(variant_id, "rs") && is.finite(as.numeric(substring(variant_id, 3)))
+      proxies_in_cache <- proxies %>% pull(query)
       
-      if (id_is_rsid) {
+      if (!variant_id %in% proxies_in_cache) {
         
-        temp_id <- variant_id
-        cache_file_name <- paste0(variant_id, ".gz")
+        id_is_rsid <- startsWith(variant_id, "rs") && is.finite(as.numeric(substring(variant_id, 3)))
         
-      } else {
-        
-        temp_id <- paste0("chr", variant_chr, ":", variant_pos)
-        cache_file_name <- paste0("chr", variant_chr, "_", variant_pos, ".gz")
-        
-      }
-      
-      cache_file <- file.path(proxy_cache_folder, cache_file_name)
-      
-      if (!file.exists(cache_file)) {
+        if (id_is_rsid) {
+          
+          id_to_query <- variant_id
+          
+        } else {
+          
+          id_to_query <- paste0("chr", variant_chr, ":", variant_pos)
+          
+        }
         
         proxy_table <- LDproxy(
-          snp = temp_id, 
+          snp = id_to_query, 
           pop = "ALL", 
+          genome_build = "grch37",
           token = "972f33fe5966"
-        )
-        
-        if (nrow(proxy_table) > 0) {
-        
-        proxy_table <- proxy_table %>% 
+        ) %>% 
           clean_names()  %>% 
           filter(
             r2 >= 0.2
           ) %>% 
+          mutate(
+            query = variant_id
+          ) %>% 
           select(
+            query,
             rs_number,
             coord,
             alleles,
@@ -202,28 +215,33 @@ for (variant_i in 1:nrow(variant_table)) {
             correlated_alleles
           )
         
-        write.table(
-          x = proxy_table,
-          file = gzfile(cache_file),
-          sep = "\t",
-          col.names = T,
-          row.names = F
+        if (nrow(proxy_table) > 0) {
+        
+          proxies <- proxies %>% 
+            rows_append(
+              proxy_table
+            )
+        
+        proxies <- copy_to(
+          dest = db_connection, 
+          df = proxy_table, 
+          overwrite = F,
+          append = T
         )
         
         } else {
           
-          
+          no_proxy[length(no_proxy) + 1] <- variant_id
           
         }
         
       } else {
         
-        proxy_table <- read.table(
-          file = cache_file,
-          header = T,
-          sep = "\t",
-          stringsAsFactors = F
-        )
+        proxy_table <- proxies %>% 
+          filter(
+            query == variant_id
+          ) %>% 
+          collect()
         
       }
       
