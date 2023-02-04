@@ -216,19 +216,16 @@ for (variant_i in 1:nrow(variant_table)) {
           )
         
         if (nrow(proxy_table) > 0) {
-        
-          proxies <- proxies %>% 
-            rows_append(
-              proxy_table
-            )
-        
-        proxies <- copy_to(
-          dest = db_connection, 
-          df = proxy_table, 
-          overwrite = F,
-          append = T
-        )
-        
+          
+          proxies <- proxy_table
+          
+          proxies <- copy_to(
+            dest = db_connection, 
+            df = proxy_table, 
+            overwrite = F,
+            append = T
+          )
+          
         } else {
           
           no_proxy[length(no_proxy) + 1] <- variant_id
@@ -348,4 +345,3 @@ write.table(
   quote = F
 )
 
-  
