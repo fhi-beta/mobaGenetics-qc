@@ -223,6 +223,7 @@ for (variant_i in 1:nrow(variant_table)) {
               if (attempts < 10) {
                 
                 Sys.sleep(1000 * attempts)
+                attempts <- attempts + 1
                 
               } else {
                 
