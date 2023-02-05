@@ -187,6 +187,7 @@ for (variant_i in 1:nrow(variant_table)) {
         
         proxy_table <- NULL
         attempts <- 0
+        id_to_query <- "rs146955208"
         
         while(is.null(proxy_table)) {
           
@@ -243,11 +244,38 @@ for (variant_i in 1:nrow(variant_table)) {
           )
         }
         
-        if (nrow(proxy_table) > 0) {
+        if ("r2" %in% names(proxy_table)) {
           
-          proxies <- proxies %>% bind_rows(
-            proxy_table
-          )
+          proxy_table <- proxy_table %>% 
+            clean_names()  %>% 
+            filter(
+              r2 >= 0.2
+            ) %>% 
+            mutate(
+              query = variant_id
+            ) %>% 
+            select(
+              query,
+              rs_number,
+              coord,
+              alleles,
+              distance,
+              dprime,
+              r2,
+              correlated_alleles
+            )
+          
+          if (nrow(proxy_table) > 0) {
+            
+            proxies <- proxies %>% bind_rows(
+              proxy_table
+            )
+            
+          } else {
+            
+            no_proxy[length(no_proxy) + 1] <- variant_id
+            
+          }
           
         } else {
           
@@ -371,7 +399,7 @@ write.table(
 # Save cache
 
 no_proxy_df <- data.frame(
-  id = no_proxy,
+  id = unique(no_proxy),
   stringsAsFactors = F
 )
 dbWriteTable(db_connection, "no_proxy", no_proxy_df)
