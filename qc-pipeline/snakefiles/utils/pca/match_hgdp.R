@@ -187,7 +187,6 @@ for (variant_i in 1:nrow(variant_table)) {
         
         proxy_table <- NULL
         attempts <- 0
-        id_to_query <- "rs146955208"
         
         while(is.null(proxy_table)) {
           
