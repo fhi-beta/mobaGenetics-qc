@@ -1,0 +1,101 @@
+# Generate statistics on raw dataset before anything happens to the data
+rule_stem = 'mod3_generate_start_stats'
+rule mod3_generate_start_stats:
+    input:
+        bedset = rules.m2_output.output.bedset
+    output:
+        het = tmpMod3/"{batch}"/'mod3_start_het.het',
+        hwe = tmpMod3/"{batch}"/'mod3_start_hwe.hwe',
+        freq = tmpMod3/"{batch}"/'mod3_start_freq.frq',
+        lmiss = tmpMod3/"{batch}"/'mod3_start_missing.lmiss',
+        imiss = tmpMod3/"{batch}"/'mod3_start_missing.imiss',
+    threads: 1
+    run:
+        try:
+            # Plink base paths
+            plink_input = mqc.plinkBase(input.bedset[0])
+            plink_het_output = mqc.plinkBase(output.het)
+            plink_hwe_output = mqc.plinkBase(output.hwe)
+            plink_freq_output = mqc.plinkBase(output.freq)
+            plink_miss_output = mqc.plinkBase(output.lmiss)
+
+            # Heterozygocity rate
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", plink_input,
+                    "--het",
+                    "--out", plink_het_output
+                ],
+                check=True
+            )
+
+            # HWE
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", plink_input,
+                    "--hardy",
+                    "--out", plink_hwe_output
+                ],
+                check=True
+            )
+
+            # Frequencies
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", plink_input,
+                    "--freq",
+                    "--out", plink_freq_output
+                ],
+                check=True
+            )
+
+            # Missingness
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", plink_input,
+                    "--missing",
+                    "--out", plink_miss_output
+                ],
+                check=True
+            )
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+# Convert to plink2
+rule_stem = 'mod3_convert_plink2'
+rule mod3_convert_plink2:
+    input:
+        bedset_plink1 = rules.m2_output.output.pruned_bedset
+    output:
+        bedset_plink2 = multiext(str(tmpMod3/"{batch}"/rule_stem), '.pgen', '.pvar', '.psam')
+    threads: 8
+    run:
+        try:
+
+            item_type = rule_info[rule]["rule type"]
+            mqc.log(runlog, rule_info[rule]["QC test"])
+            inTrunk =  mqc.plinkBase(input.bedset_plink1[0])
+            outTrunk =  mqc.plinkBase(output.bedset_plink2[0])
+
+            subprocess.run(
+                [
+                    "plink2",
+                    "--bfile", inTrunk,
+                    "--out", outTrunk,
+                    "--threads", str(threads),
+                    "--make-pgen"
+                ],
+                check = True
+            )
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+
