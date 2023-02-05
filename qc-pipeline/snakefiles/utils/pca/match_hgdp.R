@@ -279,6 +279,7 @@ for (variant_i in 1:nrow(variant_table)) {
           
         } else {
           
+          print(proxy_table)
           no_proxy[length(no_proxy) + 1] <- variant_id
           
         }
