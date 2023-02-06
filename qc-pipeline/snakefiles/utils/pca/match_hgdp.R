@@ -299,7 +299,7 @@ for (variant_i in 1:nrow(variant_table)) {
         
       }
       
-      if (nrow(proxy_table) > 0 & !variant_id %in% no_proxy) {
+      if (nrow(proxy_table) > 0 && !variant_id %in% no_proxy) {
         
         proxy_table <- proxy_table %>% 
           arrange(desc(r2), desc(abs(distance)))
