@@ -199,23 +199,7 @@ for (variant_i in 1:nrow(variant_table)) {
                 genome_build = "grch37",
                 token = "972f33fe5966"
               ) %>% 
-                clean_names()  %>% 
-                filter(
-                  r2 >= 0.2
-                ) %>% 
-                mutate(
-                  query = variant_id
-                ) %>% 
-                select(
-                  query,
-                  rs_number,
-                  coord,
-                  alleles,
-                  distance,
-                  dprime,
-                  r2,
-                  correlated_alleles
-                )
+                clean_names()
               
             }, error = function(error_condition) {
               
@@ -223,7 +207,7 @@ for (variant_i in 1:nrow(variant_table)) {
                 
                 print(glue("{Sys.time()}    Error caught (attempt {attempts} of 10)"))
                 print(error_condition)
-                Sys.sleep(1000 * attempts)
+                Sys.sleep(attempts)
                 
               } else {
                 
