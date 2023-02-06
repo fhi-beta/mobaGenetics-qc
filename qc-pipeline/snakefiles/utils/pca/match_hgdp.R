@@ -173,11 +173,25 @@ for (variant_i in 1:nrow(variant_table)) {
       
       if (!variant_id %in% proxies$query) {
         
-        id_is_rsid <- startsWith(variant_id, "rs") && is.finite(as.numeric(substring(variant_id, 3)))
+        temp_id <- variant_id
+        
+        if (startsWith(temp_id, "GSA-")) {
+          
+          temp_id <- substring(temp_id, 5)
+          
+        }
+        
+        if (startsWith(temp_id, "BOT2-")) {
+          
+          temp_id <- substring(temp_id, 6)
+          
+        }
+        
+        id_is_rsid <- startsWith(temp_id, "rs") && is.finite(as.numeric(substring(temp_id, 3)))
         
         if (id_is_rsid) {
           
-          id_to_query <- variant_id
+          id_to_query <- temp_id
           
         } else {
           
