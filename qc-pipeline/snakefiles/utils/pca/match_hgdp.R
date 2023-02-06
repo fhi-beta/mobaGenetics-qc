@@ -221,8 +221,9 @@ for (variant_i in 1:nrow(variant_table)) {
               
               if (attempts < 10) {
                 
+                print(glue("{Sys.time()}    Error caught (attempt {attempts} of 10)"))
+                print(error_condition)
                 Sys.sleep(1000 * attempts)
-                attempts <- attempts + 1
                 
               } else {
                 
@@ -242,6 +243,14 @@ for (variant_i in 1:nrow(variant_table)) {
               }
             }
           )
+          
+          attempts <- attempts + 1
+          if (attempts > 10) {
+            
+            print(glue("{Sys.time()}    failed after 10 attempts"))
+            break()
+            
+          }
         }
         
         if ("r2" %in% names(proxy_table)) {
@@ -376,6 +385,16 @@ for (variant_i in 1:nrow(variant_table)) {
       }
     }
   }
+  
+  # Save cache
+  
+  no_proxy_df <- data.frame(
+    id = unique(no_proxy),
+    stringsAsFactors = F
+  )
+  dbWriteTable(db_connection, "no_proxy", no_proxy_df, overwrite = T)
+  dbWriteTable(db_connection, "proxies", proxies, overwrite = T)
+  
 }
 
 matched_loadings <- do.call("rbind", matched_loadings)
@@ -403,8 +422,8 @@ no_proxy_df <- data.frame(
   id = unique(no_proxy),
   stringsAsFactors = F
 )
-dbWriteTable(db_connection, "no_proxy", no_proxy_df)
-dbWriteTable(db_connection, "proxies", proxies)
+dbWriteTable(db_connection, "no_proxy", no_proxy_df, overwrite = T)
+dbWriteTable(db_connection, "proxies", proxies, overwrite = T)
 
 dbDisconnect(db_connection)
 
