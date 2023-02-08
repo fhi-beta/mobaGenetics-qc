@@ -231,8 +231,8 @@ for (variant_i in 1:nrow(variant_table)) {
                   id = no_proxy,
                   stringsAsFactors = F
                 )
-                dbWriteTable(db_connection, "no_proxy", no_proxy_df)
-                dbWriteTable(db_connection, "proxies", proxies)
+                dbWriteTable(db_connection, "no_proxy", no_proxy_df, overwrite = T)
+                dbWriteTable(db_connection, "proxies", proxies, overwrite = T)
                 
                 dbDisconnect(db_connection)
                 
