@@ -219,6 +219,12 @@ for (variant_i in 1:nrow(variant_table)) {
       
     }
     
+    if (startsWith(rs_id, "seq-")) {
+      
+      rs_id <- substring(rs_id, 5)
+      
+    }
+    
     if (!startsWith(x = rs_id, prefix = "rs") & grepl(x = rs_id, pattern = "rs", fixed = TRUE)) {
       
       stop(glue("Variant '{rs_id}' not supported."))
