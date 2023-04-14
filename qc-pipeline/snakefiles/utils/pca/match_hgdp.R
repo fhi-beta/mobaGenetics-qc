@@ -120,12 +120,21 @@ get_proxies <- function(
 }
 
 
-# Set up connection to LD DB
+# Set up database and caches for LD
 
 db_connection <- dbConnect(RSQLite::SQLite(), proxy_db)
 
 annotation_table <- NULL
 proxy_tables <- NULL
+
+proxies_cache <- data.frame(
+  moba_snp = character(0),
+  moba_ref = character(0),
+  moba_alt = character(0),
+  loading_proxy = character(0),
+  allele_swap = logical(0),
+  stringsAsFactors = F
+)
 
 superpopulations <- c("AFR", "EAS", "EUR", "SAS")
 
