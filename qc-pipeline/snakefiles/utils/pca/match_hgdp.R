@@ -6,34 +6,38 @@
 ##
 
 # Command line arguments
+
+args <- commandArgs(TRUE)
 # 
-# args <- commandArgs(TRUE)
+# if (length(args) != 6) {
 # 
-# if (length(args) != 4) {
-#   
-#   stop(paste0("Four arguments expected: pcs file, thousand genomes population file, md file, md title, output file. ", length(args), " found: ", paste(args, collapse = ", ")))
-#   
+#   stop(paste0("Four arguments expected: (1) variant file, (2) PC loadings file, (3) proxies cache file, (4) proxies database, (5) file where to export the matched loadings, (6) file where to export the ids of the matched variants. ", length(args), " found: ", paste(args, collapse = ", ")))
+# 
 # }
 # 
 # variant_file <- args[1]
 # 
 # if (!file.exists(variant_file)) {
-#   
+# 
 #   stop("Variant file not found")
-#   
+# 
 # }
 # 
 # loadings_file <- args[2]
 # 
 # if (!file.exists(loadings_file)) {
-#   
+# 
 #   stop("PC loadings not found")
-#   
+# 
 # }
 # 
 # proxy_cache_file <- args[3]
 # 
-# export_file <- args[4]
+# proxy_db_file <- args[4]
+# 
+# loading_export_file <- args[5]
+# 
+# variants_export_file <- args[6]
 
 
 # DEBUG
@@ -41,7 +45,8 @@ variant_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/mod3_co
 loadings_file <- "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.rsid.plink.tsv"
 proxies_cache_file <- "/mnt/archive/snpQc/pc_loadings/proxies_cache.gz"
 proxy_db <- "/mnt/archive/topld/db/ld_db"
-export_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/loadings_hdpg_1kg"
+loading_export_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/loadings_hdpg_1kg"
+variants_export_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/variants_hdpg_1kg"
 
 
 # Libraries
@@ -217,7 +222,7 @@ for (variant_i in 1:nrow(variant_table)) {
         
         for (superpopulation in superpopulations) {
           
-          # print(glue("{Sys.time()}    Loading LD details for chromosome {variant_chr} superpopulation {superpopulation}"))
+          print(glue("{Sys.time()}    Loading LD details for chromosome {variant_chr} superpopulation {superpopulation}"))
           
           proxy_tables[[superpopulation]] <- dbReadTable(db_connection, glue("ld_{superpopulation}_{variant_chr}"))
           
@@ -245,7 +250,7 @@ for (variant_i in 1:nrow(variant_table)) {
         
         for (superpopulation in superpopulations) {
           
-          proxies[[superpopulation]] <- proxy_tables[[superpopulation]] %>% 
+          temp_proxies <- proxy_tables[[superpopulation]] %>% 
             filter(
               uniq_id_1 == topld_id | uniq_id_2 == topld_id
             ) %>% 
@@ -253,8 +258,12 @@ for (variant_i in 1:nrow(variant_table)) {
               desc(r2)
             )
           
-          proxies[[superpopulation]]$superpopulation <- superpopulation
+          if (nrow(temp_proxies) > 0) {
+            
+            temp_proxies$superpopulation <- superpopulation
+            proxies[[superpopulation]] <- temp_proxies
         
+          }
         }
         
         proxies <- do.call(rbind, proxies)
@@ -291,7 +300,7 @@ for (variant_i in 1:nrow(variant_table)) {
               
             }
             
-            sopt("Found!")
+            stop("Found!")
             
             allele_swap <- proxies$x_corr[proxy_i] != '+'
             
@@ -344,7 +353,7 @@ matched_loadings <- do.call(rbind, matched_loadings)
 new_proxies <- do.call(rbind, new_proxies)
 proxies_cache <- rbind(proxies_cache, new_proxies)
 
-print(glue("{nrow(matched_loadings)} variants matched to loading ({nrow(variant_table)} variants in MoBa, {nrow(loadings_table)} variants in loadings)"))
+print(glue("{Sys.time()}    {nrow(matched_loadings)} variants matched to loading ({nrow(variant_table)} variants in MoBa, {nrow(loadings_table)} variants in loadings)"))
 
 
 # Write results
@@ -353,11 +362,16 @@ names(matched_loadings) <- original_names
 
 write.table(
   x = matched_loadings,
-  file = export_file,
+  file = loading_export_file,
   sep = "\t",
   col.names = T,
   row.names = F,
   quote = F
+)
+
+writeLines(
+  text = matched_loadings$id,
+  con = variants_export_file
 )
 
 write.table(
