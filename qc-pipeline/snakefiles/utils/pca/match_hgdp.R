@@ -427,6 +427,17 @@ for (variant_i in 1:nrow(variant_table)) {
   }
 }
 
+proxies_cache_file <- paste0(proxies_cache_stem, "_", current_chr_cache, ".gz")
+
+write.table(
+  x = proxies_cache,
+  file = proxies_cache_file,
+  sep = "\t",
+  col.names = T,
+  row.names = F,
+  quote = F
+)
+
 matched_loadings <- do.call(rbind, matched_loadings)
 new_proxies <- do.call(rbind, new_proxies)
 proxies_cache <- rbind(proxies_cache, new_proxies)
