@@ -99,3 +99,89 @@ rule mod3_convert_plink2:
             print(e)
 
 
+# Match to HGDP
+rule_stem = 'mod3_match_hgdp'
+rule mod3_match_hgdp:
+    input:
+        plink2_files = rules.mod3_convert_plink2.output.bedset_plink2,
+    params:
+        loadings_file = "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.rsid.plink.tsv",
+        proxies_cache_file = "/mnt/archive/snpQc/pc_loadings/proxies_cache.gz",
+        proxies_db = "/mnt/archive/topld/db/ld_db"
+    output:
+        loadings_export_file = tmpMod3/"{batch}"/(rule_stem + "_loadings"),
+        variants_export_file = tmpMod3/"{batch}"/(rule_stem + "_variants")
+    conda:
+        "envs/r_4.2.yaml"
+    threads: 32
+    shell:
+        """
+        echo Rscript utils/pca/match_hgdp.R \
+            {input.plink2_files[2]} \
+            {params.loadings_file} \
+            {params.proxies_cache_file} \
+            {params.proxies_db} \
+            {output.loadings_export_file} \
+            {output.variants_export_file}
+        """
+
+# Filter to common ids
+rule_stem = 'mod3_filter_ids'
+rule mod3_filter_ids:
+    'filter variants and keep only those that can be used for the PCA'
+    input:
+        plink2_files = rules.mod3_convert_plink2.output.bedset_plink2,
+        common_ids = os.path.join(pcs_folder, 'common_ids')
+    params:
+        plink_stem = plink_stem,
+    output:
+        plink_filtered = multiext(str(tmpMod3/"{batch}"/rule_stem), '.pgen', '.pvar', '.psam')
+    threads: 24
+    run:
+        try:
+
+            item_type = rule_info[rule]["rule type"]
+            mqc.log(runlog, rule_info[rule]["QC test"])
+            inTrunk =  mqc.plinkBase(input.plink2_files[0])
+            outTrunk =  mqc.plinkBase(output.plink_filtered[0])
+
+            subprocess.run(
+                [
+                    "plink2",
+                    "--bfile", inTrunk,
+                    "--out", outTrunk,
+                    "--threads", str(threads),
+                    "--make-pgen"
+                ],
+                check = True
+            )
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+
+# Compute scores
+rule_stem = 'mod3_compute_scores'
+rule mod3_compute_scores:
+    'compute the PC scores'
+    input:
+        plink_filtered = rules.mod3_filter_ids.output.plink_filtered
+    params:
+        loading_file = '/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.GRCh37.plink.tsv',
+        frequencies_file = '/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.GRCh37.plink.afreq',
+        score_stem = str(tmpMod3/"{batch}"/'pc_scores')
+    output:
+        score_file = str(tmpMod3/"{batch}"/'pc_scores.sscore')
+    conda:
+        "envs/plink_2.yaml"
+    threads: 24
+    shell:
+        """
+        plink2 \
+            --pfile {params.plink_renamed_stem} \
+            --score {input.loading_file} variance-standardize cols=-scoreavgs,+scoresums list-variants header-read \
+            --score-col-nums 3-22 \
+            --read-freq {input.frequencies_file} \
+            --out {params.score_stem}
+        """
