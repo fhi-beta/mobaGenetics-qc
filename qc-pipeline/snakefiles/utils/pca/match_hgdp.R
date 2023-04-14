@@ -135,7 +135,7 @@ for (variant_i in 1:nrow(variant_table)) {
   variant_ref <- variant_table$ref[variant_i]
   variant_alt <- variant_table$alt[variant_i]
   
-  if (cariant_chr == 22) {
+  if (variant_chr == 22) {
   
   print(glue("{Sys.time()}    Processing {variant_id} ({variant_i} of {nrow(variant_table)})"))
   
