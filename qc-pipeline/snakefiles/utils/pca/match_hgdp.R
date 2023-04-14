@@ -58,6 +58,7 @@ library(glue)
 library(stringr)
 library(DBI)
 library(dbplyr)
+library(parallel)
 
 
 # Load the data
@@ -109,6 +110,42 @@ if (file.exists(proxies_cache_file)) {
 }
 
 
+# Function to return the proxy for a given variant in a superpopulation
+
+get_proxies <- function(
+    superpopulation = superpopulation,
+    proxy_tables = proxy_tables,
+    topld_id = topld_id
+) {
+  
+  population_proxies <- proxy_tables[[superpopulation]] %>% 
+    filter(
+      uniq_id_1 == topld_id | uniq_id_2 == topld_id
+    )
+  
+  if (nrow(population_proxies) > 0) {
+    
+    population_proxies$superpopulation <- superpopulation
+    
+  } else {
+    
+    population_proxies <- data.frame(
+      snp1 = c(),
+      snp2 = c(),
+      uniq_id_1 = c(),
+      uniq_id_2 = c(),
+      r2 = c(),
+      dprime = c(),
+      x_corr = c(),
+      superpopulation = c()
+    )
+  }
+  
+  return(population_proxies)
+  
+}
+
+
 # Set up connection to LD DB
 
 db_connection <- dbConnect(RSQLite::SQLite(), proxy_db)
@@ -117,6 +154,9 @@ annotation_table <- NULL
 proxy_tables <- NULL
 
 superpopulations <- c("AFR", "EAS", "EUR", "SAS")
+
+# Prepare for multithreading
+cluster <- makeCluster(length(superpopulations))
 
 
 # Match the variants
@@ -216,7 +256,7 @@ for (variant_i in 1:nrow(variant_table)) {
       
       if (variant_chr != current_chr) {
         
-        print(glue("{Sys.time()}    Loading LD details for chromosome {variant_chr}"))
+        print(glue("{Sys.time()}    Loading LD annotation for chromosome {variant_chr}"))
         
         annotation_table <- dbReadTable(db_connection, glue("annotation_{variant_chr}"))
         
@@ -224,7 +264,7 @@ for (variant_i in 1:nrow(variant_table)) {
         
         for (superpopulation in superpopulations) {
           
-          print(glue("{Sys.time()}    Loading LD details for chromosome {variant_chr} superpopulation {superpopulation}"))
+          print(glue("{Sys.time()}    Loading LD values for chromosome {variant_chr} superpopulation {superpopulation}"))
           
           proxy_tables[[superpopulation]] <- dbReadTable(db_connection, glue("ld_{superpopulation}_{variant_chr}"))
           
@@ -248,27 +288,14 @@ for (variant_i in 1:nrow(variant_table)) {
         topld_ref <- annotation_table$ref[annotation_i]
         topld_alt <- annotation_table$alt[annotation_i]
         
-        proxies <- list()
+        stop("DEBUG")
         
-        for (superpopulation in superpopulations) {
-          
-          temp_proxies <- proxy_tables[[superpopulation]] %>% 
-            filter(
-              uniq_id_1 == topld_id | uniq_id_2 == topld_id
-            ) %>% 
-            arrange(
-              desc(r2)
-            )
-          
-          if (nrow(temp_proxies) > 0) {
-            
-            temp_proxies$superpopulation <- superpopulation
-            proxies[[superpopulation]] <- temp_proxies
+        proxies <- parLapply(cluster, superpopulations, get_proxies, proxy_tables, topld_id)
         
-          }
-        }
-        
-        proxies <- do.call(rbind, proxies)
+        proxies <- do.call(rbind, proxies) %>% 
+          arrange(
+            desc(r2)
+          )
         
         for (proxy_i in 1:nrow(proxies)) {
           
@@ -301,8 +328,6 @@ for (variant_i in 1:nrow(variant_table)) {
               stop("Duplicate snp")
               
             }
-            
-            stop("Found!")
             
             allele_swap <- proxies$x_corr[proxy_i] != '+'
             
@@ -351,6 +376,8 @@ for (variant_i in 1:nrow(variant_table)) {
   }
   }
 }
+
+stopCluster(cluster)
 
 matched_loadings <- do.call(rbind, matched_loadings)
 new_proxies <- do.call(rbind, new_proxies)
