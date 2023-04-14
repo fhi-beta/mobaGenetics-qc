@@ -58,7 +58,6 @@ library(glue)
 library(stringr)
 library(DBI)
 library(dbplyr)
-library(parallel)
 
 
 # Load the data
@@ -118,10 +117,7 @@ get_proxies <- function(
     topld_id = topld_id
 ) {
   
-  population_proxies <- proxy_tables[[superpopulation]] %>% 
-    filter(
-      uniq_id_1 == topld_id | uniq_id_2 == topld_id
-    )
+  population_proxies <- proxy_tables[[superpopulation]][proxy_tables[[superpopulation]]$uniq_id_1 == topld_id & proxy_tables[[superpopulation]]$uniq_id_2 == topld_id, ]
   
   if (nrow(population_proxies) > 0) {
     
@@ -155,9 +151,6 @@ proxy_tables <- NULL
 
 superpopulations <- c("AFR", "EAS", "EUR", "SAS")
 
-# Prepare for multithreading
-cluster <- makeCluster(length(superpopulations))
-
 
 # Match the variants
 # Note: Currently MoBa is GRCh37, TopLD is GRCh38, to avoid lifts we map by rsid only. Once MoBa is GRCh38 we can map by variant coordinates and alleles.
@@ -174,8 +167,6 @@ for (variant_i in 1:nrow(variant_table)) {
   variant_pos <- variant_table$pos[variant_i]
   variant_ref <- variant_table$ref[variant_i]
   variant_alt <- variant_table$alt[variant_i]
-  
-  if (variant_chr == 22) {
   
   print(glue("{Sys.time()}    Processing {variant_id} ({variant_i} of {nrow(variant_table)})"))
   
@@ -288,9 +279,7 @@ for (variant_i in 1:nrow(variant_table)) {
         topld_ref <- annotation_table$ref[annotation_i]
         topld_alt <- annotation_table$alt[annotation_i]
         
-        stop("DEBUG")
-        
-        proxies <- parLapply(cluster, superpopulations, get_proxies, proxy_tables, topld_id)
+        proxies <- lapply(superpopulations, get_proxies, proxy_tables, topld_id)
         
         proxies <- do.call(rbind, proxies) %>% 
           arrange(
@@ -374,10 +363,7 @@ for (variant_i in 1:nrow(variant_table)) {
       }
     }
   }
-  }
 }
-
-stopCluster(cluster)
 
 matched_loadings <- do.call(rbind, matched_loadings)
 new_proxies <- do.call(rbind, new_proxies)
