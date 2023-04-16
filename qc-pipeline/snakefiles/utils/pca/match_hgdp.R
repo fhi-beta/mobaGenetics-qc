@@ -155,8 +155,6 @@ for (variant_i in 1:nrow(variant_table)) {
   variant_pos <- variant_table$pos[variant_i]
   variant_ref <- variant_table$ref[variant_i]
   variant_alt <- variant_table$alt[variant_i]
-  
-  if (variant_chr > 15) {
     
     if (!variant_chr != current_chr_cache) {
       
@@ -431,7 +429,6 @@ for (variant_i in 1:nrow(variant_table)) {
       }
     }
   }
-}
 
 proxies_cache_file <- paste0(proxies_cache_stem, "_", current_chr_cache, ".gz")
 
