@@ -229,6 +229,12 @@ for (variant_i in 1:nrow(variant_table)) {
       
     }
     
+    if (startsWith(rs_id, "TOP-")) {
+      
+      rs_id <- substring(rs_id, 5)
+      
+    }
+    
     if (startsWith(rs_id, "seq_")) {
       
       rs_id <- substring(rs_id, 5)
