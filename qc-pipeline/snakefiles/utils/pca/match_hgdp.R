@@ -37,15 +37,19 @@ args <- commandArgs(TRUE)
 # 
 # loading_export_file <- args[5]
 # 
-# variants_export_file <- args[6]
+# frequencies_export_file <- args[6]
+# 
+# variants_export_file <- args[7]
 
 
 # DEBUG
 variant_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/mod3_convert_plink2.pvar"
 loadings_file <- "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.rsid.plink.tsv"
+frequency_file <- "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.GRCh37.plink.afreq"
 proxies_cache_stem <- "/mnt/archive/snpQc/pc_loadings/proxies_cache"
 proxy_db <- "/mnt/archive/topld/db/ld_db"
-loading_export_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/loadings_hdpg_1kg"
+loading_export_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/loadings_hdpg_1kg_proxies"
+frequencies_export_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/frequencies_hdpg_1kg_proxies"
 variants_export_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/variants_hdpg_1kg"
 
 
@@ -81,11 +85,19 @@ loadings_table <- read.table(
   stringsAsFactors = F
 )
 
-original_names <- names(loadings_table)
+loadings_header <- names(loadings_table)
 
 loadings_table <- loadings_table %>% 
   clean_names()
 
+frequency_table <- read.table(
+  file = frequency_file,
+  header = T,
+  sep = "\t",
+  stringsAsFactors = F,
+  comment.char = ""
+)
+names(frequency_table) <- c("id", "ref", "alt", "freq")
 
 # Function to return the proxy for a given variant in a superpopulation
 
@@ -136,6 +148,8 @@ proxies_cache <- data.frame(
   stringsAsFactors = F
 )
 
+no_proxies_cache <- NULL
+
 superpopulations <- c("AFR", "EAS", "EUR", "SAS")
 
 
@@ -143,6 +157,7 @@ superpopulations <- c("AFR", "EAS", "EUR", "SAS")
 # Note: Currently MoBa is GRCh37, TopLD is GRCh38, to avoid lifts we map by rsid only. Once MoBa is GRCh38 we can map by variant coordinates and alleles.
 
 matched_loadings <- list()
+matched_frequencies <- list()
 new_proxies <- list()
 
 current_chr_proxies <- -1
@@ -155,286 +170,391 @@ for (variant_i in 1:nrow(variant_table)) {
   variant_pos <- variant_table$pos[variant_i]
   variant_ref <- variant_table$ref[variant_i]
   variant_alt <- variant_table$alt[variant_i]
+  
+  if (variant_chr != current_chr_cache) {
     
-    if (variant_chr != current_chr_cache) {
+    if (nrow(proxies_cache) > 0) {
       
-      if (nrow(proxies_cache) > 0) {
+      proxies_cache_file <- paste0(proxies_cache_stem, "_", current_chr_cache, ".gz")
+      
+      write.table(
+        x = proxies_cache,
+        file = proxies_cache_file,
+        sep = "\t",
+        col.names = T,
+        row.names = F,
+        quote = F
+      )
+      
+    }
+    
+    if (length(no_proxies_cache) > 0) {
+      
+      no_proxies_cache_file <- paste0(proxies_cache_stem, "_no_proxies_", current_chr_cache, ".gz")
+      
+      writeLines(no_proxies_cache, con = no_proxies_cache_file)
+      
+    }
+    
+    proxies_cache_file <- paste0(proxies_cache_stem, "_", variant_chr, ".gz")
+    
+    if (file.exists(proxies_cache_file)) {
+      
+      proxies_cache <- read.table(
+        file = proxies_cache_file,
+        header = T,
+        sep = "\t",
+        stringsAsFactors = F
+      )
+      
+    } else {
+      
+      proxies_cache <- data.frame(
+        moba_snp = character(0),
+        moba_ref = character(0),
+        moba_alt = character(0),
+        loading_proxy = character(0),
+        allele_swap = logical(0),
+        stringsAsFactors = F
+      )
+      
+    }
+    
+    no_proxies_cache_file <- paste0(proxies_cache_stem, "_no_proxies_", variant_chr, ".gz")
+    
+    if (file.exists(no_proxies_cache_file)) {
+      
+      no_proxies_cache <- readLines(no_proxies_cache_file)
+      
+    } else {
+      
+      no_proxies_cache <- c()
+      
+    }
+    
+    current_chr_cache <- variant_chr
+    
+  }
+  
+  print(glue("{Sys.time()}    Processing {variant_id} ({variant_i} of {nrow(variant_table)})"))
+  
+  rs_id <- variant_id
+  
+  if (startsWith(rs_id, "GSA-")) {
+    
+    rs_id <- substring(rs_id, 5)
+    
+  }
+  
+  if (startsWith(rs_id, "BOT2-")) {
+    
+    rs_id <- substring(rs_id, 6)
+    
+  }
+  
+  if (startsWith(rs_id, "seq-")) {
+    
+    rs_id <- substring(rs_id, 5)
+    
+  }
+  
+  if (startsWith(rs_id, "DUP-")) {
+    
+    rs_id <- substring(rs_id, 5)
+    
+  }
+  
+  if (startsWith(rs_id, "TOP-")) {
+    
+    rs_id <- substring(rs_id, 5)
+    
+  }
+  
+  if (startsWith(rs_id, "seq_")) {
+    
+    rs_id <- substring(rs_id, 5)
+    
+  }
+  
+  if (endsWith(rs_id, "_dup")) {
+    
+    rs_id <- substring(rs_id, 1, nchar(rs_id) - 4)
+    
+  }
+  
+  if (!startsWith(x = rs_id, prefix = "rs") & grepl(x = rs_id, pattern = "rs", fixed = TRUE)) {
+    
+    stop(glue("Variant '{rs_id}' not supported."))
+    
+  }
+  
+  if (startsWith(x = rs_id, prefix = "rs") && !rs_id %in% no_proxies_cache) {
+    
+    loading_i <- which(loadings_table$id == rs_id)
+    
+    if (length(loading_i) > 0) {
+      
+      if (length(loading_i) > 1) {
         
-        proxies_cache_file <- paste0(proxies_cache_stem, "_", current_chr_cache, ".gz")
-        
-        write.table(
-          x = proxies_cache,
-          file = proxies_cache_file,
-          sep = "\t",
-          col.names = T,
-          row.names = F,
-          quote = F
-        )
+        stop("Duplicate snp")
         
       }
       
-      proxies_cache_file <- paste0(proxies_cache_stem, "_", variant_chr, ".gz")
+      temp <- loadings_table[loading_i, ]
+      temp$id[1] <- variant_id
+      temp$alt[1] <- variant_alt
       
-      if (file.exists(proxies_cache_file)) {
+      matched_loadings[[length(matched_loadings) + 1]] <- temp
+      
+      frequency_i <- which(frequency_table$id == rs_id)
+      
+      if (length(loading_i) != 1) {
         
-        proxies_cache <- read.table(
-          file = proxies_cache_file,
-          header = T,
-          sep = "\t",
-          stringsAsFactors = F
-        )
-        
-      } else {
-        
-        proxies_cache <- data.frame(
-          moba_snp = character(0),
-          moba_ref = character(0),
-          moba_alt = character(0),
-          loading_proxy = character(0),
-          allele_swap = logical(0),
-          stringsAsFactors = F
-        )
+        stop("Frequency mismatch")
         
       }
       
-      current_chr_cache <- variant_chr
+      temp <- frequency_table[loading_i, ]
+      temp$id[1] <- variant_id
+      temp$ref[1] <- variant_ref
+      temp$alt[1] <- variant_alt
       
-    }
-    
-    print(glue("{Sys.time()}    Processing {variant_id} ({variant_i} of {nrow(variant_table)})"))
-    
-    rs_id <- variant_id
-    
-    if (startsWith(rs_id, "GSA-")) {
+      matched_frequencies[[length(matched_frequencies) + 1]] <- temp
       
-      rs_id <- substring(rs_id, 5)
+    } else if (rs_id %in% proxies_cache$moba_snp) {
       
-    }
-    
-    if (startsWith(rs_id, "BOT2-")) {
+      proxy_i <- which(proxies_cache$moba_snp == rs_id)[1]
       
-      rs_id <- substring(rs_id, 6)
+      allele_swap <- proxies_cache$allele_swap[proxy_i]
       
-    }
-    
-    if (startsWith(rs_id, "seq-")) {
-      
-      rs_id <- substring(rs_id, 5)
-      
-    }
-    
-    if (startsWith(rs_id, "DUP-")) {
-      
-      rs_id <- substring(rs_id, 5)
-      
-    }
-    
-    if (startsWith(rs_id, "TOP-")) {
-      
-      rs_id <- substring(rs_id, 5)
-      
-    }
-    
-    if (startsWith(rs_id, "seq_")) {
-      
-      rs_id <- substring(rs_id, 5)
-      
-    }
-    
-    if (endsWith(rs_id, "_dup")) {
-      
-      rs_id <- substring(rs_id, 1, nchar(rs_id) - 4)
-      
-    }
-    
-    if (!startsWith(x = rs_id, prefix = "rs") & grepl(x = rs_id, pattern = "rs", fixed = TRUE)) {
-      
-      stop(glue("Variant '{rs_id}' not supported."))
-      
-    }
-    
-    if (startsWith(x = rs_id, prefix = "rs")) {
-      
-      loading_i <- which(loadings_table$id == rs_id)
-      
-      if (length(loading_i) > 0) {
+      if (variant_alt == proxies_cache$moba_ref[proxy_i] && variant_ref == proxies_cache$moba_alt[proxy_i]) {
         
-        if (length(loading_i) > 1) {
-          
-          stop("Duplicate snp")
-          
-        }
+        allele_swap <- !allele_swap
         
-        temp <- loadings_table[loading_i, ]
-        temp$id[1] <- variant_id
+      } else if (variant_alt != proxies_cache$moba_alt[proxy_i] || variant_alt == proxies_cache$moba_ref[proxy_i]) {
+        
+        stop("Allele mismatch between MoBa versions")
+        
+      }
+      
+      proxy_rs_id <- proxies_cache$loading_proxy[proxy_i]
+      
+      loading_i <- which(loadings_table$id == proxy_rs_id)
+      
+      if (length(loading_i) != 1) {
+        
+        stop("Incorrect number of loadings")
+        
+      }
+      
+      temp <- loadings_table[loading_i, ]
+      temp$id[1] <- variant_id
+      
+      if (!allele_swap) {
+        
         temp$alt[1] <- variant_alt
         
-        matched_loadings[[length(matched_loadings) + 1]] <- temp
+      } else {
         
-      } else if (rs_id %in% proxies_cache$moba_snp) {
+        temp$alt[1] <- variant_ref
         
-        proxy_i <- which(proxies_cache$moba_snp == rs_id)[1]
+      }
+      
+      matched_loadings[[length(matched_loadings) + 1]] <- temp
+      
+      frequency_i <- which(frequency_table$id == proxy_rs_id)
+      
+      if (length(frequency_i) != 1) {
         
-        allele_swap <- proxies_cache$allele_swap[proxy_i]
+        stop("Incorrect number of frequencies")
         
-        if (variant_alt == proxies_cache$moba_ref[proxy_i] && variant_ref == proxies_cache$moba_alt[proxy_i]) {
-          
-          allele_swap <- !allele_swap
-          
-        } else if (variant_alt != proxies_cache$moba_alt[proxy_i] || variant_alt == proxies_cache$moba_ref[proxy_i]) {
-          
-          stop("Allele mismatch between MoBa versions")
-          
-        }
+      }
+      
+      temp <- frequency_table[frequency_i, ]
+      temp$id[1] <- variant_id
+      
+      if (!allele_swap) {
         
-        proxy_rs_id <- proxies_cache$loading_proxy[proxy_i]
-        
-        loading_i <- which(loadings_table$id == proxy_rs_id)
-        
-        temp <- loadings_table[loading_i, ]
-        temp$id[1] <- variant_id
-        
-        if (!allele_swap) {
-          
-          temp$alt[1] <- variant_alt
-          
-        } else {
-          
-          temp$alt[1] <- variant_ref
-          
-        }
-        
-        matched_loadings[[length(matched_loadings) + 1]] <- temp
+        temp$ref[1] <- variant_ref
+        temp$alt[1] <- variant_alt
         
       } else {
         
-        if (variant_chr != current_chr_proxies) {
+        temp$ref[1] <- variant_alt
+        temp$alt[1] <- variant_ref
+        
+      }
+      
+      matched_frequencies[[length(matched_frequencies) + 1]] <- temp
+      
+    } else {
+      
+      if (variant_chr != current_chr_proxies) {
+        
+        print(glue("{Sys.time()}    Loading LD annotation for chromosome {variant_chr}"))
+        
+        annotation_table <- dbReadTable(db_connection, glue("annotation_{variant_chr}"))
+        
+        proxy_tables <- list()
+        
+        for (superpopulation in superpopulations) {
           
-          print(glue("{Sys.time()}    Loading LD annotation for chromosome {variant_chr}"))
+          print(glue("{Sys.time()}    Loading LD values for chromosome {variant_chr} superpopulation {superpopulation}"))
           
-          annotation_table <- dbReadTable(db_connection, glue("annotation_{variant_chr}"))
-          
-          proxy_tables <- list()
-          
-          for (superpopulation in superpopulations) {
-            
-            print(glue("{Sys.time()}    Loading LD values for chromosome {variant_chr} superpopulation {superpopulation}"))
-            
-            proxy_tables[[superpopulation]] <- dbReadTable(db_connection, glue("ld_{superpopulation}_{variant_chr}"))
-            
-          }
-          
-          current_chr_proxies <- variant_chr
+          proxy_tables[[superpopulation]] <- dbReadTable(db_connection, glue("ld_{superpopulation}_{variant_chr}"))
           
         }
         
-        annotation_is <- which(annotation_table$rs_id == rs_id)
+        current_chr_proxies <- variant_chr
         
-        if (length(annotation_is) > 0) {
+      }
+      
+      proxy_found <- F
+      
+      annotation_is <- which(annotation_table$rs_id == rs_id)
+      
+      if (length(annotation_is) > 0) {
+        
+        for(annotation_i in annotation_is) {
           
-          for(annotation_i in annotation_is) {
+          topld_id <- annotation_table$uniq_id[annotation_i]
+          topld_ref <- annotation_table$ref[annotation_i]
+          topld_alt <- annotation_table$alt[annotation_i]
+          
+          proxies <- lapply(superpopulations, get_proxies, proxy_tables, topld_id)
+          
+          proxies <- do.call(rbind, proxies)
+          
+          if (nrow(proxies) > 0) {
             
-            topld_id <- annotation_table$uniq_id[annotation_i]
-            topld_ref <- annotation_table$ref[annotation_i]
-            topld_alt <- annotation_table$alt[annotation_i]
+            proxies <- proxies %>% 
+              arrange(
+                desc(r2)
+              )
             
-            proxies <- lapply(superpopulations, get_proxies, proxy_tables, topld_id)
-            
-            proxies <- do.call(rbind, proxies)
-            
-            if (nrow(proxies) > 0) {
+            for (proxy_i in 1:nrow(proxies)) {
               
-              proxies <- proxies %>% 
-                arrange(
-                  desc(r2)
-                )
-              
-              for (proxy_i in 1:nrow(proxies)) {
+              if (proxies$uniq_id_1[proxy_i] == topld_id) {
                 
-                if (proxies$uniq_id_1[proxy_i] == topld_id) {
+                proxy <- proxies$uniq_id_2[proxy_i]
+                
+              } else {
+                
+                proxy <- proxies$uniq_id_1[proxy_i]
+                
+              }
+              
+              proxy_annotation_i <- which(annotation_table$uniq_id == proxy)
+              
+              if (length(proxy_annotation_i) != 1) {
+                
+                stop("Non-unique ID for proxy")
+                
+              }
+              
+              proxy_rs_id <- annotation_table$rs_id[proxy_annotation_i]
+              
+              loading_i <- which(loadings_table$id == proxy_rs_id)
+              
+              if (length(loading_i) > 0) {
+                
+                if (length(loading_i) > 1) {
                   
-                  proxy <- proxies$uniq_id_2[proxy_i]
-                  
-                } else {
-                  
-                  proxy <- proxies$uniq_id_1[proxy_i]
+                  stop("Duplicate snp")
                   
                 }
                 
-                proxy_annotation_i <- which(annotation_table$uniq_id == proxy)
+                allele_swap <- proxies$x_corr[proxy_i] != '+'
                 
-                if (length(proxy_annotation_i) != 1) {
+                correct_alleles <- F # Check for multi-allelic variants
+                
+                if (variant_alt == topld_ref && variant_ref == topld_alt) {
                   
-                  stop("Non-unique ID for proxy")
+                  allele_swap <- !allele_swap
+                  correct_alleles <- T
+                  
+                } else if (variant_alt == topld_alt && variant_ref == topld_ref) {
+                  
+                  correct_alleles <- T
                   
                 }
                 
-                proxy_rs_id <- annotation_table$rs_id[proxy_annotation_i]
-                
-                loading_i <- which(loadings_table$id == proxy_rs_id)
-                
-                if (length(loading_i) > 0) {
+                if (correct_alleles) {
                   
-                  if (length(loading_i) > 1) {
+                  temp <- loadings_table[loading_i, ]
+                  temp$id[1] <- variant_id
+                  
+                  if (!allele_swap) {
                     
-                    stop("Duplicate snp")
+                    temp$alt[1] <- variant_alt
+                    
+                  } else {
+                    
+                    temp$alt[1] <- variant_ref
                     
                   }
                   
-                  allele_swap <- proxies$x_corr[proxy_i] != '+'
+                  matched_loadings[[length(matched_loadings) + 1]] <- temp
                   
-                  correct_alleles <- F # Check for multi-allelic variants
+                  frequency_i <- which(frequency_table$id == proxy_rs_id)
                   
-                  if (variant_alt == topld_ref && variant_ref == topld_alt) {
+                  if (length(frequency_i) != 1) {
                     
-                    allele_swap <- !allele_swap
-                    correct_alleles <- T
-                    
-                  } else if (variant_alt == topld_alt && variant_ref == topld_ref) {
-                    
-                    correct_alleles <- T
+                    stop("Incorrect number of frequency")
                     
                   }
                   
-                  if (correct_alleles) {
+                  temp <- frequency_table[frequency_i, ]
+                  temp$id[1] <- variant_id
+                  
+                  if (!allele_swap) {
                     
-                    temp <- loadings_table[loading_i, ]
-                    temp$id[1] <- variant_id
+                    temp$ref[1] <- variant_ref
+                    temp$alt[1] <- variant_alt
                     
-                    if (!allele_swap) {
-                      
-                      temp$alt[1] <- variant_alt
-                      
-                    } else {
-                      
-                      temp$alt[1] <- variant_ref
-                      
-                    }
+                  } else {
                     
-                    matched_loadings[[length(matched_loadings) + 1]] <- temp
-                    
-                    new_proxy <- data.frame(
-                      moba_snp = rs_id,
-                      moba_ref = variant_ref,
-                      moba_alt = variant_alt,
-                      loading_proxy = proxy_rs_id,
-                      allele_swap = allele_swap,
-                      stringsAsFactors = F
-                    )
-                    
-                    new_proxies[[length(new_proxies) + 1]] <- new_proxy
-                    
-                    break
+                    temp$ref[1] <- variant_alt
+                    temp$alt[1] <- variant_ref
                     
                   }
+                  
+                  matched_frequencies[[length(matched_frequencies) + 1]] <- temp
+                  
+                  new_proxy <- data.frame(
+                    moba_snp = rs_id,
+                    moba_ref = variant_ref,
+                    moba_alt = variant_alt,
+                    loading_proxy = proxy_rs_id,
+                    allele_swap = allele_swap,
+                    stringsAsFactors = F
+                  )
+                  
+                  new_proxies[[length(new_proxies) + 1]] <- new_proxy
+                  
+                  proxy_found <- T
+                  
+                  break
+                  
                 }
               }
             }
           }
         }
       }
+      
+      if (!proxy_found) {
+        
+        no_proxies_cache[length(no_proxies_cache)] <- rs_id
+        
+      } else {
+        
+        proxies_cache <- rbind(proxies_cache, new_proxies)
+        
+      }
     }
   }
+}
 
 proxies_cache_file <- paste0(proxies_cache_stem, "_", current_chr_cache, ".gz")
 
@@ -448,6 +568,7 @@ write.table(
 )
 
 matched_loadings <- do.call(rbind, matched_loadings)
+matched_frequencies <- do.call(rbind, matched_frequencies)
 new_proxies <- do.call(rbind, new_proxies)
 proxies_cache <- rbind(proxies_cache, new_proxies)
 
@@ -456,11 +577,22 @@ print(glue("{Sys.time()}    {nrow(matched_loadings)} variants matched to loading
 
 # Write results
 
-names(matched_loadings) <- original_names
+names(matched_loadings) <- loadings_header
 
 write.table(
   x = matched_loadings,
   file = loading_export_file,
+  sep = "\t",
+  col.names = T,
+  row.names = F,
+  quote = F
+)
+
+names(matched_loadings) <- c("#ID", "REF", "ALT", "ALT1_FREQ")
+
+write.table(
+  x = matched_frequencies,
+  file = frequencies_export_file,
   sep = "\t",
   col.names = T,
   row.names = F,
