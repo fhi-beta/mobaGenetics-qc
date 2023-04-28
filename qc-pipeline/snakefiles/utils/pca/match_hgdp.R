@@ -427,6 +427,8 @@ for (variant_i in 1:nrow(variant_table)) {
           
           if (nrow(proxies) > 0) {
             
+            stop("debug")
+            
             proxies <- proxies %>% 
               arrange(
                 desc(r2)
