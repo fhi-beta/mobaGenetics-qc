@@ -148,10 +148,11 @@ rule mod3_filter_ids:
             subprocess.run(
                 [
                     "plink2",
-                    "--bfile", inTrunk,
+                    "--pfile", inTrunk,
+                    "--extract", input.common_ids,
                     "--out", outTrunk,
                     "--threads", str(threads),
-                    "--make-pgen"
+                    "--make-pfile"
                 ],
                 check = True
             )

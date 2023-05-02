@@ -45,7 +45,7 @@ args <- commandArgs(TRUE)
 # DEBUG
 variant_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/mod3_convert_plink2.pvar"
 loadings_file <- "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.rsid.plink.tsv"
-frequency_file <- "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.GRCh37.plink.afreq"
+frequency_file <- "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.rsid.plink.afreq"
 proxies_cache_stem <- "/mnt/archive/snpQc/pc_loadings/proxies_cache"
 proxy_db <- "/mnt/archive/topld/db/ld_db"
 loading_export_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/loadings_hdpg_1kg_proxies"
@@ -99,38 +99,6 @@ frequency_table <- read.table(
 )
 names(frequency_table) <- c("id", "ref", "alt", "freq")
 
-# Function to return the proxy for a given variant in a superpopulation
-
-get_proxies <- function(
-    superpopulation = superpopulation,
-    proxy_tables = proxy_tables,
-    topld_id = topld_id
-) {
-  
-  population_proxies <- proxy_tables[[superpopulation]][proxy_tables[[superpopulation]]$uniq_id_1 == topld_id & proxy_tables[[superpopulation]]$uniq_id_2 == topld_id, ]
-  
-  if (nrow(population_proxies) > 0) {
-    
-    population_proxies$superpopulation <- superpopulation
-    
-  } else {
-    
-    population_proxies <- data.frame(
-      snp1 = c(),
-      snp2 = c(),
-      uniq_id_1 = c(),
-      uniq_id_2 = c(),
-      r2 = c(),
-      dprime = c(),
-      x_corr = c(),
-      superpopulation = c()
-    )
-  }
-  
-  return(population_proxies)
-  
-}
-
 
 # Set up database and caches for LD
 
@@ -170,6 +138,12 @@ for (variant_i in 1:nrow(variant_table)) {
   variant_pos <- variant_table$pos[variant_i]
   variant_ref <- variant_table$ref[variant_i]
   variant_alt <- variant_table$alt[variant_i]
+  
+  if (variant_chr != 22) {
+    
+    next
+    
+  }
   
   if (variant_chr != current_chr_cache) {
     
@@ -372,16 +346,12 @@ for (variant_i in 1:nrow(variant_table)) {
       
       temp <- frequency_table[frequency_i, ]
       temp$id[1] <- variant_id
-      
-      if (!allele_swap) {
-        
         temp$ref[1] <- variant_ref
         temp$alt[1] <- variant_alt
+      
+      if (allele_swap) {
         
-      } else {
-        
-        temp$ref[1] <- variant_alt
-        temp$alt[1] <- variant_ref
+        temp$freq[1] <- 1.0 - temp$freq[1]
         
       }
       
@@ -421,7 +391,30 @@ for (variant_i in 1:nrow(variant_table)) {
           topld_ref <- annotation_table$ref[annotation_i]
           topld_alt <- annotation_table$alt[annotation_i]
           
-          proxies <- lapply(superpopulations, get_proxies, proxy_tables, topld_id)
+          proxies <- list()
+          
+          for (superpopulation in superpopulations) {
+          
+          population_proxies <- proxy_tables[[superpopulation]][proxy_tables[[superpopulation]]$uniq_id_1 == topld_id | proxy_tables[[superpopulation]]$uniq_id_2 == topld_id, ]
+          
+          if (nrow(population_proxies) > 0) {
+            
+            population_proxies$superpopulation <- superpopulation
+            
+          } else {
+            
+            population_proxies <- data.frame(
+              snp1 = c(),
+              snp2 = c(),
+              uniq_id_1 = c(),
+              uniq_id_2 = c(),
+              r2 = c(),
+              dprime = c(),
+              x_corr = c(),
+              superpopulation = c()
+            )
+          }
+          }
           
           proxies <- do.call(rbind, proxies)
           
@@ -508,16 +501,12 @@ for (variant_i in 1:nrow(variant_table)) {
                   
                   temp <- frequency_table[frequency_i, ]
                   temp$id[1] <- variant_id
-                  
-                  if (!allele_swap) {
-                    
                     temp$ref[1] <- variant_ref
                     temp$alt[1] <- variant_alt
+                  
+                  if (allele_swap) {
                     
-                  } else {
-                    
-                    temp$ref[1] <- variant_alt
-                    temp$alt[1] <- variant_ref
+                      temp$freq[1] <- 1.0 - temp$freq[1]
                     
                   }
                   
