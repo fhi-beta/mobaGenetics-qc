@@ -139,12 +139,6 @@ for (variant_i in 1:nrow(variant_table)) {
   variant_ref <- variant_table$ref[variant_i]
   variant_alt <- variant_table$alt[variant_i]
   
-  if (variant_chr != 22) {
-    
-    next
-    
-  }
-  
   if (variant_chr != current_chr_cache) {
     
     if (nrow(proxies_cache) > 0) {
@@ -460,8 +454,6 @@ for (variant_i in 1:nrow(variant_table)) {
                   
                 }
                 
-                stop("DEBUG")
-                
                 allele_swap <- proxies$x_corr[proxy_i] != '+'
                 
                 correct_alleles <- F # Check for multi-allelic variants
@@ -504,12 +496,12 @@ for (variant_i in 1:nrow(variant_table)) {
                   
                   temp <- frequency_table[frequency_i, ]
                   temp$id[1] <- variant_id
-                    temp$ref[1] <- variant_ref
-                    temp$alt[1] <- variant_alt
+                  temp$ref[1] <- variant_ref
+                  temp$alt[1] <- variant_alt
                   
                   if (allele_swap) {
                     
-                      temp$freq[1] <- 1.0 - temp$freq[1]
+                    temp$freq[1] <- 1.0 - temp$freq[1]
                     
                   }
                   
