@@ -414,13 +414,14 @@ for (variant_i in 1:nrow(variant_table)) {
               superpopulation = c()
             )
           }
+          
+          proxies[[superpopulation]] <- population_proxies
+          
           }
           
           proxies <- do.call(rbind, proxies)
           
           if (nrow(proxies) > 0) {
-            
-            stop("debug")
             
             proxies <- proxies %>% 
               arrange(
@@ -458,6 +459,8 @@ for (variant_i in 1:nrow(variant_table)) {
                   stop("Duplicate snp")
                   
                 }
+                
+                stop("DEBUG")
                 
                 allele_swap <- proxies$x_corr[proxy_i] != '+'
                 
