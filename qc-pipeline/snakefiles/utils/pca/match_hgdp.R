@@ -542,6 +542,8 @@ for (variant_i in 1:nrow(variant_table)) {
         new_proxies <- do.call(rbind, new_proxies)
         proxies_cache <- rbind(proxies_cache, new_proxies)
         
+        new_proxies <- list()
+        
       }
     }
   }
