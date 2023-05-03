@@ -143,11 +143,13 @@ for (variant_i in 1:nrow(variant_table)) {
     
     if (nrow(proxies_cache) > 0) {
       
+      proxies_cache <- proxies_cache %>% distinct()
+      
       proxies_cache_file <- paste0(proxies_cache_stem, "_", current_chr_cache, ".gz")
       
       write.table(
         x = proxies_cache,
-        file = proxies_cache_file,
+        file = gzfile(proxies_cache_file),
         sep = "\t",
         col.names = T,
         row.names = F,
@@ -158,9 +160,11 @@ for (variant_i in 1:nrow(variant_table)) {
     
     if (length(no_proxies_cache) > 0) {
       
+      no_proxies_cache <- unique(no_proxies_cache)
+      
       no_proxies_cache_file <- paste0(proxies_cache_stem, "_no_proxies_", current_chr_cache, ".gz")
       
-      writeLines(no_proxies_cache, con = no_proxies_cache_file)
+      writeLines(no_proxies_cache, con = gzfile(no_proxies_cache_file))
       
     }
     
@@ -535,6 +539,7 @@ for (variant_i in 1:nrow(variant_table)) {
         
       } else {
         
+        new_proxies <- do.call(rbind, new_proxies)
         proxies_cache <- rbind(proxies_cache, new_proxies)
         
       }
@@ -542,26 +547,32 @@ for (variant_i in 1:nrow(variant_table)) {
   }
 }
 
+new_proxies <- do.call(rbind, new_proxies)
+proxies_cache <- rbind(proxies_cache, new_proxies) %>% distinct()
+
 proxies_cache_file <- paste0(proxies_cache_stem, "_", current_chr_cache, ".gz")
 
 write.table(
   x = proxies_cache,
-  file = proxies_cache_file,
+  file = gzfile(proxies_cache_file),
   sep = "\t",
   col.names = T,
   row.names = F,
   quote = F
 )
 
-matched_loadings <- do.call(rbind, matched_loadings)
-matched_frequencies <- do.call(rbind, matched_frequencies)
-new_proxies <- do.call(rbind, new_proxies)
-proxies_cache <- rbind(proxies_cache, new_proxies)
+no_proxies_cache <- unique(no_proxies_cache)
+
+no_proxies_cache_file <- paste0(proxies_cache_stem, "_no_proxies_", current_chr_cache, ".gz")
+
+writeLines(no_proxies_cache, con = gzfile(no_proxies_cache_file))
 
 print(glue("{Sys.time()}    {nrow(matched_loadings)} variants matched to loading ({nrow(variant_table)} variants in MoBa, {nrow(loadings_table)} variants in loadings)"))
 
 
 # Write results
+
+matched_loadings <- do.call(rbind, matched_loadings)
 
 names(matched_loadings) <- loadings_header
 
@@ -574,7 +585,8 @@ write.table(
   quote = F
 )
 
-names(matched_loadings) <- c("#ID", "REF", "ALT", "ALT1_FREQ")
+matched_frequencies <- do.call(rbind, matched_frequencies)
+names(matched_frequencies) <- c("#ID", "REF", "ALT", "ALT1_FREQ")
 
 write.table(
   x = matched_frequencies,
