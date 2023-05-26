@@ -1,6 +1,10 @@
-# Remove markers above chr 23 as these are not eliglible for imputation
-import os.path
+##
+#
+# This module prepares the data for phasing and imputation.
+#
+##
 
+# Keep only chromosomes to 1 to 23
 rule_stem = "chr1_23"
 rule chr1_23:
     input:

@@ -1,5 +1,9 @@
-# Rule updates raw bedset with biobank provided pedigree information and gender
-# Sample IDs are updated to SentrixIDs
+##
+#
+# This module removes chromosome zero, filters based on clustering and information from genome studio, and removes duplicate SNPs.
+#
+##
+
 from datetime import datetime
 
 # Paths

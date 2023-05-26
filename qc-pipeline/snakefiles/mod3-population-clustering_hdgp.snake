@@ -1,3 +1,9 @@
+##
+#
+# This module runs a PCA with the HDGP and clusters the samples by overlap with superpopulations in a PCA.
+#
+##
+
 # Generate statistics on raw dataset before anything happens to the data
 rule_stem = 'mod3_generate_start_stats'
 rule mod3_generate_start_stats:
