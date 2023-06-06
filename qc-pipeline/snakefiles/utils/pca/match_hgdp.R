@@ -438,94 +438,94 @@ for (variant_i in 1:nrow(variant_table)) {
                 
               }
               
-              proxy_annotation_i <- which(annotation_table$uniq_id == proxy)
+              proxy_annotation_is <- which(annotation_table$uniq_id == proxy)
               
-              if (length(proxy_annotation_i) != 1) {
+              for (proxy_annotation_i in proxy_annotation_is) {
                 
-                stop("Non-unique ID for proxy")
+                proxy_rs_id <- annotation_table$rs_id[proxy_annotation_i]
                 
-              }
-              
-              proxy_rs_id <- annotation_table$rs_id[proxy_annotation_i]
-              
-              loading_i <- which(loadings_table$id == proxy_rs_id)
-              
-              if (length(loading_i) > 0) {
-                
-                if (length(loading_i) > 1) {
+                if (startsWith(proxy_rs_id, "rs")) {
                   
-                  stop("Duplicate snp")
+                  loading_i <- which(loadings_table$id == proxy_rs_id)
                   
-                }
-                
-                allele_swap <- proxies$x_corr[proxy_i] != '+'
-                
-                correct_alleles <- F # Check for multi-allelic variants
-                
-                if (variant_alt == topld_ref && variant_ref == topld_alt) {
-                  
-                  allele_swap <- !allele_swap
-                  correct_alleles <- T
-                  
-                } else if (variant_alt == topld_alt && variant_ref == topld_ref) {
-                  
-                  correct_alleles <- T
-                  
-                }
-                
-                if (correct_alleles) {
-                  
-                  temp <- loadings_table[loading_i, ]
-                  temp$id[1] <- variant_id
-                  
-                  if (!allele_swap) {
+                  if (length(loading_i) > 0) {
                     
-                    temp$alt[1] <- variant_alt
+                    if (length(loading_i) > 1) {
+                      
+                      stop("Duplicate snp")
+                      
+                    }
                     
-                  } else {
+                    allele_swap <- proxies$x_corr[proxy_i] != '+'
                     
-                    temp$alt[1] <- variant_ref
+                    correct_alleles <- F # Check for multi-allelic variants
                     
+                    if (variant_alt == topld_ref && variant_ref == topld_alt) {
+                      
+                      allele_swap <- !allele_swap
+                      correct_alleles <- T
+                      
+                    } else if (variant_alt == topld_alt && variant_ref == topld_ref) {
+                      
+                      correct_alleles <- T
+                      
+                    }
+                    
+                    if (correct_alleles) {
+                      
+                      temp <- loadings_table[loading_i, ]
+                      temp$id[1] <- variant_id
+                      
+                      if (!allele_swap) {
+                        
+                        temp$alt[1] <- variant_alt
+                        
+                      } else {
+                        
+                        temp$alt[1] <- variant_ref
+                        
+                      }
+                      
+                      matched_loadings[[length(matched_loadings) + 1]] <- temp
+                      
+                      frequency_i <- which(frequency_table$id == proxy_rs_id)
+                      
+                      if (length(frequency_i) != 1) {
+                        
+                        stop("Incorrect number of frequency")
+                        
+                      }
+                      
+                      temp <- frequency_table[frequency_i, ]
+                      temp$id[1] <- variant_id
+                      temp$ref[1] <- variant_ref
+                      temp$alt[1] <- variant_alt
+                      
+                      if (allele_swap) {
+                        
+                        temp$freq[1] <- 1.0 - temp$freq[1]
+                        
+                      }
+                      
+                      matched_frequencies[[length(matched_frequencies) + 1]] <- temp
+                      
+                      new_proxy <- data.frame(
+                        moba_snp = rs_id,
+                        moba_ref = variant_ref,
+                        moba_alt = variant_alt,
+                        loading_proxy = proxy_rs_id,
+                        allele_swap = allele_swap,
+                        stringsAsFactors = F
+                      )
+                      
+                      new_proxies[[length(new_proxies) + 1]] <- new_proxy
+                      
+                      proxy_found <- T
+                      
+                      break
+                      
+                    }
                   }
-                  
-                  matched_loadings[[length(matched_loadings) + 1]] <- temp
-                  
-                  frequency_i <- which(frequency_table$id == proxy_rs_id)
-                  
-                  if (length(frequency_i) != 1) {
-                    
-                    stop("Incorrect number of frequency")
-                    
-                  }
-                  
-                  temp <- frequency_table[frequency_i, ]
-                  temp$id[1] <- variant_id
-                  temp$ref[1] <- variant_ref
-                  temp$alt[1] <- variant_alt
-                  
-                  if (allele_swap) {
-                    
-                    temp$freq[1] <- 1.0 - temp$freq[1]
-                    
-                  }
-                  
-                  matched_frequencies[[length(matched_frequencies) + 1]] <- temp
-                  
-                  new_proxy <- data.frame(
-                    moba_snp = rs_id,
-                    moba_ref = variant_ref,
-                    moba_alt = variant_alt,
-                    loading_proxy = proxy_rs_id,
-                    allele_swap = allele_swap,
-                    stringsAsFactors = F
-                  )
-                  
-                  new_proxies[[length(new_proxies) + 1]] <- new_proxy
-                  
-                  proxy_found <- T
-                  
-                  break
-                  
                 }
               }
             }
