@@ -131,7 +131,7 @@ new_proxies <- list()
 current_chr_proxies <- -1
 current_chr_cache <- -1
 
-for (variant_i in 1:nrow(variant_table)) {
+for (variant_i in 39283:nrow(variant_table)) { # DEBUG
   
   variant_id <- variant_table$id[variant_i]
   variant_chr <- variant_table$chr[variant_i]
