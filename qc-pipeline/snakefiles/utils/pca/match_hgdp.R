@@ -575,6 +575,32 @@ print(glue("{Sys.time()}    {nrow(matched_loadings)} variants matched to loading
 # Write results
 
 matched_loadings <- do.call(rbind, matched_loadings)
+matched_loadings <- matched_loadings %>% 
+  group_by(
+    id, alt
+  ) %>% 
+  summarize(
+    PC1 = mean(PC1),
+    PC2 = mean(PC2),
+    PC3 = mean(PC3),
+    PC4 = mean(PC4),
+    PC5 = mean(PC5),
+    PC6 = mean(PC6),
+    PC7 = mean(PC7),
+    PC8 = mean(PC8),
+    PC9 = mean(PC9),
+    PC10 = mean(PC10),
+    PC11 = mean(PC11),
+    PC12 = mean(PC12),
+    PC13 = mean(PC13),
+    PC14 = mean(PC14),
+    PC15 = mean(PC15),
+    PC16 = mean(PC16),
+    PC17 = mean(PC17),
+    PC18 = mean(PC18),
+    PC19 = mean(PC19),
+    PC20 = mean(PC20)
+  )
 
 names(matched_loadings) <- loadings_header
 
@@ -588,6 +614,13 @@ write.table(
 )
 
 matched_frequencies <- do.call(rbind, matched_frequencies)
+matched_frequencies <- matched_frequencies %>% 
+  group_by(
+    id, ref, alt
+  ) %>% 
+  summarize(
+    freq = mean(freq)
+  )
 names(matched_frequencies) <- c("#ID", "REF", "ALT", "ALT1_FREQ")
 
 write.table(
