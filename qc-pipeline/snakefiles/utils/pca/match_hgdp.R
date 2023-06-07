@@ -535,7 +535,7 @@ for (variant_i in 1:nrow(variant_table)) {
       
       if (!proxy_found) {
         
-        no_proxies_cache[length(no_proxies_cache)] <- rs_id
+        no_proxies_cache[length(no_proxies_cache) + 1] <- rs_id
         
       } else {
         
