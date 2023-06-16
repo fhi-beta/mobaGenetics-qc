@@ -541,12 +541,12 @@ def missing_genotype_rate(
         rule = rule,
         in_bedset = in_bedset,
         out_bedset = out_bedset,
-        sample = True,
-        threshold = 0.1,
-        result_file = '/dev/null',
-        plot_file = False,
-        plinklocal = None,
-        rule_info = None
+        sample = sample,
+        threshold = threshold,
+        result_file = result_file,
+        plot_file = plot_file,
+        plinklocal = plinklocal,
+        rule_info = rule_info
     )
 
 def missing_genotype_rate_docs(
