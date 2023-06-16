@@ -32,9 +32,9 @@ batch_name = {
 }
 
 batch_snp_table = {
-    "snp011": "/mnt/archive2/MomicsSource/snpArray/snp011/TED/delivery-fhi/data/raw-data/snp-table/snp-table.txt.gz",
-    "snp012": "/mnt/archive2/MomicsSource/snpArray/snp012/ROTTERDAM1/rotterdam1-aux/qc/snp_table_rotterdam1.txt",
-    "snp014": "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/data/raw-data/snptable/snp_table_rotterdam2.txt"
+    "snp011": "/mnt/archive/Momics/MomicsPub/snpArray/Datasets/snp011/raw-data/aux/snp-table.txt",
+    "snp012": "/mnt/archive/Momics/MomicsPub/snpArray/Datasets/snp012/raw-data/aux/snp_table.txt",
+    "snp014": "/mnt/archive/Momics/MomicsPub/snpArray/Datasets/snp014/raw-data/aux/snp_table.txt"
 }
 
 batch_cluster_sep_col_name = {
