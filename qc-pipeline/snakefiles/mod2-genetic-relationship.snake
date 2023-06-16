@@ -184,6 +184,9 @@ rule missing_genotype_samples:
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
             print(e)
+            print("-" * 60)
+            traceback.print_exc(file=sys.stdout)
+            print("-" * 60)
 
 
 rule_stem = "callrate_permanent_removal"
