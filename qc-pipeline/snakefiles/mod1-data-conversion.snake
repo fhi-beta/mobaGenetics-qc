@@ -226,7 +226,7 @@ rule_stem = 'remove_markers_cluster_sep'
 rule remove_markers_cluster_sep:
     input:
         bedset = rules.remove_duplicate_markers.output.bedset,
-        snptable = lambda wildcards: getSnpTable(wildcards.batch),
+        snptable = lambda wildcards: getSnpTable(wildcards.batch)
     output:
         bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         results = report(
@@ -253,10 +253,11 @@ rule remove_markers_cluster_sep:
             outTrunk = mqc.plinkBase(output.bedset[0])
 
             # identify markers for removal on cluster separation
-            (removed,total) = mqc.extract_list(
+            column_name = getClusterSeparationColumn(wildcards.batch)
+            (removed, total) = mqc.extract_list(
                 input.snptable,
                 output.removal_markers, output.removal,
-                colName = config['cluster_sep_col_name'],
+                colName = column_name,
                 sep = '\t',
                 condition = "<",
                 threshold = params.threshold,
@@ -294,7 +295,7 @@ rule remove_markers_cluster_sep:
                 dropouts,
                 input.snptable,
                 output.plot,
-                config["cluster_sep_col_name"],
+                column_name,
                 separator = '\t',
                 ylabel = "Separation",
                 invert = False
@@ -333,6 +334,7 @@ rule remove_markers_gc_score:
 
             inTrunk =  mqc.plinkBase(input.bedset[0])
             outTrunk =  mqc.plinkBase(output.bedset[0])
+
             # identify markers for removal
             (removed, total) = mqc.extract_list(
                 input.snptable,
@@ -416,11 +418,12 @@ rule remove_markers_aa_theta_deviation:
             outTrunk =  mqc.plinkBase(output.bedset[0])
 
             # identify markers for removal
+            column_name = getAaThetaDevColumn(wildcards.batch)
             (removed,total) = mqc.extract_list(
                 input.snptable,
                 output.removal_markers,
                 output.removal,
-                colName = config["aa_theta_dev_col_name"],
+                colName = column_name,
                 sep = '\t',
                 condition = ">",
                 threshold = params.threshold,
@@ -458,7 +461,7 @@ rule remove_markers_aa_theta_deviation:
                 dropouts,
                 input.snptable,
                 output.plot,
-                config["aa_theta_dev_col_name"],
+                column_name,
                 separator = '\t',
                 ylabel = "AA-\u03B8 deviation",
                 invert = False

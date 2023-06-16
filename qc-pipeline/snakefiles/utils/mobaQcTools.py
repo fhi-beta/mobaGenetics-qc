@@ -513,7 +513,7 @@ def missing_genotype_rate(
     If plot_file is False, no plot is produced
 
     Returns a 'dropouts' structure that contains info about the
-    dropped samples/markers (but only summaries).  rule is the calling
+    dropped samples/markers (but only summaries). rule is the calling
     rule, and will be added to the result_file/dropouts
 
     The bedset are truncs and not files: For example for in_bedset=foo
@@ -522,15 +522,9 @@ def missing_genotype_rate(
 
     """
     if sample:
-        kindof = "sample"
-        extension = ".fam"
         plink_switch = "--mind"
-        miss_ext = ".imiss"   # if plotting, .imiss is for samples, .lmiss for markers
     else:  # marker
-        kindof = "marker"
-        extension = ".bim"
         plink_switch = "--geno"
-        miss_ext = ".lmiss"
 
     subprocess.run(
         [
@@ -543,6 +537,41 @@ def missing_genotype_rate(
         check = True
     )
 
+    return missing_genotype_rate_docs(
+        rule = rule,
+        in_bedset = in_bedset,
+        out_bedset = out_bedset,
+        sample = True,
+        threshold = 0.1,
+        result_file = '/dev/null',
+        plot_file = False,
+        plinklocal = None,
+        rule_info = None
+    )
+
+def missing_genotype_rate_docs(
+        rule,
+        in_bedset,
+        out_bedset,
+        sample = True,
+        threshold = 0.1,
+        result_file = '/dev/null',
+        plot_file = False,
+        plinklocal = None,
+        rule_info = None
+):
+    """Computes dropout information and makes plots related to a missing_genotype_rate call.
+
+    """
+    if sample:
+        kindof = "sample"
+        extension = ".fam"
+        miss_ext = ".imiss"   # if plotting, .imiss is for samples, .lmiss for markers
+    else:  # marker
+        kindof = "marker"
+        extension = ".bim"
+        miss_ext = ".lmiss"
+
     dropouts = checkUpdates(
         in_bedset + extension,
         out_bedset + extension,
@@ -553,7 +582,7 @@ def missing_genotype_rate(
     dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
     dropouts["Threshold"] = threshold
     dropouts["Rule"] = rule
-    dropouts["rule type"] = kindof  # rule says sample/marker - we know what is really is
+    dropouts["rule type"] = kindof  # rule says sample/marker - we know what it really is
     saveYamlResults(result_file, dropouts)
 
     if plot_file:
@@ -569,7 +598,7 @@ def missing_genotype_rate(
         )
         plot_point_and_line(
             dropouts,
-            in_bedset+miss_ext,
+            in_bedset + miss_ext,
             plot_file,
             column = "F_MISS",
             ylabel = "1 - missingness"
@@ -898,18 +927,40 @@ def intersect_rsid(bim_small, bim_big, intersection, small_col = 1, big_col = 1)
         print(f"{my_name} Exception caught:  {str(e)}")
 
 
-def copy_file(f, ext=".bak"):
-    """makes a .bak file
+def copy_file(
+        f,
+        ext = ".back-up"
+):
+    """makes a .back-up file
 
     This is a debug-tool used keep a copy of a snakemake result that
     it would have deleted due to failure.
 
     """
     print(f"DEBUG> Making a backup of {f} to {f+ext}.")
-    copyfile(f, f+ext)
+    copyfile(f, f + ext)
 
+def copy_bedset(
+        trunkIn,
+        trunkOut,
+        extensions = [".bed", ".bim", ".fam"]
+):
+    """copies a plink bedset
 
-def dotplot(genomedata, prec=2,x='x',y='y',c='c'):
+    This takes a plink trunk as input and copies the files with the given extension
+
+    """
+
+    for extension in extensions:
+        copyfile(trunkIn + extension, trunkOut + extension)
+
+def dotplot(
+        genomedata,
+        prec = 2,
+        x = 'x',
+        y = 'y',
+        c = 'c'
+):
     """ Returns a plotnine object ready to be printet, but where extra lines can be added
 
     Assumes x and y are names of columns containing numbers, these will be rounded to precision decimals

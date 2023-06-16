@@ -30,9 +30,23 @@ batch_name = {
     "snp016a": "Norment Aug20 996",
     "snp016b": "Norment Aug20 1029"
 }
+
 batch_snp_table = {
+    "snp011": "/mnt/archive2/MomicsSource/snpArray/snp011/TED/delivery-fhi/data/raw-data/snp-table/snp-table.txt.gz",
     "snp012": "/mnt/archive2/MomicsSource/snpArray/snp012/ROTTERDAM1/rotterdam1-aux/qc/snp_table_rotterdam1.txt",
     "snp014": "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/data/raw-data/snptable/snp_table_rotterdam2.txt"
+}
+
+batch_cluster_sep_col_name = {
+    "snp011": "InfiniumOmniExpress-24v1-2_A1.bpm.Cluster Sep",
+    "snp012": "GSAMD-24v1-0_20011747_A4.bpm.Cluster Sep",
+    "snp014": "GSAMD-24v1-0_20011747_A4.bpm.Cluster Sep"
+}
+
+batch_aa_theta_dev_col_name = {
+    "snp011": "GSAMD-24v1-0_20011747_A4.bpm.AA T Dev",
+    "snp012": "GSAMD-24v1-0_20011747_A4.bpm.AA T Dev",
+    "snp014": "InfiniumOmniExpress-24v1-2_A1.bpm.AA T Dev"
 }
 
 # Returns the chip of a given batch
@@ -41,6 +55,23 @@ def getChip(batch):
 
 # Returns the snp table of a given batch
 def getSnpTable(batch):
-    return batch_snp_table[batch]
+    if batch in batch_snp_table:
+        return batch_snp_table[batch]
+    else:
+        return "utils/mod1/dummy_snp_table"
+
+# Returns the column for cluster separation in a given snp table
+def getClusterSeparationColumn(batch):
+    if batch in batch_cluster_sep_col_name:
+        return batch_cluster_sep_col_name[batch]
+    else:
+        return "cluster_separation"
+
+# Returns the column for cluster separation in a given snp table
+def getAaThetaDevColumn(batch):
+    if batch in batch_aa_theta_dev_col_name:
+        return batch_aa_theta_dev_col_name[batch]
+    else:
+        return "theta_dev"
 
 

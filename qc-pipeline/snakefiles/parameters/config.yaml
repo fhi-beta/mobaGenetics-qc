@@ -37,13 +37,11 @@ ref_pc_freq: "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadin
 # See https://genome.sph.umich.edu/wiki/Regions_of_high_linkage_disequilibrium_(LD)
 high_ld_regions_hg19: "/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/resources/high-ld-regions-hg19"
 
-# Thresholds and names of the columns in snptable-file (see above)
+# Thresholds and names of the columns in snp table file
 cluster_sep_thr: 0.40
-cluster_sep_col_name: "GSAMD-24v1-0_20011747_A4.bpm.Cluster Sep"
 10%_GC_score_thr: 0.30
 10%_GC_score_col_name: "10% GC"
 aa_theta_dev_thr: 0.04
-aa_theta_dev_col_name: "GSAMD-24v1-0_20011747_A4.bpm.AA T Dev"
 
 #
 # Minor allele frequency threshold used during pedigree inference
@@ -61,8 +59,8 @@ prune_cmd: --indep-pairwise 200 100 0.1
 # We want to automate this - but for now (2019) we are just keeping it as it is
 # These files comes from a PC environment and have ^M in them
 # Note that the whole section will probably be removed and put into another (pre?) pipeline
-infer_recfam: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_reconstruct-fam.txt"
-infer_badids: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_bad-sample-IIDs.txt"
+# infer_recfam: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_reconstruct-fam.txt"
+# infer_badids: "/mnt/archive2/MomicsSource/snpArray/snp014/ROTTERDAM2/delivery-fhi/documentation/inferred-pedigree/permanent_bad-sample-IIDs.txt"
 
 
 # needed? CHECK!
@@ -80,6 +78,7 @@ geno_rate.geno2: 0.05
 geno_rate.mind2: 0.03
 geno_rate.geno3: 0.02
 geno_rate.mind3: 0.02
+
 # Rule that works with hwe/autosomatic-het/geno - 2 cycles
 hwe1: 0.0000001
 maf1: 0.01
