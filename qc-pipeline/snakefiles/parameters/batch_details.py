@@ -44,9 +44,9 @@ batch_cluster_sep_col_name = {
 }
 
 batch_aa_theta_dev_col_name = {
-    "snp011": "GSAMD-24v1-0_20011747_A4.bpm.AA T Dev",
+    "snp011": "InfiniumOmniExpress-24v1-2_A1.bpm.AA T Dev",
     "snp012": "GSAMD-24v1-0_20011747_A4.bpm.AA T Dev",
-    "snp014": "InfiniumOmniExpress-24v1-2_A1.bpm.AA T Dev"
+    "snp014": "GSAMD-24v1-0_20011747_A4.bpm.AA T Dev"
 }
 
 # Returns the chip of a given batch
