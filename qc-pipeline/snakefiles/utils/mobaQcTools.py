@@ -563,7 +563,6 @@ def missing_genotype_rate_docs(
     """Computes dropout information and makes plots related to a missing_genotype_rate call.
 
     """
-    print("debug1")
 
     if sample:
         kindof = "sample"
@@ -574,7 +573,6 @@ def missing_genotype_rate_docs(
         extension = ".bim"
         miss_ext = ".lmiss"
 
-    print("debug2")
     dropouts = checkUpdates(
         in_bedset + extension,
         out_bedset + extension,
@@ -582,14 +580,13 @@ def missing_genotype_rate_docs(
         sanityCheck = "removal",
         fullList = True
     )
-    print("debug3")
+
     dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
     dropouts["Threshold"] = threshold
     dropouts["Rule"] = rule
     dropouts["rule type"] = kindof  # rule says sample/marker - we know what it really is
     saveYamlResults(result_file, dropouts)
 
-    print("debug4")
     if plot_file:
         # call rates for markers/samples before they got removed
         subprocess.run(
@@ -601,7 +598,6 @@ def missing_genotype_rate_docs(
             ],
             check = True
         )
-        print("debug5")
         plot_point_and_line(
             dropouts,
             in_bedset + miss_ext,
@@ -610,7 +606,6 @@ def missing_genotype_rate_docs(
             ylabel = "1 - missingness"
         )
 
-    print("debug6")
     return dropouts
 
 
