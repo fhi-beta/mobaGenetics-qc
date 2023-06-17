@@ -238,22 +238,25 @@ def extract_list(
             return
 
         indx = indx[0]
-        # print(f"{colName} has index {indx}")
+
         matches = 0
         compare = compOperands.get(condition, unknownComp)
         if compare == unknownComp:
             print(f"Cannot compare using: '{condition}'")
             return
-        # These lines are data, indx[0] is the index  of the column we found interesting
+
         sample = open(outFile, "w+")
         subset = open(threshold_doc_file, "w+")
+
         for line in enumerate(fp):
+
             allcols = line[1].split(sep)
             val = allcols[indx]
-            try: val = float(val)  # hack to avoid errors if we want to compare strings
+            try: val = float(val)  # Skip non-numeric values
             except: pass
 
             if compare(val , threshold):
+
                 # File with only keys, create the relevant subset first
                 subsetc = [allcols[index] for index in key_cols]
                 sample.write(f"{outsep.join(map(str,subsetc))}\n")
@@ -266,6 +269,7 @@ def extract_list(
     totalLines = line[0] + 1  # enumerates from 0, and we read a line manually
     sample.close()
     subset.close()
+
     return (matches, totalLines)
 
 

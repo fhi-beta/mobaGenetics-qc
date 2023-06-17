@@ -252,36 +252,38 @@ rule remove_markers_cluster_sep:
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
 
-            # identify markers for removal on cluster separation
-            column_name = getClusterSeparationColumn(wildcards.batch)
+            if input.snptable is None:
 
-            print("*** Debug *** Snp table: " + input.snptable)
-            with open(input.snptable) as fp:
-                line = fp.readline()
-                print(line)
-            print("*** Debug *** Column: " + column_name)
+                # Nothing to do here
+                copy_bedset(inTrunk, outTrunk)
 
-            (removed, total) = mqc.extract_list(
-                input.snptable,
-                output.removal_markers, output.removal,
-                colName = column_name,
-                sep = '\t',
-                condition = "<",
-                threshold = params.threshold,
-                key_cols = [0],
-                doc_cols = [0]
-            )
+            else:
 
-            subprocess.run(
-                [
-                    plinklocal,
-                    "--bfile", inTrunk,
-                    "--exclude", output.removal_markers,
-                    "--out", outTrunk ,
-                    "--make-bed"
-                ],
-                check = True
-            )
+                # identify markers for removal on cluster separation
+                column_name = getClusterSeparationColumn(wildcards.batch)
+
+                (removed, total) = mqc.extract_list(
+                    input.snptable,
+                    output.removal_markers,
+                    output.removal,
+                    colName = column_name,
+                    sep = '\t',
+                    condition = "<",
+                    threshold = params.threshold,
+                    key_cols = [0],
+                    doc_cols = [0]
+                )
+
+                subprocess.run(
+                    [
+                        plinklocal,
+                        "--bfile", inTrunk,
+                        "--exclude", output.removal_markers,
+                        "--out", outTrunk ,
+                        "--make-bed"
+                    ],
+                    check = True
+                )
 
             dropouts = mqc.checkUpdates(
                 inTrunk + ".bim",

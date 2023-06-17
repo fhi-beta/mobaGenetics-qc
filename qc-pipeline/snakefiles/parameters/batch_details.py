@@ -58,20 +58,20 @@ def getSnpTable(batch):
     if batch in batch_snp_table:
         return batch_snp_table[batch]
     else:
-        return "utils/mod1/dummy_snp_table"
+        return None
 
 # Returns the column for cluster separation in a given snp table
 def getClusterSeparationColumn(batch):
     if batch in batch_cluster_sep_col_name:
         return batch_cluster_sep_col_name[batch]
     else:
-        return "cluster_separation"
+        return None
 
 # Returns the column for cluster separation in a given snp table
 def getAaThetaDevColumn(batch):
     if batch in batch_aa_theta_dev_col_name:
         return batch_aa_theta_dev_col_name[batch]
     else:
-        return "theta_dev"
+        return None
 
 
