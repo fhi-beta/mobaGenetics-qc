@@ -256,7 +256,7 @@ rule remove_markers_cluster_sep:
             column_name = getClusterSeparationColumn(wildcards.batch)
 
             print("*** Debug *** Snp table: " + input.snptable)
-            with open(inFile) as fp:
+            with open(input.snptable) as fp:
                 line = fp.readline()
                 print(line)
             print("*** Debug *** Column: " + input.column_name)
