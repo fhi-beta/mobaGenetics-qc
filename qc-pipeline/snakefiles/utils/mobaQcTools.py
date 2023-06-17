@@ -187,13 +187,21 @@ compOperands = {
 }
 
 
-def extract_list(innFile, outFile, threshold_doc_file="/dev/null",
-                 colName="none", sep='\t', condition="<", threshold=0,
-                 key_cols=[0], doc_cols=[0, 1]):
+def extract_list(
+        inFile,
+        outFile,
+        threshold_doc_file = "/dev/null",
+        colName = "none",
+        sep = '\t',
+        condition = "<",
+        threshold = 0,
+        key_cols = [0],
+        doc_cols = [0, 1]
+):
     """A typical preprocessor to utilities like plink, extracts relevant samples/markers
 
     Efficient in the sense that it is not reading the (huge) files
-    into memory.  Takes a csv file innFile (first line with headers,
+    into memory.  Takes a csv file inFile (first line with headers,
     separator is parameter "sep", use None for whitespaces)
 
     Produces
@@ -208,24 +216,27 @@ def extract_list(innFile, outFile, threshold_doc_file="/dev/null",
 
     Restrictions:
     * Prints error and returns unless only one columns matches
-    * Outputfiles use the same separator as used for innFile. If 'none'
+    * Outputfiles use the same separator as used for inFile. If 'none'
      was used ' ' is used
 
     """
-    my_name = inspect.currentframe().f_code.co_name      # Generic way of find this functions name
-    with open(innFile) as fp:
+    with open(inFile) as fp:
 
         # Identifying header column
         line = fp.readline()
         allcols = line.split(sep)
         outsep = sep
+
         if outsep is None:
             outsep = " "
+
         regex = re.compile(colName)
         indx = [i for i, item in enumerate(allcols) if re.search(regex, item)]
+
         if len(indx) != 1:
-            print(f"ERROR in {my_name}: regexp {colName}  found {len(indx)} times in {innFile}. First line was {allcols}")
+            print(f"ERROR in {inspect.currentframe().f_code.co_name}: regexp {colName}  found {len(indx)} times in {inFile}. First line was {allcols}")
             return
+
         indx = indx[0]
         # print(f"{colName} has index {indx}")
         matches = 0
@@ -251,6 +262,7 @@ def extract_list(innFile, outFile, threshold_doc_file="/dev/null",
                 subsetc = [allcols[index] for index in doc_cols]
                 subset.write(f"{outsep.join(map(str,subsetc))} {val}\n")
                 matches += 1
+
     totalLines = line[0] + 1  # enumerates from 0, and we read a line manually
     sample.close()
     subset.close()

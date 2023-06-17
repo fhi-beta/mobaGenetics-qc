@@ -221,7 +221,7 @@ rule remove_duplicate_markers:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
-# Remove markers on snp table metrics
+# If a snp_table was provided with the batch, remove markers on snp table metrics, otherwise leave as is.
 rule_stem = 'remove_markers_cluster_sep'
 rule remove_markers_cluster_sep:
     input:
@@ -254,6 +254,13 @@ rule remove_markers_cluster_sep:
 
             # identify markers for removal on cluster separation
             column_name = getClusterSeparationColumn(wildcards.batch)
+
+            print("*** Debug *** Snp table: " + input.snptable)
+            with open(inFile) as fp:
+                line = fp.readline()
+                print(line)
+            print("*** Debug *** Column: " + input.column_name)
+
             (removed, total) = mqc.extract_list(
                 input.snptable,
                 output.removal_markers, output.removal,
