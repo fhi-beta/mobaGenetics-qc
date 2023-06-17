@@ -252,7 +252,7 @@ rule remove_markers_cluster_sep:
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
 
-            if input.snptable is None:
+            if input.snptable == "None":
                 print("*** DEBUG NONE ***")
                 # Nothing to do here
                 copy_bedset(inTrunk, outTrunk)
