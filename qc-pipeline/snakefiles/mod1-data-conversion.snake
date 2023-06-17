@@ -259,7 +259,7 @@ rule remove_markers_cluster_sep:
             with open(input.snptable) as fp:
                 line = fp.readline()
                 print(line)
-            print("*** Debug *** Column: " + input.column_name)
+            print("*** Debug *** Column: " + column_name)
 
             (removed, total) = mqc.extract_list(
                 input.snptable,
