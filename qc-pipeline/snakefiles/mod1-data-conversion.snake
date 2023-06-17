@@ -252,16 +252,14 @@ rule remove_markers_cluster_sep:
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
 
+            column_name = getClusterSeparationColumn(wildcards.batch)
+
             if input.snptable == "utils/dummy":
-                print("*** DEBUG NONE ***")
                 # Nothing to do here
                 mqc.copy_bedset(inTrunk, outTrunk)
-                print("*** DEBUG DONE ***")
 
             else:
                 # identify markers for removal on cluster separation
-                column_name = getClusterSeparationColumn(wildcards.batch)
-
                 (removed, total) = mqc.extract_list(
                     input.snptable,
                     output.removal_markers,
