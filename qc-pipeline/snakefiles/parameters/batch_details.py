@@ -58,7 +58,7 @@ def getSnpTable(batch):
     if batch in batch_snp_table:
         return batch_snp_table[batch]
     else:
-        return "None"
+        return "utils/dummy"
 
 # Returns the column for cluster separation in a given snp table
 def getClusterSeparationColumn(batch):
