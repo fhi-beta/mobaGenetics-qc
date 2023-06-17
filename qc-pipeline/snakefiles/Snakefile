@@ -5,7 +5,7 @@
 #
 # Commands to execute from the qc-pipeline folder:
 # conda activate snp_qc
-# snakemake --snakefile Snakefile --cores 32 --use-conda
+# snakemake --snakefile Snakefile --cores 1 --use-conda --rerun-incomplete
 #
 ##
 
@@ -36,8 +36,6 @@ for batch in batches:
         raise Exception(f"Batch '{batch}' not in 'batch_genotyping_chip', please edit 'batch_details.py' accordingly.")
     if batch not in batch_name:
         raise Exception(f"Batch '{batch}' not in 'batch_mobagenetics_10_name', please edit 'batch_details.py' accordingly.")
-    if batch not in batch_snp_table:
-        raise Exception(f"Batch '{batch}' not in 'batch_snp_table', please edit 'batch_details.py' accordingly.")
 
 # Report (top level)
 report: "report/qc.rst"
