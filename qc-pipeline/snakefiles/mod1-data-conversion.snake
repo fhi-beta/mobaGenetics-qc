@@ -253,12 +253,11 @@ rule remove_markers_cluster_sep:
             outTrunk = mqc.plinkBase(output.bedset[0])
 
             if input.snptable is None:
-
+                print("*** DEBUG NONE ***")
                 # Nothing to do here
                 copy_bedset(inTrunk, outTrunk)
 
             else:
-
                 # identify markers for removal on cluster separation
                 column_name = getClusterSeparationColumn(wildcards.batch)
 
