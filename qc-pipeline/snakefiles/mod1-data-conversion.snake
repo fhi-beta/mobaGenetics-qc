@@ -255,7 +255,8 @@ rule remove_markers_cluster_sep:
             if input.snptable == "utils/dummy":
                 print("*** DEBUG NONE ***")
                 # Nothing to do here
-                copy_bedset(inTrunk, outTrunk)
+                mqc.copy_bedset(inTrunk, outTrunk)
+                print("*** DEBUG DONE ***")
 
             else:
                 # identify markers for removal on cluster separation
