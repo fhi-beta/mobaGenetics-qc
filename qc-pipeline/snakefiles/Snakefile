@@ -80,11 +80,15 @@ rule all:
         fam_docs = expand(github_docs/"{batch}"/"fam_reconstruction.md", batch = batches),
 
         # Module 3:
-        mod3_start_het= expand(tmpMod3 / "{batch}" / 'mod3_start_het.het', batch = batches),
-        mod3_start_hwe= expand(tmpMod3 / "{batch}" / 'mod3_start_hwe.hwe', batch = batches),
-        mod3_start_freq= expand(tmpMod3 / "{batch}" / 'mod3_start_freq.frq', batch = batches),
-        mod3_start_lmiss= expand(tmpMod3 / "{batch}" / 'mod3_start_missing.lmiss', batch = batches),
-        mod3_start_imiss= expand(tmpMod3 / "{batch}" / 'mod3_start_missing.imiss', batch = batches),
+        mod3_start_het = expand(tmpMod3 / "{batch}" / 'mod3_start_het.het', batch = batches),
+        mod3_start_hwe = expand(tmpMod3 / "{batch}" / 'mod3_start_hwe.hwe', batch = batches),
+        mod3_start_freq = expand(tmpMod3 / "{batch}" / 'mod3_start_freq.frq', batch = batches),
+        mod3_start_lmiss = expand(tmpMod3 / "{batch}" / 'mod3_start_missing.lmiss', batch = batches),
+        mod3_start_imiss = expand(tmpMod3 / "{batch}" / 'mod3_start_missing.imiss', batch = batches),
+        md_file= expand(github_docs / "{batch}" / "pca_1kg_moba.md", batch = batches),
+        updated_pop= expand(tmpMod3 / "{batch}" / "moba.populations", batch = batches)
+        # score_file = expand(tmpMod3 / "{batch}" / 'pc_scores.sscore', batch = batches),
+
         # plink2_pgen = expand(tmpMod3/"{batch}"/"mod3_convert_plink2.pgen", batch = batches)
 
         # module_3_good_markers = expand((tmpMod3/"{batch}/m3_output_good_markers").with_suffix(".txt"), batch=batches),

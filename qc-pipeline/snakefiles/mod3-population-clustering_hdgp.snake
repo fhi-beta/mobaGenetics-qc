@@ -112,10 +112,12 @@ rule mod3_match_hgdp:
         plink2_files = rules.mod3_convert_plink2.output.bedset_plink2,
     params:
         loadings_file = "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.rsid.plink.tsv",
-        proxies_cache_file = "/mnt/archive/snpQc/pc_loadings/proxies_cache.gz",
+        frequency_file = "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.rsid.plink.afreq",
+        proxies_cache_stem = "/mnt/archive/snpQc/pc_loadings/proxies_cache",
         proxies_db = "/mnt/archive/topld/db/ld_db"
     output:
         loadings_export_file = tmpMod3/"{batch}"/(rule_stem + "_loadings"),
+        frequencies_export_file = tmpMod3/"{batch}"/(rule_stem + "_frequencies"),
         variants_export_file = tmpMod3/"{batch}"/(rule_stem + "_variants")
     conda:
         "envs/r_4.2.yaml"
@@ -125,9 +127,11 @@ rule mod3_match_hgdp:
         echo Rscript utils/pca/match_hgdp.R \
             {input.plink2_files[2]} \
             {params.loadings_file} \
-            {params.proxies_cache_file} \
+            {params.frequency_file} \
+            {params.proxies_cache_stem} \
             {params.proxies_db} \
             {output.loadings_export_file} \
+            {output.frequencies_export_file} \
             {output.variants_export_file}
         """
 
@@ -137,7 +141,7 @@ rule mod3_filter_ids:
     'filter variants and keep only those that can be used for the PCA'
     input:
         plink2_files = rules.mod3_convert_plink2.output.bedset_plink2,
-        common_ids = os.path.join(pcs_folder, 'common_ids')
+        common_ids = rules.mod3_match_hgdp.output.variants_export_file
     params:
         plink_stem = plink_stem,
     output:
@@ -173,10 +177,10 @@ rule_stem = 'mod3_compute_scores'
 rule mod3_compute_scores:
     'compute the PC scores'
     input:
-        plink_filtered = rules.mod3_filter_ids.output.plink_filtered
+        plink_filtered = rules.mod3_filter_ids.output.plink_filtered,
+        loading_file = rules.mod3_match_hgdp.output.loadings_export_file,
+        frequencies_file = rules.mod3_match_hgdp.output.frequencies_export_file,
     params:
-        loading_file = '/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.GRCh37.plink.tsv',
-        frequencies_file = '/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.GRCh37.plink.afreq',
         score_stem = str(tmpMod3/"{batch}"/'pc_scores')
     output:
         score_file = str(tmpMod3/"{batch}"/'pc_scores.sscore')

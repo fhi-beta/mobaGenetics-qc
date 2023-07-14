@@ -8,49 +8,58 @@
 # Command line arguments
 
 args <- commandArgs(TRUE)
-# 
-# if (length(args) != 6) {
-# 
-#   stop(paste0("Four arguments expected: (1) variant file, (2) PC loadings file, (3) proxies cache file, (4) proxies database, (5) file where to export the matched loadings, (6) file where to export the ids of the matched variants. ", length(args), " found: ", paste(args, collapse = ", ")))
-# 
-# }
-# 
-# variant_file <- args[1]
-# 
-# if (!file.exists(variant_file)) {
-# 
-#   stop("Variant file not found")
-# 
-# }
-# 
-# loadings_file <- args[2]
-# 
-# if (!file.exists(loadings_file)) {
-# 
-#   stop("PC loadings not found")
-# 
-# }
-# 
-# proxy_cache_file <- args[3]
-# 
-# proxy_db_file <- args[4]
-# 
-# loading_export_file <- args[5]
-# 
-# frequencies_export_file <- args[6]
-# 
-# variants_export_file <- args[7]
+
+
+if (length(args) != 6) {
+
+  stop(paste0("Four arguments expected: (1) variant file, (2) PC loadings file, (3) proxies cache file, (4) proxies database, (5) file where to export the matched loadings, (6) file where to export the ids of the matched variants. ", length(args), " found: ", paste(args, collapse = ", ")))
+
+}
+
+variant_file <- args[1]
+
+if (!file.exists(variant_file)) {
+
+  stop("Variant file not found")
+
+}
+
+loadings_file <- args[2]
+
+if (!file.exists(loadings_file)) {
+
+  stop("PC loadings not found")
+
+}
+
+frequency_file <- args[3]
+
+if (!file.exists(frequency_file)) {
+  
+  stop("PC loadings not found")
+  
+}
+
+proxies_cache_stem <- args[4]
+
+proxy_db <- args[5]
+
+loading_export_file <- args[6]
+
+frequencies_export_file <- args[7]
+
+variants_export_file <- args[8]
 
 
 # DEBUG
-variant_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/mod3_convert_plink2.pvar"
-loadings_file <- "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.rsid.plink.tsv"
-frequency_file <- "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.rsid.plink.afreq"
-proxies_cache_stem <- "/mnt/archive/snpQc/pc_loadings/proxies_cache"
-proxy_db <- "/mnt/archive/topld/db/ld_db"
-loading_export_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/loadings_hdpg_1kg_proxies"
-frequencies_export_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/frequencies_hdpg_1kg_proxies"
-variants_export_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/variants_hdpg_1kg"
+# variant_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/mod3_convert_plink2.pvar"
+# loadings_file <- "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.rsid.plink.tsv"
+# frequency_file <- "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.rsid.plink.afreq"
+# proxies_cache_stem <- "/mnt/archive/snpQc/pc_loadings/proxies_cache"
+# proxy_db <- "/mnt/archive/topld/db/ld_db"
+# loading_export_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/loadings_hdpg_1kg_proxies"
+# frequencies_export_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/frequencies_hdpg_1kg_proxies"
+# variants_export_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/variants_hdpg_1kg"
 
 
 # Libraries
@@ -208,7 +217,7 @@ for (variant_i in 1:nrow(variant_table)) {
     
   }
   
-  print(glue("{Sys.time()}    Processing {variant_id} ({variant_i} of {nrow(variant_table)})"))
+  # print(glue("{Sys.time()}    Processing {variant_id} ({variant_i} of {nrow(variant_table)})"))
   
   rs_id <- variant_id
   
@@ -599,7 +608,8 @@ matched_loadings_df <- matched_loadings_df %>%
     pc17 = mean(pc17),
     pc18 = mean(pc18),
     pc19 = mean(pc19),
-    pc20 = mean(pc20)
+    pc20 = mean(pc20),
+    .groups = "drop"
   )
 
 names(matched_loadings_df) <- loadings_header
@@ -633,6 +643,6 @@ write.table(
 )
 
 writeLines(
-  text = matched_loadings$ID,
+  text = matched_loadings_df$ID,
   con = variants_export_file
 )

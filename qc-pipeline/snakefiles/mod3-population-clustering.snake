@@ -232,7 +232,7 @@ rule plot_pca_both:
     params:
         title = "\"Principal Component Analysys (PCA) in {batch}\""
     output:
-        md_file = github_docs/"{batch}"/(rule_stem + ".md"),
+        md_file = github_docs/"{batch}"/"pca_1kg_moba.md",
         updated_pop = tmpMod3/"{batch}"/"moba.populations"
     conda:
         "envs/r_4.2.yaml"
