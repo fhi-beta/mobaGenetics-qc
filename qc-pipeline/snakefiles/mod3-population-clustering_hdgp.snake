@@ -142,8 +142,6 @@ rule mod3_hdgp_filter_ids:
     input:
         plink2_files = rules.mod3_hdgp_convert_plink2.output.bedset_plink2,
         common_ids = rules.mod3_hdgp_match_hgdp.output.variants_export_file
-    params:
-        plink_stem = plink_stem,
     output:
         plink_filtered = multiext(str(tmpMod3/"{batch}"/rule_stem), '.pgen', '.pvar', '.psam')
     threads: 24
