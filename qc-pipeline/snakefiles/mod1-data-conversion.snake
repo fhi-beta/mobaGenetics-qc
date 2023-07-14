@@ -331,7 +331,7 @@ rule remove_markers_cluster_sep:
                 mqc.plot_text(
                     "No table for this batch",
                     output.plot
-                ) 
+                )
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -367,57 +367,87 @@ rule remove_markers_gc_score:
             inTrunk =  mqc.plinkBase(input.bedset[0])
             outTrunk =  mqc.plinkBase(output.bedset[0])
 
-            # identify markers for removal
-            (removed, total) = mqc.extract_list(
-                input.snptable,
-                output.removal_markers,
-                output.removal,
-                colName = config["10%_GC_score_col_name"],
-                sep = '\t',
-                condition = "<",
-                threshold = params.threshold,
-                key_cols=[0],
-                doc_cols=[0]
-            )
-            subprocess.run(
-                [
-                    plinklocal,
-                    "--bfile", inTrunk,
-                    "--exclude", output.removal_markers,
-                    "--out", outTrunk,
-                    "--make-bed"
-                ],
-                check = True
-            )
+            if input.snptable != "utils/dummy":
 
-            dropouts = mqc.checkUpdates(
-                inTrunk + ".bim",
-                outTrunk + ".bim",
-                cols = [0, 1, 3, 4, 5],
-                sanityCheck = "removal",
-                fullList = True,
-                allele_flip = True
-            )
-            dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-            dropouts["Threshold"] = params.threshold
-            dropouts["Rule"] = rule
-            mqc.saveYamlResults(output.results, dropouts)
+                # identify markers for removal
+                (removed, total) = mqc.extract_list(
+                    input.snptable,
+                    output.removal_markers,
+                    output.removal,
+                    colName = config["10%_GC_score_col_name"],
+                    sep = '\t',
+                    condition = "<",
+                    threshold = params.threshold,
+                    key_cols=[0],
+                    doc_cols=[0]
+                )
+                subprocess.run(
+                    [
+                        plinklocal,
+                        "--bfile", inTrunk,
+                        "--exclude", output.removal_markers,
+                        "--out", outTrunk,
+                        "--make-bed"
+                    ],
+                    check = True
+                )
 
-            mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} markers(NSNP_GC_LOST) out of {dropouts["in"]} (NSNP_BEFORE_GC), leaving {dropouts["out"]} markers. Treshhold {params.threshold}\n')
+                dropouts = mqc.checkUpdates(
+                    inTrunk + ".bim",
+                    outTrunk + ".bim",
+                    cols = [0, 1, 3, 4, 5],
+                    sanityCheck = "removal",
+                    fullList = True,
+                    allele_flip = True
+                )
+                dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+                dropouts["Threshold"] = params.threshold
+                dropouts["Rule"] = rule
+                mqc.saveYamlResults(output.results, dropouts)
 
-            mqc.plot_point_and_line(
-                dropouts,
-                input.snptable,
-                output.plot,
-                config["10%_GC_score_col_name"],
-                separator = '\t',
-                ylabel = "10% GC Score",
-                invert = False
-            )
+                mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} markers(NSNP_GC_LOST) out of {dropouts["in"]} (NSNP_BEFORE_GC), leaving {dropouts["out"]} markers. Treshhold {params.threshold}\n')
+
+                mqc.plot_point_and_line(
+                    dropouts,
+                    input.snptable,
+                    output.plot,
+                    config["10%_GC_score_col_name"],
+                    separator = '\t',
+                    ylabel = "10% GC Score",
+                    invert = False
+                )
+
+            else:
+
+                # Nothing to do for this batch
+                mqc.copy_bedset(inTrunk,outTrunk)
+
+                dropouts = mqc.checkUpdates(
+                    inTrunk + ".bim",
+                    outTrunk +".bim",
+                    cols = [0, 1, 3, 4, 5],
+                    sanityCheck = "removal",
+                    fullList = True,
+                    allele_flip = True
+                )
+                dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+                dropouts["Threshold"] = params.threshold
+                dropouts["Rule"] = rule
+                mqc.saveYamlResults(output.results, dropouts)
+
+                mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} markers(NSNP_CLUSTERSEP_LOST) out of {dropouts["in"]} (BEFORE_SNPTABLE), leaving {dropouts["out"]} markers. Treshhold {params.threshold}\n')
+
+                # Create empty output to document that no sample/marker have been removed
+                open(output.removal_markers, "w+").close()
+                open(output.removal, "w+").close()
+                mqc.plot_text(
+                    "No table for this batch",
+                    output.plot
+                )
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
-            print(e)
+        print(e)
 
 
 rule_stem = 'remove_markers_aa_theta_deviation'
@@ -449,55 +479,85 @@ rule remove_markers_aa_theta_deviation:
             inTrunk =  mqc.plinkBase(input.bedset[0])
             outTrunk =  mqc.plinkBase(output.bedset[0])
 
-            # identify markers for removal
-            column_name = getAaThetaDevColumn(wildcards.batch)
-            (removed,total) = mqc.extract_list(
-                input.snptable,
-                output.removal_markers,
-                output.removal,
-                colName = column_name,
-                sep = '\t',
-                condition = ">",
-                threshold = params.threshold,
-                key_cols = [0],
-                doc_cols = [0]
-            )
+            if input.snptable != "utils/dummy":
 
-            subprocess.run(
-                [
-                    plinklocal,
-                    "--bfile", inTrunk,
-                    "--exclude", output.removal_markers,
-                    "--out", outTrunk,
-                    "--make-bed"
-                ],
-                check = True
-            )
+                # identify markers for removal
+                column_name = getAaThetaDevColumn(wildcards.batch)
+                (removed,total) = mqc.extract_list(
+                    input.snptable,
+                    output.removal_markers,
+                    output.removal,
+                    colName = column_name,
+                    sep = '\t',
+                    condition = ">",
+                    threshold = params.threshold,
+                    key_cols = [0],
+                    doc_cols = [0]
+                )
 
-            dropouts = mqc.checkUpdates(
-                inTrunk+".bim",
-                outTrunk+".bim",
-                cols = [0, 1, 3, 4, 5],
-                sanityCheck = "removal",
-                fullList = True,
-                allele_flip = True
-            )
-            dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-            dropouts["Threshold"] = params.threshold
-            dropouts["Rule"] = rule
+                subprocess.run(
+                    [
+                        plinklocal,
+                        "--bfile", inTrunk,
+                        "--exclude", output.removal_markers,
+                        "--out", outTrunk,
+                        "--make-bed"
+                    ],
+                    check = True
+                )
 
-            mqc.saveYamlResults(output.results, dropouts)
-            mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} markers(NSNP_AATHETADEV_LOST) out of {dropouts["in"]} (NSNP_GC_LOST), leaving {dropouts["out"]} markers. Treshhold {params.threshold}\n')
+                dropouts = mqc.checkUpdates(
+                    inTrunk+".bim",
+                    outTrunk+".bim",
+                    cols = [0, 1, 3, 4, 5],
+                    sanityCheck = "removal",
+                    fullList = True,
+                    allele_flip = True
+                )
+                dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+                dropouts["Threshold"] = params.threshold
+                dropouts["Rule"] = rule
 
-            mqc.plot_point_and_line(
-                dropouts,
-                input.snptable,
-                output.plot,
-                column_name,
-                separator = '\t',
-                ylabel = "AA-\u03B8 deviation",
-                invert = False
-            )
+                mqc.saveYamlResults(output.results, dropouts)
+                mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} markers(NSNP_AATHETADEV_LOST) out of {dropouts["in"]} (NSNP_GC_LOST), leaving {dropouts["out"]} markers. Treshhold {params.threshold}\n')
+
+                mqc.plot_point_and_line(
+                    dropouts,
+                    input.snptable,
+                    output.plot,
+                    column_name,
+                    separator = '\t',
+                    ylabel = "AA-\u03B8 deviation",
+                    invert = False
+                )
+
+            else:
+
+                # Nothing to do for this batch
+                mqc.copy_bedset(inTrunk,outTrunk)
+
+                dropouts = mqc.checkUpdates(
+                    inTrunk + ".bim",
+                    outTrunk +".bim",
+                    cols = [0, 1, 3, 4, 5],
+                    sanityCheck = "removal",
+                    fullList = True,
+                    allele_flip = True
+                )
+                dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+                dropouts["Threshold"] = params.threshold
+                dropouts["Rule"] = rule
+                mqc.saveYamlResults(output.results, dropouts)
+
+                mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} markers(NSNP_CLUSTERSEP_LOST) out of {dropouts["in"]} (BEFORE_SNPTABLE), leaving {dropouts["out"]} markers. Treshhold {params.threshold}\n')
+
+                # Create empty output to document that no sample/marker have been removed
+                open(output.removal_markers, "w+").close()
+                open(output.removal, "w+").close()
+                mqc.plot_text(
+                    "No table for this batch",
+                    output.plot
+                )
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
