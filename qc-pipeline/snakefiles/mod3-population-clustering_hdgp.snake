@@ -5,8 +5,8 @@
 ##
 
 # Generate statistics on raw dataset before anything happens to the data
-rule_stem = 'mod3_generate_start_stats'
-rule mod3_generate_start_stats:
+rule_stem = 'mod3_hdgp_generate_start_stats'
+rule mod3_hdgp_generate_start_stats:
     input:
         bedset = rules.m2_output.output.bedset
     output:
@@ -74,8 +74,8 @@ rule mod3_generate_start_stats:
             print(e)
 
 # Convert to plink2
-rule_stem = 'mod3_convert_plink2'
-rule mod3_convert_plink2:
+rule_stem = 'mod3_hdgp_convert_plink2'
+rule mod3_hdgp_convert_plink2:
     input:
         bedset_plink1 = rules.m2_output.output.pruned_bedset
     output:
@@ -106,10 +106,10 @@ rule mod3_convert_plink2:
 
 
 # Match to HGDP
-rule_stem = 'mod3_match_hgdp'
-rule mod3_match_hgdp:
+rule_stem = 'mod3_hdgp_match_hgdp'
+rule mod3_hdgp_match_hgdp:
     input:
-        plink2_files = rules.mod3_convert_plink2.output.bedset_plink2,
+        plink2_files = rules.mod3_hdgp_convert_plink2.output.bedset_plink2,
     params:
         loadings_file = "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.rsid.plink.tsv",
         frequency_file = "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadings.rsid.plink.afreq",
@@ -136,12 +136,12 @@ rule mod3_match_hgdp:
         """
 
 # Filter to common ids
-rule_stem = 'mod3_filter_ids'
-rule mod3_filter_ids:
+rule_stem = 'mod3_hdgp_filter_ids'
+rule mod3_hdgp_filter_ids:
     'filter variants and keep only those that can be used for the PCA'
     input:
-        plink2_files = rules.mod3_convert_plink2.output.bedset_plink2,
-        common_ids = rules.mod3_match_hgdp.output.variants_export_file
+        plink2_files = rules.mod3_hdgp_convert_plink2.output.bedset_plink2,
+        common_ids = rules.mod3_hdgp_match_hgdp.output.variants_export_file
     params:
         plink_stem = plink_stem,
     output:
@@ -173,13 +173,13 @@ rule mod3_filter_ids:
 
 
 # Compute scores
-rule_stem = 'mod3_compute_scores'
-rule mod3_compute_scores:
+rule_stem = 'mod3_hdgp_compute_scores'
+rule mod3_hdgp_compute_scores:
     'compute the PC scores'
     input:
-        plink_filtered = rules.mod3_filter_ids.output.plink_filtered,
-        loading_file = rules.mod3_match_hgdp.output.loadings_export_file,
-        frequencies_file = rules.mod3_match_hgdp.output.frequencies_export_file,
+        plink_filtered = rules.mod3_hdgp_filter_ids.output.plink_filtered,
+        loading_file = rules.mod3_hdgp_match_hgdp.output.loadings_export_file,
+        frequencies_file = rules.mod3_hdgp_match_hgdp.output.frequencies_export_file,
     params:
         score_stem = str(tmpMod3/"{batch}"/'pc_scores')
     output:
