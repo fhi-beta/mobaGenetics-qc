@@ -86,7 +86,7 @@ rule all:
         mod3_start_lmiss = expand(tmpMod3 / "{batch}" / 'mod3_start_missing.lmiss', batch = batches),
         mod3_start_imiss = expand(tmpMod3 / "{batch}" / 'mod3_start_missing.imiss', batch = batches),
         md_file= expand(github_docs / "{batch}" / "pca_1kg_moba.md", batch = batches),
-        updated_pop= expand(tmpMod3 / "{batch}" / "moba.populations", batch = batches)
+        updated_pop= expand(tmpMod3 / "{batch}" / "moba.populations", batch = batches),
 
         score_file = expand(tmpMod3 / "{batch}" / 'pc_scores.sscore', batch = batches),
 
