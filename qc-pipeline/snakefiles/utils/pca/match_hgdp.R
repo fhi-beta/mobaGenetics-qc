@@ -574,38 +574,38 @@ print(glue("{Sys.time()}    {nrow(matched_loadings)} variants matched to loading
 
 # Write results
 
-matched_loadings <- do.call(rbind, matched_loadings)
-matched_loadings <- matched_loadings %>% 
+matched_loadings_df <- do.call(rbind, matched_loadings)
+matched_loadings_df <- matched_loadings_df %>% 
   group_by(
     id, alt
   ) %>% 
   summarize(
-    PC1 = mean(PC1),
-    PC2 = mean(PC2),
-    PC3 = mean(PC3),
-    PC4 = mean(PC4),
-    PC5 = mean(PC5),
-    PC6 = mean(PC6),
-    PC7 = mean(PC7),
-    PC8 = mean(PC8),
-    PC9 = mean(PC9),
-    PC10 = mean(PC10),
-    PC11 = mean(PC11),
-    PC12 = mean(PC12),
-    PC13 = mean(PC13),
-    PC14 = mean(PC14),
-    PC15 = mean(PC15),
-    PC16 = mean(PC16),
-    PC17 = mean(PC17),
-    PC18 = mean(PC18),
-    PC19 = mean(PC19),
-    PC20 = mean(PC20)
+    PC1 = mean(pc1),
+    pc2 = mean(pc2),
+    pc3 = mean(pc3),
+    pc4 = mean(pc4),
+    pc5 = mean(pc5),
+    pc6 = mean(pc6),
+    pc7 = mean(pc7),
+    pc8 = mean(pc8),
+    pc9 = mean(pc9),
+    pc10 = mean(pc10),
+    pc11 = mean(pc11),
+    pc12 = mean(pc12),
+    pc13 = mean(pc13),
+    pc14 = mean(pc14),
+    pc15 = mean(pc15),
+    pc16 = mean(pc16),
+    pc17 = mean(pc17),
+    pc18 = mean(pc18),
+    pc19 = mean(pc19),
+    pc20 = mean(pc20)
   )
 
-names(matched_loadings) <- loadings_header
+names(matched_loadings_df) <- loadings_header
 
 write.table(
-  x = matched_loadings,
+  x = matched_loadings_df,
   file = loading_export_file,
   sep = "\t",
   col.names = T,
