@@ -141,12 +141,20 @@ def plot_text(
         text,
         plotFile
 ):
+    d = {
+        'x': [0],
+        'y': [0],
+        'label': [text]
+    }
+
+    df = pd.DataFrame(data=d)
 
     p = p9.ggplot() + p9.geom_text(
+        df,
         p9.aes(
-            x = 0,
-            y = 0,
-            label = text
+            x = 'x',
+            y = 'y',
+            label = 'label'
         )
     )
 
