@@ -447,7 +447,7 @@ rule remove_markers_gc_score:
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
-        print(e)
+            print(e)
 
 
 rule_stem = 'remove_markers_aa_theta_deviation'
