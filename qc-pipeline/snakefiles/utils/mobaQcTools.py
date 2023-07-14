@@ -320,15 +320,15 @@ def extract_list(
             try: val = float(val)  # Skip non-numeric values
             except: pass
 
-            if compare(val , threshold):
+            if compare(val, threshold):
 
                 # File with only keys, create the relevant subset first
                 subsetc = [allcols[index] for index in key_cols]
-                sample.write(f"{outsep.join(map(str,subsetc))}\n")
+                sample.write(f"{outsep.join(map(str, subsetc))}\n")
                 # File with more columns, and always include the threshold column
                 # subsetc is a relevant subset of the columns
                 subsetc = [allcols[index] for index in doc_cols]
-                subset.write(f"{outsep.join(map(str,subsetc))} {val}\n")
+                subset.write(f"{outsep.join(map(str, subsetc))} {val}\n")
                 matches += 1
 
     totalLines = line[0] + 1  # enumerates from 0, and we read a line manually

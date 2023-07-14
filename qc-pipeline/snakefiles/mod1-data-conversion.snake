@@ -325,6 +325,9 @@ rule remove_markers_cluster_sep:
 
                 mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} markers(NSNP_CLUSTERSEP_LOST) out of {dropouts["in"]} (BEFORE_SNPTABLE), leaving {dropouts["out"]} markers. Treshhold {params.threshold}\n')
 
+                # Create empty output to document that no sample/marker have been removed
+                sample = open(outFile, "w+").close()
+                subset = open(threshold_doc_file, "w+").close()
                 mqc.plot_text(
                     "No table for this batch",
                     output.plot
