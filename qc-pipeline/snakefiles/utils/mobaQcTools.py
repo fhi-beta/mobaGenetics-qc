@@ -60,9 +60,15 @@ def plot_hist(dataFile, resultFile, column="name of the column",
     return
 
 
-def plot_point_and_line(qc_results, dataFile, resultFile,
-                        column="name of the column", separator='\s+',
-                        ylabel="no label given", invert=True):
+def plot_point_and_line(
+        qc_results,
+        dataFile,
+        resultFile,
+        column = "name of the column",
+        separator = '\s+',
+        ylabel = "no label given",
+        invert = True
+):
     """plots and saves a plot of sample/markers probabilities (y-axis)
 
     Prints out lots of warning, but see
@@ -76,10 +82,13 @@ def plot_point_and_line(qc_results, dataFile, resultFile,
     rates.
 
     """
-    my_name = inspect.currentframe().f_code.co_name      # Generic way of find this functions name. Use
+    my_name = inspect.currentframe().f_code.co_name
     try:
-        df = pd.read_csv(dataFile, sep=separator,
-                         usecols=[column])
+        df = pd.read_csv(
+            dataFile,
+            sep = separator,
+            usecols = [column]
+        )
         threshold = qc_results.get("Threshold", 0)
     except Exception as e:
         print(f"{my_name}: Could not read plotdata {column} from {dataFile} or qc-results, {str(e)}")
@@ -92,15 +101,63 @@ def plot_point_and_line(qc_results, dataFile, resultFile,
     xlabel = qc_results.get("rule type")
     title = f'{qc_results.get("QC test")}\nthreshold={threshold}'
     df = df.sort_values(column).reset_index(drop=True)
-    p = p9.ggplot(df, p9.aes(x=df.index, y=column))
+
+    p = p9.ggplot(
+        df,
+        p9.aes(
+            x = df.index,
+            y = column
+        )
+    )
+
     line = p + p9.geom_line() + p9.geom_point()
+
     if threshold > 0 and threshold < 1 :
-        line += p9.geom_hline(yintercept=threshold, color='red')
+        line += p9.geom_hline(
+            yintercept = threshold,
+            color = 'red'
+        )
         # ylabel += f"   (threshold={threshold})"
         xlabel += f' ({qc_results.get("actionTakenCount")} outside threshold)'
-    line += p9.labs(title=title, y=ylabel, x=xlabel)
-    p9.ggsave(plot=line, filename=resultFile, dpi=300,
-              width=4, height=3, units="cm")
+
+    line += p9.labs(
+        title = title,
+        y = ylabel,
+        x = xlabel
+    )
+
+    p9.ggsave(
+        plot = line,
+        filename = resultFile,
+        dpi = 300,
+        width = 4,
+        height = 3,
+        units = "cm"
+    )
+    return
+
+
+def plot_text(
+        text,
+        plotFile
+):
+
+    p = p9.ggplot() + p9.geom_text(
+        p9.aes(
+            x = 0,
+            y = 0,
+            label = text
+        )
+    )
+
+    p9.ggsave(
+        plot = p,
+        filename = plotFile,
+        dpi = 300,
+        width = 4,
+        height = 3,
+        units = "cm"
+    )
     return
 
 

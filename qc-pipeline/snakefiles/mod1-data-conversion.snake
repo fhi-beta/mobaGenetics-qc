@@ -254,11 +254,8 @@ rule remove_markers_cluster_sep:
 
             column_name = getClusterSeparationColumn(wildcards.batch)
 
-            if input.snptable == "utils/dummy":
-                # Nothing to do here
-                mqc.copy_bedset(inTrunk, outTrunk)
+            if input.snptable != "utils/dummy":
 
-            else:
                 # identify markers for removal on cluster separation
                 (removed, total) = mqc.extract_list(
                     input.snptable,
@@ -283,30 +280,55 @@ rule remove_markers_cluster_sep:
                     check = True
                 )
 
-            dropouts = mqc.checkUpdates(
-                inTrunk + ".bim",
-                outTrunk +".bim",
-                cols = [0, 1, 3, 4, 5],
-                sanityCheck = "removal",
-                fullList = True,
-                allele_flip = True
-            )
-            dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
-            dropouts["Threshold"] = params.threshold
-            dropouts["Rule"] = rule
-            mqc.saveYamlResults(output.results, dropouts)
+                dropouts = mqc.checkUpdates(
+                    inTrunk + ".bim",
+                    outTrunk +".bim",
+                    cols = [0, 1, 3, 4, 5],
+                    sanityCheck = "removal",
+                    fullList = True,
+                    allele_flip = True
+                )
+                dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+                dropouts["Threshold"] = params.threshold
+                dropouts["Rule"] = rule
+                mqc.saveYamlResults(output.results, dropouts)
 
-            mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} markers(NSNP_CLUSTERSEP_LOST) out of {dropouts["in"]} (BEFORE_SNPTABLE), leaving {dropouts["out"]} markers. Treshhold {params.threshold}\n')
-            # The following has a huge potential for speedup (using round as in mqc.dotplot()
-            mqc.plot_point_and_line(
-                dropouts,
-                input.snptable,
-                output.plot,
-                column_name,
-                separator = '\t',
-                ylabel = "Separation",
-                invert = False
-            )
+                mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} markers(NSNP_CLUSTERSEP_LOST) out of {dropouts["in"]} (BEFORE_SNPTABLE), leaving {dropouts["out"]} markers. Treshhold {params.threshold}\n')
+
+                mqc.plot_point_and_line(
+                    dropouts,
+                    input.snptable,
+                    output.plot,
+                    column_name,
+                    separator = '\t',
+                    ylabel = "Separation",
+                    invert = False
+                )
+
+            else:
+
+                # Nothing to do for this batch
+                mqc.copy_bedset(inTrunk,outTrunk)
+
+                dropouts = mqc.checkUpdates(
+                    inTrunk + ".bim",
+                    outTrunk +".bim",
+                    cols = [0, 1, 3, 4, 5],
+                    sanityCheck = "removal",
+                    fullList = True,
+                    allele_flip = True
+                )
+                dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
+                dropouts["Threshold"] = params.threshold
+                dropouts["Rule"] = rule
+                mqc.saveYamlResults(output.results, dropouts)
+
+                mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} markers(NSNP_CLUSTERSEP_LOST) out of {dropouts["in"]} (BEFORE_SNPTABLE), leaving {dropouts["out"]} markers. Treshhold {params.threshold}\n')
+
+                mqc.plot_text(
+                    "No table for this batch",
+                    output.plot
+                ) 
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
