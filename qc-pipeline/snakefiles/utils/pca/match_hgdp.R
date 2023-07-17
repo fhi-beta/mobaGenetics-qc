@@ -69,6 +69,7 @@ library(tidyr)
 library(dplyr)
 library(glue)
 library(stringr)
+library(RSQLite)
 library(DBI)
 library(dbplyr)
 
