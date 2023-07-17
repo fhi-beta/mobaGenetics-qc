@@ -56,7 +56,7 @@ rule mod3_hdgp_match_hgdp:
     shell:
         """
         Rscript utils/pca/match_hgdp.R \
-            {input.plink2_files[2]} \
+            {input.plink2_files[3]} \
             {params.loadings_file} \
             {params.frequency_file} \
             {params.proxies_cache_stem} \
