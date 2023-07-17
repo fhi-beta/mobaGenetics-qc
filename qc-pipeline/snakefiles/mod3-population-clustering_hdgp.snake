@@ -51,7 +51,7 @@ rule mod3_hdgp_match_hgdp:
         frequencies_export_file = tmpMod3/"{batch}"/(rule_stem + "_frequencies"),
         variants_export_file = tmpMod3/"{batch}"/(rule_stem + "_variants")
     conda:
-        "envs/r_4.2.yaml"
+        "envs/r_mod3_hdgp_match_hdgp.yaml"
     threads: 32
     shell:
         """
