@@ -55,7 +55,7 @@ rule mod3_hdgp_match_hgdp:
     threads: 32
     shell:
         """
-        echo Rscript utils/pca/match_hgdp.R \
+        Rscript utils/pca/match_hgdp.R \
             {input.plink2_files[2]} \
             {params.loadings_file} \
             {params.frequency_file} \
