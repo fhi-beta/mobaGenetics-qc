@@ -10,9 +10,9 @@
 args <- commandArgs(TRUE)
 
 
-if (length(args) != 6) {
+if (length(args) != 8) {
 
-  stop(paste0("Four arguments expected: (1) variant file, (2) PC loadings file, (3) proxies cache file, (4) proxies database, (5) file where to export the matched loadings, (6) file where to export the ids of the matched variants. ", length(args), " found: ", paste(args, collapse = ", ")))
+  stop(paste0("Eight arguments expected, ", length(args), " found:\n", paste(args, collapse = "\n")))
 
 }
 
