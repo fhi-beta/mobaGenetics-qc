@@ -399,7 +399,7 @@ rule_stem = 'hwe_autos_geno'
 rule hwe_autos_geno:
     threads: 1
     input:
-        bed = rules.geno_rates_mind3.output.bed,
+        bed = rules.geno_rates.output.bed,
     output:
         bedset = tmpMod3/"{batch}"/"{role}"/(rule_stem + ".bed"),
         results = report(
