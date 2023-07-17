@@ -49,6 +49,7 @@ library(janitor)
 library(tidyr)
 library(dplyr)
 library(ggplot2)
+library(scico)
 library(grid)
 
 
@@ -91,6 +92,16 @@ plot_data <- pcs %>%
   ) %>% 
   arrange(
     desc(pop_factor)
+  )
+
+moba_data <- plot_data %>% 
+  filter(
+    pop == "MoBa"
+  )
+
+kg_data <- plot_data %>% 
+  filter(
+    pop != "MoBa"
   )
 
 
@@ -142,6 +153,13 @@ if (!dir.exists(plot_folder)) {
   
 }
 
+kg_populations_colors <- scico(
+  n = length(populations_order) - 1,
+  begin = 0.2,
+  end = 0.8,
+  palette = "hawaii"
+)
+
 for (pc_i in 1:9) {
   
   pc_name_x <- paste0("pc", pc_i)
@@ -160,20 +178,63 @@ for (pc_i in 1:9) {
     theme_bw(
       base_size = 24
     ) +
-    geom_point(
-      data = plot_data,
+    geom_density2d(
+      data = kg_data,
       mapping = aes(
         x = x,
         y = y,
-        col = pop
+        col = pop_factor
+      )
+    ) +
+    geom_point(
+      data = moba_data,
+      mapping = aes(
+        x = x,
+        y = y
       ),
-      alpha = 0.5
+      alpha = 0.1,
+        col = "black"
+    ) +
+    geom_xsidedensity(
+      data = plot_data,
+      mapping = aes(
+        x = x,
+        y = after_stat(density),
+        fill = pop_factor
+      )
+    ) +
+    geom_ysidedensity(
+      data = plot_data,
+      mapping = aes(
+        x = after_stat(density),
+        y = y,
+        fill = pop_factor
+      )
     ) +
     scale_x_continuous(
       name = pc_name_x
     ) +
     scale_y_continuous(
       name = pc_name_y
+    ) +
+    scale_color_manual(
+      values = scico(
+        n = kg_populations_colors
+      )
+    ) +
+    scale_fill_manual(
+      values = scico(
+        n = c("grey80", kg_populations_colors)
+      )
+    ) +
+    theme(
+      ggside.panel.scale = 0.15,
+      ggside.axis.ticks = element_blank(),
+      ggside.axis.text = element_blank(),
+      ggside.panel.grid = element_blank(),
+      ggside.panel.background = element_blank(),
+      ggside.panel.spacing = unit(0, "pt"),
+      panel.border = element_blank()
     )
   
   file_name <- paste0(pc_name_x, "_", pc_name_y, ".png")
