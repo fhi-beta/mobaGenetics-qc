@@ -377,6 +377,7 @@ split_founders_offspring:
   Rule order: mod3.2a
   rule type: samples
   rule action: remove (split)
+  rule action: remove (split)
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 
@@ -412,9 +413,9 @@ ibd_direct_exclusion:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-geno_rates_mind3:   
+geno_rates:
   QC test: Remove missing genotype rates (samples and markers)
-  Description: "multiple iterations of  using --geno and --mind --mind3 is the last and the only one reported. Not that this is a little confusing as only very few lost samples are reported (2.2020) in the html report"
+  Description: "Three iterations of plink using --geno and --mind."
   Rule order: mod3.2e
   rule type: samples/markers
   rule action: remove
@@ -643,3 +644,45 @@ rayner_report:
 #   # Placeholders that the pipeline will fill in
 #   Rule: Will be the same as the key of this
 #   Timestamp: 
+
+
+## HDGP rules
+mod3_hdgp_convert_plink2:
+  QC test: No test
+  Description:
+  Rule order: mod3_dev-a
+  rule type: markers
+  rule action: update
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp:
+
+mod3_hdgp_match_hgdp:
+  QC test: No test
+  Description: Matches the markers to HGDP loadings
+  Rule order: mod3_dev-b
+  rule type: markers
+  rule action: update
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp:
+
+mod3_hdgp_filter_ids:
+  QC test: No test
+  Description: Filters variants and keeps only those that can be used for the PCA
+  Rule order: mod3_dev-c
+  rule type: markers
+  rule action: remove
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp:
+
+mod3_hdgp_compute_scores:
+  QC test: No test
+  Description: Computes loadings for MoBa samples projected on the HDGB PCs
+  Rule order: mod3_dev-d
+  rule type: markers
+  rule action: update
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp:
