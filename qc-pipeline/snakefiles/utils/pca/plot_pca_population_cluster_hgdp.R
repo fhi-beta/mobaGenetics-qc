@@ -90,7 +90,7 @@ moba_scores <- read.table(
     cohort = "MoBa"
   )
 
-merged_scores <- rbind(
+plot_data <- rbind(
   hgdp_scores,
   moba_scores %>% 
     select(
