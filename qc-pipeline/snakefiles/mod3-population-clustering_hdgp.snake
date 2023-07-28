@@ -113,15 +113,27 @@ rule mod3_hdgp_compute_scores:
         score_stem = str(tmpMod3/"{batch}"/'pc_scores')
     output:
         score_file = str(tmpMod3/"{batch}"/'pc_scores.sscore')
-    conda:
-        "envs/plink_2.yaml"
     threads: 24
-    shell:
-        """
-        plink2 \
-            --pfile {params.plink_renamed_stem} \
-            --score {input.loading_file} variance-standardize cols=-scoreavgs,+scoresums list-variants header-read \
-            --score-col-nums 3-22 \
-            --read-freq {input.frequencies_file} \
-            --out {params.score_stem}
-        """
+    run:
+        try:
+
+            item_type = rule_info[rule]["rule type"]
+            mqc.log(runlog, rule_info[rule]["QC test"])
+            inTrunk =  mqc.plinkBase(input.plink_filtered[0])
+
+            subprocess.run(
+                [
+                    "plink2",
+                    "--pfile", inTrunk,
+                    "--score", input.loading_file, "variance-standardize", "cols=-scoreavgs,+scoresums", "list-variants", "header-read",
+                    "--score-col-nums", "3-22",
+                    "--read-freq", input.frequencies_file,
+                    "--out", params.score_stem,
+                    "--threads", str(threads)
+                ],
+                check = True
+            )
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
