@@ -104,16 +104,6 @@ plot_data <- pcs %>%
     desc(pop_factor)
   )
 
-moba_data <- plot_data %>% 
-  filter(
-    pop == "MoBa"
-  )
-
-kg_data <- plot_data %>% 
-  filter(
-    pop != "MoBa"
-  )
-
 
 # Write docs
 
@@ -177,6 +167,16 @@ for (pc_i in 1:9) {
   
   plot_data$x <- plot_data[[pc_name_x]]
   plot_data$y <- plot_data[[pc_name_y]]
+  
+  moba_data <- plot_data %>% 
+    filter(
+      pop == "MoBa"
+    )
+  
+  kg_data <- plot_data %>% 
+    filter(
+      pop != "MoBa"
+    )
   
   write(
     x = paste0("### ", pc_name_y, " vs. ", pc_name_x),
