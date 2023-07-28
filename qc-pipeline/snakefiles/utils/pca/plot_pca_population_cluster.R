@@ -192,10 +192,10 @@ for (pc_i in 1:9) {
       data = moba_data,
       mapping = aes(
         x = x,
-        y = y,
-        col = pop_factor
+        y = y
       ),
-      alpha = 0.1
+      alpha = 0.1,
+        col = "black"
     ) +
     geom_density2d(
       data = kg_data,
@@ -231,7 +231,7 @@ for (pc_i in 1:9) {
     ) +
     scale_color_manual(
       name = "Population",
-      values = c(kg_populations_colors, "black")
+      values = kg_populations_colors
     ) +
     scale_fill_manual(
       name = "Population",
