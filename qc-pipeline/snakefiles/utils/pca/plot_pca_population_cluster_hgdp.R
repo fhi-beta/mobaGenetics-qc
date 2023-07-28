@@ -107,7 +107,7 @@ n_variants <- length(moba_variants)
 for (pc_i in 1:20) {
   
   col_name <- glue("pc{pc_i}_sum")
-  moba_scores[[col_name]] <- moba_scores[[col_name]] / sqrt(n_variants)
+  moba_scores[[col_name]] <- 2 * moba_scores[[col_name]] / sqrt(n_variants)
   
 }
 
@@ -291,7 +291,7 @@ for (pc_i in 1:9) {
       alpha = 0.1,
         col = "black"
     ) +
-    geom_density2d(
+    geom_point(
       data = kg_data,
       mapping = aes(
         x = x,
