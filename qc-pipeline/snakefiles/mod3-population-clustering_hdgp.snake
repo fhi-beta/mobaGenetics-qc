@@ -112,7 +112,8 @@ rule mod3_hdgp_compute_scores:
     params:
         score_stem = str(tmpMod3/"{batch}"/'pc_scores')
     output:
-        score_file = str(tmpMod3/"{batch}"/'pc_scores.sscore')
+        score_file = str(tmpMod3/"{batch}"/'pc_scores.sscore'),
+        score_vars_file = str(tmpMod3/"{batch}"/'pc_scores.sscore.vars')
     threads: 24
     run:
         try:
@@ -142,6 +143,7 @@ rule_stem = "plot_pca_hdgp"
 rule plot_pca_hdgp:
     input:
         moba_scores = rules.mod3_hdgp_compute_scores.output.score_file,
+        moba_scores_vars = rules.mod3_hdgp_compute_scores.output.score_vars_file,
         hgdp_scores = config["hgdp_weights"],
     params:
         title = "\"Principal Component Analysys (PCA) in {batch} vs. HDGP\""
@@ -154,6 +156,7 @@ rule plot_pca_hdgp:
         """
         Rscript utils/pca/plot_pca_population_cluster_hgdp.R \
             {input.moba_scores} \
+            {input.moba_scores_vars} \
             {input.hgdp_scores} \
             {output.md_file} \
             {params.title}

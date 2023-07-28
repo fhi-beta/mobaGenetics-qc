@@ -23,7 +23,15 @@ if (!file.exists(moba_scores_file)) {
   
 }
 
-hgdp_scores_file <- args[2]
+variant_file <- args[2]
+
+if (!file.exists(variant_file)) {
+  
+  stop("Variant file not found")
+  
+}
+
+hgdp_scores_file <- args[3]
 
 if (!file.exists(hgdp_scores_file)) {
   
@@ -31,7 +39,7 @@ if (!file.exists(hgdp_scores_file)) {
   
 }
 
-md_file <- args[3]
+md_file <- args[4]
 docs_folder <- dirname(md_file)
 
 if (!dir.exists(docs_folder)) {
@@ -40,7 +48,7 @@ if (!dir.exists(docs_folder)) {
   
 }
 
-md_title <- args[4]
+md_title <- args[5]
 
 
 # Local debug - do not uncomment
@@ -91,10 +99,15 @@ moba_scores <- read.table(
     cohort = "MoBa"
   )
 
+moba_variants <- readLines(
+  con = variant_file
+)
+n_variants <- length(moba_variants)
+
 for (pc_i in 1:20) {
   
   col_name <- glue("pc{pc_i}_sum")
-  moba_scores[[col_name]] <- moba_scores[[col_name]] / sqrt(moba_scores$allele_ct)
+  moba_scores[[col_name]] <- moba_scores[[col_name]] / sqrt(n_variants)
   
 }
 
