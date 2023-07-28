@@ -231,11 +231,13 @@ for (pc_i in 1:9) {
     ) +
     scale_color_manual(
       name = "Population",
-      values = kg_populations_colors
+      values = kg_populations_colors,
+      drop = F
     ) +
     scale_fill_manual(
       name = "Population",
-      values = c(kg_populations_colors, "grey80")
+      values = c(kg_populations_colors, "grey80"),
+      drop = F
     ) +
     theme(
       ggside.panel.scale = 0.15,
