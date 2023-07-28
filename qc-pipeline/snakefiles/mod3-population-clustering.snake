@@ -230,19 +230,17 @@ rule plot_pca_both:
         pcs = rules.pca_both.output.pcs,
         pop_map = config["1000_genomes_pop"],
     params:
-        title = "\"Principal Component Analysys (PCA) in {batch}\""
+        title = "\"Principal Component Analysys (PCA) in {batch} vs. 1 KG\""
     output:
-        md_file = github_docs/"{batch}"/"pca_1kg_moba.md",
-        updated_pop = tmpMod3/"{batch}"/"moba.populations"
+        md_file = github_docs/"{batch}"/"pca_1kg_moba.md"
     conda:
         "envs/plot_pca_both.yaml"
     threads: 1
     shell:
         """
-        Rscript utils/pca/plot_pca_population_cluster.R \
+        Rscript utils/pca/plot_pca_population_cluster_1kg.R \
             {input.pcs} \
             {input.pop_map} \
             {output.md_file} \
-            {params.title} \
-            {output.updated_pop}
+            {params.title}
         """

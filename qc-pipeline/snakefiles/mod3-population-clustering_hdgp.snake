@@ -137,3 +137,24 @@ rule mod3_hdgp_compute_scores:
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
             print(e)
+
+rule_stem = "plot_pca_hdgp"
+rule plot_pca_hdgp:
+    input:
+        moba_scores = rules.mod3_hdgp_compute_scores.output.score_file,
+        hgdp_scores = config["hgdp_weights"],
+    params:
+        title = "\"Principal Component Analysys (PCA) in {batch} vs. HDGP\""
+    output:
+        md_file = github_docs/"{batch}"/"pca_hgdp_moba.md"
+    conda:
+        "envs/plot_pca_both.yaml"
+    threads: 1
+    shell:
+        """
+        Rscript utils/pca/plot_pca_population_cluster_hgdp.R \
+            {input.pcs} \
+            {input.pop_map} \
+            {output.md_file} \
+            {params.title}
+        """
