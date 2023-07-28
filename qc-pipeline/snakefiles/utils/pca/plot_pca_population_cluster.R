@@ -44,6 +44,15 @@ md_title <- args[4]
 export_file <- args[5]
 
 
+# Local debug - do not uncomment
+# 
+# pcs_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/pca_both.pcs"
+# thousand_genomes_populations_file <- "/mnt/archive/snpQc/1000Genomes/all_phase3.psam"
+# md_file <- "/mnt/work/marc/github/mobaGenetics-qc/qc-pipeline/docs/snp014/pca_1kg_moba.md"
+# md_title <- "Principal Component Analysys (PCA) in snp014"
+# export_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-good-markers/snp014/moba.populations"
+
+
 # Libraries
 library(janitor)
 library(tidyr)
@@ -131,7 +140,7 @@ write(
   append = T
 )
 
-n_samples <- as.data.frame(table(plot_data$pop))
+n_samples <- as.data.frame(table(plot_data$pop_factor))
 
 for (sample_i in 1:nrow(n_samples)) {
   
@@ -219,14 +228,10 @@ for (pc_i in 1:9) {
       name = pc_name_y
     ) +
     scale_color_manual(
-      values = scico(
-        n = kg_populations_colors
-      )
+      values = kg_populations_colors
     ) +
     scale_fill_manual(
-      values = scico(
-        n = c("grey80", kg_populations_colors)
-      )
+      values = c(kg_populations_colors, "grey80")
     ) +
     theme(
       ggside.panel.scale = 0.15,
