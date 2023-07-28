@@ -230,11 +230,11 @@ for (pc_i in 1:9) {
       name = pc_name_y
     ) +
     scale_color_manual(
-      title = "Population",
+      name = "Population",
       values = c(kg_populations_colors, "black")
     ) +
     scale_fill_manual(
-      title = "Population",
+      name = "Population",
       values = c(kg_populations_colors, "grey80")
     ) +
     theme(
