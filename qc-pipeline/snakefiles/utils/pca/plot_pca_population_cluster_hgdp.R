@@ -322,7 +322,7 @@ for (pc_i in 1:9) {
       panel.border = element_blank()
     )
   
-  file_name <- paste0(pc_name_x, "_", pc_name_y, ".png")
+  file_name <- paste0(pc_name_x, "_", pc_name_y, "_hgdp.png")
   
   print(paste0("Plotting to ", plot_folder, file_name))
   
