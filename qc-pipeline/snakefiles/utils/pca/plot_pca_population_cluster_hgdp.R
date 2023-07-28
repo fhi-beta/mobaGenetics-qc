@@ -141,7 +141,53 @@ write(
 )
 
 write(
-  x = paste0("Principal component analysis of the MoBa samples merged with the thousand genomes."),
+  x = paste0("Principal component analysis of the MoBa samples projected over PCs from the Human Genome Diversity Project (HGDP). Based on the analysis protocol of the _COVID-19 Host Genetics Initiative_, see [flagship paper](doi.org/10.1101/2021.03.10.21252820), with adaptations."),
+  file = md_file,
+  append = T
+)
+
+write(
+  x = paste0("| Population code | Description |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| --------------- | ----------- |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| AFR | African |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| AMR | Admixed American |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| EAS | East Asian |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| EUR | European |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| MID | Middle Eastern |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| SAS | South Asian |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("\n\n"),
   file = md_file,
   append = T
 )

@@ -118,6 +118,54 @@ write(
 )
 
 write(
+  x = paste0("| Population code | Description |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| --------------- | ----------- |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| AFR | African |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| AMR | Admixed American |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| EAS | East Asian |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| EUR | European |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| MID | Middle Eastern |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| SAS | South Asian |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("\n\n"),
+  file = md_file,
+  append = T
+)
+
+
+
+write(
   x = paste0("| Population | Number of samples |"),
   file = md_file,
   append = T
