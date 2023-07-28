@@ -1,4 +1,4 @@
-# Principal Component Analysys (PCA) in snp014
+# Principal Component Analysys (PCA) in snp014 vs. 1 KG
 Principal component analysis of the MoBa samples merged with the thousand genomes.
 | Population | Number of samples |
 | ---------- | ----------------- |
