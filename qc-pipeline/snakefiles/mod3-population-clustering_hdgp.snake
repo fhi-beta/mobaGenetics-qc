@@ -153,8 +153,8 @@ rule plot_pca_hdgp:
     shell:
         """
         Rscript utils/pca/plot_pca_population_cluster_hgdp.R \
-            {input.pcs} \
-            {input.pop_map} \
+            {input.moba_scores} \
+            {input.hgdp_scores} \
             {output.md_file} \
             {params.title}
         """
