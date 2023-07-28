@@ -227,7 +227,7 @@ if (!dir.exists(plot_folder)) {
 }
 
 kg_populations_colors <- scico(
-  n = length(populations_order) - 1,
+  n = length(cohort_order) - 1,
   begin = 0.2,
   end = 0.8,
   palette = "hawaii"
