@@ -90,6 +90,13 @@ moba_scores <- read.table(
     cohort = "MoBa"
   )
 
+for (pc_i in 1:20) {
+  
+  col_name <- glue("pc{pc_i}_sum")
+  moba_scores[[col_name]] <- moba_scores[[col_name]] / sqrt(moba_scores$allele_ct)
+  
+}
+
 plot_data <- rbind(
   hgdp_scores,
   moba_scores %>% 
