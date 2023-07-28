@@ -203,7 +203,7 @@ write(
   append = T
 )
 
-n_samples <- as.data.frame(table(plot_data$pop_factor))
+n_samples <- as.data.frame(table(plot_data$cohort_factor))
 
 for (sample_i in 1:nrow(n_samples)) {
   
@@ -243,12 +243,12 @@ for (pc_i in 1:9) {
   
   moba_data <- plot_data %>% 
     filter(
-      pop == "MoBa"
+      cohort == "MoBa"
     )
   
   kg_data <- plot_data %>% 
     filter(
-      pop != "MoBa"
+      cohort != "MoBa"
     )
   
   write(
@@ -275,7 +275,7 @@ for (pc_i in 1:9) {
       mapping = aes(
         x = x,
         y = y,
-        col = pop_factor
+        col = cohort_factor
       )
     ) +
     geom_xsidedensity(
@@ -283,7 +283,7 @@ for (pc_i in 1:9) {
       mapping = aes(
         x = x,
         y = after_stat(density),
-        fill = pop_factor
+        fill = cohort_factor
       ),
       alpha = 0.8
     ) +
@@ -292,7 +292,7 @@ for (pc_i in 1:9) {
       mapping = aes(
         x = after_stat(density),
         y = y,
-        fill = pop_factor
+        fill = cohort_factor
       ),
       alpha = 0.8
     ) +
