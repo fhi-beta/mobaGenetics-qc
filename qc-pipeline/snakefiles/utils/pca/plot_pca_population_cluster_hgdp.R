@@ -123,7 +123,7 @@ plot_data <- rbind(
 
 cohort_order <- c("HGDP", "MoBa")
 
-merged_scores <- merged_scores %>% 
+plot_data <- plot_data %>% 
   mutate(
     cohort_factor = factor(cohort, levels = cohort_order)
   ) %>% 
