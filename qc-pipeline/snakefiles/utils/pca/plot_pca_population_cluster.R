@@ -188,6 +188,15 @@ for (pc_i in 1:9) {
     theme_bw(
       base_size = 24
     ) +
+    geom_point(
+      data = moba_data,
+      mapping = aes(
+        x = x,
+        y = y,
+        col = pop_factor
+      ),
+      alpha = 0.1
+    ) +
     geom_density2d(
       data = kg_data,
       mapping = aes(
@@ -196,22 +205,14 @@ for (pc_i in 1:9) {
         col = pop_factor
       )
     ) +
-    geom_point(
-      data = moba_data,
-      mapping = aes(
-        x = x,
-        y = y
-      ),
-      alpha = 0.1,
-        col = "black"
-    ) +
     geom_xsidedensity(
       data = plot_data,
       mapping = aes(
         x = x,
         y = after_stat(density),
         fill = pop_factor
-      )
+      ),
+      alpha = 0.8
     ) +
     geom_ysidedensity(
       data = plot_data,
@@ -219,7 +220,8 @@ for (pc_i in 1:9) {
         x = after_stat(density),
         y = y,
         fill = pop_factor
-      )
+      ),
+      alpha = 0.8
     ) +
     scale_x_continuous(
       name = pc_name_x
@@ -228,9 +230,11 @@ for (pc_i in 1:9) {
       name = pc_name_y
     ) +
     scale_color_manual(
-      values = kg_populations_colors
+      title = "Population",
+      values = c(kg_populations_colors, "black")
     ) +
     scale_fill_manual(
+      title = "Population",
       values = c(kg_populations_colors, "grey80")
     ) +
     theme(
