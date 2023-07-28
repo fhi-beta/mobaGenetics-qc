@@ -231,7 +231,7 @@ for (pc_i in 1:9) {
     ) +
     scale_color_manual(
       name = "Population",
-      values = kg_populations_colors,
+      values = c(kg_populations_colors, "black"),
       drop = F
     ) +
     scale_fill_manual(
