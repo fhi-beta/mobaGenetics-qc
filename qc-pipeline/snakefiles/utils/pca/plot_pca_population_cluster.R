@@ -49,6 +49,7 @@ library(janitor)
 library(tidyr)
 library(dplyr)
 library(ggplot2)
+library(ggside)
 library(scico)
 library(grid)
 
