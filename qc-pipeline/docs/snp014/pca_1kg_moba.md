@@ -6,8 +6,8 @@ Principal component analysis of the MoBa samples merged with the thousand genome
 | AMR | 347 |
 | EAS | 504 |
 | EUR | 503 |
-| MoBa | 8907 |
 | SAS | 489 |
+| MoBa | 8907 |
 ### pc2 vs. pc1
 ![](plot/pc1_pc2.png)
 ### pc3 vs. pc2
