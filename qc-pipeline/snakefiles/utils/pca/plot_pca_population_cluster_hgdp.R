@@ -54,6 +54,7 @@ md_title <- args[4]
 
 # Libraries
 library(janitor)
+library(glue)
 library(tidyr)
 library(dplyr)
 library(ggplot2)
