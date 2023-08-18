@@ -127,7 +127,7 @@ rule mod3_hdgp_compute_scores:
                     "plink2",
                     "--pfile", inTrunk,
                     "--score", input.loading_file, "variance-standardize", "cols=-scoreavgs,+scoresums", "list-variants", "header-read",
-                    "--score-col-nums", "3-22",
+                    "--score-col-nums", "3-12",
                     "--read-freq", input.frequencies_file,
                     "--out", params.score_stem,
                     "--threads", str(threads)

@@ -307,7 +307,7 @@ rule_stem = "m4_output_unrelated_samples"
 rule m4_output_unrelated_samples:
     threads: 2
     input:
-        # first rule in the module. 
+        # first rule in the module. mobaxterm
         bedset_in = rules.core_missingness.input.bedset,
         bedset_done = rules.core_het.output.bedset,
     output:

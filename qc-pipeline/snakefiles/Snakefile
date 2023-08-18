@@ -44,7 +44,6 @@ report: "report/qc.rst"
 include: "mod1-data-conversion.snake"
 include: "mod2-genetic-relationship.snake"
 include: "mod3-population-clustering.snake"
-include: "mod3-population-clustering_hdgp.snake"
 include: "mod4-good-markers.snake"
 # include: "mod5-samples-unrelated.snake"
 # include: "mod6-phasing-prep.snake"
@@ -87,9 +86,6 @@ rule all:
         mod3_start_lmiss = expand(tmpMod3 / "{batch}" / 'mod3_start_missing.lmiss', batch = batches),
         mod3_start_imiss = expand(tmpMod3 / "{batch}" / 'mod3_start_missing.imiss', batch = batches),
         mod3_md_file_1kg = expand(github_docs / "{batch}" / "pca_1kg_moba.md", batch = batches),
-
-        mod3_score_file = expand(tmpMod3 / "{batch}" / 'pc_scores.sscore', batch = batches),
-        mod3_md_file_hdgp = expand(github_docs/ "{batch}" / "pca_hgdp_moba.md", batch = batches)
 
         # plink2_pgen = expand(tmpMod3/"{batch}"/"mod3_convert_plink2.pgen", batch = batches)
 
