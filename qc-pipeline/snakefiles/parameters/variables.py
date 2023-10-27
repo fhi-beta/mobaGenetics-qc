@@ -28,7 +28,7 @@ flashpca = Path(os.path.dirname(workflow.basedir))/'bin'/'flashpca_x86-64'
 kinglocal = Path(os.path.dirname(workflow.basedir))/'bin'/'Linux-king'/'king'
 
 # Resources
-high_ld_regions_hg19 = Path(os.path.dirname(workflow.basedir))/'resrouces'/'high-ld-regions-hg19'
+high_ld_regions_hg19 = Path(os.path.dirname(workflow.basedir))/'resources'/'high-ld-regions-hg19'
 
 # Folder paths
 tmp_path = Path(config['output_base']) / 'tmp'
