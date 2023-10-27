@@ -424,7 +424,7 @@ rule_stem = 'exclude_high_ld_markers'
 rule exclude_high_ld_markers:
     input:
         bedset = rules.exclude_strand_ambigious_markers.output.bedset,
-        high_ld_regions_hg19 = config["high_ld_regions_hg19"]
+        high_ld_regions_hg19 = high_ld_regions_hg19
     output:
         bedset = multiext(str(tmpMod2/"{batch}"/rule_stem) ,'.bed' ,'.bim' ,'.fam'),
         results = report(

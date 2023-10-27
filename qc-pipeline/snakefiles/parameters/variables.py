@@ -17,15 +17,18 @@ matplotlib.use('Agg')
 # These global variables can be shared only between Snakefiles 
 ### snakemake_workflows initialization ########################################
 
+
+# Executables
 libdir = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'lib'))
 bcftools = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/bcftools-1.7/bcftools'))
 vcftools = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/vcftools-0.1.13/vcftools'))
-
-# Local binaries
 plinklocal = Path(os.path.dirname(workflow.basedir))/'bin'/'plink-1.90b5.4'/'plink'
 plink2local = Path(os.path.dirname(workflow.basedir))/'bin'/'plink-1.90b5.4'/'plink'
 flashpca = Path(os.path.dirname(workflow.basedir))/'bin'/'flashpca_x86-64'
 kinglocal = Path(os.path.dirname(workflow.basedir))/'bin'/'Linux-king'/'king'
+
+# Resources
+high_ld_regions_hg19 = Path(os.path.dirname(workflow.basedir))/'resrouces'/'high-ld-regions-hg19'
 
 # Folder paths
 tmp_path = Path(config['output_base']) / 'tmp'
