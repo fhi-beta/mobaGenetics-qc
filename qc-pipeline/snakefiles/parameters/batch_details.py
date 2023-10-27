@@ -13,7 +13,19 @@ batch_genotyping_chip = {
     "snp015a": "Illumina Global Screening Array MD v1.0",
     "snp015b": "Illumina Global Screening Array MD v3.0",
     "snp016a": "Illumina Global Screening Array MD v3.0",
-    "snp016b": "Illumina Global Screening Array MD v3.0"
+    "snp016b": "Illumina Global Screening Array MD v3.0",
+    "snp017a": "DeCodeGenetics v3 1_v2",
+    "snp017b": "DeCodeGenetics v3 1_v2",
+    "snp017c": "DeCodeGenetics v3 1_v2",
+    "snp017d": "DeCodeGenetics v3 1_v2",
+    "snp017e": "DeCodeGenetics v3 1_v2",
+    "snp017f": "DeCodeGenetics v3 1_v2",
+    "snp018a": "DeCodeGenetics v3 1_v2",
+    "snp018b": "DeCodeGenetics v3 1_v2",
+    "snp018c": "DeCodeGenetics v3 1_v2",
+    "snp018d": "DeCodeGenetics v3 1_v2",
+    "snp018e": "DeCodeGenetics v3 1_v2",
+    "snp019": "GSAMD-24v2-0_20024620_B1"
 }
 batch_name = {
     "snp001": "Harvest m12b",
