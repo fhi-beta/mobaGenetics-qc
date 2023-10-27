@@ -40,7 +40,19 @@ batch_name = {
     "snp015a": "Norment Feb20 1",
     "snp015b": "Norment Feb20 3",
     "snp016a": "Norment Aug20 996",
-    "snp016b": "Norment Aug20 1029"
+    "snp016b": "Norment Aug20 1029",
+    "snp017a": "DeCode 1",
+    "snp017b": "DeCode 1",
+    "snp017c": "DeCode 1",
+    "snp017d": "DeCode 1",
+    "snp017e": "DeCode 1",
+    "snp017f": "DeCode 1",
+    "snp018a": "DeCode 1",
+    "snp018b": "DeCode 1",
+    "snp018c": "DeCode 1",
+    "snp018d": "DeCode 1",
+    "snp018e": "DeCode 1",
+    "snp019": "LifeBrain"
 }
 
 batch_snp_table = {
