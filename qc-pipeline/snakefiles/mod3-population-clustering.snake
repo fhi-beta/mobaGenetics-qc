@@ -226,7 +226,7 @@ rule pca_both:
                 "--outpc", output.pcs,
                 "--outvec", output.eigenvector,
                 "--outload", output.snp_loadings,
-                "--outvla", output.eigenvalues,
+                "--outval", output.eigenvalues,
                 "--outpve", output.variance_explained,
             ],
             check = True
