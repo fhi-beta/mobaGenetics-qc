@@ -541,7 +541,7 @@ rule sex_check:
         ),
         # File containing the F-statistics for the sex chromosomes
         f_x = tmpMod4 / "{batch}" / "{role}" / "sexcheck_report_x.sexcheck",
-        # f_y = os.path.join(tmpMod4, "{role}", "sexcheck_report_y.sexcheck"),
+        f_y = tmpMod4 / "{batch}" / "{role}" / "sexcheck_report_y.sexcheck",
         # in addition to the removal list, a removal.samples.txt is produced, sporting only the sample-list
         plot = report(
             resultPath / "{batch}" / "{role}" / (rule_stem + ".png"),
@@ -740,7 +740,7 @@ rule sex_clean:
         excl_male_x_markers = rules.clean_male_x.output.exclude_markers,
         # File containing the F-statistics for the sex chromosomes
         f_x = tmpMod4 / "{batch}" / "{role}" / "sexcheck_report_x.sexcheck",
-        f_y = tmpMod4 / "{role}" / "sexcheck_report_y.sexcheck"
+        f_y = tmpMod4 / "{batch}" / "{role}" / "sexcheck_report_y.sexcheck"
     output:
         bedset = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),# clean_markers earlier
         bedsetbim = tmpMod4 / "{batch}" / '{role}' / (rule_stem + '.bim'),# clean_markers earlier
