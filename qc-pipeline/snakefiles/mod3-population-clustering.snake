@@ -195,14 +195,18 @@ rule pca_both:
     output:
         bedset = multiext(str(tmpMod3/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         pcs = tmpMod3/"{batch}"/(rule_stem + ".pcs"),
+        eigenvector = tmpMod3/"{batch}"/(rule_stem + ".vec"),
+        snp_loadings = tmpMod3/"{batch}"/(rule_stem + ".load"),
+        eigenvalues = tmpMod3/"{batch}"/(rule_stem + ".val"),
+        variance_explained = tmpMod3/"{batch}"/(rule_stem + ".pve"),
     benchmark:
         (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
-        inTrunk_ref =  mqc.plinkBase(input.bedset_ref[0])
-        inTrunk_moba =  mqc.plinkBase(input.bedset_moba[0])
-        outTrunk =  mqc.plinkBase(output.bedset[0])
+        inTrunk_ref = mqc.plinkBase(input.bedset_ref[0])
+        inTrunk_moba = mqc.plinkBase(input.bedset_moba[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
 
         subprocess.run(
             [
@@ -220,6 +224,10 @@ rule pca_both:
                 flashpca,
                 "--bfile", outTrunk,
                 "--outpc", output.pcs,
+                "--outvec", output.eigenvector,
+                "--outload", output.snp_loadings,
+                "--outvla", output.eigenvalues,
+                "--outpve", output.variance_explained,
             ],
             check = True
         )
@@ -244,3 +252,5 @@ rule plot_pca_both:
             {output.md_file} \
             {params.title}
         """
+
+

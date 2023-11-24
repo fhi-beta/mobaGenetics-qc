@@ -7,8 +7,7 @@
 rule_stem = "tmp_extract_samples"  # Extract samples from main cluster in PCA to get best markers
 rule tmp_extract_samples:
     input:
-        # samples = rules.extract_pca_outliers.output.bedset,
-        # rolling back to the sampleset to be fed into mod5
+        # samples = rules.extract_pca_outliers.output.bedset
         markers = rules.m2_output.output.bedset,
     output:
         bedset = multiext(str(tmpMod4 / "{batch}" / rule_stem),'.bed','.bim','.fam'),
@@ -59,7 +58,6 @@ rule tmp_extract_samples:
 # Split parents and children into founders and offspring. Note that the output of this rule is also used in module 5 via the input of 'ibd_estimate'.
 rule_stem = "split_founders_offspring"
 split_rule_stem = rule_stem  # Placeholder for other rules using the output of the split
-
 rule split_founders_offspring:
     input:
         bedset = rules.tmp_extract_samples.output.bedset
