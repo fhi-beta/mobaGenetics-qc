@@ -87,6 +87,9 @@ rule all:
         mod3_start_imiss = expand(tmpMod3 / "{batch}" / 'mod3_start_missing.imiss', batch = batches),
         mod3_md_file_1kg = expand(github_docs / "{batch}" / "pca_1kg_moba.md", batch = batches),
 
+        # Module 4:
+        m4_output_good_markers = expand(tmpMod4 / "{batch}" / 'm4_output_good_markers.bed', batch = batches)
+
         # plink2_pgen = expand(tmpMod3/"{batch}"/"mod3_convert_plink2.pgen", batch = batches)
 
         # module_3_good_markers = expand((tmpMod3/"{batch}/m3_output_good_markers").with_suffix(".txt"), batch=batches),
