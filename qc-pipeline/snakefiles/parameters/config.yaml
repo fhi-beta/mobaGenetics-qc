@@ -5,7 +5,7 @@ raw_folder: "/mnt/archive/Momics/MomicsPub/snpArray/Datasets"
 documentationDataset: "https://github.com/fhi-beta/mobaDocsBackoffice/wiki/MoBaGenPub"
 documentationQC: "https://github.com/fhi-beta/mobaDocsBackoffice/wiki/pipeline"
 githubSource: "https://github.com/fhi-beta/mobaGenetics-qc"
-output_base: "/mnt/archive/snpQc/pipeOut_dev"
+output_base: "/mnt/archive/snpQc/pipeOut_dev_2024.01.05"
 
 # from http://www.haplotype-reference-consortium.org/ http://www.haplotype-reference-consortium.org/site
 # contains HRC.r1-1.GRCh37.wgs.mac5.sites.tab. If not found - google it.
