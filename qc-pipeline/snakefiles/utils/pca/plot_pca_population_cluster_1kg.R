@@ -9,12 +9,6 @@
 
 args <- commandArgs(TRUE)
 
-if (length(args) != 4) {
-  
-  stop(paste0("Four arguments expected: pcs file, thousand genomes population file, md file, md title. ", length(args), " found: ", paste(args, collapse = ", ")))
-  
-}
-
 pcs_file <- args[1]
 
 if (!file.exists(pcs_file)) {
