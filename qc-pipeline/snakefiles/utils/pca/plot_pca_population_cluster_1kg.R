@@ -42,7 +42,7 @@ ceu_ids_file <- args[6]
 
 n_pcs <- args[7]
 
-if (n_pcs < 1 | n_pcs > 10) {
+if (n_pcs < 1 || n_pcs > 10) {
   
   stop(paste0("The number of PCs should be between 1 and 10. Input: ", n_pcs, "."))
   
