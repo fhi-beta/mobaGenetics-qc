@@ -37,3 +37,23 @@ Principal component analysis of the MoBa samples merged with the thousand genome
 ![](plot/pc8_pc9_1kg.png)
 ### pc10 vs. pc9
 ![](plot/pc9_pc10_1kg.png)
+### Cluster distance in the 1KG
+![](plot/kg_distance.png)
+### pc2 vs. pc1
+![](plot/pc1_pc2_1kg_inferred.png)
+### pc3 vs. pc2
+![](plot/pc2_pc3_1kg_inferred.png)
+### pc4 vs. pc3
+![](plot/pc3_pc4_1kg_inferred.png)
+### pc5 vs. pc4
+![](plot/pc4_pc5_1kg_inferred.png)
+### pc6 vs. pc5
+![](plot/pc5_pc6_1kg_inferred.png)
+### pc7 vs. pc6
+![](plot/pc6_pc7_1kg_inferred.png)
+### pc8 vs. pc7
+![](plot/pc7_pc8_1kg_inferred.png)
+### pc9 vs. pc8
+![](plot/pc8_pc9_1kg_inferred.png)
+### pc10 vs. pc9
+![](plot/pc9_pc10_1kg_inferred.png)
