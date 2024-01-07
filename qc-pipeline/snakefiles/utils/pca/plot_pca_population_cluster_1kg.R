@@ -333,7 +333,7 @@ for (pc_i in 1:9) {
 
 kg <- merged_pcs %>% 
   filter(
-    pop != "MoBa" & pop != "AMR"
+    pop != "MoBa"
   ) %>% 
   select(
     iid_kg = iid,
