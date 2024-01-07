@@ -42,6 +42,18 @@ if (!dir.exists(docs_folder)) {
 
 md_title <- args[4]
 
+cluster_file <- args[5]
+
+ceu_ids_file <- args[6]
+
+n_pcs <- args[7]
+
+if (n_pcs < 1 | n_pcs > 10) {
+  
+  stop(paste0("The number of PCs should be between 1 and 10. Input: ", n_pcs, "."))
+  
+}
+
 
 # Local debug - do not uncomment
 # 
@@ -384,6 +396,19 @@ kg_distance <- kg_1 %>%
     )
   )
 
+kg_distance$distance <- 0
+
+for (pc in 1:n_pcs) {
+  
+  pc_kg_1 <- paste0("pc", pc, "_kg_1")
+  pc_kg_2 <- paste0("pc", pc, "_kg_2")
+  
+  kg_distance$distance <- distance_matrix$distance + ((distance_matrix[[pc_moba]] - distance_matrix[[pc_kg]]) ^ 2)
+  
+}
+
+kg_distance$distance <- sqrt(kg_distance$distance)
+
 kg_population_distance <- kg_distance %>%
   select(
     pop_kg_1, pop_kg_2, distance
@@ -517,21 +542,20 @@ distance_matrix <- moba %>%
   ) %>% 
   select(
     -merge
-  ) %>% 
-  mutate(
-    distance = sqrt(
-      (pc1_moba - pc1_kg)^2 +
-        (pc2_moba - pc2_kg)^2 +
-        (pc3_moba - pc3_kg)^2 +
-        (pc4_moba - pc4_kg)^2 +
-        (pc5_moba - pc5_kg)^2 +
-        (pc6_moba - pc6_kg)^2 +
-        (pc7_moba - pc7_kg)^2 +
-        (pc8_moba - pc8_kg)^2 +
-        (pc9_moba - pc9_kg)^2 +
-        (pc10_moba - pc10_kg)^2
-    )
   )
+
+distance_matrix$distance <- 0
+
+for (pc in 1:n_pcs) {
+  
+  pc_moba <- paste0("pc", pc, "_moba")
+  pc_kg <- paste0("pc", pc, "_kg")
+  
+  distance_matrix$distance <- distance_matrix$distance + ((distance_matrix[[pc_moba]] - distance_matrix[[pc_kg]]) ^ 2)
+  
+}
+
+distance_matrix$distance <- sqrt(distance_matrix$distance)
 
 population_distance_matrix <- distance_matrix %>% 
   select(
@@ -596,6 +620,18 @@ population_inference <- rbind(population_inference, admixed) %>%
 
 
 # Plot the PCs of the clusters
+
+write(
+  x = paste0("### Population clustering in MoBa"),
+  file = md_file,
+  append = T
+)
+
+write(
+  x = paste0("Clustering using nearest neighbors in the top ", n_pcs, " PCs."),
+  file = md_file,
+  append = T
+)
 
 plot_folder <- file.path(docs_folder, "plot")
 
@@ -727,4 +763,44 @@ for (pc_i in 1:9) {
   
 }
 
+  
+if (endsWith(cluster_file, ".gz")) {
+  
+  destination_file <- gzfile(cluster_file)
+  
+} else {
+  
+  destination_file <- cluster_file
+  
+}
 
+write.table(
+  population_inference %>% 
+    select(
+      iid, population_cluster
+    ),
+  file = destination_file,
+  col.names = T,
+  row.names = F,
+  sep = "\t",
+  quote = F
+)
+
+ceu_ids <- population_inference$iid[population_inference$population_cluster == "CEU"]
+
+ceu_ids_plink <- pcs %>% 
+  select(
+    fid, iid
+  ) %>% 
+  filter(
+    iid %in% ceu_ids
+  )
+
+write.table(
+  ceu_ids_plink,
+  file = ceu_ids_file,
+  col.names = F,
+  row.names = F,
+  sep = " ",
+  quote = F
+)

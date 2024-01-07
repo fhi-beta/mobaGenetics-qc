@@ -238,9 +238,12 @@ rule plot_pca_both:
         pcs = rules.pca_both.output.pcs,
         pop_map = config["1000_genomes_pop"],
     params:
-        title = "\"Principal Component Analysys (PCA) in {batch} vs. 1 KG\""
+        title = "\"Principal Component Analysys (PCA) in {batch} vs. 1 KG\"",
+        n_pcs = 4
     output:
-        md_file = github_docs/"{batch}"/"pca_1kg_moba.md"
+        md_file = github_docs/"{batch}"/"pca_1kg_moba.md",
+        cluster_file = github_docs/"{batch}"/"clusters",
+        ceu_file = github_docs/"{batch}"/"ceu_ids"
     conda:
         "envs/plot_pca_both.yaml"
     threads: 1
@@ -250,7 +253,10 @@ rule plot_pca_both:
             {input.pcs} \
             {input.pop_map} \
             {output.md_file} \
-            {params.title}
+            {params.title} \
+            {output.cluster_file} \
+            {output.ceu_file} \
+            {params.n_pcs}
         """
 
 
