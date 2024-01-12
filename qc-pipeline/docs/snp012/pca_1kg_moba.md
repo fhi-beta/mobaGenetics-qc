@@ -8,3 +8,7 @@
 | SAS | 0 | 0 | 0 | 0 | 391 |
 
 ![](plot/kg_pop_plot.png)
+| Population | AFR | AMR | EAS | EUR | SAS |
+| - | -  |  -  |  -  |  -  |  -  |
+| MoBa  | 43 | 82 | 171 | 17347 | 39 |
+![](plot/moba_pop_plot.png)
