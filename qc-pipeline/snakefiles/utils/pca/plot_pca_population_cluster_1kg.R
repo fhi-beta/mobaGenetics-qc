@@ -7,6 +7,8 @@
 
 # Command line arguments
 
+set.seed(20240112)
+
 args <- commandArgs(TRUE)
 
 pcs_file <- args[1]

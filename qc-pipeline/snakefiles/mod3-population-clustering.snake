@@ -241,8 +241,8 @@ rule plot_pca_both:
         title = "\"Principal Component Analysys (PCA) in {batch} vs. 1 KG\""
     output:
         md_file = github_docs/"{batch}"/"pca_1kg_moba.md",
-        cluster_file = github_docs/"{batch}"/"clusters",
-        ceu_file = github_docs/"{batch}"/"ceu_ids"
+        cluster_file = tmpMod3/"{batch}"/"clusters",
+        ceu_file = tmpMod3/"{batch}"/"ceu_ids"
     conda:
         "envs/plot_pca_both.yaml"
     threads: 1
