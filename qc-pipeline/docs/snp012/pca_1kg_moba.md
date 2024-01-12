@@ -40,7 +40,7 @@ Principal component analysis of the MoBa samples merged with the thousand genome
 ### Clustering in the 1KG
 | Population | AFR | AMR | EAS | EUR | SAS |
 | - | -  |  -  |  -  |  -  |  -  |
-| AFR | 528 | 1 | 0 | 0 | 0 |
+| AFR | 527 | 2 | 0 | 0 | 0 |
 | AMR | 2 | 268 | 0 | 8 | 0 |
 | EAS | 0 | 0 | 403 | 0 | 0 |
 | EUR | 0 | 0 | 0 | 402 | 0 |
@@ -51,7 +51,7 @@ Principal component analysis of the MoBa samples merged with the thousand genome
 ### Clustering in MoBa
 | Population | AFR | AMR | EAS | EUR | EUR_core | SAS |
 | - | -  |  -  |  -  |  -  |  -  |  -  |
-| MoBa | 44 | 82 | 171 | 209 | 17137 | 39 |
+| MoBa | 44 | 82 | 171 | 232 | 17114 | 39 |
 
 
 ![](plot/moba_pop_plot.png)
