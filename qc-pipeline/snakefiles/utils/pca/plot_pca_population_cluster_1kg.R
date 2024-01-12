@@ -397,7 +397,7 @@ for (pc in 1:n_pcs) {
   pc_kg_1 <- paste0("pc", pc, "_kg_1")
   pc_kg_2 <- paste0("pc", pc, "_kg_2")
   
-  kg_distance$distance <- distance_matrix$distance + ((distance_matrix[[pc_moba]] - distance_matrix[[pc_kg]]) ^ 2)
+  kg_distance$distance <- kg_distance$distance + ((kg_distance[[pc_moba]] - kg_distance[[pc_kg]]) ^ 2)
   
 }
 
