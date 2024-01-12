@@ -242,7 +242,7 @@ rule plot_pca_both:
     output:
         md_file = github_docs/"{batch}"/"pca_1kg_moba.md",
         cluster_file = tmpMod3/"{batch}"/"clusters",
-        ceu_file = tmpMod3/"{batch}"/"ceu_ids"
+        ceu_file = tmpMod3/"{batch}"/"ceu_core_ids"
     conda:
         "envs/plot_pca_both.yaml"
     threads: 1
