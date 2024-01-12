@@ -10,3 +10,4 @@ dependencies:
   - r-ggplot2=3.4.2
   - r-ggside=0.2.2
   - r-scico=1.4.0
+  - r-e1071=1.7_14
