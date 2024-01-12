@@ -39,6 +39,8 @@ Principal component analysis of the MoBa samples merged with the thousand genome
 ![](plot/pc9_pc10_1kg.png)
 ### Cluster distance in the 1KG
 ![](plot/kg_distance.png)
+### Population clustering in MoBa
+Clustering using nearest neighbors in the top 4 PCs.
 ### pc2 vs. pc1
 ![](plot/pc1_pc2_1kg_inferred.png)
 ### pc3 vs. pc2
