@@ -34,24 +34,24 @@ if (!dir.exists(docs_folder)) {
   
 }
 
+plot_folder <- file.path(docs_folder, "plot")
+
+if (!dir.exists(plot_folder)) {
+  
+  dir.create(plot_folder)
+  
+}
+
 md_title <- args[4]
 
 cluster_file <- args[5]
 
 ceu_ids_file <- args[6]
 
-n_pcs <- as.numeric(args[7])
-
-if (n_pcs < 1 || n_pcs > 10) {
-  
-  stop(paste0("The number of PCs should be between 1 and 10. Input: ", n_pcs, "."))
-  
-}
-
 
 # Local debug - do not uncomment
 # 
-# pcs_file <- "/mnt/archive/snpQc/pipeOut_dev/mod3-population-clustering/snp012/pca_both.pcs"
+# pcs_file <- "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod3-population-clustering/snp012/pca_both.pcs"
 # thousand_genomes_populations_file <- "/mnt/archive/snpQc/1000Genomes/all_phase3.psam"
 # md_file <- "/mnt/work/marc/github/mobaGenetics-qc/qc-pipeline/docs/snp012/pca_1kg_moba.md"
 # md_title <- "Principal Component Analysys (PCA) in snp012 vs. 1kg"
@@ -59,12 +59,19 @@ if (n_pcs < 1 || n_pcs > 10) {
 
 # Libraries
 library(janitor)
+library(glue)
 library(tidyr)
 library(dplyr)
+library(e1071)
 library(ggplot2)
 library(ggside)
 library(scico)
 library(grid)
+
+
+# Parameters
+
+core_threshold_p <- 0.9
 
 
 # Load data
@@ -197,14 +204,6 @@ for (sample_i in 1:nrow(n_samples)) {
 
 
 # Plot the PCs against each other
-
-plot_folder <- file.path(docs_folder, "plot")
-
-if (!dir.exists(plot_folder)) {
-  
-  dir.create(plot_folder)
-  
-}
 
 kg_populations_colors <- scico(
   n = length(populations_order) - 1,
@@ -342,9 +341,6 @@ kg <- merged_pcs %>%
     pc9_kg = pc9,
     pc10_kg = pc10,
     pop_kg = pop
-  ) %>% 
-  mutate(
-    merge = 0
   )
 
 kg_1 <- kg %>% 
@@ -360,101 +356,120 @@ kg_2 <- kg %>%
     !iid_kg %in% kg_1$iid_kg
   )
 
-names(kg_1) <- paste0(names(kg_1), "_1")
-names(kg_2) <- paste0(names(kg_2), "_2")
-
-names(kg_1)[ncol(kg_1)] <- "merge"
-names(kg_2)[ncol(kg_2)] <- "merge"
-
-kg_distance <- kg_1 %>% 
-  full_join(
-    kg_2,
-    by = "merge",
-    multiple = "all"
-  ) %>% 
-  select(
-    -merge
-  ) %>% 
+train_df <- as.data.frame(kg_1) %>% 
   mutate(
-    distance = sqrt(
-      (pc1_kg_1 - pc1_kg_2)^2 +
-        (pc2_kg_1 - pc2_kg_2)^2 +
-        (pc3_kg_1 - pc3_kg_2)^2 +
-        (pc4_kg_1 - pc4_kg_2)^2 +
-        (pc5_kg_1 - pc5_kg_2)^2 +
-        (pc6_kg_1 - pc6_kg_2)^2 +
-        (pc7_kg_1 - pc7_kg_2)^2 +
-        (pc8_kg_1 - pc8_kg_2)^2 +
-        (pc9_kg_1 - pc9_kg_2)^2 +
-        (pc10_kg_1 - pc10_kg_2)^2
-    )
-  )
-
-kg_distance$distance <- 0
-
-for (pc in 1:n_pcs) {
-  
-  pc_kg_1 <- paste0("pc", pc, "_kg_1")
-  pc_kg_2 <- paste0("pc", pc, "_kg_2")
-  
-  kg_distance$distance <- kg_distance$distance + ((kg_distance[[pc_kg_1]] - kg_distance[[pc_kg_2]]) ^ 2)
-  
-}
-
-kg_distance$distance <- sqrt(kg_distance$distance)
-
-kg_population_distance <- kg_distance %>%
+    pop_factor = factor(pop_kg)
+  ) %>% 
   select(
-    pop_kg_1, pop_kg_2, distance
-  ) %>% 
-  group_by(
-    pop_kg_1, pop_kg_2
-  ) %>% 
-  summarize(
-    mean = mean(distance),
-    sd = sd(distance),
-    q5 = quantile(distance, 0.05),
-    q50 = quantile(distance, 0.5),
-    q95 = quantile(distance, 0.95),
-    .groups = "keep"
+    pop_factor, starts_with("pc")
   )
+
+classifier <- svm(
+  formula = pop_factor ~ ., 
+  data = train_df, 
+  type = 'C-classification', 
+  kernel = 'linear', 
+  probability = TRUE
+)
+
+test_df <- as.data.frame(kg_2) %>% 
+  select(
+    starts_with("pc")
+  )
+
+pop_inference <- predict(
+  classifier, 
+  newdata = test_df, 
+  probability = TRUE
+  )
+
+kg_2$pop_inference <- as.character(pop_inference)
+
+probabilities <- as.data.frame(attr(pop_inference, "probabilities"))
+names(probabilities) <- paste0("p_", names(probabilities))
+
+kg_2 <- cbind(kg_2, probabilities)
 
 write(
-  x = paste0("### Cluster distance in the 1KG"),
+  x = paste0("### Clustering in the 1KG"),
   file = md_file,
   append = T
 )
 
-kg_population_distance_plot <- kg_population_distance %>% 
+pop_table <- as.data.frame(table(kg_2$pop_kg, kg_2$pop_inference))
+pop_table$Var1 <- as.character(pop_table$Var1)
+pop_table$Var2 <- as.character(pop_table$Var2)
+populations <- sort(unique(c(pop_table$Var1, pop_table$Var2)))
+
+write(
+  x = paste0("| Population | ", paste(populations, collapse = " | "), " |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| - |", paste(rep(" - ", length(populations)), collapse = " | "), " |"),
+  file = md_file,
+  append = T
+)
+
+for (population_ref in populations) {
+  
+  line <- paste0("| ", population_ref)
+  
+  for (population_inferred in populations) {
+    
+    n <- sum(kg_2$pop_kg == population_ref & kg_2$pop_inference == population_inferred)
+    
+    line <- paste0(line, " | ", n)
+    
+  }
+  
+  line <- paste0(line, " |")
+  
+  write(
+    x = line,
+    file = md_file,
+    append = T
+  )
+  
+}
+
+write(
+  x = "\n",
+  file = md_file,
+  append = T
+)
+
+
+kg_population_probabilities_plot <- kg_2 %>% 
+  select(
+    pop_kg, starts_with("p_")
+    ) %>% 
+  pivot_longer(
+    cols = starts_with("p_"),
+    names_prefix = "p_",
+    names_to = "pop_pred",
+    values_to = "probability"
+  ) %>% 
   mutate(
-    pop_kg_1_factor = factor(pop_kg_1),
-    pop_kg_2_factor = factor(pop_kg_2)
+    pop_kg_factor = factor(pop_kg),
+    pop_pred_factor = factor(pop_pred)
   )
 
-distance_plot <- ggplot() +
+kg_pop_plot <- ggplot() +
   theme_bw(
     base_size = 24
   ) +
-  geom_point(
-    data = kg_population_distance_plot,
+  geom_violin(
+    data = kg_population_probabilities_plot,
     mapping = aes(
-      x = q50,
-      y = pop_kg_2_factor,
-      col = pop_kg_2_factor
-    )
-  ) +
-  geom_segment(
-    data = kg_population_distance_plot,
-    mapping = aes(
-      x = q5,
-      xend = q95,
-      y = pop_kg_2_factor,
-      yend = pop_kg_2_factor,
-      col = pop_kg_2_factor
+      x = probability,
+      y = pop_pred_factor,
+      col = pop_pred_factor
     )
   ) +
   scale_x_continuous(
-    name = "Distance [median - 90%]"
+    name = "Probability"
   ) +
   theme(
     axis.title.y = element_blank(),
@@ -463,17 +478,17 @@ distance_plot <- ggplot() +
     legend.position = "none"
   ) +
   facet_grid(
-    pop_kg_1_factor ~ .
+    pop_kg_factor ~ .
   )
 
-file_name <- "kg_distance.png"
+file_name <- "kg_pop_plot.png"
 
 png(
   filename = file.path(plot_folder, file_name),
   width = 800,
   height = 600
 )
-grid.draw(distance_plot)
+grid.draw(kg_pop_plot)
 device <- dev.off()
 
 write(
@@ -483,135 +498,157 @@ write(
 )
 
 
-# Distance between MoBa and 1kg
+# Inference in MoBa
 
-moba <- merged_pcs %>% 
+train_df <- merged_pcs %>% 
+  filter(
+    pop != "MoBa"
+  ) %>% 
+  mutate(
+    pop_factor = factor(pop)
+  ) %>% 
+  select(
+    starts_with("pc"),
+    pop_factor
+  )
+
+classifier <- svm(
+  formula = pop_factor ~ ., 
+  data = train_df, 
+  type = 'C-classification', 
+  kernel = 'linear', 
+  probability = TRUE
+)
+
+moba_df <- merged_pcs %>% 
   filter(
     pop == "MoBa"
   ) %>% 
   select(
-    iid_moba = iid,
-    pc1_moba = pc1,
-    pc2_moba = pc2,
-    pc3_moba = pc3,
-    pc4_moba = pc4,
-    pc5_moba = pc5,
-    pc6_moba = pc6,
-    pc7_moba = pc7,
-    pc8_moba = pc8,
-    pc9_moba = pc9,
-    pc10_moba = pc10
-  ) %>% 
-  mutate(
-    merge = 0
+    fid, iid, starts_with("pc")
   )
 
-kg <- merged_pcs %>% 
-  filter(
-    pop != "MoBa"
-  ) %>% 
+predict_df <- moba_df %>% 
   select(
-    iid_kg = iid,
-    pc1_kg = pc1,
-    pc2_kg = pc2,
-    pc3_kg = pc3,
-    pc4_kg = pc4,
-    pc5_kg = pc5,
-    pc6_kg = pc6,
-    pc7_kg = pc7,
-    pc8_kg = pc8,
-    pc9_kg = pc9,
-    pc10_kg = pc10,
-    pop_kg = pop
-  ) %>% 
-  mutate(
-    merge = 0
+    starts_with("pc")
   )
 
-distance_matrix <- moba %>% 
-  full_join(
-    kg,
-    by = "merge",
-    multiple = "all"
-  ) %>% 
-  select(
-    -merge
-  )
-
-distance_matrix$distance <- 0
-
-for (pc in 1:n_pcs) {
-  
-  pc_moba <- paste0("pc", pc, "_moba")
-  pc_kg <- paste0("pc", pc, "_kg")
-  
-  distance_matrix$distance <- distance_matrix$distance + ((distance_matrix[[pc_moba]] - distance_matrix[[pc_kg]]) ^ 2)
-  
-}
-
-distance_matrix$distance <- sqrt(distance_matrix$distance)
-
-population_distance_matrix <- distance_matrix %>% 
-  select(
-    iid_moba, pop_kg, distance
-  ) %>% 
-  group_by(
-    iid_moba, pop_kg
-  ) %>% 
-  summarize(
-    mean = mean(distance),
-    sd = sd(distance),
-    q5 = quantile(distance, 0.05),
-    q50 = quantile(distance, 0.5),
-    q95 = quantile(distance, 0.95),
-    .groups = "keep"
-  )
-  
-population_distance_matrix <- population_distance_matrix %>% 
-  left_join(
-    kg_population_distance %>% 
-      ungroup() %>% 
-      filter(
-        pop_kg_1 == pop_kg_2
-      ) %>% 
-      select(
-        pop_kg = pop_kg_1,
-        q95_kg = q95
-      ),
-    by = "pop_kg"
-  )
-
-population_inference <- population_distance_matrix %>% 
-  mutate(
-    population_cluster = ifelse(q95 <= q95_kg, pop_kg, NA)
-  ) %>% 
-  filter(
-    !is.na(population_cluster)
-  ) %>% 
-  select(
-    iid_moba, population_cluster
-  ) %>% 
-  arrange(
-    population_cluster
-    ) %>% 
-  group_by(
-    iid_moba
-  ) %>% 
-  summarize(
-    population_cluster = paste(population_cluster, collapse = "_"),
-    .groups = "keep"
-  )
-
-admixed <- data.frame(
-  iid_moba = unique(population_distance_matrix$iid_moba[!population_distance_matrix$iid_moba %in% population_inference$iid_moba]),
-  population_cluster = "NONE"
+pop_inference <- predict(
+  classifier, 
+  newdata = predict_df, 
+  probability = TRUE
 )
 
-population_inference <- rbind(population_inference, admixed) %>% 
-  rename(
-    iid = iid_moba
+moba_df$pop_inference <- as.character(pop_inference)
+
+probabilities <- as.data.frame(attr(pop_inference, "probabilities"))
+names(probabilities) <- paste0("p_", names(probabilities))
+
+moba_df <- cbind(moba_df, probabilities)
+
+moba_df$pop_inference[moba_df$pop_inference == "EUR" & moba_df$p_EUR >= core_threshold_p] <- "EUR_core"
+
+write(
+  x = paste0("### Clustering in MoBa"),
+  file = md_file,
+  append = T
+)
+
+pop_table <- as.data.frame(table(moba_df$pop_inference))
+pop_table$Var1 <- as.character(pop_table$Var1)
+populations <- sort(pop_table$Var1)
+
+write(
+  x = paste0("| Population | ", paste(populations, collapse = " | "), " |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| - |", paste(rep(" - ", length(populations)), collapse = " | "), " |"),
+  file = md_file,
+  append = T
+)
+  
+  line <- paste0("| MoBa")
+  
+  for (population_inferred in populations) {
+    
+    n <- sum(moba_df$pop_inference == population_inferred)
+    
+    line <- paste0(line, " | ", n)
+    
+  }
+  
+  line <- paste0(line, " |")
+  
+  write(
+    x = line,
+    file = md_file,
+    append = T
+  )
+  
+  write(
+    x = "\n",
+    file = md_file,
+    append = T
   )
 
+
+moba_population_probabilities_plot <- moba_df %>% 
+  select(
+    pop_inference, starts_with("p_")
+  ) %>% 
+  pivot_longer(
+    cols = starts_with("p_"),
+    names_prefix = "p_",
+    names_to = "pop_pred",
+    values_to = "probability"
+  ) %>% 
+  mutate(
+    pop_inference_factor = factor(pop_inference),
+    pop_pred_factor = factor(pop_pred)
+  )
+
+moba_pop_plot <- ggplot() +
+  theme_bw(
+    base_size = 24
+  ) +
+  geom_violin(
+    data = moba_population_probabilities_plot,
+    mapping = aes(
+      x = probability,
+      y = pop_pred_factor,
+      col = pop_pred_factor
+    )
+  ) +
+  scale_x_continuous(
+    name = "Probability"
+  ) +
+  theme(
+    axis.title.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    legend.position = "none"
+  ) +
+  facet_grid(
+    pop_inference_factor ~ .
+  )
+
+file_name <- "moba_pop_plot.png"
+
+png(
+  filename = file.path(plot_folder, file_name),
+  width = 800,
+  height = 600
+)
+grid.draw(moba_pop_plot)
+device <- dev.off()
+
+write(
+  x = paste0("![](plot/", file_name, ")"),
+  file = md_file,
+  append = T
+)
 
 # Plot the PCs of the clusters
 
@@ -622,49 +659,35 @@ write(
 )
 
 write(
-  x = paste0("Clustering using nearest neighbors in the top ", n_pcs, " PCs."),
+  x = paste0("Clustering using svm in the top 10 PCs."),
   file = md_file,
   append = T
 )
 
 plot_folder <- file.path(docs_folder, "plot")
 
-kg_populations_colors <- scico(
-  n = length(populations_order) - 1,
-  begin = 0.2,
-  end = 0.8,
-  palette = "hawaii"
-)
-
-populations_order <- c(populations_order, "NONE")
+populations <- sort(unique(c(moba_df$pop_inference, merged_pcs$pop)))
 
 for (pc_i in 1:9) {
   
   pc_name_x <- paste0("pc", pc_i)
   pc_name_y <- paste0("pc", pc_i + 1)
   
-  merged_pcs$x <- merged_pcs[[pc_name_x]]
-  merged_pcs$y <- merged_pcs[[pc_name_y]]
+  moba_plot_data <- moba_df
+  moba_plot_data$x <- moba_df[[pc_name_x]]
+  moba_plot_data$y <- moba_df[[pc_name_y]]
+  moba_plot_data$pop_factor <- factor(moba_plot_data$pop, levels = populations)
   
-  moba_data <- merged_pcs %>% 
-    filter(
-      pop == "MoBa"
-    ) %>% 
-    left_join(
-      population_inference,
-      by = "iid"
-    ) %>% 
-    mutate(
-      pop_factor = factor(population_cluster, levels = populations_order)
-    )
-  
-  kg_data <- merged_pcs %>% 
+  kg_plot_data <- merged_pcs %>% 
     filter(
       pop != "MoBa"
     ) %>% 
     mutate(
-      pop_factor = factor(pop, levels = populations_order)
+      pop_factor = factor(pop, levels = populations)
     )
+  
+  kg_plot_data$x <- kg_plot_data[[pc_name_x]]
+  kg_plot_data$y <- kg_plot_data[[pc_name_y]]
   
   write(
     x = paste0("### ", pc_name_y, " vs. ", pc_name_x),
@@ -677,7 +700,7 @@ for (pc_i in 1:9) {
       base_size = 24
     ) +
     geom_point(
-      data = moba_data,
+      data = moba_plot_data,
       mapping = aes(
         x = x,
         y = y,
@@ -686,7 +709,7 @@ for (pc_i in 1:9) {
       alpha = 0.1
     ) +
     geom_density2d(
-      data = kg_data,
+      data = kg_plot_data,
       mapping = aes(
         x = x,
         y = y,
@@ -694,7 +717,7 @@ for (pc_i in 1:9) {
       )
     ) +
     geom_xsidedensity(
-      data = merged_pcs,
+      data = kg_plot_data,
       mapping = aes(
         x = x,
         y = after_stat(density),
@@ -703,7 +726,7 @@ for (pc_i in 1:9) {
       alpha = 0.8
     ) +
     geom_ysidedensity(
-      data = merged_pcs,
+      data = kg_plot_data,
       mapping = aes(
         x = after_stat(density),
         y = y,
@@ -716,16 +739,6 @@ for (pc_i in 1:9) {
     ) +
     scale_y_continuous(
       name = pc_name_y
-    ) +
-    scale_color_manual(
-      name = "Population",
-      values = c(kg_populations_colors, "black", "grey80"),
-      drop = F
-    ) +
-    scale_fill_manual(
-      name = "Population",
-      values = c(kg_populations_colors, "grey80", "grey80"),
-      drop = F
     ) +
     theme(
       ggside.panel.scale = 0.15,
@@ -769,10 +782,7 @@ if (endsWith(cluster_file, ".gz")) {
 }
 
 write.table(
-  population_inference %>% 
-    select(
-      iid, population_cluster
-    ),
+  moba_df,
   file = destination_file,
   col.names = T,
   row.names = F,
@@ -780,18 +790,16 @@ write.table(
   quote = F
 )
 
-ceu_ids <- population_inference$iid[population_inference$population_cluster == "CEU"]
-
-ceu_ids_plink <- pcs %>% 
+core_ids <- moba_df %>% 
+  filter(
+    pop_inference == "EUR_core"
+  ) %>% 
   select(
     fid, iid
-  ) %>% 
-  filter(
-    iid %in% ceu_ids
   )
 
 write.table(
-  ceu_ids_plink,
+  core_ids,
   file = ceu_ids_file,
   col.names = F,
   row.names = F,
