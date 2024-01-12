@@ -40,7 +40,7 @@ cluster_file <- args[5]
 
 ceu_ids_file <- args[6]
 
-n_pcs <- args[7]
+n_pcs <- as.numeric(args[7])
 
 if (n_pcs < 1 || n_pcs > 10) {
   
