@@ -12,3 +12,5 @@
 | - | -  |  -  |  -  |  -  |  -  |
 | MoBa  | 43 | 82 | 171 | 17347 | 39 |
 ![](plot/moba_pop_plot.png)
+### pc2 vs. pc1
+![](plot/pc1_pc2_1kg_inferred.png)
