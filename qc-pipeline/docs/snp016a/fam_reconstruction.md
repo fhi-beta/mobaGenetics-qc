@@ -3,7 +3,7 @@
 | Relationship |   |
 | ------------ | - |
 | Duplicates or monozygotic twins| 36 |
-| Parent-offspring| 3196 |
+| Parent-offspring| 3194 |
 | Full siblings| 327 |
 | 2nd degree| 0 |
 | 3rd degree| 0 |

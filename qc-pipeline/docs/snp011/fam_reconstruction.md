@@ -3,7 +3,7 @@
 | Relationship |   |
 | ------------ | - |
 | Duplicates or monozygotic twins| 5 |
-| Parent-offspring| 2029 |
+| Parent-offspring| 2028 |
 | Full siblings| 28 |
 | 2nd degree| 0 |
 | 3rd degree| 0 |
