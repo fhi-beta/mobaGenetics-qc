@@ -4,11 +4,11 @@
 #
 ##
 
-rule_stem = "tmp_extract_samples"  # Extract samples from main cluster in PCA to get best markers
-rule tmp_extract_samples:
+rule_stem = "mod4_keep_main_cluster"  # Extract samples from main cluster in PCA to get best markers
+rule mod4_keep_main_cluster:
     input:
-        # samples = rules.extract_pca_outliers.output.bedset
-        markers = rules.m2_output.output.bedset,
+        ceu_id_file = tmpMod3/"{batch}"/"ceu_core_ids",
+        bedset = rules.m2_output.output.bedset,
     output:
         bedset = multiext(str(tmpMod4 / "{batch}" / rule_stem),'.bed','.bim','.fam'),
         results = report(
@@ -26,14 +26,13 @@ rule tmp_extract_samples:
 
             inTrunk = mqc.plinkBase(input.markers[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
-            sample_list = mqc.plinkBase(input.samples[0]) + ".fam"
 
-            print(f"using {inTrunk} to make {outTrunk} using {sample_list}")
+            print(f"using {inTrunk} to make {outTrunk} using {input.ceu_id_file}")
             subprocess.run(
                 [
                     plinklocal,
                     "--bfile", inTrunk,
-                    "--keep", sample_list,
+                    "--keep", input.ceu_id_file,
                     "--out", outTrunk,
                     "--make-bed"
                 ],
@@ -60,7 +59,7 @@ rule_stem = "split_founders_offspring"
 split_rule_stem = rule_stem  # Placeholder for other rules using the output of the split
 rule split_founders_offspring:
     input:
-        bedset = rules.tmp_extract_samples.output.bedset
+        bedset = rules.mod4_keep_main_cluster.output.bedset
     output:
         bedset_founders = multiext(str(tmpMod4 / "{batch}" / "founders" / rule_stem),'.bed','.bim','.fam'),
         bedset_offspring = multiext(str(tmpMod4 / "{batch}" / "offspring" / rule_stem),'.bed','.bim','.fam'),
@@ -134,7 +133,6 @@ rule split_founders_offspring:
             print(e)
 
 rule_stem = "ibd_estimate"
-
 rule ibd_estimate:
     threads: 2
     input:
@@ -182,7 +180,6 @@ rule ibd_estimate:
             print(e)
 
 rule_stem = "ibd_accum_exclusion"
-
 rule ibd_accum_exclusion:
     threads: 2
     input:
@@ -257,7 +254,6 @@ rule ibd_accum_exclusion:
             print(e)
 
 rule_stem = 'ibd_direct_exclusion'
-
 rule ibd_direct_exclusion:
     threads: 2
     input:
@@ -325,9 +321,7 @@ rule ibd_direct_exclusion:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
-
 rule_stem = 'geno_rates'
-
 rule geno_rates:
     threads: 2
     input:
@@ -426,7 +420,6 @@ rule geno_rates:
 
 
 rule_stem = 'hwe_autos_geno'
-
 rule hwe_autos_geno:
     threads: 1
     input:
@@ -525,7 +518,6 @@ rule hwe_autos_geno:
             print(e)
 
 rule_stem = 'sex_check'
-
 rule sex_check:
     threads: 2
     input:
@@ -580,7 +572,6 @@ rule sex_check:
 
 
 rule_stem = 'female_xmarkers'
-
 rule female_xmarkers:
     threads: 2
     input:
@@ -633,7 +624,6 @@ rule female_xmarkers:
             print(e)
 
 rule_stem = 'par_regions'
-
 rule par_regions:
     threads: 2
     input:
@@ -686,7 +676,6 @@ rule par_regions:
             print(e)
 
 rule_stem = 'clean_male_x'
-
 rule clean_male_x:
     threads: 2
     input:
@@ -728,7 +717,6 @@ rule clean_male_x:
 
 # Note that this rule_stem is hardcoded in m3_output_good_markers
 rule_stem = 'sex_clean'
-
 rule sex_clean:
     threads: 2
     input:
@@ -802,18 +790,15 @@ rule sex_clean:
 
 
 rule_stem = 'm4_output_good_markers'
-
 rule m4_output_good_markers:
-    # Note that this rule creates and reports a non-split bedset. That's good for module 5,
-    # but not so good for module 4 which wants founders/offspring separated
+    # Note that this rule creates and reports a non-split bedset.
     threads: 2
     input:
         bedset = rules.m2_output.output.bedset,
-        markers = expand(os.path.join(tmpMod4,"{batch}",'{role}','sex_clean.bim'),role = roles,batch = batches)  # Final markerlists
+        markers = expand(os.path.join(tmpMod4,"{batch}", '{role}', 'sex_clean.bim'), role = roles, batch = batches)  # Final markerlists
     output:
         good_markers = tmpMod4 / "{batch}" / (rule_stem + ".txt"),
-        # for module 4, input will be rules.ibd_estimate.input.bedset aka output from split_founders_offspring
-        m4_output_good_markers = multiext(os.path.join(tmpMod4,"{batch}",rule_stem),'.bed','.bim','.fam'),
+        m4_output_good_markers = multiext(os.path.join(tmpMod4, "{batch}", rule_stem), '.bed', '.bim', '.fam'),
         results = report(
             resultPath / "{batch}" / (rule_stem + ".yaml"),
             category = "- Module 4 Good markers recap",
@@ -821,7 +806,6 @@ rule m4_output_good_markers:
         ),
     # There is another 'output' that mod4 will use: The founders/offspring bedset just
     # after the split. See rule split_founders_offspring
-
     run:
         try:
             item_type = rule_info[rule]["rule type"]
