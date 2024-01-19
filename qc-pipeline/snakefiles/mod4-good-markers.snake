@@ -150,8 +150,11 @@ rule ibd_estimate:
         tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".benchmark")
     run:
         try:
+            print("type")
             item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog,rule_info[rule]["QC test"])
+            print("qc")
+            mqc.log(runlog, rule_info[rule]["QC test"])
+            print("trunk")
             inTrunk = mqc.plinkBase(input.bed)
             outTrunk = mqc.plinkBase(output.genome)
 
@@ -166,13 +169,13 @@ rule ibd_estimate:
                 check = True
             )
 
-            p = mqc.dotplot(output.genome,prec = 3,x = 'Z0',y = 'Z1',c = 'RT')
-            p9.ggsave(plot = p,filename = output.preplot,dpi = 600)
+            p = mqc.dotplot(output.genome, prec = 3, x = 'Z0', y = 'Z1', c = 'RT')
+            p9.ggsave(plot = p, filename = output.preplot, dpi = 600)
             df = pd.read_csv(
                 output.genome,delim_whitespace = True,
                 usecols = ["IID1", "IID2", "PI_HAT"]
             )
-            df.to_csv(output.ibd_reduced_genome,index = False,sep = " ")
+            df.to_csv(output.ibd_reduced_genome, index = False, sep = " ")
             mqc.make_rule_caption(rule, resultPath)
 
         except Exception as e:
