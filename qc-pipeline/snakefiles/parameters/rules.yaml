@@ -361,9 +361,9 @@ extract_pca_outliers:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-tmp_extract_samples:
-  QC test: On mod2 bedset (all markers), temporarily remove  samples corrected for pedigree & pca
-  Description: When looking for good markers, we avoid pca-outliers and too dependent samples. Samples will not be extracted permanently. For the sake of identifying good markers, we keep them out of the loop for now.
+mod4_keep_main_cluster:
+  QC test: Select samples from the main cluster of the PCA.
+  Description: This module extracts a list of high-quality markers. For this, unrelated samples from the main cluster in the PCA are selected.
   Rule order: mod3.1i
   rule type: samples
   rule action: remove
