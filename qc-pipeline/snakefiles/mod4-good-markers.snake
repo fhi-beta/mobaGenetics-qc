@@ -213,7 +213,7 @@ rule ibd_accum_exclusion:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog,rule_info[rule]["QC test"])
             famFile = mqc.plinkBase(input.bed) + ".fam"
-            outTrunk = mqc.plinkBase(output.bedset)
+            outTrunk = mqc.plinkBase(output.bed)
             plotdir = os.path.dirname(output.plot)
 
             subprocess.run(
@@ -282,8 +282,8 @@ rule ibd_direct_exclusion:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog,rule_info[rule]["QC test"])
 
-            inTrunk = mqc.plinkBase(input.bedset)
-            outTrunk = mqc.plinkBase(output.bedset)
+            inTrunk = mqc.plinkBase(input.bed)
+            outTrunk = mqc.plinkBase(output.bed)
 
             # identify samples for removal due to high relatedness
             (removed, total) = mqc.extract_list(
@@ -405,12 +405,12 @@ rule geno_rates:
             mqc.make_rule_caption(rule_info, rule, resultPath)
 
             # Make a clean bedset and associated documentation
-            mqc.copy_bedset(lastTrunk,outTrunk)
+            mqc.copy_bedset(lastTrunk, outTrunk)
 
             missing_genotype_rate_docs(
                 rule = rule,
-                in_bedset = in_bedset,
-                out_bedset = out_bedset,
+                in_bedset = inTrunk,
+                out_bedset = outTrunk,
                 sample = True,
                 threshold = 0.1,
                 result_file = '/dev/null',
@@ -430,7 +430,7 @@ rule hwe_autos_geno:
     input:
         bed = rules.geno_rates.output.bed,
     output:
-        bedset = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
+        bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
         results = report(
             resultPath / "{batch}" / "{role}" / (rule_stem + ".yaml"),
             category = "Module 4 Good markers",
@@ -457,9 +457,9 @@ rule hwe_autos_geno:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog,rule_info[rule]["QC test"])
 
-            inTrunk = mqc.plinkBase(input.bedset)
-            out_dir = Path(output.bedset).parent  # Directory according to output.bedset
-            res_dir = Path(output.results).parent  # and corresponding for results
+            inTrunk = mqc.plinkBase(input.bed)
+            out_dir = Path(output.bed).parent
+            res_dir = Path(output.results).parent
             lastTrunk = inTrunk
 
             # Iterate 2 times, creating a chain of geno1 -> mind1 -> geno2 -> mind2 etc files
@@ -477,7 +477,7 @@ rule hwe_autos_geno:
                     rule,
                     lastTrunk,
                     outTrunk,
-                    treshold = getattr(params,f"hwe{i}"),
+                    treshold = getattr(params, f"hwe{i}"),
                     hwe_switches = ["--autosome", "--hardy", "midp"],
                     result_file = res_file,
                     plot_file = plot_file
@@ -495,8 +495,8 @@ rule hwe_autos_geno:
                     autosomal,
                     lastTrunk,
                     outTrunk,
-                    treshold = getattr(params,f"maf{i}"),
-                    sd = getattr(params,f"sd_het{i}"),
+                    treshold = getattr(params, f"maf{i}"),
+                    sd = getattr(params, f"sd_het{i}"),
                     result_file = res_file,
                     plot_file = plot_file
                 )
@@ -504,7 +504,7 @@ rule hwe_autos_geno:
                 lastTrunk = outTrunk
 
             # a last round of marker removal
-            outTrunk = mqc.plinkBase(output.bedset)
+            outTrunk = mqc.plinkBase(output.bed)
             mqc.missing_genotype_rate(
                 rule,
                 lastTrunk,
@@ -526,9 +526,9 @@ rule_stem = 'sex_check'
 rule sex_check:
     threads: 2
     input:
-        bedset = rules.hwe_autos_geno.output.bedset,
+        bed = rules.hwe_autos_geno.output.bed,
     output:
-        bedset = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),# called removed_failing_sexcheck
+        bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
         results = report(
             resultPath / "{batch}" / "{role}" / (rule_stem + ".yaml"),
             category = "Module 4 Good markers",
@@ -556,13 +556,13 @@ rule sex_check:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog,rule_info[rule]["QC test"])
 
-            inTrunk = mqc.plinkBase(input.bedset)
-            outTrunk = mqc.plinkBase(output.bedset)
+            inTrunk = mqc.plinkBase(input.bed)
+            outTrunk = mqc.plinkBase(output.bed)
 
             mqc.sex_check(
                 rule,
-                input.bedset,
-                output.bedset,
+                input.bed,
+                output.bed,
                 f_treshold = 0.2,
                 m_treshold = 0.8,
                 result_file = output.results,
@@ -580,9 +580,9 @@ rule_stem = 'female_xmarkers'
 rule female_xmarkers:
     threads: 2
     input:
-        bedset = rules.sex_check.output.bedset,
+        bed = rules.sex_check.output.bed,
     output:
-        bedset = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
+        bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
         results = report(
             resultPath / "{batch}" / "{role}" / (rule_stem + ".yaml"),
             category = "Module 4 Good markers",
@@ -610,8 +610,8 @@ rule female_xmarkers:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog,rule_info[rule]["QC test"])
 
-            inTrunk = mqc.plinkBase(input.bedset)
-            outTrunk = mqc.plinkBase(output.bedset)
+            inTrunk = mqc.plinkBase(input.bed)
+            outTrunk = mqc.plinkBase(output.bed)
 
             mqc.low_hwe_rate(
                 rule,
@@ -632,9 +632,9 @@ rule_stem = 'par_regions'
 rule par_regions:
     threads: 2
     input:
-        bedset = rules.female_xmarkers.output.bedset,
+        bed = rules.female_xmarkers.output.bed,
     output:
-        bedset = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
+        bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
         results = report(
             resultPath / "{batch}" / "{role}" / (rule_stem + ".yaml"),
             category = "Module 4 Good markers",
@@ -662,8 +662,8 @@ rule par_regions:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog,rule_info[rule]["QC test"])
 
-            inTrunk = mqc.plinkBase(input.bedset)
-            outTrunk = mqc.plinkBase(output.bedset)
+            inTrunk = mqc.plinkBase(input.bed)
+            outTrunk = mqc.plinkBase(output.bed)
 
             mqc.low_hwe_rate(
                 rule,
@@ -684,7 +684,7 @@ rule_stem = 'clean_male_x'
 rule clean_male_x:
     threads: 2
     input:
-        bedset = rules.par_regions.output.bedset,
+        bed = rules.par_regions.output.bed,
         # heterozygous haploid and nonmale Y chromosome call list from sexcheck
         hh = rules.sex_check.output.hh,
         bim = rules.sex_check.output.bim,
@@ -703,7 +703,7 @@ rule clean_male_x:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog,rule_info[rule]["QC test"])
 
-            inTrunk = mqc.plinkBase(input.bedset)
+            inTrunk = mqc.plinkBase(input.bed)
             # outTrunk =  mqc.plinkBase(output.bedset)
             mqc.egrep('^23',input.bim,output.chr23)  # a file with only chr23 rsid in second column
             # the .hh file as multiples, so we pass it as param 1
@@ -725,7 +725,7 @@ rule_stem = 'sex_clean'
 rule sex_clean:
     threads: 2
     input:
-        bedset = rules.hwe_autos_geno.output.bedset,# clean_autosomes earlier
+        bed = rules.hwe_autos_geno.output.bed,
         excl_failed_hwe_female_x = rules.female_xmarkers.output.exclude_markers,
         excl_failed_hwe_par_regions = rules.par_regions.output.exclude_markers,
         excl_male_x_markers = rules.clean_male_x.output.exclude_markers,
@@ -733,8 +733,8 @@ rule sex_clean:
         f_x = tmpMod4 / "{batch}" / "{role}" / "sexcheck_report_x.sexcheck",
         f_y = tmpMod4 / "{batch}" / "{role}" / "sexcheck_report_y.sexcheck"
     output:
-        bedset = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),# clean_markers earlier
-        bedsetbim = tmpMod4 / "{batch}" / '{role}' / (rule_stem + '.bim'),# clean_markers earlier
+        bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
+        bim = tmpMod4 / "{batch}" / '{role}' / (rule_stem + '.bim'),
         exclude_markers = report(
             tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".exclude"),
             category = "Module 4 Good markers",
@@ -752,8 +752,8 @@ rule sex_clean:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog,rule_info[rule]["QC test"])
 
-            inTrunk = mqc.plinkBase(input.bedset)
-            outTrunk = mqc.plinkBase(output.bedset)
+            inTrunk = mqc.plinkBase(input.bed)
+            outTrunk = mqc.plinkBase(output.bed)
 
             # Make a list of all earlier fails
             subprocess.call(
@@ -786,7 +786,7 @@ rule sex_clean:
             )
             dropouts.update(rule_info[rule])  # Metainfo and documentation about the rule
             dropouts["Rule"] = rule
-            mqc.saveYamlResults(output.results,dropouts)
+            mqc.saveYamlResults(output.results, dropouts)
             mqc.make_rule_caption(rule_info, rule, resultPath)
 
         except Exception as e:
@@ -799,7 +799,7 @@ rule m4_output_good_markers:
     # Note that this rule creates and reports a non-split bedset.
     threads: 2
     input:
-        bedset = rules.m2_output.output.bedset,
+        bed = rules.m2_output.output.bed,
         markers = expand(os.path.join(tmpMod4,"{batch}", '{role}', 'sex_clean.bim'), role = roles, batch = batches)  # Final markerlists
     output:
         good_markers = tmpMod4 / "{batch}" / (rule_stem + ".txt"),
@@ -808,9 +808,7 @@ rule m4_output_good_markers:
             resultPath / "{batch}" / (rule_stem + ".yaml"),
             category = "- Module 4 Good markers recap",
             caption = resultPath / "{batch}" / (rule_stem + ".rst")
-        ),
-    # There is another 'output' that mod4 will use: The founders/offspring bedset just
-    # after the split. See rule split_founders_offspring
+        )
     run:
         try:
             item_type = rule_info[rule]["rule type"]
