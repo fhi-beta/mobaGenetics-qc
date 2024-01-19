@@ -16,7 +16,7 @@ import matplotlib
 matplotlib.use('Agg')
 
 
-def make_rule_caption(rule, dir):
+def make_rule_caption(rule_info, rule, dir):
     """ Creates a caption for rule
 
     Rule is the calling rule, dir is a path object where the file rule.rst is to be created

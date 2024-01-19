@@ -150,11 +150,8 @@ rule ibd_estimate:
         tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".benchmark")
     run:
         try:
-            print("type")
             item_type = rule_info[rule]["rule type"]
-            print("qc")
             mqc.log(runlog, rule_info[rule]["QC test"])
-            print("trunk")
             inTrunk = mqc.plinkBase(input.bed)
             outTrunk = mqc.plinkBase(output.genome)
 
@@ -172,11 +169,16 @@ rule ibd_estimate:
             p = mqc.dotplot(output.genome, prec = 3, x = 'Z0', y = 'Z1', c = 'RT')
             p9.ggsave(plot = p, filename = output.preplot, dpi = 600)
             df = pd.read_csv(
-                output.genome,delim_whitespace = True,
+                output.genome,
+                delim_whitespace = True,
                 usecols = ["IID1", "IID2", "PI_HAT"]
             )
-            df.to_csv(output.ibd_reduced_genome, index = False, sep = " ")
-            mqc.make_rule_caption(rule, resultPath)
+            df.to_csv(
+                output.ibd_reduced_genome,
+                index = False,
+                sep = " "
+            )
+            mqc.make_rule_caption(rule_info, rule, resultPath)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -250,7 +252,7 @@ rule ibd_accum_exclusion:
             dropouts.update(rule_info[rule])
             dropouts["Rule"] = rule
             mqc.saveYamlResults(output.results,dropouts)
-            mqc.make_rule_caption(rule,resultPath)
+            mqc.make_rule_caption(rule_info, rule, resultPath)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -318,7 +320,7 @@ rule ibd_direct_exclusion:
             dropouts["Treshold"] = params.treshold
             dropouts["Rule"] = rule
             mqc.saveYamlResults(output.results,dropouts)
-            mqc.make_rule_caption(rule,resultPath)
+            mqc.make_rule_caption(rule_info, rule, resultPath)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -400,7 +402,7 @@ rule geno_rates:
                 lastTrunk = outTrunk
 
             # Create a common caption
-            mqc.make_rule_caption(rule,resultPath)
+            mqc.make_rule_caption(rule_info, rule, resultPath)
 
             # Make a clean bedset and associated documentation
             mqc.copy_bedset(lastTrunk,outTrunk)
@@ -514,7 +516,7 @@ rule hwe_autos_geno:
             )
 
             # and set a common caption
-            mqc.make_rule_caption(rule, resultPath)
+            mqc.make_rule_caption(rule_info, rule, resultPath)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -567,7 +569,7 @@ rule sex_check:
                 plot_file = output.plot
             )
 
-            mqc.make_rule_caption(rule, resultPath)
+            mqc.make_rule_caption(rule_info, rule, resultPath)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -620,7 +622,7 @@ rule female_xmarkers:
                 result_file = output.results,
                 plot_file = output.plot
             )
-            mqc.make_rule_caption(rule,resultPath)
+            mqc.make_rule_caption(rule_info, rule, resultPath)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -672,7 +674,7 @@ rule par_regions:
                 result_file = output.results,
                 plot_file = output.plot
             )
-            mqc.make_rule_caption(rule,resultPath)
+            mqc.make_rule_caption(rule_info, rule, resultPath)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -712,7 +714,7 @@ rule clean_male_x:
                 small_col = 2,
                 big_col = 1
             )
-            mqc.make_rule_caption(rule,resultPath)
+            mqc.make_rule_caption(rule_info, rule, resultPath)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -785,7 +787,7 @@ rule sex_clean:
             dropouts.update(rule_info[rule])  # Metainfo and documentation about the rule
             dropouts["Rule"] = rule
             mqc.saveYamlResults(output.results,dropouts)
-            mqc.make_rule_caption(rule,resultPath)
+            mqc.make_rule_caption(rule_info, rule, resultPath)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
