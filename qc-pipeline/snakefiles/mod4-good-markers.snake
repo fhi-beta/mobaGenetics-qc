@@ -799,7 +799,7 @@ rule m4_output_good_markers:
     # Note that this rule creates and reports a non-split bedset.
     threads: 2
     input:
-        bed = rules.m2_output.output.bed,
+        bedset = rules.m2_output.output.bedset,
         markers = expand(os.path.join(tmpMod4,"{batch}", '{role}', 'sex_clean.bim'), role = roles, batch = batches)  # Final markerlists
     output:
         good_markers = tmpMod4 / "{batch}" / (rule_stem + ".txt"),
@@ -814,7 +814,7 @@ rule m4_output_good_markers:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog,rule_info[rule]["QC test"])
             inTrunk = mqc.plinkBase(input.bedset[0])
-            outTrunk = mqc.plinkBase(output.mod5_input_bedset[0])
+            outTrunk = mqc.plinkBase(output.m4_output_good_markers[0])
             # Module 5: find common markers and extract them from original set
             mqc.intersect_rsid(
                 input.markers[1],
