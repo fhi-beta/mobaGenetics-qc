@@ -24,7 +24,7 @@ rule mod4_keep_main_cluster:
             mqc.log(runlog,rule_info[rule]["QC test"])
             mqc.log(runlog,"PCA exlude {item_type} ({params.treshold})\n")
 
-            inTrunk = mqc.plinkBase(input.markers[0])
+            inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
 
             print(f"using {inTrunk} to make {outTrunk} using {input.ceu_id_file}")
