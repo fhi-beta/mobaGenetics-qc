@@ -139,7 +139,7 @@ rule ibd_estimate:
         bed = tmpMod4 / "{batch}" / "{role}" / (split_rule_stem + ".bed"),
         clean_snps = rules.m2_output.output.pruned_snps
     output:
-        genome = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".genome"),
+        ibd_genome = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".genome"),
         preplot = report(
             resultPath / "{batch}" / "{role}" / (rule_stem + ".png"),
             category = "Module 4 Good markers",
@@ -178,7 +178,7 @@ rule ibd_accum_exclusion:
     threads: 2
     input:
         bed = rules.ibd_estimate.input.bed,
-        ibd_reduced_genome = rules.ibd_estimate.output.ibd_reduced_genome
+        ibd_genome = rules.ibd_estimate.output.ibd_genome
     output:
         exclusion = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".txt"),
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
@@ -199,6 +199,7 @@ rule ibd_accum_exclusion:
         tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".benchmark")
     run:
         try:
+            raise Exception("DEBUG")
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog,rule_info[rule]["QC test"])
             famFile = mqc.plinkBase(input.bed) + ".fam"
@@ -209,7 +210,7 @@ rule ibd_accum_exclusion:
                 [
                     "Rscript",
                     f"{libdir}/accumPIHAT.R",
-                    input.ibd_reduced_genome,
+                    input.ibd_genome,
                     famFile,
                     output.exclusion,
                     plotdir,
