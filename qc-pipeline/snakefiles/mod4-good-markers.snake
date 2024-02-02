@@ -140,7 +140,7 @@ rule ibd_estimate:
         clean_snps = rules.m2_output.output.pruned_snps
     output:
         genome = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".genome"),
-        ibd_reduced_genome = tmpMod4 / "{batch}" / "{role}" / "ibd_reduced.genome",
+        ibd_genome = tmpMod4 / "{batch}" / "{role}" / "ibd_estimate.genome",
         preplot = report(
             resultPath / "{batch}" / "{role}" / (rule_stem + ".png"),
             category = "Module 4 Good markers",
@@ -160,7 +160,7 @@ rule ibd_estimate:
                     plinklocal,
                     "--bfile", inTrunk,
                     "--extract", input.clean_snps,
-                    "--genome",
+                    "--genome gz",
                     "--out", outTrunk
                 ],
                 check = True
@@ -168,16 +168,6 @@ rule ibd_estimate:
 
             p = mqc.dotplot(output.genome, prec = 3, x = 'Z0', y = 'Z1', c = 'RT')
             p9.ggsave(plot = p, filename = output.preplot, dpi = 600)
-            df = pd.read_csv(
-                output.genome,
-                delim_whitespace = True,
-                usecols = ["IID1", "IID2", "PI_HAT"]
-            )
-            df.to_csv(
-                output.ibd_reduced_genome,
-                index = False,
-                sep = " "
-            )
             mqc.make_rule_caption(rule_info, rule, resultPath)
 
         except Exception as e:

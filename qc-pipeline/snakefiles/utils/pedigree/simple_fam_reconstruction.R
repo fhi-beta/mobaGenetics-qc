@@ -5,6 +5,8 @@
 #
 ##
 
+set.seed()
+
 
 # Command line arguments
 args <- commandArgs(TRUE)
