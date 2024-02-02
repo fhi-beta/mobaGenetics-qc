@@ -152,7 +152,7 @@ rule ibd_estimate:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, rule_info[rule]["QC test"])
             inTrunk = mqc.plinkBase(input.bed)
-            outTrunk = mqc.plinkBase(output.genome)
+            outTrunk = mqc.plinkBase(output.ibd_genome)
 
             subprocess.run(
                 [
@@ -165,7 +165,7 @@ rule ibd_estimate:
                 check = True
             )
 
-            p = mqc.dotplot(output.genome, prec = 3, x = 'Z0', y = 'Z1', c = 'RT')
+            p = mqc.dotplot(output.ibd_genome, prec = 3, x = 'Z0', y = 'Z1', c = 'RT')
             p9.ggsave(plot = p, filename = output.preplot, dpi = 600)
             mqc.make_rule_caption(rule_info, rule, resultPath)
 
@@ -253,7 +253,7 @@ rule ibd_direct_exclusion:
     threads: 2
     input:
         bed = rules.ibd_accum_exclusion.output.bed,
-        genome = rules.ibd_estimate.output.genome
+        ibd_genome = rules.ibd_estimate.output.ibd_genome
     output:
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
         results = report(
@@ -277,7 +277,7 @@ rule ibd_direct_exclusion:
 
             # identify samples for removal due to high relatedness
             (removed, total) = mqc.extract_list(
-                input.genome,
+                input.ibd_genome,
                 output.removal_samples,
                 output.removal,
                 colName = "PI_HAT",
