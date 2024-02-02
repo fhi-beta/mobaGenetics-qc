@@ -159,7 +159,7 @@ rule ibd_estimate:
                     plinklocal,
                     "--bfile", inTrunk,
                     "--extract", input.clean_snps,
-                    "--genome gz",
+                    "--genome --gz",
                     "--out", outTrunk
                 ],
                 check = True
