@@ -61,8 +61,8 @@ rule split_founders_offspring:
     input:
         bedset = rules.mod4_keep_main_cluster.output.bedset
     output:
-        bedset_founders = multiext(str(tmpMod4 / "{batch}" / "founders" / rule_stem),'.bed','.bim','.fam'),
-        bedset_offspring = multiext(str(tmpMod4 / "{batch}" / "offspring" / rule_stem),'.bed','.bim','.fam'),
+        bedset_founders = multiext(str(tmpMod4 / "{batch}" / "founders" / rule_stem), '.bed', '.bim', '.fam'),
+        bedset_offspring = multiext(str(tmpMod4 / "{batch}" / "offspring" / rule_stem), '.bed', '.bim', '.fam'),
         results_founders = report(
             resultPath / "{batch}" / (rule_stem + "_founders.yaml"),
             category = "Module 4 Good markers",
