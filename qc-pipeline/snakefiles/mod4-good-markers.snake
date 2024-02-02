@@ -138,6 +138,8 @@ rule ibd_estimate:
     input:
         bed = tmpMod4 / "{batch}" / "{role}" / (split_rule_stem + ".bed"),
         clean_snps = rules.m2_output.output.pruned_snps
+    params:
+        ibd_stem = tmpMod4 / "{batch}" / "{role}" / rule_stem,
     output:
         ibd_genome = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".genome.gz"),
         preplot = report(
@@ -152,7 +154,6 @@ rule ibd_estimate:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, rule_info[rule]["QC test"])
             inTrunk = mqc.plinkBase(input.bed)
-            outTrunk = mqc.plinkBase(output.ibd_genome)
 
             subprocess.run(
                 [
@@ -160,7 +161,7 @@ rule ibd_estimate:
                     "--bfile", inTrunk,
                     "--extract", input.clean_snps,
                     "--Z-genome",
-                    "--out", outTrunk
+                    "--out", params.ibd_stem
                 ],
                 check = True
             )
