@@ -138,6 +138,8 @@ rule ibd_estimate:
     input:
         bed = tmpMod4 / "{batch}" / "{role}" / (split_rule_stem + ".bed"),
         clean_snps = rules.m2_output.output.pruned_snps
+    params:
+
     output:
         ibd_genome = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".genome"),
         preplot = report(
@@ -159,7 +161,7 @@ rule ibd_estimate:
                     plinklocal,
                     "--bfile", inTrunk,
                     "--extract", input.clean_snps,
-                    "--genome --gz",
+                    "--Z-genome",
                     "--out", outTrunk
                 ],
                 check = True
