@@ -166,7 +166,6 @@ rule ibd_estimate:
                 [
                     kinglocal,
                     "-b", output.bed_clean_snps,
-                    "--related",
                     "--cpus", str(threads),
                     "--prefix", kingTrunk
                 ],
@@ -203,7 +202,6 @@ rule ibd_accum_exclusion:
         tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".benchmark")
     run:
         try:
-            raise Exception("DEBUG")
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog,rule_info[rule]["QC test"])
             famFile = mqc.plinkBase(input.bed) + ".fam"
