@@ -139,7 +139,7 @@ rule ibd_estimate:
         bed = tmpMod4 / "{batch}" / "{role}" / (split_rule_stem + ".bed"),
         clean_snps = rules.m2_output.output.pruned_snps
     output:
-        bed_clean_snps = tmpMod4 / "{batch}" / "{role}" / (split_rule_stem + ".bed"),
+        bed_clean_snps = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
         king_relatedness = tmpMod2 / "{batch}" / "{role}" / (rule_stem + ".kin0")
     benchmark:
         tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".benchmark")
