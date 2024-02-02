@@ -213,7 +213,7 @@ rule ibd_accum_exclusion:
                 [
                     "Rscript",
                     f"{libdir}/accumPIHAT.R",
-                    input.ibd_genome,
+                    input.king_relatedness,
                     famFile,
                     output.exclusion,
                     plotdir,
@@ -256,7 +256,7 @@ rule ibd_direct_exclusion:
     threads: 2
     input:
         bed = rules.ibd_accum_exclusion.output.bed,
-        ibd_genome = rules.ibd_estimate.output.ibd_genome
+        king_relatedness = rules.ibd_estimate.output.king_relatedness
     output:
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
         results = report(
@@ -280,7 +280,7 @@ rule ibd_direct_exclusion:
 
             # identify samples for removal due to high relatedness
             (removed, total) = mqc.extract_list(
-                input.ibd_genome,
+                input.king_relatedness,
                 output.removal_samples,
                 output.removal,
                 colName = "PI_HAT",
