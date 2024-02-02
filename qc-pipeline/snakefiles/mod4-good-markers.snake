@@ -139,7 +139,8 @@ rule ibd_estimate:
         bed = tmpMod4 / "{batch}" / "{role}" / (split_rule_stem + ".bed"),
         clean_snps = rules.m2_output.output.pruned_snps
     output:
-        ibd_genome = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".genome.gz")
+        bed_clean_snps = tmpMod4 / "{batch}" / "{role}" / (split_rule_stem + ".bed"),
+        king_relatedness = tmpMod2 / "{batch}" / "{role}" / (rule_stem + ".kin0")
     benchmark:
         tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".benchmark")
     run:
@@ -147,15 +148,26 @@ rule ibd_estimate:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, rule_info[rule]["QC test"])
             inTrunk = mqc.plinkBase(input.bed)
-            outTrunk = mqc.plinkBase(mqc.plinkBase(output.ibd_genome))
+            outTrunk = mqc.plinkBase(output.bed_clean_snps)
+            kingTrunk = mqc.plinkBase(output.king_relatedness)
 
             subprocess.run(
                 [
                     plinklocal,
                     "--bfile", inTrunk,
                     "--extract", input.clean_snps,
-                    "--Z-genome",
                     "--out", outTrunk
+                ],
+                check = True
+            )
+
+            subprocess.run(
+                [
+                    kinglocal,
+                    "-b", output.bed_clean_snps,
+                    "--related",
+                    "--cpus", str(threads),
+                    "--prefix", kingTrunk
                 ],
                 check = True
             )
@@ -168,8 +180,8 @@ rule_stem = "ibd_accum_exclusion"
 rule ibd_accum_exclusion:
     threads: 2
     input:
-        bed = rules.ibd_estimate.input.bed,
-        ibd_genome = rules.ibd_estimate.output.ibd_genome
+        bed = rules.ibd_estimate.output.bed_clean_snps,
+        king_relatedness = rules.ibd_estimate.output.king_relatedness
     output:
         exclusion = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".txt"),
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
