@@ -156,6 +156,7 @@ rule ibd_estimate:
                     plinklocal,
                     "--bfile", inTrunk,
                     "--extract", input.clean_snps,
+                    "--make-bed",
                     "--out", outTrunk
                 ],
                 check = True
