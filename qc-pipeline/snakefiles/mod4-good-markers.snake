@@ -139,12 +139,7 @@ rule ibd_estimate:
         bed = tmpMod4 / "{batch}" / "{role}" / (split_rule_stem + ".bed"),
         clean_snps = rules.m2_output.output.pruned_snps
     output:
-        ibd_genome = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".genome.gz"),
-        preplot = report(
-            resultPath / "{batch}" / "{role}" / (rule_stem + ".png"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
-        )
+        ibd_genome = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".genome.gz")
     benchmark:
         tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".benchmark")
     run:
@@ -164,10 +159,6 @@ rule ibd_estimate:
                 ],
                 check = True
             )
-
-            p = mqc.dotplot(output.ibd_genome, prec = 3, x = 'Z0', y = 'Z1', c = 'RT')
-            p9.ggsave(plot = p, filename = output.preplot, dpi = 600)
-            mqc.make_rule_caption(rule_info, rule, resultPath)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
