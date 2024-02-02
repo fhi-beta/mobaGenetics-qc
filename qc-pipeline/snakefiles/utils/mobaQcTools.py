@@ -205,7 +205,7 @@ def saveYamlResults(files, yamlStruct):
 
 
 def plinkBase(path):
-    """ part of the file without the last extention (such as .fam .bed .bim)
+    """ part of the file without the last extension (such as .fam .bed .bim)
 
     plink often works on a trunk and creates extra files: a becomes a.fam, a.bed, a.bid
     This function creates this trunk, so /foo/bar/gazonk.fam becomes /foo/bar/gazonk
