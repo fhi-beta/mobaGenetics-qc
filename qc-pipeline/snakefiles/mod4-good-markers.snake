@@ -138,10 +138,8 @@ rule ibd_estimate:
     input:
         bed = tmpMod4 / "{batch}" / "{role}" / (split_rule_stem + ".bed"),
         clean_snps = rules.m2_output.output.pruned_snps
-    params:
-
     output:
-        ibd_genome = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".genome"),
+        ibd_genome = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".genome.gz"),
         preplot = report(
             resultPath / "{batch}" / "{role}" / (rule_stem + ".png"),
             category = "Module 4 Good markers",
