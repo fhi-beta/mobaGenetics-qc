@@ -206,7 +206,7 @@ rule ibd_accum:
         """
 
 rule_stem = "ibd_exclusion"
-rule ibd_accum_exclusion:
+rule ibd_exclusion:
     threads: 2
     input:
         bed = rules.ibd_estimate.output.bed_clean_snps,
@@ -269,7 +269,7 @@ rule_stem = 'geno_rates'
 rule geno_rates:
     threads: 2
     input:
-        bed = rules.ibd_direct_exclusion.output.bed,
+        bed = rules.ibd_exclusion.output.bed,
     output:
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
         results = report(
