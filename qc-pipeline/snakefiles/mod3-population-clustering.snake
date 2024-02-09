@@ -254,7 +254,7 @@ rule plot_pca_both:
             {output.md_file} \
             {params.title} \
             {output.cluster_file} \
-            {output.ceu_file}
+            {output.ceu_id_file}
         """
 
 
