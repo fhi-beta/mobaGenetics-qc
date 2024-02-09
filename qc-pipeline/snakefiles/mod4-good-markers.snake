@@ -224,9 +224,6 @@ rule ibd_accum_exclusion:
             category = "Module 4 Good markers",
             caption = resultPath / "{batch}" / (rule_stem + ".rst")
         ),
-    params:
-        pihat_thr = str(config["ibd_pihat_thr"]),
-        hard_thr = str(config["ibd_hard_thr"])
     benchmark:
         tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".benchmark")
     run:
