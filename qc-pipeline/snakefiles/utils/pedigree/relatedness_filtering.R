@@ -12,9 +12,9 @@ set.seed(11111)
 # Command line arguments
 args <- commandArgs(TRUE)
 
-if (length(args) != 8) {
+if (length(args) != 6) {
   
-  stop(paste0("Eight arguments expected: genome file, sex check file, registry file, current fam file, destination file, exclusion file, md file, title. ", length(args), " found: ", paste(args, collapse = ", ")))
+  stop(paste0("Six arguments expected. ", length(args), " found: ", paste(args, collapse = ", ")))
   
 }
 

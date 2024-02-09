@@ -200,7 +200,6 @@ rule ibd_accum:
             {params.kinship_threshold} \
             {params.accum_kinship_threshold} \
             {output.id_exclusion_file} \
-            {output.pedigree_sample_exclusion} \
             {output.md_file} \
             {params.title}
         """
