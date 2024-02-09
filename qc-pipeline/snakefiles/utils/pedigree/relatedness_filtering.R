@@ -12,7 +12,7 @@ set.seed(11111)
 # Command line arguments
 args <- commandArgs(TRUE)
 
-if (length(args) != 6) {
+if (length(args) != 7) {
   
   stop(paste0("Six arguments expected. ", length(args), " found: ", paste(args, collapse = ", ")))
   
@@ -26,7 +26,15 @@ if (!file.exists(king_file)) {
   
 }
 
-kinship_threshold <- args[2]
+fam_file <- args[2]
+
+if (!file.exists(fam_file)) {
+  
+  stop("Fam file not found")
+  
+}
+
+kinship_threshold <- args[3]
 
 if (is.na(as.numeric(kinship_threshold))) {
   
@@ -34,7 +42,7 @@ if (is.na(as.numeric(kinship_threshold))) {
   
 }
 
-accumulated_kinship_threshold <- args[3]
+accumulated_kinship_threshold <- args[4]
 
 if (is.na(as.numeric(accumulated_kinship_threshold))) {
   
@@ -42,11 +50,11 @@ if (is.na(as.numeric(accumulated_kinship_threshold))) {
   
 }
 
-exclusion_file <- args[4]
+exclusion_file <- args[5]
 
-md_file <- args[5]
+md_file <- args[6]
 
-title <- args[6]
+title <- args[7]
 
 
 # Libraries
