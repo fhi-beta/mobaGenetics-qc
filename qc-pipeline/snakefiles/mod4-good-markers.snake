@@ -166,6 +166,7 @@ rule ibd_estimate:
                 [
                     kinglocal,
                     "-b", output.bed_clean_snps,
+                    "--kinship",
                     "--cpus", str(threads),
                     "--prefix", kingTrunk
                 ],
