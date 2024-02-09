@@ -190,7 +190,7 @@ rule ibd_accum:
         accum_kinship_threshold = str(config["accum_kinship_threshold"])
     output:
         id_exclusion_file = tmpMod4 / "{batch}" / "{role}" / (rule_stem + "_pedigree_sample_exclusion"),
-        md_file = github_docs / "{batch}" / "{role}" / (rule_stem + ".md"),
+        md_file = github_docs / "{batch}" / rule_stem / "{role}" / (rule_stem + ".md"),
     conda:
         "envs/r_4.2.yaml"
     threads: 1

@@ -34,17 +34,17 @@ if (!file.exists(fam_file)) {
   
 }
 
-kinship_threshold <- args[3]
+kinship_threshold <- as.numeric(args[3])
 
-if (is.na(as.numeric(kinship_threshold))) {
+if (is.na(kinship_threshold)) {
   
   stop(psate0("Input for `kinship_threshold` (", kinship_threshold, ") could not be parsed as a number."))
   
 }
 
-accumulated_kinship_threshold <- args[4]
+accumulated_kinship_threshold <- as.numeric(args[4])
 
-if (is.na(as.numeric(accumulated_kinship_threshold))) {
+if (is.na(accumulated_kinship_threshold)) {
   
   stop(psate0("Input for `accumulated_kinship_threshold` (", accumulated_kinship_threshold, ") could not be parsed as a number."))
   
@@ -62,6 +62,7 @@ title <- args[7]
 library(igraph)
 library(dplyr)
 library(ggplot2)
+library(ggside)
 library(grid)
 
 theme_set(theme_bw(base_size = 24))
@@ -114,7 +115,17 @@ ibd_plot <- ggplot() +
       x = IBS0,
       y = Kinship
     ),
-    alpha = 0.8
+    alpha = 0.2
+  ) +
+  geom_ysidedensity(
+    mapping = aes(
+      x = after_stat(density),
+      y = Kinship
+    ),
+    fill = "grey80"
+  ) +
+  geom_hline(
+    yintercept = kinship_threshold
   ) +
   scale_x_continuous(
     name = "IBS0 [Porportion of SNPs with zero IBS]"
@@ -123,13 +134,13 @@ ibd_plot <- ggplot() +
     name = "Kinship"
   ) +
   theme(
-    legend.title = element_blank(),
-    legend.position = "top"
-  ) + 
-  guides(
-    color = guide_legend(
-      override.aes = list(alpha = 1)
-    )
+    ggside.panel.scale = 0.15,
+    ggside.axis.ticks = element_blank(),
+    ggside.axis.text = element_blank(),
+    ggside.panel.grid = element_blank(),
+    ggside.panel.background = element_blank(),
+    panel.border = element_blank(),
+    ggside.panel.spacing = unit(0, "pt")
   )
 
 plot_name <- "kinship_plot.png"
