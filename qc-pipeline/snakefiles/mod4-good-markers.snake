@@ -177,12 +177,40 @@ rule ibd_estimate:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
+
+rule_stem = 'ibd_accum'
+rule ibd_accum:
+    input:
+        bed = rules.ibd_estimate.output.bed_clean_snps,
+        king_relatedness = rules.ibd_estimate.output.king_relatedness
+    params:
+        title = "\"Kinship filtering in {batch}\"",
+        kinship_threshold = str(config["kinship_threshold"]),
+        accum_kinship_threshold = str(config["accum_kinship_threshold"])
+    output:
+        id_exclusion_file = tmpMod4 / "{batch}" / "{role}" / (rule_stem + "_pedigree_sample_exclusion"),
+        md_file = github_docs / "{batch}" / "{role}" / (rule_stem + ".md"),
+    conda:
+        "envs/r_4.2.yaml"
+    threads: 1
+    shell:
+        """
+        Rscript utils/pedigree/relatedness_filtering.R \
+            {input.king_relatedness} \
+            {params.kinship_threshold} \
+            {params.accum_kinship_threshold} \
+            {output.id_exclusion_file} \
+            {output.pedigree_sample_exclusion} \
+            {output.md_file} \
+            {params.title}
+        """
+
 rule_stem = "ibd_accum_exclusion"
 rule ibd_accum_exclusion:
     threads: 2
     input:
         bed = rules.ibd_estimate.output.bed_clean_snps,
-        king_relatedness = rules.ibd_estimate.output.king_relatedness
+        id_exclusion_file = rules.ibd_accum.output.id_exclusion_file
     output:
         exclusion = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".txt"),
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
@@ -203,6 +231,9 @@ rule ibd_accum_exclusion:
         tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".benchmark")
     run:
         try:
+
+            raise Exception("Stop here")
+
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog,rule_info[rule]["QC test"])
             famFile = mqc.plinkBase(input.bed) + ".fam"
@@ -211,23 +242,9 @@ rule ibd_accum_exclusion:
 
             subprocess.run(
                 [
-                    "Rscript",
-                    f"{libdir}/accumPIHAT.R",
-                    input.king_relatedness,
-                    famFile,
-                    output.exclusion,
-                    plotdir,
-                    params.pihat_thr,
-                    params.hard_thr,
-                    rule
-                ],
-                check = True
-            )
-            subprocess.run(
-                [
                     plinklocal,
                     "--bfile", inTrunk,
-                    "--remove", output.exclusion,
+                    "--remove", input.id_exclusion_file,
                     "--make-bed",
                     "--out", outTrunk
                 ],

@@ -5,7 +5,7 @@
 #
 ##
 
-set.seed()
+set.seed(11111)
 
 
 # Command line arguments
@@ -213,7 +213,7 @@ nuclear_families <- components(relatedness_graph)
 
 id_to_family <- data.frame(
   id = V(relatedness_graph)$name,
-  family = paste0("family_", nuclear_families$membership),
+  family = paste0("kinship_cluster_", nuclear_families$membership),
   stringsAsFactors = F
 )
 

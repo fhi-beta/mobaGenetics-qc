@@ -67,12 +67,11 @@ prune_cmd: --indep-pairwise 200 100 0.1
 
 
 # needed? CHECK!
-pca_thr: "6 0.015 NA 0.0355 NA"
+# pca_thr: "6 0.015 NA 0.0355 NA"
 
-# ibd thresholds - used several places (temp and core)
-ibd_pihat_thr: 0.2    #ignore too closely related pairs
-ibd_hard_thr: 0.015   # (?) hard-set (non-SD) threshold for normalized accumPIHAT to determine outliers
-ibd_straight_thr: 0.1 # Used for the direct relatedness (not Djenghis Khan effect)
+# Kinship thresholds to create the set of good markers
+kinship_threshold: 0.1 # Used for the direct relatedness (not Djenghis Khan effect)
+accum_kinship_threshold: 0.015   # Threshold for normalized accumPIHAT to determine outliers
 
 # 3 cycles of mind/geno removal
 geno_rate.geno1: 0.10
