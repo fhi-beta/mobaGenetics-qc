@@ -112,8 +112,7 @@ ibd_plot <- ggplot() +
     data = genomic_relatedness_table,
     mapping = aes(
       x = IBS0,
-      y = IBD2Seg,
-      col = relationship
+      y = IBD2Seg
     ),
     alpha = 0.8
   ) +
