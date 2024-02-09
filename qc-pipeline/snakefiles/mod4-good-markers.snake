@@ -205,7 +205,7 @@ rule ibd_accum:
             {params.title}
         """
 
-rule_stem = "ibd_accum_exclusion"
+rule_stem = "ibd_exclusion"
 rule ibd_accum_exclusion:
     threads: 2
     input:
@@ -257,74 +257,6 @@ rule ibd_accum_exclusion:
             )
 
             dropouts.update(rule_info[rule])
-            dropouts["Rule"] = rule
-            mqc.saveYamlResults(output.results,dropouts)
-            mqc.make_rule_caption(rule_info, rule, resultPath)
-
-        except Exception as e:
-            print(f"An exception occurred in rule {rule}.")
-            print(e)
-
-rule_stem = 'ibd_direct_exclusion'
-rule ibd_direct_exclusion:
-    threads: 2
-    input:
-        bed = rules.ibd_accum_exclusion.output.bed,
-        king_relatedness = rules.ibd_estimate.output.king_relatedness
-    output:
-        bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
-        results = report(
-            resultPath / "{batch}" / "{role}" / (rule_stem + ".yaml"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
-        ),
-        removal = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".txt"),
-        removal_samples = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".samples.txt"),
-    params:
-        treshold = config['ibd_straight_thr']
-    benchmark:
-        tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".benchmark")
-    run:
-        try:
-            item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog,rule_info[rule]["QC test"])
-
-            inTrunk = mqc.plinkBase(input.bed)
-            outTrunk = mqc.plinkBase(output.bed)
-
-            # identify samples for removal due to high relatedness
-            (removed, total) = mqc.extract_list(
-                input.king_relatedness,
-                output.removal_samples,
-                output.removal,
-                colName = "PI_HAT",
-                sep = None,
-                condition = ">",
-                treshold = params.treshold,
-                key_cols = [0, 1],
-                doc_cols = [0, 1]
-            )
-
-            subprocess.run(
-                [
-                    plinklocal,
-                    "--bfile", inTrunk,
-                    "--remove", output.removal_samples,
-                    "--out", outTrunk,
-                    "--make-bed"
-                ],
-                check = True
-            )
-
-            dropouts = mqc.checkUpdates(
-                inTrunk + ".fam",
-                outTrunk + ".fam",
-                cols = [0, 1],
-                sanityCheck = "removal",
-                fullList = True
-            )
-            dropouts.update(rule_info[rule])
-            dropouts["Treshold"] = params.treshold
             dropouts["Rule"] = rule
             mqc.saveYamlResults(output.results,dropouts)
             mqc.make_rule_caption(rule_info, rule, resultPath)
