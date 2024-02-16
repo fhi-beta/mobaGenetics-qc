@@ -118,6 +118,7 @@ ibd_plot <- ggplot() +
     alpha = 0.2
   ) +
   geom_ysidedensity(
+    data = genomic_relatedness_table,
     mapping = aes(
       x = after_stat(density),
       y = Kinship
