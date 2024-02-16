@@ -229,9 +229,10 @@ rule ibd_exclusion:
         tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".benchmark")
     run:
         try:
-
+            print("start")
             item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog,rule_info[rule]["QC test"])
+            print("ruel")
+            mqc.log(runlog, rule_info[rule]["QC test"])
             famFile = mqc.plinkBase(input.bed) + ".fam"
             outTrunk = mqc.plinkBase(output.bed)
             plotdir = os.path.dirname(output.plot)
