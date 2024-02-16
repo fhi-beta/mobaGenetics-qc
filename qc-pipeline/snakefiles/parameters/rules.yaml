@@ -393,7 +393,7 @@ ibd_estimate:
   Rule: Will be the same as the key of this entry
   Timestamp: 
 
-ibd_accum_exclusion:
+ibd_exclusion:
   QC test: Remove samples that are too closely related (accumulated pi_hat)
   Description: Djenghis Khan effect is done through R with thresholds set by hand
   Rule order: mod3.2c
