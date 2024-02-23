@@ -1,7 +1,7 @@
 ##
 #
 # This snakefile executes the QC pipeline. The different parts of the pipeline are organized in modules represented in different snake files.
-# The pipeline is expected to run in the conda environment named 'snpQc' built using `aux/environment/snpQc-env.txt`.
+# The pipeline is expected to run in the conda environment named 'snpQc' built using `auxiliaries/environment/snpQc-env.txt`.
 #
 # Commands to execute from the qc-pipeline folder:
 # conda activate snp_qc

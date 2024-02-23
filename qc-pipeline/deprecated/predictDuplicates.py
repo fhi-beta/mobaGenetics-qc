@@ -4,9 +4,9 @@ import pandas as pd
 import yaml
 
 # samples mapping
-recode =  "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-files-original-fhi/recode-ids-rotterdam2.txt"
+recode =  "/mnt/archive/ROTTERDAM2/delivery-fhi/data/auxiliaries/recode-files/recode-files-original-fhi/recode-ids-rotterdam2.txt"
 #marker mapping
-recode = "/mnt/archive/ROTTERDAM2/delivery-fhi/data/aux/recode-files/recode-rsid.txt"
+recode = "/mnt/archive/ROTTERDAM2/delivery-fhi/data/auxiliaries/recode-files/recode-rsid.txt"
 
 #  datafile
 data = "/mnt/work/gutorm/qcTest/qcrot2/fullNewOutput/mod1-data-preparation/tmp/dup_markers_removed.bim"
