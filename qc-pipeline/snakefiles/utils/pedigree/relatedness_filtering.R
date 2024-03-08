@@ -248,7 +248,7 @@ write(
 )
 
 write(
-  x = "- Cummulative kinship",
+  x = "- Cummulative positive kinship",
   file = md_file,
   append = T
 )
@@ -257,6 +257,9 @@ cummulative_relatedness_table <- data.frame(
   id = c(genomic_relatedness_table$ID1, genomic_relatedness_table$ID2),
   kinship = c(genomic_relatedness_table$Kinship, genomic_relatedness_table$Kinship)
 ) %>% 
+  mutate(
+    kinship = ifelse(kinship > 0, kinship, 0)
+  ) %>% 
   summarise(
     cumulated_kinship = sum(kinship),
     .by = "id"
@@ -307,7 +310,7 @@ write(
 
 related_ids_table <- genomic_relatedness_table %>% 
   filter(
-    abs(Kinship) >= kinship_threshold
+    Kinship >= kinship_threshold
   ) %>% 
   select(
     ID1, ID2
@@ -407,6 +410,9 @@ cummulative_relatedness_table <- data.frame(
   id = c(unrelated_genomic_relatedness_table$ID1, unrelated_genomic_relatedness_table$ID2),
   kinship = c(unrelated_genomic_relatedness_table$Kinship, unrelated_genomic_relatedness_table$Kinship)
 ) %>% 
+  mutate(
+    kinship = ifelse(kinship > 0, kinship, 0)
+  ) %>% 
   summarise(
     cumulated_kinship = sum(kinship),
     .by = "id"
@@ -415,7 +421,7 @@ cummulative_relatedness_table <- data.frame(
     cumulated_kinship = cumulated_kinship / length(ids)
   )
 
-excluded_cumulative_kinship <- cummulative_relatedness_table$id[abs(cummulative_relatedness_table$cumulated_kinship) >= accumulated_kinship_threshold]
+excluded_cumulative_kinship <- cummulative_relatedness_table$id[cummulative_relatedness_table$cumulated_kinship >= accumulated_kinship_threshold]
   
 
 # Kinship plots
@@ -472,7 +478,7 @@ write(
 )
 
 write(
-  x = "- Cummulative kinship",
+  x = "- Cummulative positive kinship",
   file = md_file,
   append = T
 )
