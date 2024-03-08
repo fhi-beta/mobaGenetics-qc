@@ -92,6 +92,8 @@ theme_set(theme_bw(base_size = 24))
 
 # Load data
 
+print(glue("{Sys.time()}    Relatedness analysis - Loading data"))
+
 genomic_relatedness_table <- read.table(
   file = king_file,
   header = T,
@@ -109,6 +111,8 @@ ids <- unique(fam_data[, 2])
 
 
 # Write docs
+
+print(glue("{Sys.time()}    Relatedness analysis - Writing documentation"))
 
 write(
   x = paste0("# ", title),
@@ -414,6 +418,8 @@ excluded_cumulative_kinship <- cummulative_relatedness_table$id[abs(cummulative_
   
 
 # Kinship plots
+
+print(glue("{Sys.time()}    Relatedness analysis - Writing documentation"))
 
 write(
   x = "## Relatedness after relatedness filtering",
