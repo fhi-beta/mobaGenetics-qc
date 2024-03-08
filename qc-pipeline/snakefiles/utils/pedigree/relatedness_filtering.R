@@ -10,7 +10,7 @@ set.seed(11111)
 
 
 # Command line arguments
-debug <- F
+debug <- T
 
 if (debug) {
   
