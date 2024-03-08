@@ -340,7 +340,7 @@ while (length(V(relatedness_graph)) > relatedness_components$no) {
     
     if (length(component_nodes) > 1) {
     
-    component_table <- related_ids %>% 
+    component_table <- related_ids_table %>% 
       filter(
         ID1 %in% component_nodes & ID2 %in% component_nodes
       )
