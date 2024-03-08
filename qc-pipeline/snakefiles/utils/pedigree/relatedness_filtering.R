@@ -10,7 +10,7 @@ set.seed(11111)
 
 
 # Command line arguments
-debug <- T
+debug <- F
 
 if (debug) {
   
@@ -162,7 +162,12 @@ ibd_plot <- ggplot() +
     fill = "grey80"
   ) +
   geom_hline(
-    yintercept = kinship_threshold
+    yintercept = 0
+  ) +
+  geom_hline(
+    yintercept = kinship_threshold,
+    linetype = "dotted",
+    col = "blue3"
   ) +
   scale_x_continuous(
     name = "IBS0 [Porportion of SNPs with zero IBS]"
@@ -214,12 +219,14 @@ density_plot <- ggplot() +
   geom_density(
     data = genomic_relatedness_table,
     mapping = aes(
-      y = Kinship
+      x = Kinship
     ),
     fill = "grey90"
   ) +
   geom_vline(
-    xintercept = kinship_threshold
+    xintercept = kinship_threshold,
+    linetype = "dotted",
+    col = "blue3"
   ) +
   scale_x_continuous(
     name = "Kinship"
@@ -272,12 +279,14 @@ density_plot <- ggplot() +
   geom_density(
     data = cummulative_relatedness_table,
     mapping = aes(
-      y = cumulated_kinship
+      x = cumulated_kinship
     ),
     fill = "grey90"
   ) +
   geom_vline(
-    xintercept = accumulated_kinship_threshold
+    xintercept = accumulated_kinship_threshold,
+    linetype = "dotted",
+    col = "blue3"
   ) +
   scale_x_continuous(
     name = "Cumulative kinship"
@@ -329,12 +338,12 @@ relatedness_components <- components(relatedness_graph)
 iteration <- 1
 
 while (length(V(relatedness_graph)) > relatedness_components$no) {
-  
-  for (component_i in 1:relatedness_components$no) {
     
     print(glue("{Sys.time()}    Percolating relatedness graph - iteration {iteration} ({length(V(relatedness_graph))} nodes in {relatedness_components$no} components)"))
     
     iteration <- iteration + 1
+  
+  for (component_i in 1:relatedness_components$no) {
     
     component_nodes <- names(relatedness_components$membership)[relatedness_components$membership == component_i]
     
@@ -393,7 +402,7 @@ while (length(V(relatedness_graph)) > relatedness_components$no) {
 unrelated_ids <- ids[!ids %in% excluded_ids]
 
 write(
-  x = "Percolation of the relatedness graph using a Kinship threshold of {kinship_threshold}: {length(excluded_ids)} excluded, {length(unrelated_ids)} remaining.",
+  x = glue("Percolation of the relatedness graph using a Kinship threshold of {kinship_threshold}: {length(excluded_ids)} excluded, {length(unrelated_ids)} remaining."),
   file = md_file,
   append = T
 )
@@ -444,12 +453,14 @@ density_plot <- ggplot() +
   geom_density(
     data = unrelated_genomic_relatedness_table,
     mapping = aes(
-      y = Kinship
+      x = Kinship
     ),
     fill = "grey90"
   ) +
   geom_vline(
-    xintercept = kinship_threshold
+    xintercept = kinship_threshold,
+    linetype = "dotted",
+    col = "blue3"
   ) +
   scale_x_continuous(
     name = "Kinship"
@@ -487,12 +498,14 @@ density_plot <- ggplot() +
   geom_density(
     data = cummulative_relatedness_table,
     mapping = aes(
-      y = cumulated_kinship
+      x = cumulated_kinship
     ),
     fill = "grey90"
   ) +
   geom_vline(
-    xintercept = accumulated_kinship_threshold
+    xintercept = accumulated_kinship_threshold,
+    linetype = "dotted",
+    col = "blue3"
   ) +
   scale_x_continuous(
     name = "Cumulative kinship"
@@ -526,7 +539,7 @@ write(
 retained_ids <- unrelated_ids[!unrelated_ids %in% excluded_cumulative_kinship]
 
 write(
-  x = "Removal of samples with accumulated kinship using threshold of {accumulated_kinship_threshold}: {length(excluded_cumulative_kinship)} excluded, {length(retained_ids)} remaining.",
+  x = glue("Removal of samples with accumulated kinship using threshold of {accumulated_kinship_threshold}: {length(excluded_cumulative_kinship)} excluded, {length(retained_ids)} remaining."),
   file = md_file,
   append = T
 )
