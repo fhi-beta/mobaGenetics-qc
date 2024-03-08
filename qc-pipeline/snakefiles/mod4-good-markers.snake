@@ -185,7 +185,7 @@ rule ibd_accum:
         fam = rules.ibd_estimate.output.fam_clean_snps,
         king_relatedness = rules.ibd_estimate.output.king_relatedness
     params:
-        title = "\"Kinship filtering in {batch}\"",
+        title = "\"Kinship filtering in {role} in {batch}\"",
         kinship_threshold = str(config["kinship_threshold"]),
         accum_kinship_threshold = str(config["accum_kinship_threshold"])
     output:
@@ -229,6 +229,9 @@ rule ibd_exclusion:
         tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".benchmark")
     run:
         try:
+
+            raise Exception("Make exclusion list, fix sex children.")
+
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, rule_info[rule]["QC test"])
             inTrunk = mqc.plinkBase(input.bed)
