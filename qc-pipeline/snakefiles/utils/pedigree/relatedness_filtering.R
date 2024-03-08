@@ -81,6 +81,7 @@ title <- args[7]
 
 # Libraries
 
+library(glue)
 library(igraph)
 library(dplyr)
 library(ggplot2)
