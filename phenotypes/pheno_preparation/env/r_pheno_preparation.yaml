@@ -1,0 +1,9 @@
+name: r_pheno_preparation
+channels:
+  - conda-forge
+dependencies:
+  - r-base=4.2
+  - r-janitor=2.2.0
+  - r-tidyverse=2.0.0
+  - r-ggside=0.2.3
+  - r-igraph=1.3.5
