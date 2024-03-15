@@ -377,7 +377,6 @@ split_founders_offspring:
   Rule order: mod3.2a
   rule type: samples
   rule action: remove (split)
-  rule action: remove (split)
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp: 

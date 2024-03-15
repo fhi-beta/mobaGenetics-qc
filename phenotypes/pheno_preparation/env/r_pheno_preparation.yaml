@@ -3,6 +3,7 @@ channels:
   - conda-forge
 dependencies:
   - r-base=4.2
+  - r-foreign=0.8_71
   - r-janitor=2.2.0
   - r-tidyverse=2.0.0
   - r-ggside=0.2.3
