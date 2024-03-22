@@ -24,6 +24,7 @@ keys <- "NOKLER_PDBHDGB.sav"
 smoking <- "SmokingStatus.sav"
 
 birth_year_file <- "/mnt/archive/snpQc/phenotypes/birth_year_24.03.15.gz"
+expected_relationship_file <- "/mnt/archive/snpQc/phenotypes/expected_relationship_24.03.15.gz"
 
 
 # Load data
@@ -190,4 +191,50 @@ write.table(
   sep = "\t"
 )
 
+
+# Get expected relationships
+
+expected_relationship <- sav_keys %>%
+  left_join(
+    sav_preg_id_mother %>% 
+      select(
+        m_id_hdgb,
+        mother_sentrix_id = sentrix_id
+      ),
+    by = "m_id_hdgb",
+    relationship = "many-to-many"
+  ) %>% 
+  left_join(
+    sav_preg_id_father %>% 
+      select(
+        f_id_hdgb,
+        father_sentrix_id = sentrix_id
+      ),
+    by = "f_id_hdgb",
+    relationship = "many-to-many"
+  ) %>% 
+  left_join(
+    sav_preg_id_child %>% 
+      select(
+        preg_id_hdgb,
+        child_sentrix_id = sentrix_id
+      ),
+    by = "preg_id_hdgb",
+    relationship = "many-to-many"
+  ) %>% 
+  filter(
+    !is.na(mother_sentrix_id) | !is.na(father_sentrix_id) | !is.na(child_sentrix_id)
+  ) %>% 
+  select(
+    child_sentrix_id, mother_sentrix_id, father_sentrix_id
+  )
+
+write.table(
+  x = expected_relationship,
+  file = gzfile(expected_relationship_file),
+  col.names = T,
+  row.names = F,
+  quote = F,
+  sep = "\t"
+)
 
