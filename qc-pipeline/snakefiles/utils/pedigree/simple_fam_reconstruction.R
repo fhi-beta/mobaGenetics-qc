@@ -33,15 +33,23 @@ if (!file.exists(sex_check_file)) {
   
 }
 
-registry_file <- args[3]
+expected_relationships_file <- args[3]
 
-if (!file.exists(registry_file)) {
+if (!file.exists(expected_relationships_file)) {
   
-  stop("Registry file not found")
+  stop("Expected relationship file not found")
   
 }
 
-fam_file <- args[4]
+birth_year_file <- args[4]
+
+if (!file.exists(birth_year_file)) {
+  
+  stop("Birth year file not found")
+  
+}
+
+fam_file <- args[5]
 
 if (!file.exists(fam_file)) {
   
@@ -49,13 +57,13 @@ if (!file.exists(fam_file)) {
   
 }
 
-destination_file <- args[5]
+destination_file <- args[6]
 
-exclusion_file <- args[6]
+exclusion_file <- args[7]
 
-md_file <- args[7]
+md_file <- args[8]
 
-title <- args[8]
+title <- args[9]
 
 
 # Libraries
@@ -80,8 +88,14 @@ sex_check_data <- read.table(
   header = T,
   stringsAsFactors = F
 )
-registry_data  <- read.table(
-  file = registry_file,
+expected_relationships_data  <- read.table(
+  file = expected_relationships_file,
+  header = T,
+  sep = ",",
+  stringsAsFactors = F
+)
+birth_year_data  <- read.table(
+  file = birth_year_file,
   header = T,
   sep = ",",
   stringsAsFactors = F
