@@ -640,7 +640,8 @@ rule fam_reconstruction:
         king_relatedness = rules.pedigree_ibd_estimate.output.king_relatedness,
         sex_check = rules.check_sex.output.sex_check,
         bedset_all_markers = rules.callrate_permanent_removal.output.bedset,
-        expected_relationships = config['expected_relationships']
+        expected_relationships = config['expected_relationships'],
+        birth_year = config['birth_year']
     params:
         title = "\"Fam file reconstruction in {batch}\""
     output:
@@ -655,7 +656,8 @@ rule fam_reconstruction:
         Rscript utils/pedigree/simple_fam_reconstruction.R \
             {input.king_relatedness} \
             {input.sex_check} \
-            {input.registry_file} \
+            {input.expected_relationships} \
+            {input.expected_relationships} \
             {input.bedset_all_markers[2]} \
             {output.updated_fam} \
             {output.pedigree_sample_exclusion} \
