@@ -97,34 +97,9 @@ rule all:
         # Module 4:
         m4_output_good_markers = expand(tmpMod4 / "{batch}" / 'm4_output_good_markers.bed', batch = batches)
 
-        # plink2_pgen = expand(tmpMod3/"{batch}"/"mod3_convert_plink2.pgen", batch = batches)
-
-        # module_3_good_markers = expand((tmpMod3/"{batch}/m3_output_good_markers").with_suffix(".txt"), batch=batches),
-        # sex_check = expand(str(tmpMod3/"{batch}/{role}/sexcheck_report_x.sexcheck"), role=ROLES, batch=batches),
-        
-        # samples_lmm = expand(str(resultPath/"{batch}/{role}/m4_output_lmm_samples.yaml"), role=ROLES, batch=batches),
-        # unrelated_samples = expand(str(resultPath/"{batch}/{role}/m4_output_unrelated_samples.yaml"), role=ROLES, batch=batches),
-        
-        # mendelian_errors = expand(str(tmpMod5)+"/{batch}/mendelian_errors"+'{ext}', ext=['.bed','.bim','.fam'], batch=batches),
-        # mendelian_errors_chr = expand(str(tmpMod5)+"/{batch}/mendelian_errors-updated-chr{chromo}"+'{ext}', ext=['.bed','.bim','.fam'], chromo=chrom, batch=batches),
-        # rayner_report = expand(resultPath/"{batch}/rayner_report.rst", batch=batches),
-        
-        # pedigree_report = expand((resultPath/"{batch}/pedigree_fu_detector_solver").with_suffix(".yaml"), batch=batches),
-        
-        # For now: this is needed to force the plots into the report. Fix later
-        # Uncomment when creating in the report with plots
-        # pca = expand(str(resultPath) + "/{batch}/{role}/core_pca.png", role=ROLES, batch=batches),
-        # ibd = expand(str(resultPath/"{batch}/{role}/ibd_estimate.png"), role=ROLES, batch=batches),
-        # ibd_accum_exclusion = expand(str(resultPath/"{batch}/{role}/ibd_accum_exclusion.png"), role=ROLES, batch=batches)
-
-        # remove this when m4 is done
-	# final output:
-        #expand(config['output_base'] + 'mod5-shaping-preparation/tmp/hrc-update-complete-{chr}' + '{ext}', ext=['.bed','.bim','.fam'], chr=chrom),
-	# expand(config['output_base'] + '{role}/pca/final_pca_covars.txt', role=ROLES),
-	# config['output_base'] + 'sample_flag_list.txt'
 
 
-# for small tests. 
+# Legacy code from Guthorm - for small tests.
 rule test:
     output: touch("foo")
     log: "test.log"

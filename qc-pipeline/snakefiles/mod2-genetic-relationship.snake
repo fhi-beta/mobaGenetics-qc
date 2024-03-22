@@ -640,7 +640,7 @@ rule fam_reconstruction:
         king_relatedness = rules.pedigree_ibd_estimate.output.king_relatedness,
         sex_check = rules.check_sex.output.sex_check,
         bedset_all_markers = rules.callrate_permanent_removal.output.bedset,
-        registry_file = '/mnt/work/qc/dataChecksMobaData/triads.csv'  # Temporary solution until the MBR is available
+        expected_relationships = config['expected_relationships']
     params:
         title = "\"Fam file reconstruction in {batch}\""
     output:
@@ -652,7 +652,7 @@ rule fam_reconstruction:
     threads: 1
     shell:
         """
-        echo Rscript utils/pedigree/simple_fam_reconstruction.R \
+        Rscript utils/pedigree/simple_fam_reconstruction.R \
             {input.king_relatedness} \
             {input.sex_check} \
             {input.registry_file} \

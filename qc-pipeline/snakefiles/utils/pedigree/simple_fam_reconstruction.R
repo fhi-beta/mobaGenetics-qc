@@ -9,7 +9,7 @@ set.seed(11111)
 
 
 # Command line arguments
-debug <- T
+debug <- F
 if (debug) {
   
   args <- c(
