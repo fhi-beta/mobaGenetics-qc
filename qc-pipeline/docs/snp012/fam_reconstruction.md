@@ -1,4 +1,4 @@
-# Fam file reconstruction in snp012
+# NA
 ## Relationship inference
 | Relationship |   |
 | ------------ | - |
@@ -11,5 +11,17 @@
 | Unrelated| 0 |
 
 ![](fam_reconstruction/ibd_plot.png)
-## Exclusion
-- Number of children with parent-offspring relationship: 6
+## Mother sex check
+| Inferred sex |   |
+| ------------ | - |
+| Unknown | 36 |
+| Male | 3 |
+| Female | 5866 |
+![](fam_reconstruction/mother_sex_plot.png)
+## Father sex check
+| Inferred sex |   |
+| ------------ | - |
+| Unknown | 0 |
+| Male | 5860 |
+| Female | 17 |
+![](fam_reconstruction/father_sex_plot.png)
