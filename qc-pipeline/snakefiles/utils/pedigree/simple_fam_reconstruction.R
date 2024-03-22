@@ -266,7 +266,7 @@ write(
   append = T
 )
 write(
-  x = paste0("| Female | ", sum(mother_sex$SNPSEX == 2), " |"),
+  x = paste0("| Female | ", sum(mother_sex$SNPSEX == 2), " |\n"),
   file = md_file,
   append = T
 )
@@ -299,7 +299,7 @@ png(
   width = 800,
   height = 600
 )
-grid.draw(ibd_plot)
+grid.draw(mother_sex_plot)
 device <- dev.off()
 
 write(
@@ -347,7 +347,7 @@ write(
   append = T
 )
 write(
-  x = paste0("| Female | ", sum(father_sex$SNPSEX == 2), " |"),
+  x = paste0("| Female | ", sum(father_sex$SNPSEX == 2), " |\n"),
   file = md_file,
   append = T
 )
@@ -380,7 +380,7 @@ png(
   width = 800,
   height = 600
 )
-grid.draw(ibd_plot)
+grid.draw(father_sex_plot)
 device <- dev.off()
 
 write(
