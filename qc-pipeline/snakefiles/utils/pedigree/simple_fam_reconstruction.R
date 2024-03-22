@@ -533,7 +533,7 @@ write.table(
 
 
 # Write a list of samples to be excluded due to mismatch between the genetic relationship and registry information
-child_ids <- registry_data$SENTRIX_ID[registry_data$ROLE == "Child"]
+child_ids <- expected_relationships_data$child_sentrix_id
 conflicts <- related_table[related_table$InfType == "PO" & related_table$ID1 %in% child_ids & related_table$ID2 %in% child_ids, c("ID1", "ID2")]
 to_remove_ids <- c(conflicts$ID1, conflicts$ID2)
 to_remove_fam <- updated_fam_data[updated_fam_data$id %in% to_remove_ids, c("family", "id")]
