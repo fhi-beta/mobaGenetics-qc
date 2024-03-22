@@ -193,7 +193,7 @@ rule callrate_permanent_removal:
         bedset = rules.missing_genotype_samples.output.bedset,
         callrate_sample = rules.maf_removal_markers.output.callrate_sample
     output:
-        bedset = multiext(str(tmpMod2/"{batch}"/rule_stem),'.bed','.bim','.fam'),
+        bedset = multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
             category = "Module 2 Core samples and pedigree inference",

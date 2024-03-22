@@ -15,7 +15,8 @@ if (debug) {
   args <- c(
     "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/pedigree_ibd_estimate.kin0", 
     "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/check_sex.sexcheck",
-    "/mnt/work/qc/dataChecksMobaData/triads.csv",
+    "/mnt/archive/snpQc/phenotypes/expected_relationship_24.03.15.gz",
+    "/mnt/archive/snpQc/phenotypes/birth_year_24.03.15.gz",
     "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/callrate_permanent_removal.fam",
     "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/fam_reconstruction.fam",
     "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/fam_reconstruction_pedigree_sample_exclusion",
@@ -107,13 +108,13 @@ sex_check_data <- read.table(
 expected_relationships_data  <- read.table(
   file = expected_relationships_file,
   header = T,
-  sep = ",",
+  sep = "\t",
   stringsAsFactors = F
 )
 birth_year_data  <- read.table(
   file = birth_year_file,
   header = T,
-  sep = ",",
+  sep = "\t",
   stringsAsFactors = F
 )
 fam_data  <- read.table(
@@ -224,6 +225,171 @@ write(
 )
 
 
+# Sex assignment parents
+
+mother_sex <- sex_check_data %>% 
+  filter(
+    IID %in% expected_relationships_data$mother_sentrix_id
+  ) %>% 
+  mutate(
+    inferred_sex = factor(SNPSEX, levels = 0:2)
+  )
+
+levels(mother_sex$inferred_sex) <- c("Unknown", "Male", "Female")
+
+mother_exclude_sexcheck <- mother_sex$ID[mother_sex$SNPSEX == 1]
+
+write(
+  x = "## Mother sex check",
+  file = md_file,
+  append = T
+)
+
+write(
+  x = "| Inferred sex |   |",
+  file = md_file,
+  append = T
+)
+write(
+  x = "| ------------ | - |",
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| Unknown | ", sum(mother_sex$SNPSEX == 0), " |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| Male | ", sum(mother_sex$SNPSEX == 1), " |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| Female | ", sum(mother_sex$SNPSEX == 2), " |"),
+  file = md_file,
+  append = T
+)
+
+mother_sex_plot <- ggplot() +
+  geom_point(
+    data = mother_sex,
+    mapping = aes(
+      x = F,
+      y = YCOUNT,
+      col = inferred_sex
+    ),
+    alpha = 0.8
+  ) +
+  scale_x_continuous(
+    name = "F"
+  ) +
+  scale_y_continuous(
+    name = "YCOUNT"
+  ) +
+  theme(
+    legend.title = element_blank(),
+    legend.position = "top"
+  )
+
+plot_name <- "mother_sex_plot.png"
+
+png(
+  filename = file.path(docs_dir, plot_name),
+  width = 800,
+  height = 600
+)
+grid.draw(ibd_plot)
+device <- dev.off()
+
+write(
+  x = paste0("![](", docs_dir_name, "/", plot_name, ")"),
+  file = md_file,
+  append = T
+)
+
+father_sex <- sex_check_data %>% 
+  filter(
+    IID %in% expected_relationships_data$father_sentrix_id
+  ) %>% 
+  mutate(
+    inferred_sex = factor(SNPSEX, levels = 0:2)
+  )
+
+levels(father_sex$inferred_sex) <- c("Unknown", "Male", "Female")
+
+father_exclude_sexcheck <- father_sex$ID[father_sex$SNPSEX == 2]
+
+write(
+  x = "## Father sex check",
+  file = md_file,
+  append = T
+)
+
+write(
+  x = "| Inferred sex |   |",
+  file = md_file,
+  append = T
+)
+write(
+  x = "| ------------ | - |",
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| Unknown | ", sum(father_sex$SNPSEX == 0), " |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| Male | ", sum(father_sex$SNPSEX == 1), " |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| Female | ", sum(father_sex$SNPSEX == 2), " |"),
+  file = md_file,
+  append = T
+)
+
+father_sex_plot <- ggplot() +
+  geom_point(
+    data = father_sex,
+    mapping = aes(
+      x = F,
+      y = YCOUNT,
+      col = inferred_sex
+    ),
+    alpha = 0.8
+  ) +
+  scale_x_continuous(
+    name = "F"
+  ) +
+  scale_y_continuous(
+    name = "YCOUNT"
+  ) +
+  theme(
+    legend.title = element_blank(),
+    legend.position = "top"
+  )
+
+plot_name <- "father_sex_plot.png"
+
+png(
+  filename = file.path(docs_dir, plot_name),
+  width = 800,
+  height = 600
+)
+grid.draw(ibd_plot)
+device <- dev.off()
+
+write(
+  x = paste0("![](", docs_dir_name, "/", plot_name, ")"),
+  file = md_file,
+  append = T
+)
+
+
 # Make families
 
 related_table <- genomic_relatedness_table %>% 
@@ -279,7 +445,7 @@ if (sum(is.na(id_to_family_sex$sex)) > 0) {
 
 # Map parents
 
-mother_ids <- registry_data$SENTRIX_ID[registry_data$ROLE == "Mother"]
+mother_ids <- expected_relationships_data$mother_sentrix_id[!expected_relationships_data$mother_sentrix_id %in% mother_exclude_sexcheck]
 child_mother_table_1 <- related_table[related_table$InfType == "PO" & related_table$ID2 %in% mother_ids, c("ID1", "ID2")]
 child_mother_table_2 <- related_table[related_table$InfType == "PO" & related_table$ID1 %in% mother_ids, c("ID1", "ID2")]
 child_mother_table <- data.frame(
@@ -305,7 +471,7 @@ id_to_family_sex_mother <- id_to_family_sex %>%
     mother_id = ifelse(is.na(mother_id), 0, mother_id)
   )
 
-father_ids <- registry_data$SENTRIX_ID[registry_data$ROLE == "Father"]
+father_ids <- expected_relationships_data$father_sentrix_id[!expected_relationships_data$father_sentrix_id %in% father_exclude_sexcheck]
 child_father_table_1 <- related_table[related_table$InfType == "PO" & related_table$ID2 %in% father_ids, c("ID1", "ID2")]
 child_father_table_2 <- related_table[related_table$InfType == "PO" & related_table$ID1 %in% father_ids, c("ID1", "ID2")]
 child_father_table <- data.frame(
