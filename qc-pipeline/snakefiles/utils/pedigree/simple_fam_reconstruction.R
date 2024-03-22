@@ -9,12 +9,28 @@ set.seed(11111)
 
 
 # Command line arguments
+debug <- T
+if (debug) {
+  
+  args <- c(
+    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/pedigree_ibd_estimate.kin0", 
+    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/check_sex.sexcheck",
+    "/mnt/work/qc/dataChecksMobaData/triads.csv",
+    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/callrate_permanent_removal.fam",
+    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/fam_reconstruction.fam",
+    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/fam_reconstruction_pedigree_sample_exclusion",
+    "/mnt/work/marc/github/mobaGenetics-qc/qc-pipeline/docs/snp012/fam_reconstruction.md"
+  )
+  
+} else {
+ 
 args <- commandArgs(TRUE)
 
-if (length(args) != 8) {
+if (length(args) != 9) {
   
-  stop(paste0("Eight arguments expected: genome file, sex check file, registry file, current fam file, destination file, exclusion file, md file, title. ", length(args), " found: ", paste(args, collapse = ", ")))
+  stop(paste0("Nine arguments expected: genome file, sex check file, expected relationships file, birth year file, current fam file, destination file, exclusion file, md file, title. ", length(args), " found: ", paste(args, collapse = ", ")))
   
+}
 }
 
 genome_file <- args[1]
