@@ -52,5 +52,5 @@ batches = ['snp012'] # Testing module 4
 ### workflow settings ##################################
 chrom = list(range(1,24))
 chromx = list(range(1,23)) + ['X']
-roles = ["founders"]
+roles = ["founders", "offspring"]
 
