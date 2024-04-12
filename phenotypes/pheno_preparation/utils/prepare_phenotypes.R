@@ -15,16 +15,16 @@ conflicts_prefer(dplyr::filter)
 
 # Path to files
 
-pheno_folder <- "/mnt/archive2/MomicsSource/snpArray/qcDevops78030"
-mfr_variables <- "MFRVariablar.sav"
-preg_id_child <- "MobaGenetics_PREGID_Child.sav"
-preg_id_father <- "MobaGenetics_PREGID_Father.sav"
-preg_id_mother <- "MobaGenetics_PREGID_Mother.sav"
-keys <- "NOKLER_PDBHDGB.sav"
-smoking <- "SmokingStatus.sav"
+pheno_folder <- "/mnt/archive2/MomicsSource/snpArray/qcDevops78030/Nye_2024_04_05"
+mfr_variables <- "2024_04_05_MFRVariablar.sav"
+preg_id_child <- "2024_04_05_MobaGenetics_PREGID_Child.sav"
+preg_id_father <- "2024_04_05_MobaGenetics_PREGID_Father.sav"
+preg_id_mother <- "2024_04_05_MobaGenetics_PREGID_Mother.sav"
+keys <- "2024_04_05_NOKLER_PDBHDGB.sav"
+smoking <- "2024_04_05_SmokingStatus.sav"
 
-birth_year_file <- "/mnt/archive/snpQc/phenotypes/birth_year_24.03.15.gz"
-expected_relationship_file <- "/mnt/archive/snpQc/phenotypes/expected_relationship_24.03.15.gz"
+birth_year_file <- "/mnt/archive/snpQc/phenotypes/birth_year_24.04.12.gz"
+expected_relationship_file <- "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz"
 
 
 # Load data
