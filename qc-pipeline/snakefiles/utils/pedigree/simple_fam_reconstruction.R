@@ -15,8 +15,8 @@ if (debug) {
   args <- c(
     "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/pedigree_ibd_estimate.kin0", 
     "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/check_sex.sexcheck",
-    "/mnt/archive/snpQc/phenotypes/expected_relationship_24.03.15.gz",
-    "/mnt/archive/snpQc/phenotypes/birth_year_24.03.15.gz",
+    "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz",
+    "/mnt/archive/snpQc/phenotypes/birth_year_24.04.12.gz",
     "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/callrate_permanent_removal.fam",
     "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/fam_reconstruction.fam",
     "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/fam_reconstruction_pedigree_sample_exclusion",
@@ -443,11 +443,32 @@ if (sum(is.na(id_to_family_sex$sex)) > 0) {
 }
 
 
+# Add birth year
+
+related_table <- related_table %>% 
+  left_join(
+    birth_year_data %>% 
+      select(
+        ID1 = sentrix_id,
+        birth_year1 = birth_year
+      ),
+    by = "ID1"
+  ) %>% 
+  left_join(
+    birth_year_data %>% 
+      select(
+        ID2 = sentrix_id,
+        birth_year2 = birth_year
+      ),
+    by = "ID2"
+  )
+
+
 # Map parents
 
 mother_ids <- expected_relationships_data$mother_sentrix_id[!expected_relationships_data$mother_sentrix_id %in% mother_exclude_sexcheck]
-child_mother_table_1 <- related_table[related_table$InfType == "PO" & related_table$ID2 %in% mother_ids, c("ID1", "ID2")]
-child_mother_table_2 <- related_table[related_table$InfType == "PO" & related_table$ID1 %in% mother_ids, c("ID1", "ID2")]
+child_mother_table_1 <- related_table[related_table$InfType == "PO" & related_table$ID2 %in% mother_ids, c("ID1", "ID2") & related_table$ID2 > related_table$ID1 + 12]
+child_mother_table_2 <- related_table[related_table$InfType == "PO" & related_table$ID1 %in% mother_ids, c("ID1", "ID2") & related_table$ID1 > related_table$ID2 + 12]
 child_mother_table <- data.frame(
   id = c(child_mother_table_1[, 1], child_mother_table_1[, 2]),
   mother_id = c(child_mother_table_1[, 2], child_mother_table_1[, 1])
