@@ -135,7 +135,8 @@ for (colName in names(sav_keys)) {
 # Get a data frame of birth years
 
 birth_year_child <- data.frame(
-  id = sav_preg_id_child$sentrix_id,
+  id = paste(preg_id_hdgb, barn_nr, sep = "\t"),
+  sentrix_id = sav_preg_id_child$sentrix_id,
   birth_year = sav_preg_id_child$faar
 ) %>% 
   filter(
@@ -177,7 +178,7 @@ birth_year_father <- data.frame(
     by = "id"
   )
 
-birth_year_table <- rbind(birth_year_child, birth_year_mother, birth_year_father) %>% 
+birth_year_table <- rbind(birth_year_child, birth_year_mother, birth_year_father) %>%
   filter(
     !is.na(sentrix_id)
   ) %>% 
