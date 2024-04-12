@@ -135,7 +135,7 @@ for (colName in names(sav_keys)) {
 # Get a data frame of birth years
 
 birth_year_child <- data.frame(
-  id = paste(preg_id_hdgb, barn_nr, sep = "\t"),
+  id = paste(sav_preg_id_child$preg_id_hdgb, sav_preg_id_child$barn_nr, sep = "\t"),
   sentrix_id = sav_preg_id_child$sentrix_id,
   birth_year = sav_preg_id_child$faar
 ) %>% 
