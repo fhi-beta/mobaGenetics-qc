@@ -657,7 +657,7 @@ rule fam_reconstruction:
             {input.king_relatedness} \
             {input.sex_check} \
             {input.expected_relationships} \
-            {input.expected_relationships} \
+            {input.birth_year} \
             {input.bedset_all_markers[2]} \
             {output.updated_fam} \
             {output.pedigree_sample_exclusion} \
