@@ -467,8 +467,8 @@ related_table <- related_table %>%
 # Map parents
 
 mother_ids <- expected_relationships_data$mother_sentrix_id[!expected_relationships_data$mother_sentrix_id %in% mother_exclude_sexcheck]
-child_mother_table_1 <- related_table[related_table$InfType == "PO" & related_table$ID2 %in% mother_ids, c("ID1", "ID2") & related_table$ID2 > related_table$ID1 + 12]
-child_mother_table_2 <- related_table[related_table$InfType == "PO" & related_table$ID1 %in% mother_ids, c("ID1", "ID2") & related_table$ID1 > related_table$ID2 + 12]
+child_mother_table_1 <- related_table[related_table$InfType == "PO" & related_table$ID2 %in% mother_ids, c("ID1", "ID2") & related_table$birth_year2 > related_table$birth_year1 + 12]
+child_mother_table_2 <- related_table[related_table$InfType == "PO" & related_table$ID1 %in% mother_ids, c("ID1", "ID2") & related_table$birth_year1 > related_table$birth_year2 + 12]
 child_mother_table <- data.frame(
   id = c(child_mother_table_1[, 1], child_mother_table_1[, 2]),
   mother_id = c(child_mother_table_1[, 2], child_mother_table_1[, 1])
