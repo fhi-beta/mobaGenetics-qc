@@ -19,9 +19,10 @@ if (debug) {
     "/mnt/archive/snpQc/phenotypes/birth_year_24.04.12.gz",
     "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/callrate_permanent_removal.fam",
     "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/fam_reconstruction.fam",
+    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/exclusion",
     "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/mismatch_information.gz",
     "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/mismatch_relationship.gz",
-    "/mnt/work/marc/github/mobaGenetics-qc/qc-pipeline/docs/snp012/fam_reconstruction.md",
+    "/mnt/work/marc/tmp/fam_reconstruction_debug.md",
     "debug"
   )
   
