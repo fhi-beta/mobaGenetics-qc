@@ -19,7 +19,8 @@ if (debug) {
     "/mnt/archive/snpQc/phenotypes/birth_year_24.04.12.gz",
     "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/callrate_permanent_removal.fam",
     "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/fam_reconstruction.fam",
-    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/fam_reconstruction_pedigree_sample_exclusion",
+    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/mismatch_information.gz",
+    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/mismatch_relationship.gz",
     "/mnt/work/marc/github/mobaGenetics-qc/qc-pipeline/docs/snp012/fam_reconstruction.md"
   )
   
@@ -27,9 +28,9 @@ if (debug) {
  
 args <- commandArgs(TRUE)
 
-if (length(args) != 9) {
+if (length(args) != 11) {
   
-  stop(paste0("Nine arguments expected: genome file, sex check file, expected relationships file, birth year file, current fam file, destination file, exclusion file, md file, title. ", length(args), " found: ", paste(args, collapse = ", ")))
+  stop(paste0("Nine arguments expected: genome file, sex check file, expected relationships file, birth year file, current fam file, destination file, exclusion file, mismatch_information, mismatch_relationship, md file, title. ", length(args), " found: ", paste(args, collapse = ", ")))
   
 }
 }
@@ -78,9 +79,13 @@ destination_file <- args[6]
 
 exclusion_file <- args[7]
 
-md_file <- args[8]
+mismatch_information_file <- args[8]
 
-title <- args[9]
+mismatch_relationship_file <- args[9]
+
+md_file <- args[10]
+
+title <- args[11]
 
 
 # Libraries
@@ -129,6 +134,17 @@ sample_ids <- fam_data[, 2]
 genomic_relatedness_table$relationship <- factor(genomic_relatedness_table$InfType, levels = c("Dup/MZ", "PO", "FS", "2nd", "3rd", "4th", "UN"))
 levels(genomic_relatedness_table$relationship) <- c("Duplicates or monozygotic twins", "Parent-offspring", "Full siblings", "2nd degree", "3rd degree", "4th degree", "Unrelated")
 
+
+# Exclude samples without birth year
+
+sentrix_not_in_mbr <- unique(sample_ids[!sample_ids %in% birth_year_data$sentrix_id])
+
+mismatches_table <- data.frame(
+  sentrix_id = sentrix_not_in_mbr,
+  missing_birth_year = 1
+)
+
+
 # Write docs
 
 write(
@@ -147,6 +163,17 @@ if (!dir.exists(docs_dir)) {
   dir.create(docs_dir)
   
 }
+
+write(
+  x = "## Samples not in Medical Birth Regsitry",
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0(length(sentrix_not_in_registry), " samples with missing birth year, will be assumed to be parent."),
+  file = md_file,
+  append = T
+)
 
 write(
   x = "## Relationship inference",
@@ -239,6 +266,15 @@ levels(mother_sex$inferred_sex) <- c("Unknown", "Male", "Female")
 
 mother_exclude_sexcheck <- mother_sex$ID[mother_sex$SNPSEX == 1]
 
+mismatches_table <- mismatches_table %>% 
+  full_join(
+    data.frame(
+      sentrix_id = mother_exclude_sexcheck,
+      mother_male = 1
+    ),
+    by = "sentrix_id"
+  )
+
 write(
   x = "## Mother sex check",
   file = md_file,
@@ -319,6 +355,15 @@ father_sex <- sex_check_data %>%
 levels(father_sex$inferred_sex) <- c("Unknown", "Male", "Female")
 
 father_exclude_sexcheck <- father_sex$ID[father_sex$SNPSEX == 2]
+
+mismatches_table <- mismatches_table %>% 
+  full_join(
+    data.frame(
+      sentrix_id = father_exclude_sexcheck,
+      mother_female = 1
+    ),
+    by = "sentrix_id"
+  )
 
 write(
   x = "## Father sex check",
@@ -443,7 +488,7 @@ if (sum(is.na(id_to_family_sex$sex)) > 0) {
 }
 
 
-# Add birth year
+# Merge with birth year and sex
 
 related_table <- related_table %>% 
   left_join(
@@ -461,17 +506,297 @@ related_table <- related_table %>%
         birth_year2 = birth_year
       ),
     by = "ID2"
+  ) %>% 
+  mutate(
+    birth_year1 = ifelse(is.na(birth_year1), 1900, birth_year1),
+    birth_year2 = ifelse(is.na(birth_year2), 1900, birth_year2)
+  ) %>% 
+  left_join(
+    id_to_family_sex %>% 
+      select(
+        ID1 = id,
+        sex1 = sex
+      ),
+    by = "ID1"
+  ) %>% 
+  left_join(
+    id_to_family_sex %>% 
+      select(
+        ID2 = id,
+        sex2 = sex
+      ),
+    by = "ID2"
+  )
+
+# Conflicting relationships
+
+conflicting_relationship_table <- related_table %>% 
+  mutate(
+    age_difference = abs(birth_year2 - birth_year1),
+    child_sentrix_id = ifelse(birth_year1 < birth_year2, ID1, ID2),
+    parent_sentrix_id = ifelse(birth_year1 < birth_year2, ID2, ID1)
+  ) %>% 
+  filter(
+    InfType == "PO" & age_difference <= 12
+  ) %>% 
+  select(
+    child_sentrix_id, parent_sentrix_id, age_difference
+  )
+
+child_mother_missing <- expected_relationships_data %>% 
+  filter(
+    !is.na(child_sentrix_id) & !is.na(mother_sentrix_id) & child_sentrix_id %in% sample_ids & mother_sentrix_id %in% sample_ids
+  ) %>% 
+  select(
+    child_sentrix_id, mother_sentrix_id
+  ) %>% 
+  left_join(
+    related_table %>% 
+      filter(
+        InfType == "PO"
+      ) %>% 
+      select(
+        child_sentrix_id = ID1,
+        mother_sentrix_id = ID2,
+        genetic_relationship1 = InfType
+      ),
+    by = c("child_sentrix_id", "mother_sentrix_id")
+  ) %>% 
+  left_join(
+    related_table %>% 
+      filter(
+        InfType == "PO"
+      ) %>% 
+      select(
+        child_sentrix_id = ID2,
+        mother_sentrix_id = ID1,
+        genetic_relationship2 = InfType
+      ),
+    by = c("child_sentrix_id", "mother_sentrix_id")
+  ) %>% 
+  mutate(
+    genetic_relationship = ifelse(!is.na(genetic_relationship1), "Found", "Missing"),
+    genetic_relationship = ifelse(!is.na(genetic_relationship2), "Found", genetic_relationship)
+  )
+
+child_father_missing <- expected_relationships_data %>% 
+  filter(
+    !is.na(child_sentrix_id) & !is.na(father_sentrix_id) & child_sentrix_id %in% sample_ids & father_sentrix_id %in% sample_ids
+  ) %>% 
+  select(
+    child_sentrix_id, father_sentrix_id
+  ) %>% 
+  left_join(
+    related_table %>% 
+      filter(
+        InfType == "PO"
+      ) %>% 
+      select(
+        child_sentrix_id = ID1,
+        father_sentrix_id = ID2,
+        genetic_relationship1 = InfType
+      ),
+    by = c("child_sentrix_id", "father_sentrix_id")
+  ) %>% 
+  left_join(
+    related_table %>% 
+      filter(
+        InfType == "PO"
+      ) %>% 
+      select(
+        child_sentrix_id = ID2,
+        father_sentrix_id = ID1,
+        genetic_relationship2 = InfType
+      ),
+    by = c("child_sentrix_id", "father_sentrix_id")
+  ) %>% 
+  mutate(
+    genetic_relationship = ifelse(!is.na(genetic_relationship1), "Found", "Missing"),
+    genetic_relationship = ifelse(!is.na(genetic_relationship2), "Found", genetic_relationship)
+  )
+
+write(
+  x = "## Parental relationship",
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0(nrow(child_mother_missing), " mother-child relationships expected."),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("- ", sum(child_mother_missing$genetic_relationship == "Found"), " (", round(100 * sum(child_mother_missing$genetic_relationship == "Found")/nrow(child_mother_missing), digits = 2), " recovered by genetic relationships."),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("- ", sum(child_mother_missing$genetic_relationship == "Missing"), " (", round(100 * sum(child_mother_missing$genetic_relationship == "Missing")/nrow(child_mother_missing), digits = 2), " not recovered by genetic relationships."),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0(nrow(child_father_missing), " father-child relationships expected."),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("- ", sum(child_father_missing$genetic_relationship == "Found"), " (", round(100 * sum(child_father_missing$genetic_relationship == "Found")/nrow(child_father_missing), digits = 2), " recovered by genetic relationships."),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("- ", sum(child_father_missing$genetic_relationship == "Missing"), " (", round(100 * sum(child_father_missing$genetic_relationship == "Missing")/nrow(child_father_missing), digits = 2), " not recovered by genetic relationships."),
+  file = md_file,
+  append = T
+)
+
+conflicting_relationship_table <- conflicting_relationship_table %>% 
+  full_join(
+    child_mother_missing %>% 
+      filter(
+        genetic_relationship == "Missing"
+      ) %>% 
+      select(
+        child_sentrix_id,
+        parent_sentrix_id = mother_sentrix_id
+      ) %>% 
+      mutate(
+        missing_mother_child_genetic_relationship = 1
+      ),
+    by = c("child_sentrix_id", "parent_sentrix_id")
+  ) %>% 
+  full_join(
+    child_father_missing %>% 
+      filter(
+        genetic_relationship == "Missing"
+      ) %>% 
+      select(
+        child_sentrix_id,
+        parent_sentrix_id = father_sentrix_id
+      ) %>% 
+      mutate(
+        missing_father_child_genetic_relationship = 1
+      ),
+    by = c("child_sentrix_id", "parent_sentrix_id")
+  )
+
+genetic_relationship_match <- related_table %>% 
+  filter(
+    InfType == "PO"
+  ) %>% 
+  left_join(
+    expected_relationships_data %>% 
+      select(
+        ID1 = child_sentrix_id,
+        ID2 = mother_sentrix_id
+      ) %>% 
+      filter(
+        !is.na(ID1) & !is.na(ID2)
+      ) %>% 
+      mutate(
+        genetic_relationship1 = "child-mother"
+      ),
+    by = c("ID1", "ID2")
+  ) %>% 
+  left_join(
+    expected_relationships_data %>% 
+      select(
+        ID1 = mother_sentrix_id,
+        ID2 = child_sentrix_id
+      ) %>% 
+      filter(
+        !is.na(ID1) & !is.na(ID2)
+      ) %>% 
+      mutate(
+        genetic_relationship2 = "mother-child"
+      ),
+    by = c("ID1", "ID2")
+  ) %>% 
+  left_join(
+    expected_relationships_data %>% 
+      select(
+        ID1 = child_sentrix_id,
+        ID2 = father_sentrix_id
+      ) %>% 
+      filter(
+        !is.na(ID1) & !is.na(ID2)
+      ) %>% 
+      mutate(
+        genetic_relationship3 = "child-father"
+      ),
+    by = c("ID1", "ID2")
+  ) %>% 
+  left_join(
+    expected_relationships_data %>% 
+      select(
+        ID1 = father_sentrix_id,
+        ID2 = child_sentrix_id
+      ) %>% 
+      filter(
+        !is.na(ID1) & !is.na(ID2)
+      ) %>% 
+      mutate(
+        genetic_relationship4 = "father-child"
+      ),
+    by = c("ID1", "ID2")
+  ) %>% 
+  mutate(
+    mismatch = ifelse(is.na(genetic_relationship1) & is.na(genetic_relationship2) & is.na(genetic_relationship3) & is.na(genetic_relationship4), "Missing", "Found")
+  )
+
+write(
+  x = paste0(nrow(genetic_relationship_match), " parent-offspring relationships detected"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("- ", sum(genetic_relationship_match$mismatch == "Found"), " (", round(100 * sum(genetic_relationship_match$mismatch == "Found")/nrow(genetic_relationship_match), digits = 2), " match to registry."),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("- ", sum(genetic_relationship_match$mismatch == "Missing"), " (", round(100 * sum(genetic_relationship_match$mismatch == "Missing")/nrow(genetic_relationship_match), digits = 2), " do not match to registry."),
+  file = md_file,
+  append = T
+)
+
+missing_genetic_relationship <- genetic_relationship_match %>% 
+  filter(
+    mismatch == "Missing"
+  ) %>% 
+  mutate(
+    child_sentrix_id = ifelse(birth_year1 < birth_year2, ID1, ID2),
+    parent_sentrix_id = ifelse(birth_year1 < birth_year2, ID2, ID1)
+  )
+
+conflicting_relationship_table <- conflicting_relationship_table %>% 
+  full_join(
+    missing_genetic_relationship %>% 
+      select(
+        child_sentrix_id,
+        parent_sentrix_id
+      ) %>% 
+      mutate(
+        missing_registry_relationship = 1
+      ),
+    by = c("child_sentrix_id", "parent_sentrix_id")
+  )
+
+mismatches_table <- mismatches_table %>% 
+  mutate(
+    conflicting_relationship_child = ifelse(sentrix_id %in% conflicting_relationship_table$child_sentrix_id, 1, NA),
+    conflicting_relationship_parent = ifelse(sentrix_id %in% conflicting_relationship_table$parent_sentrix_id, 1, NA)
   )
 
 
 # Map parents
 
-mother_ids <- expected_relationships_data$mother_sentrix_id[!expected_relationships_data$mother_sentrix_id %in% mother_exclude_sexcheck]
-child_mother_table_1 <- related_table[related_table$InfType == "PO" & related_table$ID2 %in% mother_ids & (is.na(related_table$birth_year1) | is.na(related_table$birth_year2) | related_table$birth_year2 > related_table$birth_year1 + 12), c("ID1", "ID2")]
-child_mother_table_2 <- related_table[related_table$InfType == "PO" & related_table$ID1 %in% mother_ids & (is.na(related_table$birth_year1) | is.na(related_table$birth_year2) | related_table$birth_year1 > related_table$birth_year2 + 12), c("ID1", "ID2")]
+child_mother_table_1 <- related_table[related_table$InfType == "PO" & related_table$sex2 == 2 & related_table$birth_year2 > related_table$birth_year1 + 12, c("ID1", "ID2")]
+child_mother_table_2 <- related_table[related_table$InfType == "PO" & related_table$sex1 == 2 & related_table$birth_year1 > related_table$birth_year2 + 12, c("ID1", "ID2")]
 child_mother_table <- data.frame(
-  id = c(child_mother_table_1[, 1], child_mother_table_1[, 2]),
-  mother_id = c(child_mother_table_1[, 2], child_mother_table_1[, 1])
+  id = c(child_mother_table_1$ID1, child_mother_table_2$ID2),
+  mother_id = c(child_mother_table_1$ID2, child_mother_table_2$ID1)
 ) %>% 
   distinct() %>% 
   group_by(id) %>% 
@@ -492,12 +817,11 @@ id_to_family_sex_mother <- id_to_family_sex %>%
     mother_id = ifelse(is.na(mother_id), 0, mother_id)
   )
 
-father_ids <- expected_relationships_data$father_sentrix_id[!expected_relationships_data$father_sentrix_id %in% father_exclude_sexcheck]
-child_father_table_1 <- related_table[related_table$InfType == "PO" & related_table$ID2 %in% father_ids, c("ID1", "ID2")]
-child_father_table_2 <- related_table[related_table$InfType == "PO" & related_table$ID1 %in% father_ids, c("ID1", "ID2")]
+child_father_table_1 <- related_table[related_table$InfType == "PO" & related_table$sex2 == 1 & related_table$birth_year2 > related_table$birth_year1 + 12, c("ID1", "ID2")]
+child_father_table_2 <- related_table[related_table$InfType == "PO" & related_table$sex1 == 1 & related_table$birth_year1 > related_table$birth_year2 + 12, c("ID1", "ID2")]
 child_father_table <- data.frame(
-  id = c(child_father_table_1[, 1], child_father_table_1[, 2]),
-  father_id = c(child_father_table_1[, 2], child_father_table_1[, 1])
+  id = c(child_father_table_1$ID1, child_father_table_2$ID2),
+  father_id = c(child_father_table_1$ID2, child_father_table_2$ID1)
 ) %>% 
   distinct() %>% 
   group_by(id) %>% 
@@ -545,18 +869,47 @@ if (length(unique(updated_fam_data$id)) != nrow(updated_fam_data)) {
 write.table(
   x = updated_fam_data,
   file = destination_file,
-  append = F,
   col.names = F,
   row.names = F,
   sep = " ",
   quote = F
 )
 
+write.table(
+  x = mismatches_table,
+  file = gzfile(mismatch_information_file),
+  col.names = T,
+  row.names = F,
+  sep = "\t",
+  quote = F
+)
+
+write.table(
+  x = conflicting_relationship_table,
+  file = gzfile(mismatch_relationship_file),
+  col.names = T,
+  row.names = F,
+  sep = "\t",
+  quote = F
+)
+
 
 # Write a list of samples to be excluded due to mismatch between the genetic relationship and registry information
 child_ids <- expected_relationships_data$child_sentrix_id
-conflicts <- related_table[related_table$InfType == "PO" & related_table$ID1 %in% child_ids & related_table$ID2 %in% child_ids, c("ID1", "ID2")]
-to_remove_ids <- c(conflicts$ID1, conflicts$ID2)
+
+relationships_to_exclude1 <- conflicting_relationship_table %>% 
+  filter(
+    !is.na(age_difference) | !is.na(missing_mother_child_genetic_relationship)
+  )
+relationships_to_exclude2 <- conflicting_relationship_table %>% 
+  filter(
+    !is.na(missing_father_child_genetic_relationship) & child_sentrix_id %in% relationships_to_exclude1$child_sentrix_id
+  )
+
+to_remove_ids <- c(
+  relationships_to_exclude1$child_sentrix_id, relationships_to_exclude1$parent_sentrix_id,
+  relationships_to_exclude2$child_sentrix_id, relationships_to_exclude2$parent_sentrix_id
+  )
 to_remove_fam <- updated_fam_data[updated_fam_data$id %in% to_remove_ids, c("family", "id")]
 
 write.table(
