@@ -78,6 +78,8 @@ rule all:
         sex_check = expand(tmpMod2/"{batch}"/"m2_output.sexcheck", batch = batches),
         king_relatedness = expand(tmpMod2/"{batch}"/"m2_output.kin0", batch = batches),
         fam_docs = expand(github_docs/"{batch}"/"fam_reconstruction.md", batch = batches),
+        mismatch_information = tmpMod2/"{batch}"/"mismatch_information.gz",
+        mismatch_relationship = tmpMod2/"{batch}"/"mismatch_relationship.gz",
 
         # Module 3:
         mod3_start_het = expand(tmpMod3 / "{batch}" / 'mod3_start_het.het', batch = batches),
