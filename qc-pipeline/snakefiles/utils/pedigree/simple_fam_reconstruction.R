@@ -628,12 +628,12 @@ write(
   append = T
 )
 write(
-  x = paste0("- ", sum(child_mother_missing$genetic_relationship == "Found"), " (", round(100 * sum(child_mother_missing$genetic_relationship == "Found")/nrow(child_mother_missing), digits = 2), " recovered by genetic relationships."),
+  x = paste0("- ", sum(child_mother_missing$genetic_relationship == "Found"), " (", round(100 * sum(child_mother_missing$genetic_relationship == "Found")/nrow(child_mother_missing), digits = 2), "%) recovered by genetic relationships."),
   file = md_file,
   append = T
 )
 write(
-  x = paste0("- ", sum(child_mother_missing$genetic_relationship == "Missing"), " (", round(100 * sum(child_mother_missing$genetic_relationship == "Missing")/nrow(child_mother_missing), digits = 2), " not recovered by genetic relationships."),
+  x = paste0("- ", sum(child_mother_missing$genetic_relationship == "Missing"), " (", round(100 * sum(child_mother_missing$genetic_relationship == "Missing")/nrow(child_mother_missing), digits = 2), "%) not recovered by genetic relationships."),
   file = md_file,
   append = T
 )
@@ -643,12 +643,12 @@ write(
   append = T
 )
 write(
-  x = paste0("- ", sum(child_father_missing$genetic_relationship == "Found"), " (", round(100 * sum(child_father_missing$genetic_relationship == "Found")/nrow(child_father_missing), digits = 2), " recovered by genetic relationships."),
+  x = paste0("- ", sum(child_father_missing$genetic_relationship == "Found"), " (", round(100 * sum(child_father_missing$genetic_relationship == "Found")/nrow(child_father_missing), digits = 2), "%) recovered by genetic relationships."),
   file = md_file,
   append = T
 )
 write(
-  x = paste0("- ", sum(child_father_missing$genetic_relationship == "Missing"), " (", round(100 * sum(child_father_missing$genetic_relationship == "Missing")/nrow(child_father_missing), digits = 2), " not recovered by genetic relationships."),
+  x = paste0("- ", sum(child_father_missing$genetic_relationship == "Missing"), " (", round(100 * sum(child_father_missing$genetic_relationship == "Missing")/nrow(child_father_missing), digits = 2), "%) not recovered by genetic relationships."),
   file = md_file,
   append = T
 )
@@ -758,12 +758,12 @@ write(
   append = T
 )
 write(
-  x = paste0("- ", sum(genetic_relationship_match$mismatch == "Found"), " (", round(100 * sum(genetic_relationship_match$mismatch == "Found")/nrow(genetic_relationship_match), digits = 2), " match to registry."),
+  x = paste0("- ", sum(genetic_relationship_match$mismatch == "Found"), " (", round(100 * sum(genetic_relationship_match$mismatch == "Found")/nrow(genetic_relationship_match), digits = 2), "%) match to registry."),
   file = md_file,
   append = T
 )
 write(
-  x = paste0("- ", sum(genetic_relationship_match$mismatch == "Missing"), " (", round(100 * sum(genetic_relationship_match$mismatch == "Missing")/nrow(genetic_relationship_match), digits = 2), " do not match to registry."),
+  x = paste0("- ", sum(genetic_relationship_match$mismatch == "Missing"), " (", round(100 * sum(genetic_relationship_match$mismatch == "Missing")/nrow(genetic_relationship_match), digits = 2), "%) do not match to registry."),
   file = md_file,
   append = T
 )
