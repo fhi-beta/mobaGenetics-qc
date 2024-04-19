@@ -21,7 +21,8 @@ if (debug) {
     "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/fam_reconstruction.fam",
     "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/mismatch_information.gz",
     "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/mismatch_relationship.gz",
-    "/mnt/work/marc/github/mobaGenetics-qc/qc-pipeline/docs/snp012/fam_reconstruction.md"
+    "/mnt/work/marc/github/mobaGenetics-qc/qc-pipeline/docs/snp012/fam_reconstruction.md",
+    "debug"
   )
   
 } else {
@@ -170,7 +171,7 @@ write(
   append = T
 )
 write(
-  x = paste0(length(sentrix_not_in_registry), " samples with missing birth year, will be assumed to be parent."),
+  x = paste0(length(sentrix_not_in_mbr), " samples with missing birth year, will be assumed to be parent."),
   file = md_file,
   append = T
 )
@@ -264,7 +265,7 @@ mother_sex <- sex_check_data %>%
 
 levels(mother_sex$inferred_sex) <- c("Unknown", "Male", "Female")
 
-mother_exclude_sexcheck <- mother_sex$ID[mother_sex$SNPSEX == 1]
+mother_exclude_sexcheck <- mother_sex$IID[mother_sex$SNPSEX == 1]
 
 mismatches_table <- mismatches_table %>% 
   full_join(
@@ -354,13 +355,13 @@ father_sex <- sex_check_data %>%
 
 levels(father_sex$inferred_sex) <- c("Unknown", "Male", "Female")
 
-father_exclude_sexcheck <- father_sex$ID[father_sex$SNPSEX == 2]
+father_exclude_sexcheck <- father_sex$IID[father_sex$SNPSEX == 2]
 
 mismatches_table <- mismatches_table %>% 
   full_join(
     data.frame(
       sentrix_id = father_exclude_sexcheck,
-      mother_female = 1
+      father_female = 1
     ),
     by = "sentrix_id"
   )
@@ -689,7 +690,8 @@ genetic_relationship_match <- related_table %>%
     expected_relationships_data %>% 
       select(
         ID1 = child_sentrix_id,
-        ID2 = mother_sentrix_id
+        ID2 = mother_sentrix_id,
+        father_sentrix_id
       ) %>% 
       filter(
         !is.na(ID1) & !is.na(ID2)
@@ -697,7 +699,8 @@ genetic_relationship_match <- related_table %>%
       mutate(
         genetic_relationship1 = "child-mother"
       ),
-    by = c("ID1", "ID2")
+    by = c("ID1", "ID2"),
+    multiple = "all"
   ) %>% 
   left_join(
     expected_relationships_data %>% 
@@ -711,7 +714,8 @@ genetic_relationship_match <- related_table %>%
       mutate(
         genetic_relationship2 = "mother-child"
       ),
-    by = c("ID1", "ID2")
+    by = c("ID1", "ID2"),
+    multiple = "all"
   ) %>% 
   left_join(
     expected_relationships_data %>% 
@@ -725,7 +729,8 @@ genetic_relationship_match <- related_table %>%
       mutate(
         genetic_relationship3 = "child-father"
       ),
-    by = c("ID1", "ID2")
+    by = c("ID1", "ID2"),
+    multiple = "all"
   ) %>% 
   left_join(
     expected_relationships_data %>% 
@@ -739,7 +744,8 @@ genetic_relationship_match <- related_table %>%
       mutate(
         genetic_relationship4 = "father-child"
       ),
-    by = c("ID1", "ID2")
+    by = c("ID1", "ID2"),
+    multiple = "all"
   ) %>% 
   mutate(
     mismatch = ifelse(is.na(genetic_relationship1) & is.na(genetic_relationship2) & is.na(genetic_relationship3) & is.na(genetic_relationship4), "Missing", "Found")
@@ -897,6 +903,7 @@ write.table(
 # Write a list of samples to be excluded due to mismatch between the genetic relationship and registry information
 child_ids <- expected_relationships_data$child_sentrix_id
 
+mismatches_to_exclude <- mismatches_table$sentrix_id[!is.na(mismatches_table$mother_male)]
 relationships_to_exclude1 <- conflicting_relationship_table %>% 
   filter(
     !is.na(age_difference) | !is.na(missing_mother_child_genetic_relationship)
@@ -907,6 +914,7 @@ relationships_to_exclude2 <- conflicting_relationship_table %>%
   )
 
 to_remove_ids <- c(
+  mismatches_to_exclude,
   relationships_to_exclude1$child_sentrix_id, relationships_to_exclude1$parent_sentrix_id,
   relationships_to_exclude2$child_sentrix_id, relationships_to_exclude2$parent_sentrix_id
   )
@@ -929,7 +937,7 @@ write(
 )
 
 write(
-  x = paste0("- Number of children with parent-offspring relationship: ", nrow(to_remove_fam)),
+  x = paste0("- Number of samples excluded: ", nrow(to_remove_fam)),
   file = md_file,
   append = T
 )
