@@ -13,15 +13,15 @@ debug <- F
 if (debug) {
   
   args <- c(
-    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/pedigree_ibd_estimate.kin0", 
-    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/check_sex.sexcheck",
+    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp008/pedigree_ibd_estimate.kin0", 
+    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp008/check_sex.sexcheck",
     "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz",
     "/mnt/archive/snpQc/phenotypes/birth_year_24.04.12.gz",
-    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/callrate_permanent_removal.fam",
-    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/fam_reconstruction.fam",
-    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/exclusion",
-    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/mismatch_information.gz",
-    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp012/mismatch_relationship.gz",
+    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp008/callrate_permanent_removal.fam",
+    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp008/fam_reconstruction.fam",
+    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp008/exclusion",
+    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp008/mismatch_information.gz",
+    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp008/mismatch_relationship.gz",
     "/mnt/work/marc/tmp/fam_reconstruction_debug.md",
     "debug"
   )
@@ -567,6 +567,7 @@ related_table <- related_table %>%
     by = "ID2"
   )
 
+
 # Conflicting relationships
 
 conflicting_relationship_table <- related_table %>% 
@@ -824,6 +825,8 @@ conflicting_relationship_table <- conflicting_relationship_table %>%
         parent_sentrix_id
       ) %>% 
       mutate(
+        child_sentrix_id = as.character(child_sentrix_id),
+        parent_sentrix_id = as.character(parent_sentrix_id),
         missing_registry_relationship = 1
       ),
     by = c("child_sentrix_id", "parent_sentrix_id")
