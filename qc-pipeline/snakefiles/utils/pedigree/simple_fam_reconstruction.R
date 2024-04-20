@@ -142,7 +142,7 @@ levels(genomic_relatedness_table$relationship) <- c("Duplicates or monozygotic t
 sentrix_not_in_mbr <- unique(sample_ids[!sample_ids %in% birth_year_data$sentrix_id])
 
 mismatches_table <- data.frame(
-  sentrix_id = sentrix_not_in_mbr
+  sentrix_id = as.character(sentrix_not_in_mbr)
 )
 mismatches_table$missing_birth_year <- 1
 
@@ -269,7 +269,7 @@ levels(mother_sex$inferred_sex) <- c("Unknown", "Male", "Female")
 mother_exclude_sexcheck <- mother_sex$IID[mother_sex$SNPSEX == 1]
 
 mismathes_mothers <- data.frame(
-  sentrix_id = mother_exclude_sexcheck
+  sentrix_id = as.character(mother_exclude_sexcheck)
 )
 mismathes_mothers$mother_male <- 1
 
@@ -361,7 +361,7 @@ levels(father_sex$inferred_sex) <- c("Unknown", "Male", "Female")
 father_exclude_sexcheck <- father_sex$IID[father_sex$SNPSEX == 2]
 
 father_sexcheck <- data.frame(
-  sentrix_id = father_exclude_sexcheck
+  sentrix_id = as.character(father_exclude_sexcheck)
 )
 father_sexcheck$father_female <- 1
 
