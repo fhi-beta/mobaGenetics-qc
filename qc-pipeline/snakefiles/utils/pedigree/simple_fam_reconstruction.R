@@ -668,6 +668,7 @@ conflicting_relationship_table <- conflicting_relationship_table %>%
         parent_sentrix_id = mother_sentrix_id
       ) %>% 
       mutate(
+        child_sentrix_id = as.character(child_sentrix_id),
         missing_mother_child_genetic_relationship = 1
       ),
     by = c("child_sentrix_id", "parent_sentrix_id")
@@ -682,6 +683,7 @@ conflicting_relationship_table <- conflicting_relationship_table %>%
         parent_sentrix_id = father_sentrix_id
       ) %>% 
       mutate(
+        child_sentrix_id = as.character(child_sentrix_id),
         missing_father_child_genetic_relationship = 1
       ),
     by = c("child_sentrix_id", "parent_sentrix_id")
