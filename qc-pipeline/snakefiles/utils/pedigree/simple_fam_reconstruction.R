@@ -141,10 +141,21 @@ levels(genomic_relatedness_table$relationship) <- c("Duplicates or monozygotic t
 
 sentrix_not_in_mbr <- unique(sample_ids[!sample_ids %in% birth_year_data$sentrix_id])
 
-mismatches_table <- data.frame(
-  sentrix_id = as.character(sentrix_not_in_mbr)
-)
-mismatches_table$missing_birth_year <- 1
+if (length(sentrix_not_in_mbr) > 0) {
+  
+  mismatches_table <- data.frame(
+    sentrix_id = sentrix_not_in_mbr,
+    missing_birth_year = 1
+  )
+  
+} else {
+  
+  mismatches_table <- data.frame(
+    sentrix_id = character(),
+    missing_birth_year = c()
+  )
+  
+}
 
 
 # Write docs
@@ -268,10 +279,21 @@ levels(mother_sex$inferred_sex) <- c("Unknown", "Male", "Female")
 
 mother_exclude_sexcheck <- mother_sex$IID[mother_sex$SNPSEX == 1]
 
-mismathes_mothers <- data.frame(
-  sentrix_id = as.character(mother_exclude_sexcheck)
-)
-mismathes_mothers$mother_male <- 1
+if (length(mother_exclude_sexcheck) > 0) {
+  
+  mismathes_mothers <- data.frame(
+    sentrix_id = mother_exclude_sexcheck,
+    mother_male = 1
+  )
+  
+} else {
+  
+  mismathes_mothers <- data.frame(
+    sentrix_id = character(),
+    mother_male = c()
+  )
+  
+}
 
 mismatches_table <- mismatches_table %>% 
   full_join(
@@ -360,10 +382,21 @@ levels(father_sex$inferred_sex) <- c("Unknown", "Male", "Female")
 
 father_exclude_sexcheck <- father_sex$IID[father_sex$SNPSEX == 2]
 
-father_sexcheck <- data.frame(
-  sentrix_id = as.character(father_exclude_sexcheck)
-)
-father_sexcheck$father_female <- 1
+if (length(father_exclude_sexcheck)) {
+  
+  father_sexcheck <- data.frame(
+    sentrix_id = father_exclude_sexcheck,
+    father_female = 1
+  )
+  
+} else {
+  
+  father_sexcheck <- data.frame(
+    sentrix_id = character(),
+    father_female = c()
+  )
+  
+}
 
 mismatches_table <- mismatches_table %>% 
   full_join(
