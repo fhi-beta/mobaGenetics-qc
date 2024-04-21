@@ -15,16 +15,16 @@ conflicts_prefer(dplyr::filter)
 
 # Path to files
 
-pheno_folder <- "/mnt/archive2/MomicsSource/snpArray/qcDevops78030"
-mfr_variables <- "MFRVariablar.sav"
-preg_id_child <- "MobaGenetics_PREGID_Child.sav"
-preg_id_father <- "MobaGenetics_PREGID_Father.sav"
-preg_id_mother <- "MobaGenetics_PREGID_Mother.sav"
-keys <- "NOKLER_PDBHDGB.sav"
-smoking <- "SmokingStatus.sav"
+pheno_folder <- "/mnt/archive2/MomicsSource/snpArray/qcDevops78030/Nye_2024_04_05"
+mfr_variables <- "2024_04_05_MFRVariablar.sav"
+preg_id_child <- "2024_04_05_MobaGenetics_PREGID_Child.sav"
+preg_id_father <- "2024_04_05_MobaGenetics_PREGID_Father.sav"
+preg_id_mother <- "2024_04_05_MobaGenetics_PREGID_Mother.sav"
+keys <- "2024_04_05_NOKLER_PDBHDGB.sav"
+smoking <- "2024_04_05_SmokingStatus.sav"
 
-birth_year_file <- "/mnt/archive/snpQc/phenotypes/birth_year_24.03.15.gz"
-expected_relationship_file <- "/mnt/archive/snpQc/phenotypes/expected_relationship_24.03.15.gz"
+birth_year_file <- "/mnt/archive/snpQc/phenotypes/birth_year_24.04.12.gz"
+expected_relationship_file <- "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz"
 
 
 # Load data
@@ -134,6 +134,16 @@ for (colName in names(sav_keys)) {
 
 # Get a data frame of birth years
 
+birth_year_child <- data.frame(
+  id = paste(sav_preg_id_child$preg_id_hdgb, sav_preg_id_child$barn_nr, sep = "\t"),
+  sentrix_id = sav_preg_id_child$sentrix_id,
+  birth_year = sav_preg_id_child$faar
+) %>% 
+  filter(
+    !is.na(birth_year)
+  ) %>% 
+  distinct()
+
 birth_year_mother <- data.frame(
   id = sav_keys$m_id_hdgb,
   birth_year = sav_keys$mor_faar
@@ -168,7 +178,7 @@ birth_year_father <- data.frame(
     by = "id"
   )
 
-birth_year_table <- rbind(birth_year_mother, birth_year_father) %>% 
+birth_year_table <- rbind(birth_year_child, birth_year_mother, birth_year_father) %>%
   filter(
     !is.na(sentrix_id)
   ) %>% 
