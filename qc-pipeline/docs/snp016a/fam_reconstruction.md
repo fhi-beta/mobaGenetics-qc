@@ -1,4 +1,6 @@
 # Fam file reconstruction in snp016a
+## Samples not in Medical Birth Regsitry
+8343 samples with missing birth year, will be assumed to be parent.
 ## Relationship inference
 | Relationship |   |
 | ------------ | - |
@@ -11,5 +13,31 @@
 | Unrelated| 0 |
 
 ![](fam_reconstruction/ibd_plot.png)
+## Mother sex check
+| Inferred sex |   |
+| ------------ | - |
+| Unknown | 9482 |
+| Male | 20 |
+| Female | 3007 |
+
+![](fam_reconstruction/mother_sex_plot.png)
+## Father sex check
+| Inferred sex |   |
+| ------------ | - |
+| Unknown | 4 |
+| Male | 3905 |
+| Female | 1 |
+
+![](fam_reconstruction/father_sex_plot.png)
+## Parental relationship
+2792 mother-child relationships expected.
+- 2766 (99.07%) recovered by genetic relationships.
+- 26 (0.93%) not recovered by genetic relationships.
+378 father-child relationships expected.
+- 374 (98.94%) recovered by genetic relationships.
+- 4 (1.06%) not recovered by genetic relationships.
+3202 parent-offspring relationships detected
+- 3140 (98.06%) match to registry.
+- 62 (1.94%) do not match to registry.
 ## Exclusion
-- Number of children with parent-offspring relationship: 4
+- Number of samples excluded: 76
