@@ -230,8 +230,6 @@ rule ibd_exclusion:
     run:
         try:
 
-            raise Exception("Restart here.")
-
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, rule_info[rule]["QC test"])
             inTrunk = mqc.plinkBase(input.bed)
