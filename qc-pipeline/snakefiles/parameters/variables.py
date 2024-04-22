@@ -56,5 +56,5 @@ batches = ['snp012'] # Debug module 4
 chrom = list(range(1,24))
 chromx = list(range(1,23)) + ['X']
 roles = ["founders", "offspring"]
-roles = ["offspring"] # Debug module 4
+# roles = ["offspring"] # Debug module 4
 
