@@ -65,7 +65,7 @@ rule mod5_exclude_ambiguous_snps:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
-            mqc.exclude_strand_ambigious_markers(inTrunk, outTrunk)
+            mqc.exclude_strand_ambigious_markers(inTrunk, outTrunk, plinklocal)
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
             print(e)
