@@ -706,6 +706,7 @@ rule consolidate_mismatches:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
+
 rule_stem = 'fam_update'
 rule fam_update:
     input:

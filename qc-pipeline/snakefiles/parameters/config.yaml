@@ -8,8 +8,8 @@ githubSource: "https://github.com/fhi-beta/mobaGenetics-qc"
 output_base: "/mnt/archive/snpQc/pipeOut_dev_2024.01.05"
 
 # Phenotypes
-expected_relationships: "/mnt/archive/snpQc/phenotypes/expected_relationship_24.03.15.gz"
-birth_year: "/mnt/archive/snpQc/phenotypes/birth_year_24.03.15.gz"
+expected_relationships: "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz"
+birth_year: "/mnt/archive/snpQc/phenotypes/birth_year_24.04.12.gz"
 
 # from http://www.haplotype-reference-consortium.org/ http://www.haplotype-reference-consortium.org/site
 # contains HRC.r1-1.GRCh37.wgs.mac5.sites.tab. If not found - google it.
