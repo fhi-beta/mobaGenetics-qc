@@ -98,7 +98,7 @@ rule all:
         mod3_md_file_1kg = expand(github_docs / "{batch}" / "pca_1kg_moba.md", batch = batches),
 
         # Module 4:
-        m4_debug = expand(tmpMod4/ "{batch}" / "{role}" / ("ibd_exclusion.bed"), batch = batches, role = roles)
+        # m4_debug = expand(tmpMod4/ "{batch}" / "{role}" / ("ibd_exclusion.bed"), batch = batches, role = roles)
         # m4_output_good_markers = expand(tmpMod4 / "{batch}" / 'm4_output_good_markers.bed', batch = batches)
 
 
