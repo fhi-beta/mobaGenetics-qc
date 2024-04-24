@@ -321,7 +321,9 @@ rule geno_rates:
                     sample = False,
                     threshold = getattr(params, f"geno{i}"),
                     result_file = res_file,
-                    plot_file = plot_file
+                    plot_file = plot_file,
+                    plinklocal = plinklocal,
+                    rule_info = rule_info
                 )
 
                 print(f'debug_done')
@@ -347,7 +349,9 @@ rule geno_rates:
                     sample = True,
                     threshold = getattr(params, f"mind{i}"),
                     result_file = res_file,
-                    plot_file = plot_file
+                    plot_file = plot_file,
+                    plinklocal = plinklocal,
+                    rule_info = rule_info
                 )
 
                 lastTrunk = outTrunk
@@ -358,7 +362,7 @@ rule geno_rates:
             # Make a clean bedset and associated documentation
             mqc.copy_bedset(lastTrunk, outTrunk)
 
-            missing_genotype_rate_docs(
+            mqc.missing_genotype_rate_docs(
                 rule = rule,
                 in_bedset = inTrunk,
                 out_bedset = outTrunk,
@@ -366,8 +370,8 @@ rule geno_rates:
                 threshold = 0.1,
                 result_file = '/dev/null',
                 plot_file = False,
-                plinklocal = None,
-                rule_info = None
+                plinklocal = plinklocal,
+                rule_info = rule_info
             )
 
         except Exception as e:

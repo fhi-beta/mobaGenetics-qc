@@ -626,6 +626,8 @@ def missing_genotype_rate(
         check = True
     )
 
+    print(f'debug_11')
+
     return missing_genotype_rate_docs(
         rule = rule,
         in_bedset = in_bedset,
