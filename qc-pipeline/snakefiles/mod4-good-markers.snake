@@ -276,7 +276,6 @@ rule geno_rates:
 
             inTrunk = mqc.plinkBase(input.bed)
             out_dir = Path(output.bed).parent
-            res_dir = Path(output.results).parent
             lastTrunk = inTrunk
             ruleTrunk = "geno_rates"
 
