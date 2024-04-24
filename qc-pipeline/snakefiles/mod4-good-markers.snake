@@ -265,14 +265,6 @@ rule geno_rates:
         bed = rules.ibd_exclusion.output.bed,
     output:
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed")
-    params:
-        #3 cycles of mind/geno removal
-        geno1 = config["geno_rate.geno1"],
-        mind1 = config["geno_rate.mind1"],
-        geno2 = config["geno_rate.geno2"],
-        mind2 = config["geno_rate.mind2"],
-        geno3 = config["geno_rate.geno3"],
-        mind3 = config["geno_rate.mind3"]
     benchmark:
         tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".benchmark")
     run:
