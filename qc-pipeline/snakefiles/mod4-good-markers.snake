@@ -258,22 +258,13 @@ rule ibd_exclusion:
             print(e)
 
 rule_stem = 'geno_rates'
+# Note 24.04.24: The documentation and log are written at every step of this rule, i.e. two filtering steps iterated three times.
 rule geno_rates:
     threads: 2
     input:
         bed = rules.ibd_exclusion.output.bed,
     output:
-        bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
-        results = report(
-            resultPath / "{batch}" / "{role}" / (rule_stem + ".yaml"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
-        ),
-        plots = report(
-            resultPath / "{batch}" / "{role}" / (rule_stem + ".png"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
-        ),
+        bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed")
     params:
         #3 cycles of mind/geno removal
         geno1 = config["geno_rate.geno1"],
@@ -348,7 +339,7 @@ rule geno_rates:
             # Create a common caption
             mqc.make_rule_caption(rule_info, rule, resultPath)
 
-            # Make a clean bedset and associated documentation
+            # Make a clean bedset
             outTrunk = mqc.plinkBase(output.bed)
             mqc.copy_bedset(lastTrunk, outTrunk)
 
