@@ -290,7 +290,6 @@ rule geno_rates:
             mqc.log(runlog,rule_info[rule]["QC test"])
 
             inTrunk = mqc.plinkBase(input.bed)
-            outTrunk = mqc.plinkBase(output.bed)
             out_dir = Path(output.bed).parent
             res_dir = Path(output.results).parent
             lastTrunk = inTrunk
@@ -306,14 +305,6 @@ rule geno_rates:
                 res_file = str(res_dir / file_name) + ".yaml"
                 plot_file = str(res_dir / file_name) + ".png"
 
-                print(f'missing_genotype_rate at {i}')
-                print(f'rule: {rule}')
-                print(f'lastTrunk: {lastTrunk}')
-                print(f'outTrunk: {outTrunk}')
-                print(f'threshold: {getattr(params, f"geno{i}")}')
-                print(f'result_file: {res_file}')
-                print(f'plot_file: {plot_file}')
-
                 mqc.missing_genotype_rate(
                     rule,
                     lastTrunk,
@@ -325,8 +316,6 @@ rule geno_rates:
                     plinklocal = plinklocal,
                     rule_info = rule_info
                 )
-
-                print(f'debug_done')
 
                 lastTrunk = outTrunk
                 file_name = ruleTrunk + "_mind" + str(i)
@@ -360,6 +349,7 @@ rule geno_rates:
             mqc.make_rule_caption(rule_info, rule, resultPath)
 
             # Make a clean bedset and associated documentation
+            outTrunk = mqc.plinkBase(output.bed)
             mqc.copy_bedset(lastTrunk, outTrunk)
 
             mqc.missing_genotype_rate_docs(

@@ -607,13 +607,6 @@ def missing_genotype_rate(
     else:  # marker
         plink_switch = "--geno"
 
-    print(f'debug_1')
-
-    print(f'plinklocal: {plinklocal}')
-    print(f'in_bedset: {in_bedset}')
-    print(f'plink_switch: {plink_switch}')
-    print(f'threshold: {threshold}')
-    print(f'out_bedset: {out_bedset}')
 
     subprocess.run(
         [
@@ -625,8 +618,6 @@ def missing_genotype_rate(
         ],
         check = True
     )
-
-    print(f'debug_11')
 
     return missing_genotype_rate_docs(
         rule = rule,
