@@ -285,9 +285,11 @@ rule geno_rates:
                 print(f'{rule_info[rule]["QC test"]}: Iteration {i}')
 
                 file_name = ruleTrunk + "_geno" + str(i)
-                outTrunk = str(out_dir / file_name)
-                res_file = str(params.docs_folder / file_name) + ".yaml"
-                plot_file = str(params.docs_folder / file_name) + ".png"
+                outTrunk = out_dir / file_name
+                res_file = params.docs_folder / (file_name + ".yaml")
+                plot_file = params.docs_folder / (file_name + ".png")
+
+                print(res_file)
 
                 mqc.missing_genotype_rate(
                     rule,
@@ -304,8 +306,8 @@ rule geno_rates:
                 lastTrunk = outTrunk
                 file_name = ruleTrunk + "_mind" + str(i)
                 outTrunk = str(out_dir / file_name)
-                res_file = str(params.docs_folder / file_name) + ".yaml"
-                plot_file = str(params.docs_folder / file_name) + ".png"
+                res_file = params.docs_folder / (file_name + ".yaml")
+                plot_file = params.docs_folder / (file_name + ".png")
 
                 mqc.missing_genotype_rate(
                     rule,
