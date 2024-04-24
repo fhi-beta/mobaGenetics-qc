@@ -310,7 +310,7 @@ rule geno_rates:
                     lastTrunk,
                     outTrunk,
                     sample = False,
-                    treshold = getattr(params,f"geno{i}"),
+                    threshold = getattr(params, f"geno{i}"),
                     result_file = res_file,
                     plot_file = plot_file
                 )
@@ -325,7 +325,7 @@ rule geno_rates:
                     lastTrunk,
                     outTrunk,
                     sample = True,
-                    treshold = getattr(params,f"mind{i}"),
+                    threshold = getattr(params, f"mind{i}"),
                     result_file = res_file,
                     plot_file = plot_file
                 )
