@@ -356,10 +356,20 @@ rule geno_rates:
                 rule = rule,
                 in_bedset = inTrunk,
                 out_bedset = outTrunk,
+                sample = False,
+                threshold = params.threshold,
+                result_file = output.results,
+                plinklocal = plinklocal,
+                rule_info = rule_info
+            )
+
+            mqc.missing_genotype_rate_docs(
+                rule = rule,
+                in_bedset = inTrunk,
+                out_bedset = outTrunk,
                 sample = True,
-                threshold = 0.1,
-                result_file = '/dev/null',
-                plot_file = False,
+                threshold = params.threshold,
+                result_file = output.results,
                 plinklocal = plinklocal,
                 rule_info = rule_info
             )
