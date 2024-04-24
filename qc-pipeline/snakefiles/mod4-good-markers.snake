@@ -352,28 +352,6 @@ rule geno_rates:
             outTrunk = mqc.plinkBase(output.bed)
             mqc.copy_bedset(lastTrunk, outTrunk)
 
-            mqc.missing_genotype_rate_docs(
-                rule = rule,
-                in_bedset = inTrunk,
-                out_bedset = outTrunk,
-                sample = False,
-                threshold = params.threshold,
-                result_file = output.results,
-                plinklocal = plinklocal,
-                rule_info = rule_info
-            )
-
-            mqc.missing_genotype_rate_docs(
-                rule = rule,
-                in_bedset = inTrunk,
-                out_bedset = outTrunk,
-                sample = True,
-                threshold = params.threshold,
-                result_file = output.results,
-                plinklocal = plinklocal,
-                rule_info = rule_info
-            )
-
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
             print(e)
