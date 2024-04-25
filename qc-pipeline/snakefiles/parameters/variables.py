@@ -22,6 +22,8 @@ matplotlib.use('Agg')
 libdir = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'lib'))
 bcftools = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/bcftools-1.7/bcftools'))
 vcftools = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/vcftools-0.1.13/vcftools'))
+beagle = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/beagle/beagle.01Mar24.d36.jar'))
+conform_gt = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/beagle/conform-gt.24May16.cee.jar'))
 plinklocal = Path(os.path.dirname(workflow.basedir))/'bin'/'plink-1.90b5.4'/'plink'
 hrc1000g = Path(os.path.dirname(workflow.basedir))/'bin'/'HRC-100G'/'HRC-1000G-check-bim.pl'
 plink2local = Path(os.path.dirname(workflow.basedir))/'bin'/'plink-1.90b5.4'/'plink'
@@ -31,17 +33,20 @@ kinglocal = Path(os.path.dirname(workflow.basedir))/'bin'/'Linux-king'/'king'
 # Resources
 high_ld_regions_hg19 = Path(os.path.dirname(workflow.basedir))/'resources'/'high-ld-regions-hg19'
 hrc_sites = Path(config['hrc_sites'])
+mapfiles = Path(config['mapfiles'])
 
 # Folder paths
 tmp_path = Path(config['output_base']) / 'tmp'
 runlog = Path(config['output_base']) / 'runlog.txt'
 base = Path(config['output_base'])
+hrc_ega = Path(config['hrc_ega'])
 github_docs = Path(os.path.dirname(workflow.basedir)) / 'docs'
 tmpMod1 = base/'mod1-data-preparation'
 tmpMod2 = base/'mod2-genetic-relationship'
 tmpMod3 = base/'mod3-population-clustering'
 tmpMod4 = base/'mod4-good_markers'
 tmpMod5 = base/'mod5-pre-phasing'
+tmpMod6 = base/'mod6-imputation'
 # tmpMod5 = base/'mod5-samples_unrelated'
 # tmpMod6 = base/'mod6-phasing-preparation'
 resultPath = base/'results'

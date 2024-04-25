@@ -1,0 +1,134 @@
+rule_stem = "mod6_imputation"
+rule mod6_imputation:
+    input:
+        bedset = rules.mod5_output.output.bedset
+    output:
+        bedset = multiext(str(tmpMod6 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
+    run:
+        try:
+            import glob
+            inTrunk = mqc.plinkBase(input.bedset[0])
+            outTrunk = mqc.plinkBase(output.bedset[0])
+            mergefile = outTrunk + ".merge.txt"
+            mergefile_content = []
+            # Split into chromosomes. The chromosomes must be handled individually, I think?
+            for chrnr in chrom: # or chromx?
+                reffile_list = glob.glob(hrc_ega + "/EGA*/HRC.r1-1.EGA.GRCh37." + chr + ".haplotypes*.vcf.gz")
+                if len(reffile_list) > 0:
+                    reffile = reffile_list[0] # only one file, I assume?
+                    chr_trunk = outTrunk + ".chr" + str(chrnr)
+                    # extract chromosome:
+                    subprocess.run(
+                        [
+                            plinklocal,
+                            "--bfile", inTrunk,
+                            "--chr", chrnr,
+                            "--make-bed",
+                            "--out", chr_trunk
+                        ]
+                    )
+                    fam = chr_trunk + ".fam"
+                    bim = chr_trunk + ".bim"
+                    fam_orig = fam + ".orig"
+                    fam_wo_fam = chr_trunk + ".wo_fam.fam"
+                    nofam_trunk = chr_trunk + ".nofam"
+                    nofam_vcf = nofam_trunk + ".vcf"
+                    nofam_sorted_vcf = nofam_trunk + ".sorted.vcf"
+                    conformed = chr_trunk + ".conformed"
+                    conformed_vcf_gz = conformed + ".vcf.gz"
+                    imputed = chr_trunk + ".imputed"
+                    imputed_vcf_gz = imputed + ".vcf.gz"
+                    info = chr_trunk + ".info"
+                    # Copy fam to fam_orig:
+                    subprocess.run(
+                        [
+                            "cp", fam, fam_orig
+                        ]
+                    )
+                    # remove family information:
+                    cmd = "awk '{OFS=""\t""}{$1=$3=$4=0;print$2,$3,$4,$5,$6}' " + fam " > " + fam_wo_fam
+                    subproces.run(
+                        cmd, 
+                        shell = True
+                    )
+                    # move fam_wo_fam to fam
+                    subproces.run(
+                        [
+                            "mv", fam_wo_fam, fam
+                        ]
+                    )
+                    # create vcf file
+                    subproces.run(
+                        [
+                            plinklocal,
+                            "--bfile", chr_trunk,
+                            "--recode", "vcf",
+                            "--ref-allele", bim, "5", "2",
+                            "--no-fid",
+                            "--out", nofam_trunk            
+                        ]
+                    )
+                    # copy fam_orig to fam
+                    subprocess.run(
+                        [
+                            "cp", fam_orig, fam
+                        ]
+                    )
+                    # sort using bcftools. Make sure bcftools is installed on the server!
+                    subproces.run(
+                        [
+                            bcftools,
+                            "sort", nofam_vcf,
+                            "-o", nofam_sorted_vcf
+                        ]
+                    )
+                    chr = f"chr{chrnr}"
+                    mapfile = f"{mapfiles}/plink.{chr}.GRCh37.map" # mapfiles must be copied to server! See config
+                    # Make sure java is installed on the server!
+                    cmd = f"java -Xmx498g -jar {conform_gt} gt={nofam_sorted_vcf} ref={reffile} out={conformed} chrom={chrnr} match=pos"
+                    subproces.run(
+                        cmd,
+                        shell = True
+                    )
+                    cmd = f"java -Xmx498 -jar {beagle} gt={conformed_vcf_gz} ref={reffile} impute=true out={imputed} chrom={chrnr} seed=12345 map={mapfile}" # not sure if nthreads is needed?
+                    subproces.run(
+                        cmd,
+                        shell = True
+                    )
+                    cmd = f"tabix -p vcf {imputed_vcf_gz}"
+                    subproces.run(
+                        cmd,
+                        shell = True
+                    )
+                    cmd = f"bcftools query -f '%POS %REF %ALT %DR2 %AF\n' {imputed_vcf_gz} -o {info}"
+                    subproces.run(
+                        cmd,
+                        shell = True
+                    )
+                    subproces.run(
+                        [
+                            plinklocal,
+                            "--vcf", imputed_vcf_gz,
+                            "--make-bed",
+                            "--out", imputed
+                        ]
+                    )
+                    mergefile_content.append(imputed)
+            f = open(mergefile, "w")
+            f.writelines(mergefile_content)
+            f.close()
+            # merging bedsets. Not sure if this will work as intended, and also not sure if merging the files is necessary or desirable?
+            subproces.run(
+                [
+                    plinklocal,
+                    "--merge-list", mergefile,
+                    "--make-bed",
+                    "--out", outTrunk
+                ]
+            )
+        except Exception as e:
+            print(f"An exception occurred in rule {rule_stem}.")
+            print(e)
+
+        
+    
