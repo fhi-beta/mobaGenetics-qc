@@ -18,7 +18,7 @@ Principal component analysis of the MoBa samples merged with the thousand genome
 | EAS | 504 |
 | EUR | 503 |
 | SAS | 489 |
-| MoBa | 17682 |
+| MoBa | 17579 |
 ### pc2 vs. pc1
 ![](plot/pc1_pc2_1kg.png)
 ### pc3 vs. pc2
@@ -51,7 +51,7 @@ Principal component analysis of the MoBa samples merged with the thousand genome
 ### Clustering in MoBa
 | Population | AFR | AMR | EAS | EUR | EUR_core | SAS |
 | - | -  |  -  |  -  |  -  |  -  |  -  |
-| MoBa | 44 | 82 | 171 | 232 | 17114 | 39 |
+| MoBa | 44 | 82 | 169 | 242 | 17003 | 39 |
 
 
 ![](plot/moba_pop_plot.png)

@@ -22,6 +22,7 @@ include: "parameters/setup.py"
 sys.path.append('utils')  # in order to find our local packages
 import mobaQcTools as mqc  # local moba utils package
 from shutil import copyfile
+import pandas as pd
 
 # Ensure bash as shell
 shell.executable("/bin/bash")
@@ -78,8 +79,8 @@ rule all:
         sex_check = expand(tmpMod2/"{batch}"/"m2_output.sexcheck", batch = batches),
         king_relatedness = expand(tmpMod2/"{batch}"/"m2_output.kin0", batch = batches),
         fam_docs = expand(github_docs/"{batch}"/"fam_reconstruction.md", batch = batches),
-        mismatch_information = expand(tmpMod2/"{batch}"/"mismatch_information.gz", batch = batches),
-        mismatch_relationship = expand(tmpMod2/"{batch}"/"mismatch_relationship.gz", batch = batches),
+        mismatch_information = tmpMod2/"mismatch_information.gz",
+        mismatch_relationship = tmpMod2/"mismatch_relationship.gz",
 
         # Module 3:
         mod3_start_het = expand(tmpMod3 / "{batch}" / 'mod3_start_het.het', batch = batches),
@@ -97,6 +98,7 @@ rule all:
         mod3_md_file_1kg = expand(github_docs / "{batch}" / "pca_1kg_moba.md", batch = batches),
 
         # Module 4:
+        m4_debug = expand(tmpMod4/ "{batch}" / "{role}" / ("geno_rates.bed"), batch = batches, role = roles)
         # m4_output_good_markers = expand(tmpMod4 / "{batch}" / 'm4_output_good_markers.bed', batch = batches)
 
 

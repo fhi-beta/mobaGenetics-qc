@@ -134,7 +134,7 @@ rule split_founders_offspring:
 
 rule_stem = "ibd_estimate"
 rule ibd_estimate:
-    threads: 2
+    threads: 8
     input:
         bed = tmpMod4 / "{batch}" / "{role}" / (split_rule_stem + ".bed"),
         clean_snps = rules.m2_output.output.pruned_snps
@@ -213,13 +213,7 @@ rule ibd_exclusion:
         bed = rules.ibd_estimate.output.bed_clean_snps,
         id_exclusion_file = rules.ibd_accum.output.id_exclusion_file
     output:
-        exclusion = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".txt"),
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
-        plot = report(
-            resultPath / "{batch}" / "{role}" / (rule_stem + ".png"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
-        ),
         results = report(
             resultPath / "{batch}" / "{role}" / (rule_stem + ".yaml"),
             category = "Module 4 Good markers",
@@ -230,13 +224,10 @@ rule ibd_exclusion:
     run:
         try:
 
-            raise Exception("Restart here.")
-
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, rule_info[rule]["QC test"])
             inTrunk = mqc.plinkBase(input.bed)
             outTrunk = mqc.plinkBase(output.bed)
-            plotdir = os.path.dirname(output.plot)
 
             subprocess.run(
                 [
@@ -267,30 +258,15 @@ rule ibd_exclusion:
             print(e)
 
 rule_stem = 'geno_rates'
+# Note 24.04.24: The documentation and log are written at every step of this rule, i.e. two filtering steps executed three times iteratively.
 rule geno_rates:
     threads: 2
     input:
-        bed = rules.ibd_exclusion.output.bed,
-    output:
-        bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
-        results = report(
-            resultPath / "{batch}" / "{role}" / (rule_stem + ".yaml"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
-        ),
-        plots = report(
-            resultPath / "{batch}" / "{role}" / (rule_stem + ".png"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
-        ),
+        bed = rules.ibd_exclusion.output.bed
     params:
-        #3 cycles of mind/geno removal
-        geno1 = config["geno_rate.geno1"],
-        mind1 = config["geno_rate.mind1"],
-        geno2 = config["geno_rate.geno2"],
-        mind2 = config["geno_rate.mind2"],
-        geno3 = config["geno_rate.geno3"],
-        mind3 = config["geno_rate.mind3"]
+        docs_folder = resultPath / "{batch}" / "{role}"
+    output:
+        bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed")
     benchmark:
         tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".benchmark")
     run:
@@ -299,65 +275,60 @@ rule geno_rates:
             mqc.log(runlog,rule_info[rule]["QC test"])
 
             inTrunk = mqc.plinkBase(input.bed)
-            outTrunk = mqc.plinkBase(output.bed)
             out_dir = Path(output.bed).parent
-            res_dir = Path(output.results).parent
             lastTrunk = inTrunk
             ruleTrunk = "geno_rates"
 
             for i in [1, 2, 3]:
+
                 mqc.log(runlog,f'{rule_info[rule]["QC test"]}: Iteration {i}')
                 print(f'{rule_info[rule]["QC test"]}: Iteration {i}')
 
                 file_name = ruleTrunk + "_geno" + str(i)
-                outTrunk = str(out_dir / file_name)
-                res_file = str(res_dir / file_name) + ".yaml"
-                plot_file = str(res_dir / file_name) + ".png"
+                outTrunk = out_dir / file_name
+                res_file = params.docs_folder / (file_name + ".yaml")
+                plot_file = params.docs_folder / (file_name + ".png")
+
+                print(res_file)
 
                 mqc.missing_genotype_rate(
                     rule,
                     lastTrunk,
                     outTrunk,
                     sample = False,
-                    treshold = getattr(params,f"geno{i}"),
+                    threshold = config[f"geno_rate.geno{i}"],
                     result_file = res_file,
-                    plot_file = plot_file
+                    plot_file = plot_file,
+                    plinklocal = plinklocal,
+                    rule_info = rule_info
                 )
 
                 lastTrunk = outTrunk
                 file_name = ruleTrunk + "_mind" + str(i)
                 outTrunk = str(out_dir / file_name)
-                res_file = str(res_dir / file_name) + ".yaml"
-                plot_file = str(res_dir / file_name) + ".png"
+                res_file = params.docs_folder / (file_name + ".yaml")
+                plot_file = params.docs_folder / (file_name + ".png")
+
                 mqc.missing_genotype_rate(
                     rule,
                     lastTrunk,
                     outTrunk,
                     sample = True,
-                    treshold = getattr(params,f"mind{i}"),
+                    threshold = config[f"geno_rate.mind{i}"],
                     result_file = res_file,
-                    plot_file = plot_file
+                    plot_file = plot_file,
+                    plinklocal = plinklocal,
+                    rule_info = rule_info
                 )
 
                 lastTrunk = outTrunk
 
             # Create a common caption
-            mqc.make_rule_caption(rule_info, rule, resultPath)
+            mqc.make_rule_caption(rule_info, rule, params.docs_folder)
 
-            # Make a clean bedset and associated documentation
+            # Make a clean bedset
+            outTrunk = mqc.plinkBase(output.bed)
             mqc.copy_bedset(lastTrunk, outTrunk)
-
-            missing_genotype_rate_docs(
-                rule = rule,
-                in_bedset = inTrunk,
-                out_bedset = outTrunk,
-                sample = True,
-                threshold = 0.1,
-                result_file = '/dev/null',
-                plot_file = False,
-                plinklocal = None,
-                rule_info = None
-            )
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")

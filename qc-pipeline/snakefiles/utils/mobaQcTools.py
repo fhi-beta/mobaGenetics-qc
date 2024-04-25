@@ -607,6 +607,7 @@ def missing_genotype_rate(
     else:  # marker
         plink_switch = "--geno"
 
+
     subprocess.run(
         [
             plinklocal,

@@ -670,6 +670,43 @@ rule fam_reconstruction:
         """
 
 
+rule_stem = 'consolidate_mismatches'
+rule consolidate_mismatches:
+    input:
+        mismatch_information = expand(tmpMod2/"{batch}"/"mismatch_information.gz", batch = batches),
+        mismatch_relationship = expand(tmpMod2/"{batch}"/"mismatch_relationship.gz", batch = batches)
+    output:
+        mismatch_information = tmpMod2/"mismatch_information.gz",
+        mismatch_relationship = tmpMod2/"mismatch_relationship.gz"
+    threads: 1
+    run:
+        try:
+
+            mismatch_information_list = []
+            mismatch_relationship_list = []
+
+            for batch in batches:
+                mismatch_information_path = tmpMod2/batch/"mismatch_information.gz"
+                mismatch_information_table = pd.read_csv(mismatch_information_path, delimiter = '\t')
+                mismatch_information_table["batch"] = batch
+                mismatch_information_list.append(mismatch_information_table)
+
+                mismatch_relationship_path = tmpMod2/batch/"mismatch_relationship.gz"
+                mismatch_relationship_table = pd.read_csv(mismatch_relationship_path, delimiter = '\t')
+                mismatch_relationship_table["batch"] = batch
+                mismatch_relationship_list.append(mismatch_relationship_table)
+
+            mismatch_information_table = pd.concat(mismatch_information_list, ignore_index = True)
+            mismatch_relationship_table = pd.concat(mismatch_relationship_list, ignore_index = True)
+
+            mismatch_information_table.to_csv(output.mismatch_information, sep = '\t', index = False, compression = 'gzip')
+            mismatch_relationship_table.to_csv(output.mismatch_relationship, sep = '\t', index = False, compression = 'gzip')
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+
 rule_stem = 'fam_update'
 rule fam_update:
     input:
