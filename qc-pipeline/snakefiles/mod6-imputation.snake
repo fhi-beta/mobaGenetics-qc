@@ -14,6 +14,7 @@ rule mod6_imputation:
             mergefile_content = []
             # Split into chromosomes. The chromosomes must be handled individually, I think?
             for chrnr in chrom: # or chromx?
+                chr = f"chr{chrnr}"
                 reffile_list = glob.glob(hrc_ega + "/EGA*/HRC.r1-1.EGA.GRCh37." + chr + ".haplotypes*.vcf.gz")
                 if len(reffile_list) > 0:
                     reffile = reffile_list[0] # only one file, I assume?
@@ -83,7 +84,6 @@ rule mod6_imputation:
                             "-o", nofam_sorted_vcf
                         ]
                     )
-                    chr = f"chr{chrnr}"
                     mapfile = f"{mapfiles}/plink.{chr}.GRCh37.map" # mapfiles must be copied to server! See config
                     # Make sure java is installed on the server!
                     cmd = f"java -Xmx498g -jar {conform_gt} gt={nofam_sorted_vcf} ref={reffile} out={conformed} chrom={chrnr} match=pos"
