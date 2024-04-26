@@ -286,10 +286,12 @@ rule geno_rates:
 
                 file_name = ruleTrunk + "_geno" + str(i)
                 outTrunk = out_dir / file_name
-                res_file = params.docs_folder / (file_name + ".yaml")
+                res_file = str(params.docs_folder) / (file_name + ".yaml")
                 plot_file = params.docs_folder / (file_name + ".png")
 
                 print(res_file)
+
+                raise Exception("DEBUG")
 
                 mqc.missing_genotype_rate(
                     rule,
@@ -304,21 +306,10 @@ rule geno_rates:
                 )
 
                 lastTrunk = outTrunk
-
-                print("debug1")
-
                 file_name = ruleTrunk + "_mind" + str(i)
-
-                print("debug2")
                 outTrunk = out_dir / file_name
-
-                print("debug3")
                 res_file = params.docs_folder / (file_name + ".yaml")
-
-                print("debug4")
                 plot_file = params.docs_folder / (file_name + ".png")
-
-                print("debug5")
 
                 mqc.missing_genotype_rate(
                     rule,
