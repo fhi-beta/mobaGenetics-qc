@@ -1,6 +1,6 @@
 # Fam file reconstruction in snp015b
 ## Samples not in Medical Birth Regsitry
-1885 samples with missing birth year, will be assumed to be parent.
+16 samples with missing birth year, will be assumed to be parent.
 ## Relationship inference
 | Relationship |   |
 | ------------ | - |
@@ -18,7 +18,7 @@
 | ------------ | - |
 | Unknown | 10 |
 | Male | 2 |
-| Female | 1225 |
+| Female | 1223 |
 
 ![](fam_reconstruction/mother_sex_plot.png)
 ## Father sex check
@@ -40,4 +40,4 @@
 - 582 (99.49%) match to registry.
 - 3 (0.51%) do not match to registry.
 ## Exclusion
-- Number of samples excluded: 10
+- Number of samples excluded: 8

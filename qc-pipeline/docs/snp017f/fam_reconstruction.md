@@ -1,6 +1,6 @@
 # Fam file reconstruction in snp017f
 ## Samples not in Medical Birth Regsitry
-2669 samples with missing birth year, will be assumed to be parent.
+13 samples with missing birth year, will be assumed to be parent.
 ## Relationship inference
 | Relationship |   |
 | ------------ | - |

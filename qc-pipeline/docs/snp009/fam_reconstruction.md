@@ -1,6 +1,6 @@
 # Fam file reconstruction in snp009
 ## Samples not in Medical Birth Regsitry
-6473 samples with missing birth year, will be assumed to be parent.
+40 samples with missing birth year, will be assumed to be parent.
 ## Relationship inference
 | Relationship |   |
 | ------------ | - |
@@ -40,4 +40,4 @@
 - 10597 (99.84%) match to registry.
 - 17 (0.16%) do not match to registry.
 ## Exclusion
-- Number of samples excluded: 70
+- Number of samples excluded: 63

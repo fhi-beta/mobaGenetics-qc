@@ -656,8 +656,8 @@ def missing_genotype_rate_docs(
         miss_ext = ".lmiss"
 
     dropouts = checkUpdates(
-        in_bedset + extension,
-        out_bedset + extension,
+        str(in_bedset) + extension,
+        str(out_bedset) + extension,
         cols = [0, 1],
         sanityCheck = "removal",
         fullList = True
@@ -682,7 +682,7 @@ def missing_genotype_rate_docs(
         )
         plot_point_and_line(
             dropouts,
-            in_bedset + miss_ext,
+            str(in_bedset) + miss_ext,
             plot_file,
             column = "F_MISS",
             ylabel = "1 - missingness"

@@ -264,7 +264,7 @@ rule geno_rates:
     input:
         bed = rules.ibd_exclusion.output.bed
     params:
-        docs_folder = resultPath / "{batch}" / "{role}"
+        docs_folder = os.path.join(resultPath, "{batch}",  "{role}")
     output:
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed")
     benchmark:
@@ -289,10 +289,6 @@ rule geno_rates:
                 res_file = Path(params.docs_folder) / (file_name + ".yaml")
                 plot_file = Path(params.docs_folder) / (file_name + ".png")
 
-                print(res_file)
-
-                raise Exception("DEBUG")
-
                 mqc.missing_genotype_rate(
                     rule,
                     lastTrunk,
@@ -305,11 +301,12 @@ rule geno_rates:
                     rule_info = rule_info
                 )
 
+                
                 lastTrunk = outTrunk
                 file_name = ruleTrunk + "_mind" + str(i)
                 outTrunk = out_dir / file_name
-                res_file = params.docs_folder / (file_name + ".yaml")
-                plot_file = params.docs_folder / (file_name + ".png")
+                res_file = Path(params.docs_folder) / (file_name + ".yaml")
+                plot_file = Path(params.docs_folder) / (file_name + ".png")
 
                 mqc.missing_genotype_rate(
                     rule,
@@ -325,12 +322,10 @@ rule geno_rates:
 
                 lastTrunk = outTrunk
 
-            # Create a common caption
-            mqc.make_rule_caption(rule_info, rule, params.docs_folder)
-
             # Make a clean bedset
             outTrunk = mqc.plinkBase(output.bed)
-            mqc.copy_bedset(lastTrunk, outTrunk)
+
+            mqc.copy_bedset(str(lastTrunk), str(outTrunk))
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")

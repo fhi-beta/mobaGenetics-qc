@@ -1,6 +1,6 @@
 # Fam file reconstruction in snp008
 ## Samples not in Medical Birth Regsitry
-2 samples with missing birth year, will be assumed to be parent.
+5 samples with missing birth year, will be assumed to be parent.
 ## Relationship inference
 | Relationship |   |
 | ------------ | - |
@@ -16,7 +16,7 @@
 ## Mother sex check
 | Inferred sex |   |
 | ------------ | - |
-| Unknown | 1400 |
+| Unknown | 1399 |
 | Male | 1 |
 | Female | 1 |
 
@@ -25,7 +25,7 @@
 | Inferred sex |   |
 | ------------ | - |
 | Unknown | 3 |
-| Male | 1435 |
+| Male | 1433 |
 | Female | 0 |
 
 ![](fam_reconstruction/father_sex_plot.png)

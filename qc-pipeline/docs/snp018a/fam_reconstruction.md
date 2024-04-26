@@ -1,6 +1,6 @@
 # Fam file reconstruction in snp018a
 ## Samples not in Medical Birth Regsitry
-2273 samples with missing birth year, will be assumed to be parent.
+19 samples with missing birth year, will be assumed to be parent.
 ## Relationship inference
 | Relationship |   |
 | ------------ | - |
@@ -18,14 +18,14 @@
 | ------------ | - |
 | Unknown | 16 |
 | Male | 0 |
-| Female | 1717 |
+| Female | 1716 |
 
 ![](fam_reconstruction/mother_sex_plot.png)
 ## Father sex check
 | Inferred sex |   |
 | ------------ | - |
 | Unknown | 0 |
-| Male | 1368 |
+| Male | 1367 |
 | Female | 4 |
 
 ![](fam_reconstruction/father_sex_plot.png)
