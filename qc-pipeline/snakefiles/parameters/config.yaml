@@ -16,6 +16,10 @@ birth_year: "/mnt/archive/snpQc/phenotypes/birth_year_24.04.12.gz"
 # Used by the Will Rayner perl-script in mod5.
 # 2.8Gig
 hrc_sites: "/mnt/archive/snpQc/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
+hrc_ega: "/mnt/archive/HRC_1.1_EGA/download"
+
+# Genetic maps found at https://bochet.gcc.biostat.washington.edu/beagle/genetic_maps/
+mapfiles: "mapfile_path_goes_here"
 
 # From https://github.com/long-covid-hg/pca_projection/blob/main/docs/prerequisites.md#download-the-pre-computed-pca-loadings-and-reference-allele-frequencies
 # Contains precomputed PCA loadings and reference allele frequencies from Human Genome Diversity Project (HGDP) and the 1000 Genomes Project
@@ -31,6 +35,8 @@ ref_pc_freq: "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_loadin
 # prune parameters identic to those used for moba. Not necessary? (2020.02.19) Delete if not used 
 #1kgp_maf_thr: 0.1 
 #1kgp_prune_cmd: --indep-pairwise 200 100 0.1
+
+
 
 # HGDP data used for PCA, see github.com/covid19-hg/pca_projection for details
 hgdp_weights: "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_scores.txt.gz"
