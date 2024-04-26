@@ -286,8 +286,8 @@ rule geno_rates:
 
                 file_name = ruleTrunk + "_geno" + str(i)
                 outTrunk = out_dir / file_name
-                res_file = str(params.docs_folder) / (file_name + ".yaml")
-                plot_file = params.docs_folder / (file_name + ".png")
+                res_file = Path(params.docs_folder) / (file_name + ".yaml")
+                plot_file = Path(params.docs_folder) / (file_name + ".png")
 
                 print(res_file)
 
