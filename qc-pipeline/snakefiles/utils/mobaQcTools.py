@@ -28,7 +28,7 @@ def make_rule_caption(rule_info, rule, dir):
     It will typically be called twice.
     Warning: Assumes that rule and rule_stem are identical where this is used.
     """
-    with open(str(dir/rule)+".rst", 'w') as file:
+    with open(dir/(rule + ".rst"), 'w') as file:
         file.write(f'Rule {rule_info[rule]["Rule order"]} ({rule_info[rule]["rule action"]})\n')
 
 

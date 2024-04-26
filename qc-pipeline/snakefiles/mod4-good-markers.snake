@@ -258,7 +258,7 @@ rule ibd_exclusion:
             print(e)
 
 rule_stem = 'geno_rates'
-# Note 24.04.24: The documentation and log are written at every step of this rule, i.e. two filtering steps executed three times iteratively.
+# Note 24.04.24: The documentation and log are written at every step of this rule, i.e. two filtering steps executed three times iteratively. The captioning system of the previous implementation needs to be fixed.
 rule geno_rates:
     threads: 2
     input:
