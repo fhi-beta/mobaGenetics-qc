@@ -304,7 +304,7 @@ rule geno_rates:
                 )
 
                 lastTrunk = outTrunk
-                file_name = ruleTrunk + "_mind" + str(i)
+                file_name = ruleTrunk.append_suffix("_mind" + str(i))
                 outTrunk = out_dir / file_name
                 res_file = params.docs_folder / (file_name + ".yaml")
                 plot_file = params.docs_folder / (file_name + ".png")
