@@ -258,7 +258,7 @@ rule ibd_exclusion:
             print(e)
 
 rule_stem = 'geno_rates'
-# Note 24.04.24: The documentation and log are written at every step of this rule, i.e. two filtering steps executed three times iteratively.
+# Note 24.04.24: The documentation and log are written at every step of this rule, i.e. two filtering steps executed three times iteratively. The captioning system of the previous implementation needs to be fixed.
 rule geno_rates:
     threads: 2
     input:
@@ -327,28 +327,20 @@ rule geno_rates:
 
             mqc.copy_bedset(str(lastTrunk), str(outTrunk))
 
+            # and set a common caption
+            # mqc.make_rule_caption(rule_info, rule, params.docs_folder)
+
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
 
 rule_stem = 'hwe_autos_geno'
+# Note 27.04.24: The documentation and log are written at every step of this rule. The captioning system of the previous implementation needs to be fixed.
 rule hwe_autos_geno:
     threads: 1
     input:
         bed = rules.geno_rates.output.bed,
-    output:
-        bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
-        results = report(
-            resultPath / "{batch}" / "{role}" / (rule_stem + ".yaml"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
-        ),
-        plot = report(
-            resultPath / "{batch}" / "{role}" / (rule_stem + ".png"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
-        ),
     params:
         #2 cycles hwe/maf + a geno
         hwe1 = config["hwe1"],
@@ -357,7 +349,10 @@ rule hwe_autos_geno:
         hwe2 = config["hwe2"],
         maf2 = config["maf2"],
         sd_het2 = config["sd_het2"],
-        geno_rare = config["geno_rare"]
+        geno_rare = config["geno_rare"],
+        docs_folder = resultPath / "{batch}" / "{role}"
+    output:
+        bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
     benchmark:
         tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".benchmark")
     run:
@@ -367,7 +362,6 @@ rule hwe_autos_geno:
 
             inTrunk = mqc.plinkBase(input.bed)
             out_dir = Path(output.bed).parent
-            res_dir = Path(output.results).parent
             lastTrunk = inTrunk
 
             # Iterate 2 times, creating a chain of geno1 -> mind1 -> geno2 -> mind2 etc files
@@ -376,9 +370,9 @@ rule hwe_autos_geno:
             for i in [1, 2]:  # common_het logic not suited for more than 2 iterations
 
                 file_name = rule + "_hwe" + str(i)
-                outTrunk = str(out_dir / file_name)
-                res_file = str(res_dir / file_name) + ".yaml"
-                plot_file = str(res_dir / file_name) + ".png"
+                outTrunk = out_dir / file_name
+                res_file = Path(params.docs_folder) / (file_name + ".yaml")
+                plot_file = Path(params.docs_folder) / (file_name + ".png")
 
                 # Filters and plot
                 mqc.low_hwe_rate(
@@ -388,7 +382,9 @@ rule hwe_autos_geno:
                     treshold = getattr(params, f"hwe{i}"),
                     hwe_switches = ["--autosome", "--hardy", "midp"],
                     result_file = res_file,
-                    plot_file = plot_file
+                    plot_file = plot_file,
+                    plinklocal = plinklocal,
+                    rule_info = rule_info
                 )
 
                 autosomal = markers_category[i]
@@ -406,7 +402,9 @@ rule hwe_autos_geno:
                     treshold = getattr(params, f"maf{i}"),
                     sd = getattr(params, f"sd_het{i}"),
                     result_file = res_file,
-                    plot_file = plot_file
+                    plot_file = plot_file,
+                    plinklocal = plinklocal,
+                    rule_info = rule_info
                 )
 
                 lastTrunk = outTrunk
@@ -420,11 +418,13 @@ rule hwe_autos_geno:
                 sample = False,
                 treshold = params.geno_rare,
                 result_file = output.results,
-                plot_file = output.plot
+                plot_file = output.plot,
+                plinklocal = plinklocal,
+                rule_info = rule_info
             )
 
             # and set a common caption
-            mqc.make_rule_caption(rule_info, rule, resultPath)
+            # mqc.make_rule_caption(rule_info, rule, params.docs_folder)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
