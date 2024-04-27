@@ -22,7 +22,7 @@ rule mod4_keep_main_cluster:
         try:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog,rule_info[rule]["QC test"])
-            mqc.log(runlog,"PCA exlude {item_type} ({params.treshold})\n")
+            mqc.log(runlog,"PCA exlude {item_type} ({params.threshold})\n")
 
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
@@ -379,7 +379,7 @@ rule hwe_autos_geno:
                     rule,
                     lastTrunk,
                     outTrunk,
-                    treshold = getattr(params, f"hwe{i}"),
+                    threshold = getattr(params, f"hwe{i}"),
                     hwe_switches = ["--autosome", "--hardy", "midp"],
                     result_file = res_file,
                     plot_file = plot_file,
@@ -399,7 +399,7 @@ rule hwe_autos_geno:
                     autosomal,
                     lastTrunk,
                     outTrunk,
-                    treshold = getattr(params, f"maf{i}"),
+                    threshold = getattr(params, f"maf{i}"),
                     sd = getattr(params, f"sd_het{i}"),
                     result_file = res_file,
                     plot_file = plot_file,
@@ -416,7 +416,7 @@ rule hwe_autos_geno:
                 lastTrunk,
                 outTrunk,
                 sample = False,
-                treshold = params.geno_rare,
+                threshold = params.geno_rare,
                 result_file = output.results,
                 plot_file = output.plot,
                 plinklocal = plinklocal,
@@ -455,8 +455,8 @@ rule sex_check:
         bim = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bim"),
         hh = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".hh")
     params:
-        female_treshold = config['sex_check_female'],
-        male_treshold = config['sex_check_male']
+        female_threshold = config['sex_check_female'],
+        male_threshold = config['sex_check_male']
     benchmark:
         tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".benchmark")
     run:
@@ -471,8 +471,8 @@ rule sex_check:
                 rule,
                 input.bed,
                 output.bed,
-                f_treshold = 0.2,
-                m_treshold = 0.8,
+                f_threshold = 0.2,
+                m_threshold = 0.8,
                 result_file = output.results,
                 plot_file = output.plot
             )
@@ -507,7 +507,7 @@ rule female_xmarkers:
             caption = resultPath / "{batch}" / (rule_stem + ".rst")
         ),
     params:
-        treshold = config['xmarkers_clean'],
+        threshold = config['xmarkers_clean'],
     benchmark:
         tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".benchmark")
     run:
@@ -525,7 +525,7 @@ rule female_xmarkers:
                 rule,
                 inTrunk,
                 outTrunk,
-                treshold = params.treshold,
+                threshold = params.threshold,
                 hwe_switches = ["--filter-females", "--chr", "23", "--hardy", "midp"],
                 result_file = output.results,
                 plot_file = output.plot
@@ -559,7 +559,7 @@ rule par_regions:
             caption = resultPath / "{batch}" / (rule_stem + ".rst")
         ),
     params:
-        treshold = config['xmarkers_clean'],
+        threshold = config['xmarkers_clean'],
     benchmark:
         tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".benchmark")
     run:
@@ -577,7 +577,7 @@ rule par_regions:
                 rule,
                 inTrunk,
                 outTrunk,
-                treshold = params.treshold,
+                threshold = params.threshold,
                 hwe_switches = ["--chr", "25", "--hardy", "midp"],
                 result_file = output.results,
                 plot_file = output.plot
