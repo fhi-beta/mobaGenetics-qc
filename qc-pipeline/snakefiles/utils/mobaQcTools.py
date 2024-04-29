@@ -453,6 +453,7 @@ def checkUpdates(
 
     """
     # dictionary with only relevant columns
+    print("*** debug_check1: " + preQc + " " + postQc)
     (outDict, m) = dict_count_items(postQc, cols)
     result = {
         "in":   0,        # will count lines from the 'in' file
@@ -460,6 +461,7 @@ def checkUpdates(
         "xitems": [],    # populated later by samples/markers if fullList is True
         "actionTakenCount": 0 # Not found in dictionary, so it is the effect of the qc-rule on the inputfile
     }
+    print("*** debug_check2")
     haveDict = False
     if mapFile != "":   # Setting up a dictionary 'lookup' to look up the original value if postQc has changed
         lookup = lookupDict(mapFile, mapIndx)
@@ -489,6 +491,8 @@ def checkUpdates(
                     mappingRule = lookup.get(item, 'ooops: missing')
                     changed = f'{changed} changed by mapping {mappingRule}'
                 result["xitems"].append(changed)    # sample/marker id(s)
+
+    print("*** debug_check3")
 
     if sanityCheck == 'updated':  # we don't want to lose items here
         if (result["out"]) != result["in"]:
@@ -785,13 +789,9 @@ def low_hwe_rate(
 
     print("*** debug low_hwe_rate 1: " + in_bedset + ", " + out_bedset)
 
-    path_in = in_bedset + ".bim"
-    path_out = out_bedset + ".bim"
-
-    print("*** debug low_hwe_rate 1: " + path_in + ", " + path_out)
     dropouts = checkUpdates(
-        path_in,
-        path_out,
+        in_bedset + ".bim",
+        out_bedset + ".bim",
         cols = [0, 1],
         sanityCheck = "removal",
         fullList = True
