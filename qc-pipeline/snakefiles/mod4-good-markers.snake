@@ -368,7 +368,7 @@ rule hwe_autos_geno:
 
                 for markers_category in ["common", "rare"]:
 
-                    print("*** debug_main_1: " + i + " " + markers_category)
+                    print("*** debug_main_1: " + str(i) + " " + markers_category)
 
                     file_name = rule + "_hwe" + str(i)
                     outTrunk = out_dir / file_name
@@ -388,7 +388,7 @@ rule hwe_autos_geno:
                         rule_info = rule_info
                     )
 
-                    print("*** debug_main_2: " + i + " " + markers_category)
+                    print("*** debug_main_2: " + str(i) + " " + markers_category)
 
                     lastTrunk = outTrunk
                     file_name = rule + "_het" + str(i)
@@ -396,7 +396,7 @@ rule hwe_autos_geno:
                     res_file = Path(params.docs_folder) / (file_name + ".yaml")
                     plot_file = Path(params.docs_folder) / (file_name + ".png")
 
-                    print("*** debug_main_3: " + i + " " + markers_category)
+                    print("*** debug_main_3: " + str(i) + " " + markers_category)
 
                     mqc.filter_excess_het(
                         rule,
@@ -411,7 +411,7 @@ rule hwe_autos_geno:
                         rule_info = rule_info
                     )
 
-                    print("*** debug_main_4: " + i + " " + markers_category)
+                    print("*** debug_main_4: " + str(i) + " " + markers_category)
 
                     lastTrunk = outTrunk
 
