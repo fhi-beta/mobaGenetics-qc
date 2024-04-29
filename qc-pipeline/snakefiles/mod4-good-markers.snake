@@ -390,9 +390,9 @@ rule hwe_autos_geno:
                 autosomal = markers_category[i]
                 lastTrunk = outTrunk
                 file_name = rule + "_het" + str(i)
-                outTrunk = str(out_dir / file_name)
-                res_file = str(res_dir / file_name) + ".yaml"
-                plot_file = str(res_dir / file_name) + ".png"
+                outTrunk = out_dir / file_name
+                res_file = Path(params.docs_folder) / (file_name + ".yaml")
+                plot_file = Path(params.docs_folder) / (file_name + ".png")
 
                 mqc.excess_het(
                     rule,
