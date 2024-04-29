@@ -501,6 +501,8 @@ def checkUpdates(
     elif sanityCheck == 'removal':       # we want out + removed = in
         if (result["actionTakenCount"] + result["out"]) != result["in"]:
             print(f"Warning: {preQc} -> {postQc}: remaining + removed samples != original number")
+
+    print("*** debug_check3")
     return result
 
 
