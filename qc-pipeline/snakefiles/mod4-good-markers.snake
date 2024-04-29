@@ -381,9 +381,20 @@ rule hwe_autos_geno:
                     check = True
                 )
 
-                freq_file = str(outTrunk) + ".freq"
+                freq_file = str(outTrunk) + ".frq"
+                print("Read feq: " + freq_file)
 
-                print(freq_file)
+                # See if there are rare variants
+                freq_data = pd.read_csv(
+                    freq_file,
+                    delimiter = '\t'
+                )
+
+                min_maf = freq_data['MAF'].min()
+
+                print("min maf: " + min_maf)
+                print("max maf: " + freq_data['MAF'].min())
+                print("n markers: " + len(freq_data))
 
                 raise Exception("*** DEBUG ***")
 
