@@ -353,6 +353,16 @@ rule hwe_autos_geno:
         docs_folder = os.path.join(resultPath, "{batch}",  "{role}")
     output:
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
+        results = report(
+            resultPath / "{batch}" / "{role}" / (rule_stem + ".yaml"),
+            category = "Module 4 Good markers",
+            caption = resultPath / "{batch}" / (rule_stem + ".rst")
+        ),
+        plot = report(
+            resultPath / "{batch}" / "{role}" / (rule_stem + ".png"),
+            category = "Module 4 Good markers",
+            caption = resultPath / "{batch}" / (rule_stem + ".rst")
+        )
     benchmark:
         tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".benchmark")
     run:
