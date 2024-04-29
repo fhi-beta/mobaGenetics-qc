@@ -390,14 +390,21 @@ rule hwe_autos_geno:
                 )
 
                 min_maf = freq_data['MAF'].min()
+                maf_threshold = getattr(params,f"maf{i}")
 
                 print("min maf: ", min_maf)
-                print("max maf: ", freq_data['MAF'].max())
-                print("n markers: ", len(freq_data))
 
+                if min_maf > maf_threshold:
+                    markers_categories = ["common"]
+                    print("No variant with maf < ", maf_threshold, " found, skipping HWE/HET for rare variants.")
+
+                else:
+                    markers_categories = ["common", "rare"]
+
+                print(markers_categories)
                 raise Exception("*** DEBUG ***")
 
-                for markers_category in ["common", "rare"]:
+                for markers_category in markers_categories:
 
                     print("*** debug_main_1: " + str(i) + " " + markers_category)
 
@@ -434,7 +441,7 @@ rule hwe_autos_geno:
                         markers_category,
                         str(lastTrunk),
                         str(outTrunk),
-                        threshold = getattr(params, f"maf{i}"),
+                        threshold = ,
                         sd = getattr(params, f"sd_het{i}"),
                         result_file = res_file,
                         plot_file = plot_file,
