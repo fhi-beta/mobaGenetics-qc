@@ -721,7 +721,7 @@ def detect_low_hwe_rate(
     # We here have a .hwe file where low p-values for markers are to be removed
     hwe_p_values = out_bedset + ".hwe"
 
-    print("debug_low_hwe_rate_2")
+    print("debug_low_hwe_rate_2" + out_bedset)
     extract_list(
         hwe_p_values,
         out_bedset + ".exclude",
@@ -733,6 +733,8 @@ def detect_low_hwe_rate(
         key_cols = [1],
         doc_cols = [0, 1]
     )
+
+    print("debug_low_hwe_rate_3")
     return
 
 def low_hwe_rate(
