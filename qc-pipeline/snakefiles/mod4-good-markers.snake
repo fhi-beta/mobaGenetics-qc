@@ -258,7 +258,7 @@ rule ibd_exclusion:
             print(e)
 
 rule_stem = 'geno_rates'
-# Note 24.04.24: The documentation and log are written at every step of this rule, i.e. two filtering steps executed three times iteratively. The captioning system of the previous implementation needs to be fixed.
+# Note 24.04.24: The documentation and log are written at every step of this rule, i.e. two filtering steps executed three times iteratively. The captioning system of the previous implementation needs to be checked.
 rule geno_rates:
     threads: 2
     input:
@@ -328,7 +328,7 @@ rule geno_rates:
             mqc.copy_bedset(str(lastTrunk), str(outTrunk))
 
             # and set a common caption
-            # mqc.make_rule_caption(rule_info, rule, params.docs_folder)
+            mqc.make_rule_caption(rule_info, rule, Path(params.docs_folder))
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -466,7 +466,6 @@ rule hwe_autos_geno:
             )
 
             # and set a common caption
-            print(Path(params.docs_folder))
             mqc.make_rule_caption(rule_info, rule, Path(params.docs_folder))
 
         except Exception as e:
