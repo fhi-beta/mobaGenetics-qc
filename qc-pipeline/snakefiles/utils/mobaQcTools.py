@@ -776,6 +776,8 @@ def low_hwe_rate(
         check = True
     )
 
+    print("*** debug low_hwe_rate 1: " + in_bedset + ", " + out_bedset)
+
     dropouts = checkUpdates(
         in_bedset + ".bim",
         out_bedset + ".bim",
@@ -784,7 +786,7 @@ def low_hwe_rate(
         fullList = True
     )
 
-    print("*** debug low_hwe_rate 1: " + result_file)
+    print("*** debug low_hwe_rate 2: " + result_file)
 
     dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
     dropouts["Threshold"] = threshold
