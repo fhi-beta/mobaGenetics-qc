@@ -390,6 +390,8 @@ rule hwe_autos_geno:
                     delimiter = '\t'
                 )
 
+                print("Column names:", list(freq_data.columns))
+
                 min_maf = freq_data['MAF'].min()
 
                 print("min maf: " + min_maf)
