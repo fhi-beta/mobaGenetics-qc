@@ -464,11 +464,10 @@ rule hwe_autos_geno:
                 plinklocal = plinklocal,
                 rule_info = rule_info
             )
-            print("debug_main_6")
 
             # and set a common caption
-            mqc.make_rule_caption(rule_info, rule, params.docs_folder)
-            print("debug_main_7")
+            print(Path(params.docs_folder))
+            mqc.make_rule_caption(rule_info, rule, Path(params.docs_folder))
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
