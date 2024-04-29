@@ -382,7 +382,6 @@ rule hwe_autos_geno:
                 )
 
                 freq_file = str(outTrunk) + ".frq"
-                print("Read feq: " + freq_file)
 
                 # See if there are rare variants
                 freq_data = pd.read_csv(
@@ -390,13 +389,11 @@ rule hwe_autos_geno:
                     delimiter = '\s+'
                 )
 
-                print("Column names:", list(freq_data.columns))
-
                 min_maf = freq_data['MAF'].min()
 
-                print("min maf: " + min_maf)
-                print("max maf: " + freq_data['MAF'].min())
-                print("n markers: " + len(freq_data))
+                print("min maf: ", min_maf)
+                print("max maf: ", freq_data['MAF'].min())
+                print("n markers: ", len(freq_data))
 
                 raise Exception("*** DEBUG ***")
 
