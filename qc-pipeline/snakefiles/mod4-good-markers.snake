@@ -441,7 +441,7 @@ rule hwe_autos_geno:
                         markers_category,
                         str(lastTrunk),
                         str(outTrunk),
-                        threshold = ,
+                        threshold = maf_threshold,
                         sd = getattr(params, f"sd_het{i}"),
                         result_file = res_file,
                         plot_file = plot_file,
