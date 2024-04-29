@@ -350,7 +350,7 @@ rule hwe_autos_geno:
         maf2 = config["maf2"],
         sd_het2 = config["sd_het2"],
         geno_rare = config["geno_rare"],
-        docs_folder = resultPath / "{batch}" / "{role}"
+        docs_folder = os.path.join(resultPath, "{batch}",  "{role}")
     output:
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
     benchmark:
