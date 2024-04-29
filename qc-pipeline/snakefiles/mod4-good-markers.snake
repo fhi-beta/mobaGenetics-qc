@@ -387,7 +387,7 @@ rule hwe_autos_geno:
                 # See if there are rare variants
                 freq_data = pd.read_csv(
                     freq_file,
-                    delimiter = '\t'
+                    delimiter = '\s+'
                 )
 
                 print("Column names:", list(freq_data.columns))
