@@ -340,8 +340,7 @@ rule_stem = 'hwe_autos_geno'
 rule hwe_autos_geno:
     threads: 1
     input:
-        bed = rules.geno_rates.output.bed,
-        non_split_bedset = rules.mod4_keep_main_cluster.output.bedset
+        bed = rules.geno_rates.output.bed
     params:
         #2 cycles hwe/maf + a geno
         hwe1 = config["hwe1"],
@@ -396,14 +395,12 @@ rule hwe_autos_geno:
 
                 if min_maf > maf_threshold:
                     markers_categories = ["common"]
-                    print("No variant with maf < ", maf_threshold, " found, skipping HWE/HET for rare variants.")
+                    print("No variant with maf < ", maf_threshold, " found at iteration ", i, ", skipping HWE/HET for rare variants.")
 
                 else:
                     markers_categories = ["common", "rare"]
 
                 for markers_category in markers_categories:
-
-                    print("*** debug_main_1: " + str(i) + " " + markers_category)
 
                     file_name = rule + "_hwe" + str(i)
                     outTrunk = out_dir / file_name
@@ -423,15 +420,11 @@ rule hwe_autos_geno:
                         rule_info = rule_info
                     )
 
-                    print("*** debug_main_2: " + str(i) + " " + markers_category)
-
                     lastTrunk = outTrunk
                     file_name = rule + "_het" + str(i)
                     outTrunk = out_dir / file_name
                     res_file = Path(params.docs_folder) / (file_name + ".yaml")
                     plot_file = Path(params.docs_folder) / (file_name + ".png")
-
-                    print("*** debug_main_3: " + str(i) + " " + markers_category)
 
                     mqc.filter_excess_het(
                         rule,
@@ -446,14 +439,8 @@ rule hwe_autos_geno:
                         rule_info = rule_info
                     )
 
-                    print("*** debug_main_4: " + str(i) + " " + markers_category)
-
                     lastTrunk = outTrunk
 
-
-            raise Exception("*** DEBUG ***")
-
-            print("debug_main_5")
             # a last round of marker removal
             outTrunk = mqc.plinkBase(output.bed)
             mqc.missing_genotype_rate(
