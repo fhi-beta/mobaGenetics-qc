@@ -380,8 +380,8 @@ rule hwe_autos_geno:
                 # Filters and plot
                 mqc.low_hwe_rate(
                     rule,
-                    lastTrunk,
-                    outTrunk,
+                    str(lastTrunk),
+                    str(outTrunk),
                     threshold = getattr(params, f"hwe{i}"),
                     hwe_switches = ["--autosome", "--hardy", "midp"],
                     result_file = res_file,
@@ -404,8 +404,8 @@ rule hwe_autos_geno:
                 mqc.excess_het(
                     rule,
                     autosomal,
-                    lastTrunk,
-                    outTrunk,
+                    str(lastTrunk),
+                    str(outTrunk),
                     threshold = getattr(params, f"maf{i}"),
                     sd = getattr(params, f"sd_het{i}"),
                     result_file = res_file,
@@ -423,8 +423,8 @@ rule hwe_autos_geno:
             outTrunk = mqc.plinkBase(output.bed)
             mqc.missing_genotype_rate(
                 rule,
-                lastTrunk,
-                outTrunk,
+                str(lastTrunk),
+                str(outTrunk),
                 sample = False,
                 threshold = params.geno_rare,
                 result_file = output.results,
