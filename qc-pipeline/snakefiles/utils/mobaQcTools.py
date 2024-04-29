@@ -399,9 +399,17 @@ def lookupDict(fil, indx=1):
     return dict(zip(indexCol, all))
 
 
-def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
-                 fullList=False,  mapFile="", mapIndx=1,
-                 allele_flip=False):
+def checkUpdates(
+        preQc,
+        postQc,
+        cols = [0, 1],
+        indx = 1,
+        sanityCheck = "none",
+        fullList = False,
+        mapFile = "",
+        mapIndx = 1,
+        allele_flip = False
+):
     """Generic comparition of two bedsets
 
     Return number of updates due (typically) to a rule as well as a
@@ -449,12 +457,11 @@ def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
     result = {
         "in":   0,        # will count lines from the 'in' file
         "out": len(outDict),
-        "xitems": [],    # poplulated later by samples/markers if fullList is True
+        "xitems": [],    # populated later by samples/markers if fullList is True
         "actionTakenCount": 0 # Not found in dictionary, so it is the effect of the qc-rule on the inputfile
     }
     haveDict = False
-    if mapFile != "":   # Setting up a dictionary 'lookup' to lookup the
-        # original value if postQc has changed
+    if mapFile != "":   # Setting up a dictionary 'lookup' to look up the original value if postQc has changed
         lookup = lookupDict(mapFile, mapIndx)
         haveDict = True
         result["mapFile"] = mapFile
@@ -483,7 +490,7 @@ def checkUpdates(preQc, postQc, cols=[0,1], indx=1, sanityCheck="none",
                     changed = f'{changed} changed by mapping {mappingRule}'
                 result["xitems"].append(changed)    # sample/marker id(s)
 
-    if sanityCheck == 'updated':  # we don't want to loose items here
+    if sanityCheck == 'updated':  # we don't want to lose items here
         if (result["out"]) != result["in"]:
             print(f"Warning: {preQc} -> {postQc}: Update expected, but number of unique items have changed "
                   f"from {result['in']} to {result['out']}")
@@ -778,9 +785,13 @@ def low_hwe_rate(
 
     print("*** debug low_hwe_rate 1: " + in_bedset + ", " + out_bedset)
 
+    path_in = in_bedset + ".bim"
+    path_out = out_bedset + ".bim"
+
+    print("*** debug low_hwe_rate 1: " + path_in + ", " + path_out)
     dropouts = checkUpdates(
-        in_bedset + ".bim",
-        out_bedset + ".bim",
+        path_in,
+        path_out,
         cols = [0, 1],
         sanityCheck = "removal",
         fullList = True
