@@ -374,6 +374,8 @@ rule hwe_autos_geno:
                 res_file = Path(params.docs_folder) / (file_name + ".yaml")
                 plot_file = Path(params.docs_folder) / (file_name + ".png")
 
+                print("debug_main_1")
+
                 # Filters and plot
                 mqc.low_hwe_rate(
                     rule,
@@ -387,12 +389,16 @@ rule hwe_autos_geno:
                     rule_info = rule_info
                 )
 
+                print("debug_main_2")
+
                 autosomal = markers_category[i]
                 lastTrunk = outTrunk
                 file_name = rule + "_het" + str(i)
                 outTrunk = out_dir / file_name
                 res_file = Path(params.docs_folder) / (file_name + ".yaml")
                 plot_file = Path(params.docs_folder) / (file_name + ".png")
+
+                print("debug_main_3")
 
                 mqc.excess_het(
                     rule,
@@ -407,8 +413,11 @@ rule hwe_autos_geno:
                     rule_info = rule_info
                 )
 
+                print("debug_main_4")
+
                 lastTrunk = outTrunk
 
+            print("debug_main_5")
             # a last round of marker removal
             outTrunk = mqc.plinkBase(output.bed)
             mqc.missing_genotype_rate(
