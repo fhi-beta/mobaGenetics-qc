@@ -4,13 +4,13 @@
 #
 ##
 
-rule_stem = "mod4_keep_main_cluster"  # Extract samples from main cluster in PCA to get best markers
+rule_stem = "mod4_keep_main_cluster"  # Extract samples from main cluster in PCA to get best quality markers
 rule mod4_keep_main_cluster:
     input:
         ceu_id_file = tmpMod3/"{batch}"/"ceu_core_ids",
         bedset = rules.m2_output.output.bedset,
     output:
-        bedset = multiext(str(tmpMod4 / "{batch}" / rule_stem),'.bed','.bim','.fam'),
+        bedset = multiext(str(tmpMod4 / "{batch}" / rule_stem), '.bed', '.bim', '.fam'),
         results = report(
             resultPath / "{batch}" / (rule_stem + ".yaml"),
             category = "Module 4 Good markers",
@@ -341,6 +341,7 @@ rule hwe_autos_geno:
     threads: 1
     input:
         bed = rules.geno_rates.output.bed,
+        non_split_bedset = rules.mod4_keep_main_cluster.output.bedset
     params:
         #2 cycles hwe/maf + a geno
         hwe1 = config["hwe1"],
@@ -365,6 +366,26 @@ rule hwe_autos_geno:
             lastTrunk = inTrunk
 
             for i in [1, 2]:
+
+                # Get mafs
+                file_name = rule + "_freq" + str(i)
+                outTrunk = out_dir / file_name
+
+                subprocess.run(
+                    [
+                        plinklocal,
+                        "--bfile", lastTrunk,
+                        "--freq",
+                        "--out", outTrunk
+                    ],
+                    check = True
+                )
+
+                freq_file = str(outTrunk) + ".freq"
+
+                print(freq_file)
+
+                raise Exception("*** DEBUG ***")
 
                 for markers_category in ["common", "rare"]:
 
