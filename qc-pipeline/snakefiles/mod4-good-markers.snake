@@ -364,58 +364,56 @@ rule hwe_autos_geno:
             out_dir = Path(output.bed).parent
             lastTrunk = inTrunk
 
-            # Iterate 2 times, creating a chain of geno1 -> mind1 -> geno2 -> mind2 etc files
-            markers_category = ["common", "rare"]
+            for i in [1, 2]:
 
-            for i in [1, 2]:  # common_het logic not suited for more than 2 iterations
+                for markers_category in ["common", "rare"]:
 
-                file_name = rule + "_hwe" + str(i)
-                outTrunk = out_dir / file_name
-                res_file = Path(params.docs_folder) / (file_name + ".yaml")
-                plot_file = Path(params.docs_folder) / (file_name + ".png")
+                    print("*** debug_main_1: " + i + " " + markers_category)
 
-                print("debug_main_1")
+                    file_name = rule + "_hwe" + str(i)
+                    outTrunk = out_dir / file_name
+                    res_file = Path(params.docs_folder) / (file_name + ".yaml")
+                    plot_file = Path(params.docs_folder) / (file_name + ".png")
 
-                # Filters and plot
-                mqc.low_hwe_rate(
-                    rule,
-                    str(lastTrunk),
-                    str(outTrunk),
-                    threshold = getattr(params, f"hwe{i}"),
-                    hwe_switches = ["--autosome", "--hardy", "midp"],
-                    result_file = str(res_file),
-                    plot_file = str(plot_file),
-                    plinklocal = plinklocal,
-                    rule_info = rule_info
-                )
+                    # Filters and plot
+                    mqc.filter_hwe(
+                        rule,
+                        str(lastTrunk),
+                        str(outTrunk),
+                        threshold = getattr(params, f"hwe{i}"),
+                        hwe_switches = ["--autosome", "--hardy", "midp"],
+                        result_file = str(res_file),
+                        plot_file = str(plot_file),
+                        plinklocal = plinklocal,
+                        rule_info = rule_info
+                    )
 
-                print("debug_main_2")
+                    print("*** debug_main_2: " + i + " " + markers_category)
 
-                autosomal = markers_category[i]
-                lastTrunk = outTrunk
-                file_name = rule + "_het" + str(i)
-                outTrunk = out_dir / file_name
-                res_file = Path(params.docs_folder) / (file_name + ".yaml")
-                plot_file = Path(params.docs_folder) / (file_name + ".png")
+                    lastTrunk = outTrunk
+                    file_name = rule + "_het" + str(i)
+                    outTrunk = out_dir / file_name
+                    res_file = Path(params.docs_folder) / (file_name + ".yaml")
+                    plot_file = Path(params.docs_folder) / (file_name + ".png")
 
-                print("debug_main_3")
+                    print("*** debug_main_3: " + i + " " + markers_category)
 
-                mqc.excess_het(
-                    rule,
-                    autosomal,
-                    str(lastTrunk),
-                    str(outTrunk),
-                    threshold = getattr(params, f"maf{i}"),
-                    sd = getattr(params, f"sd_het{i}"),
-                    result_file = res_file,
-                    plot_file = plot_file,
-                    plinklocal = plinklocal,
-                    rule_info = rule_info
-                )
+                    mqc.filter_excess_het(
+                        rule,
+                        markers_category,
+                        str(lastTrunk),
+                        str(outTrunk),
+                        threshold = getattr(params, f"maf{i}"),
+                        sd = getattr(params, f"sd_het{i}"),
+                        result_file = res_file,
+                        plot_file = plot_file,
+                        plinklocal = plinklocal,
+                        rule_info = rule_info
+                    )
 
-                print("debug_main_4")
+                    print("*** debug_main_4: " + i + " " + markers_category)
 
-                lastTrunk = outTrunk
+                    lastTrunk = outTrunk
 
             print("debug_main_5")
             # a last round of marker removal
@@ -431,9 +429,11 @@ rule hwe_autos_geno:
                 plinklocal = plinklocal,
                 rule_info = rule_info
             )
+            print("debug_main_6")
 
             # and set a common caption
-            # mqc.make_rule_caption(rule_info, rule, params.docs_folder)
+            mqc.make_rule_caption(rule_info, rule, params.docs_folder)
+            print("debug_main_7")
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -530,7 +530,7 @@ rule female_xmarkers:
             inTrunk = mqc.plinkBase(input.bed)
             outTrunk = mqc.plinkBase(output.bed)
 
-            mqc.low_hwe_rate(
+            mqc.filter_hwe(
                 rule,
                 inTrunk,
                 outTrunk,
@@ -582,7 +582,7 @@ rule par_regions:
             inTrunk = mqc.plinkBase(input.bed)
             outTrunk = mqc.plinkBase(output.bed)
 
-            mqc.low_hwe_rate(
+            mqc.filter_hwe(
                 rule,
                 inTrunk,
                 outTrunk,

@@ -700,7 +700,7 @@ def missing_genotype_rate_docs(
     return dropouts
 
 
-def detect_low_hwe_rate(
+def compute_hwe(
         in_bedset,
         out_bedset,
         threshold = 0.1,
@@ -742,7 +742,7 @@ def detect_low_hwe_rate(
 
     return
 
-def low_hwe_rate(
+def filter_hwe(
         rule,
         in_bedset,
         out_bedset,
@@ -753,16 +753,15 @@ def low_hwe_rate(
         plinklocal = None,
         rule_info = None
 ):
-    """ Runs plink hwe and removes low p-values markers.  Produces output, including plot
+    """ Runs plink hwe and removes low p-values markers. Produces output, including plot.
 
     Wrapper around plink to do Hardy Weinberg Equilibrium tests and plot distribution.
     Saves results with  saveYamlResults as well.
     bedsets are 'trunks'
 
-    Has a potentional to wrap more --plink commands
-
     """
-    detect_low_hwe_rate(
+
+    compute_hwe(
         in_bedset,
         out_bedset,
         threshold,
@@ -784,8 +783,6 @@ def low_hwe_rate(
         check = True
     )
 
-    print("*** debug low_hwe_rate 1: " + in_bedset + ", " + out_bedset)
-
     dropouts = checkUpdates(
         in_bedset + ".bim",
         out_bedset + ".bim",
@@ -794,25 +791,30 @@ def low_hwe_rate(
         fullList = True
     )
 
-    print("*** debug low_hwe_rate 2: " + result_file)
-
     dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
     dropouts["Threshold"] = threshold
     dropouts["Rule"] = rule
     saveYamlResults(result_file, dropouts)
 
-    p = hweg_qq_plot(hwe_p_values, prec=2, x='P')
+    p = hweg_qq_plot(hwe_p_values, prec = 2, x = 'P')
     # QQish plot with thresholds returned in p. Add, threshold, title and save
-    t_line = p9.geom_hline(yintercept=-1*math.log10(threshold), color='red')
+    t_line = p9.geom_hline(
+        yintercept = -1 * math.log10(threshold),
+        color = 'red'
+    )
     p += t_line    # threshold. Note that plot removed above
     title = f'HWE > -log({threshold}) \n{dropouts.get("actionTakenCount")} outside threshold\n{dropouts.get("Timestamp")}'
-    p += p9.labs(title=title)
-    p9.ggsave(plot=p, filename=plot_file, dpi=600)
+    p += p9.labs(title = title)
+    p9.ggsave(
+        plot = p,
+        filename = plot_file,
+        dpi = 600
+    )
     return
 
 
-def het_extract(het_file, out_file, sd):
-    """Remove samples with HET excess
+def compute_excess_het(het_file, out_file, sd):
+    """Computes a list of samples with excess het
 
     Based on het_file and a number of standard deviation sd,
     Creates three files:
@@ -832,26 +834,42 @@ def het_extract(het_file, out_file, sd):
     """
     my_name = inspect.currentframe().f_code.co_name      # This functions name
     try:
-        df = pd.read_csv(het_file, delim_whitespace=True)
+        df = pd.read_csv(het_file, delim_whitespace = True)
     except Exception as e:
         print(f"{my_name}: {str(e)}")
         return
+
     # Columns defined in https://www.cog-genomics.org/plink/1.9/formats#het
-    df['het_rate'] = (df['N(NM)'] - df['O(HOM)'])/df['N(NM)']
+    df['het_rate'] = (df['N(NM)'] - df['O(HOM)']) / df['N(NM)']
     failed = df[df.het_rate > df.het_rate.mean() + sd*df.het_rate.std()].copy()
-    failed['het_dst'] = (failed['het_rate'] -
-                         df['het_rate'].mean())/df['het_rate'].std()
+    failed['het_dst'] = (failed['het_rate'] - df['het_rate'].mean()) / df['het_rate'].std()
+
     # output - the .total file is used for plotting later
-    df.to_csv(out_file+".total", sep=" ", index=False)
+    df.to_csv(
+        out_file + ".total",
+        sep = " ",
+        index = False
+    )
+
     # file to be used by plink to remove samples
-    failed[['FID', 'IID']].to_csv(out_file, sep=" ", index=False, header=False)
+    failed[['FID', 'IID']].to_csv(
+        out_file,
+        sep = " ",
+        index = False,
+        header = False
+    )
+
     # Documentation of the actual metrics  of the removed samples
-    failed.to_csv(out_file+".details", sep=" ", index=False)
+    failed.to_csv(
+        out_file + ".details",
+        sep = " ",
+        index = False
+    )
 
 
-def excess_het(
+def filter_excess_het(
         rule,
-        autosomal,
+        markers,
         in_bedset,
         out_bedset,
         threshold = 0.1,
@@ -866,21 +884,19 @@ def excess_het(
     Wrapper around plink to do check sample heterozygosity and plot
     distribution.
 
-    If autosomal = "common", we deal with common autosomal
-    markers. The alternative is "rare" (this is reflected in the plink
-    parameters --maf vs --max-maf)
+    The function can be executed on two categories of markers, "common" and rare, that will trigger minimal and maximal maf thresholds, respectively.
 
     Saves results with saveYamlResults as well, and creates plots and various
     background files in the tmp area.
 
     """
 
-    if autosomal == "common":
+    if markers == "common":
         maf = "--maf"
-    elif autosomal == "rare":
+    elif markers == "rare":
         maf = "--max-maf"
     else:
-        raise Exception(f"ERROR: Unexpected autosomal rarity {autosomal}.")
+        raise Exception(f"ERROR: Unexpected autosomal rarity {markers}.")
         return
 
     subprocess.run(
@@ -897,9 +913,9 @@ def excess_het(
     )
 
     # We here have a .het file where low p-values for markers are to be removed
-    het_p_values = out_bedset+".het"
-    het_extract(het_p_values, out_bedset+".exclude", sd)
-    # het_extract found .exclude for removal and .total for historgram
+    het_p_values = out_bedset + ".het"
+    compute_excess_het(het_p_values, out_bedset + ".exclude", sd)
+    # compute_excess_het found .exclude for removal and .total for historgram
 
     subprocess.run(
         [
@@ -925,12 +941,18 @@ def excess_het(
     dropouts["Rule"] = rule
     dropouts["Details"] = f"{out_bedset}.exclude with extension .details (filtered) and .total (all)"
     saveYamlResults(result_file, dropouts)
-    title = (f'Sample heterozygosity ({autosomal} markes)\n'
+    title = (f'Sample heterozygosity ({markers} markes)\n'
              f'{dropouts.get("actionTakenCount")} outside threshold\n'
              f'--maf > {threshold} HET exceeds {sd} std.dev\n{dropouts.get("Timestamp")}')
-    plot_hist(out_bedset+".exclude.total", plot_file,
-              column="het_rate", title=title, separator='\s+',
-              threshold=0, logx=False)
+    plot_hist(
+        out_bedset+".exclude.total",
+        plot_file,
+        column = "het_rate",
+        title = title,
+        separator = '\s+',
+        threshold = 0,
+        logx = False
+    )
     return
 
 
