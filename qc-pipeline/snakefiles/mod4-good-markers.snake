@@ -383,8 +383,8 @@ rule hwe_autos_geno:
                     str(outTrunk),
                     threshold = getattr(params, f"hwe{i}"),
                     hwe_switches = ["--autosome", "--hardy", "midp"],
-                    result_file = res_file,
-                    plot_file = plot_file,
+                    result_file = str(res_file),
+                    plot_file = str(plot_file),
                     plinklocal = plinklocal,
                     rule_info = rule_info
                 )
