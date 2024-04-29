@@ -453,7 +453,6 @@ def checkUpdates(
 
     """
     # dictionary with only relevant columns
-    print("*** debug_check1: " + preQc + " " + postQc)
     (outDict, m) = dict_count_items(postQc, cols)
     result = {
         "in":   0,        # will count lines from the 'in' file
@@ -461,7 +460,6 @@ def checkUpdates(
         "xitems": [],    # populated later by samples/markers if fullList is True
         "actionTakenCount": 0 # Not found in dictionary, so it is the effect of the qc-rule on the inputfile
     }
-    print("*** debug_check2")
     haveDict = False
     if mapFile != "":   # Setting up a dictionary 'lookup' to look up the original value if postQc has changed
         lookup = lookupDict(mapFile, mapIndx)
@@ -492,8 +490,6 @@ def checkUpdates(
                     changed = f'{changed} changed by mapping {mappingRule}'
                 result["xitems"].append(changed)    # sample/marker id(s)
 
-    print("*** debug_check3")
-
     if sanityCheck == 'updated':  # we don't want to lose items here
         if (result["out"]) != result["in"]:
             print(f"Warning: {preQc} -> {postQc}: Update expected, but number of unique items have changed "
@@ -502,7 +498,6 @@ def checkUpdates(
         if (result["actionTakenCount"] + result["out"]) != result["in"]:
             print(f"Warning: {preQc} -> {postQc}: remaining + removed samples != original number")
 
-    print("*** debug_check3")
     return result
 
 
@@ -799,7 +794,7 @@ def low_hwe_rate(
         fullList = True
     )
 
-    print("*** debug low_hwe_rate 2: " + result_file)
+    print("*** debug low_hwe_rate 2: ")
 
     dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
     dropouts["Threshold"] = threshold
