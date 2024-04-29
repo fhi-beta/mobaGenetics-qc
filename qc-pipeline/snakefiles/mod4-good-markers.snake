@@ -401,9 +401,6 @@ rule hwe_autos_geno:
                 else:
                     markers_categories = ["common", "rare"]
 
-                print(markers_categories)
-                raise Exception("*** DEBUG ***")
-
                 for markers_category in markers_categories:
 
                     print("*** debug_main_1: " + str(i) + " " + markers_category)
@@ -452,6 +449,9 @@ rule hwe_autos_geno:
                     print("*** debug_main_4: " + str(i) + " " + markers_category)
 
                     lastTrunk = outTrunk
+
+
+            raise Exception("*** DEBUG ***")
 
             print("debug_main_5")
             # a last round of marker removal
