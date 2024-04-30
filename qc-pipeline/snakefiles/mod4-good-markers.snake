@@ -22,7 +22,8 @@ def dev_log(
     fam_data = pd.read_csv(
         fam_file,
         delimiter = ' ',
-        header = None
+        header = None,
+        dtype = str
     )
     ids = np.unique(fam_data[[1, 2, 3]].to_numpy().flatten())
     ids = ids[ids != 0]
