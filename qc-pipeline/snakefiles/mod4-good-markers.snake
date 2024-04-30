@@ -9,7 +9,7 @@ def dev_log(
         inTrunk,
         step,
         batch,
-        population = "all",
+        population,
         plinklocal
 ):
     """
