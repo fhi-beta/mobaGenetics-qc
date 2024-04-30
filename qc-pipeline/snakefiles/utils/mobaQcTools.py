@@ -1106,7 +1106,11 @@ def dotplot(
     return p
 
 
-def hweg_qq_plot(pfile, prec=3, x='x'):
+def hweg_qq_plot(
+        pfile,
+        prec = 3,
+        x = 'x'
+):
     """Returns a plotnine object ready to be printed
 
     Values in column named x from file are picked up, and the plot
@@ -1123,23 +1127,41 @@ def hweg_qq_plot(pfile, prec=3, x='x'):
     """
     my_name = inspect.currentframe().f_code.co_name      # This function's name
     try:
-        df = pd.read_csv(pfile, usecols=[x],
-                         delim_whitespace=True).sort_values(by=[x],
-                                                            na_position='first', ascending=False)
+        df = pd.read_csv(
+            pfile,
+            usecols = [x],
+            delim_whitespace = True
+        ).sort_values(
+            by = [x],
+            na_position = 'first',
+            ascending = False
+        )
     except Exception as e:
         print(f"{my_name}: {str(e)}")
         return
     # could/should have tested for 0 values here, avoiding log(0) problems
-    df = -1*np.log10(df)
-    df.rename(columns={x: "-log"+x}, inplace=True)
-    df['-logP_expected'] = -1*np.log10(np.random.uniform(0, 1, len(df.index)))
-    df['-logP_expected'] = df['-logP_expected'].sort_values(ascending=True).values
+    df = -1 * np.log10(df)
+    df.rename(
+        columns = {x: "-log" + x},
+        inplace = True
+    )
+    df['-logP_expected'] = -1 * np.log10(np.random.uniform(0, 1, len(df.index)))
+    df['-logP_expected'] = df['-logP_expected'].sort_values(ascending = True).values
 
-    p = p9.ggplot(data=df.round(prec).drop_duplicates(),
-                  mapping=p9.aes(y='-logP', x='-logP_expected'))
+    p = p9.ggplot(
+        data = df.round(prec).drop_duplicates(),
+        mapping = p9.aes(
+            y = '-logP',
+            x = '-logP_expected'
+        )
+    )
     #p += p9.scale_colour_brewer(type="qual", palette="Set1")  # better for colourblind
     p += p9.geom_point()
-    p += p9.geom_abline(slope=1, intercept=0, color='blue')  # expexted hwe distibution
+    p += p9.geom_abline(
+        slope = 1,
+        intercept = 0,
+        color = 'blue'
+    )  # expexted hwe distibution
 
     return p
 
@@ -1150,6 +1172,7 @@ def sex_check(
         out_bed,
         f_threshold = 0.2,
         m_threshold = 0.8,
+        config_sex_check_indep_pairwise = "20000 2000 0.5",
         result_file = '/dev/null',
         plot_file = False,
         plinklocal = None,
@@ -1168,7 +1191,7 @@ def sex_check(
     inTrunk = plinkBase(in_bed)
     outTrunk = plinkBase(out_bed)
     # prime/chr23
-    sex_check_parameters = config["sex_check_indep_pairwise"].split()
+    sex_check_parameters = config_sex_check_indep_pairwise.split()
     subprocess.run(
         [
             plinklocal,

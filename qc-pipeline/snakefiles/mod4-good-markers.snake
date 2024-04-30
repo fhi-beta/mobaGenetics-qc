@@ -504,7 +504,7 @@ rule sex_check:
     run:
         try:
             item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog,rule_info[rule]["QC test"])
+            mqc.log(runlog, rule_info[rule]["QC test"])
 
             inTrunk = mqc.plinkBase(input.bed)
             outTrunk = mqc.plinkBase(output.bed)
@@ -515,8 +515,11 @@ rule sex_check:
                 output.bed,
                 f_threshold = 0.2,
                 m_threshold = 0.8,
+                config_sex_check_indep_pairwise = config["sex_check_indep_pairwise"],
                 result_file = output.results,
-                plot_file = output.plot
+                plot_file = output.plot,
+                plinklocal = plinklocal,
+                rule_info = rule_info
             )
 
             mqc.make_rule_caption(rule_info, rule, resultPath)
