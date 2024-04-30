@@ -867,6 +867,36 @@ def compute_excess_het(het_file, out_file, sd):
     )
 
 
+def get_freq_data(
+        inTrunk,
+        outTrunk,
+        plinklocal
+):
+    """Wrapper for the --freq option in plink.
+
+    """
+
+    subprocess.run(
+        [
+            plinklocal,
+            "--bfile", inTrunk,
+            "--freq",
+            "--out", outTrunk
+        ],
+        check = True
+    )
+
+    freq_file = str(outTrunk) + ".frq"
+
+    # See if there are rare variants
+    freq_data = pd.read_csv(
+        freq_file,
+        delimiter = '\s+'
+    )
+
+    return freq_data
+
+
 def filter_excess_het(
         rule,
         markers,

@@ -20,12 +20,25 @@ rule mod4_keep_main_cluster:
         tmpMod4 / "{batch}" / (rule_stem + ".benchmark")
     run:
         try:
+
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog,rule_info[rule]["QC test"])
             mqc.log(runlog,"PCA exlude {item_type} ({params.threshold})\n")
 
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
+
+            # Developpers log: save maf range, number of variants and individuals
+            out_dir = Path(output.bed).parent
+            outTrunk = out_dir / "log_in"
+            freq_data = mqc.get_freq_data(
+                inTrunk = inTrunk,
+                outTrunk = outTrunk,
+                plinklocal = plinklocal
+            )
+            print(rule_stem, " - min maf: ", freq_data['MAF'].min())
+            print(rule_stem, " - n markers: ", len(freq_data))
+            print(rule_stem, " - Chromosomes: ", list(freq_data['CHR'].unique()))
 
             print(f"using {inTrunk} to make {outTrunk} using {input.ceu_id_file}")
             subprocess.run(
@@ -380,26 +393,14 @@ rule hwe_autos_geno:
                 file_name = rule + "_freq" + str(i)
                 outTrunk = out_dir / file_name
 
-                subprocess.run(
-                    [
-                        plinklocal,
-                        "--bfile", lastTrunk,
-                        "--freq",
-                        "--out", outTrunk
-                    ],
-                    check = True
-                )
-
-                freq_file = str(outTrunk) + ".frq"
-
-                # See if there are rare variants
-                freq_data = pd.read_csv(
-                    freq_file,
-                    delimiter = '\s+'
+                freq_data = get_freq_data(
+                    inTrunk = lastTrunk,
+                    outTrunk = outTrunk,
+                    plinklocal = plinklocal
                 )
 
                 min_maf = freq_data['MAF'].min()
-                maf_threshold = getattr(params,f"maf{i}")
+                maf_threshold = getattr(params, f"maf{i}")
 
                 print("min maf: ", min_maf)
 
