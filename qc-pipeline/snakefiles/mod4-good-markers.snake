@@ -24,8 +24,8 @@ def dev_log(
         delimiter = ' ',
         header = None
     )
-    print(f"Debug: {fam_file[1:10, ]}")
-    ids = np.unique(fam_data[[1, 2, 3]].to_numpy().flatten())
+    print(f"Debug: {fam_file.head()}")
+    ids = fam_data[[1, 2, 3]].to_numpy()
     print(f"Debug: {ids[1:10]}")
     n_samples = len(ids)
 
