@@ -22,15 +22,19 @@ rule mod4_keep_main_cluster:
         try:
 
             item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog,rule_info[rule]["QC test"])
-            mqc.log(runlog,"PCA exlude {item_type} ({params.threshold})\n")
+            mqc.log(runlog, rule_info[rule]["QC test"])
+            mqc.log(runlog, "PCA exlude {item_type} ({params.threshold})\n")
 
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
 
+            print(inTrunk)
+            print(outTrunk)
+
             # Dev log
             out_dir = Path(output.bed).parent
             outFreq = out_dir / "log_in"
+            print(outFreq)
             freq_data = mqc.get_freq_data(
                 inTrunk = inTrunk,
                 outTrunk = outFreq,
