@@ -32,7 +32,7 @@ rule mod4_keep_main_cluster:
             print(outTrunk)
 
             # Dev log
-            out_dir = Path(output.bed).parent
+            out_dir = Path(outTrunk).parent
             outFreq = out_dir / "log_in"
             print(outFreq)
             freq_data = mqc.get_freq_data(
