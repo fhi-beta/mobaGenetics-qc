@@ -17,6 +17,7 @@ def dev_log(
     """
 
     # Samples
+    print("Debug: samples")
     fam_file = str(inTrunk) + ".fam"
     fam_data = pd.read_csv(
         fam_file,
@@ -27,6 +28,7 @@ def dev_log(
     n_samples = len(ids)
 
     # Variants
+    print("Debug: variants")
     out_dir = Path(inTrunk).parent
     outFreq = out_dir / "log_in"
     freq_data = mqc.get_freq_data(
