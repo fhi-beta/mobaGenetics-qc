@@ -4,6 +4,55 @@
 #
 ##
 
+
+def dev_log(
+        inTrunk,
+        step,
+        batch,
+        population = "all",
+        plinklocal
+):
+    """
+    Developpers' log for module 4.
+    """
+
+    # Samples
+    fam_file = str(inTrunk) + ".fam"
+    fam_data = pd.read_csv(
+        fam_file,
+        delimiter = ' ',
+        header = None
+    )
+    ids = fam_data[[1, 2, 3]].to_numpy().unique()
+    n_samples = len(ids)
+
+    # Variants
+    out_dir = Path(inTrunk).parent
+    outFreq = out_dir / "log_in"
+    freq_data = mqc.get_freq_data(
+        inTrunk = inTrunk,
+        outTrunk = outFreq,
+        plinklocal = plinklocal
+    )
+    min_maf = freq_data['MAF'].min()
+    max_maf = freq_data['MAF'].max()
+    n_markers = len(freq_data)
+    chromosomes = freq_data['CHR'].unique()
+    chromosomes_string = ','.join(map(str, chromosomes.flatten()))
+
+    print("*** Debug ***")
+    print("inTrunk")
+    print("Chromosomes: ", chromosomes_string)
+    print("min maf: ", min_maf)
+    print("*************")
+
+    with open(inTrunk.append(".devLog"), "w") as dev_log:
+        dev_log.write("batch\tpopulation\tstep\tchromosomes\tmin_maf\tmax_maf\tn_markers\tn_samples\n")
+        dev_log.write(f"{batch}\t{population}\t{step}\t{chromosomes_string}\t{min_maf}\t{max_maf}\t{n_markers}\t{n_samples}\n")
+
+    return
+
+
 rule_stem = "mod4_keep_main_cluster"  # Extract samples from main cluster in PCA to get best quality markers
 rule mod4_keep_main_cluster:
     input:
@@ -28,21 +77,13 @@ rule mod4_keep_main_cluster:
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
 
-            print(inTrunk)
-            print(outTrunk)
-
-            # Dev log
-            out_dir = Path(outTrunk).parent
-            outFreq = out_dir / "log_in"
-            print(outFreq)
-            freq_data = mqc.get_freq_data(
+            dev_log(
                 inTrunk = inTrunk,
-                outTrunk = outFreq,
+                step = "start",
+                batch = wildcards.batch,
+                population = "all",
                 plinklocal = plinklocal
             )
-            print(rule_stem, " - min maf: ", freq_data['MAF'].min())
-            print(rule_stem, " - n markers: ", len(freq_data))
-            print(rule_stem, " - Chromosomes: ", list(freq_data['CHR'].unique()))
 
             print(f"using {inTrunk} to make {outTrunk} using {input.ceu_id_file}")
             subprocess.run(
@@ -55,6 +96,15 @@ rule mod4_keep_main_cluster:
                 ],
                 check = True
             )
+
+            dev_log(
+                inTrunk = outTrunk,
+                step = "mod4_keep_main_cluster",
+                batch = wildcards.batch,
+                population = "all",
+                plinklocal = plinklocal
+            )
+
             dropouts = mqc.checkUpdates(
                 inTrunk + ".fam",
                 outTrunk + ".fam",
@@ -111,6 +161,14 @@ rule split_founders_offspring:
                 check = True
             )
 
+            dev_log(
+                inTrunk = foundersTrunk,
+                step = "filter-founders",
+                batch = wildcards.batch,
+                population = "founders",
+                plinklocal = plinklocal
+            )
+
             dropouts = mqc.checkUpdates(
                 inTrunk + ".fam",
                 foundersTrunk + ".fam",
@@ -120,7 +178,7 @@ rule split_founders_offspring:
             )
             dropouts.update(rule_info[rule])  # Metainfo and documentation about the rule
             dropouts["Rule"] = rule
-            mqc.saveYamlResults(output.results_founders,dropouts)
+            mqc.saveYamlResults(output.results_founders, dropouts)
 
             subprocess.run(
                 [
@@ -132,6 +190,14 @@ rule split_founders_offspring:
                     "--make-bed"
                 ],
                 check = True
+            )
+
+            dev_log(
+                inTrunk = offspringTrunk,
+                step = "filter-founders",
+                batch = wildcards.batch,
+                population = "offspring",
+                plinklocal = plinklocal
             )
 
             dropouts = mqc.checkUpdates(
@@ -257,6 +323,14 @@ rule ibd_exclusion:
                 check = True
             )
 
+            dev_log(
+                inTrunk = outTrunk,
+                step = "ibd_exclusion",
+                batch = wildcards.batch,
+                population = wildcards.role,
+                plinklocal = plinklocal
+            )
+
             dropouts = mqc.checkUpdates(
                 inTrunk + ".fam",
                 outTrunk + ".fam",
@@ -318,6 +392,13 @@ rule geno_rates:
                     rule_info = rule_info
                 )
 
+                dev_log(
+                    inTrunk = outTrunk,
+                    step = f"geno_rates_geno{i}",
+                    batch = wildcards.batch,
+                    population = wildcards.role,
+                    plinklocal = plinklocal
+                )
                 
                 lastTrunk = outTrunk
                 file_name = ruleTrunk + "_mind" + str(i)
@@ -335,6 +416,14 @@ rule geno_rates:
                     plot_file = plot_file,
                     plinklocal = plinklocal,
                     rule_info = rule_info
+                )
+
+                dev_log(
+                    inTrunk = outTrunk,
+                    step = f"geno_rates_mind{i}",
+                    batch = wildcards.batch,
+                    population = wildcards.role,
+                    plinklocal = plinklocal
                 )
 
                 lastTrunk = outTrunk
@@ -366,7 +455,7 @@ rule hwe_autos_geno:
         hwe2 = config["hwe2"],
         maf2 = config["maf2"],
         sd_het2 = config["sd_het2"],
-        geno_rare = config["geno_rare"],
+        geno_rate = config["geno_rate"],
         docs_folder = os.path.join(resultPath, "{batch}",  "{role}")
     output:
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
@@ -435,6 +524,14 @@ rule hwe_autos_geno:
                         rule_info = rule_info
                     )
 
+                    dev_log(
+                        inTrunk = outTrunk,
+                        step = f"hwe_autos_geno_{markers_category}_markers_hwe{i}",
+                        batch = wildcards.batch,
+                        population = wildcards.role,
+                        plinklocal = plinklocal
+                    )
+
                     lastTrunk = outTrunk
                     file_name = rule + "_het" + str(i)
                     outTrunk = out_dir / file_name
@@ -454,6 +551,14 @@ rule hwe_autos_geno:
                         rule_info = rule_info
                     )
 
+                    dev_log(
+                        inTrunk = outTrunk,
+                        step = f"hwe_autos_geno_{markers_category}_markers_het{i}",
+                        batch = wildcards.batch,
+                        population = wildcards.role,
+                        plinklocal = plinklocal
+                    )
+
                     lastTrunk = outTrunk
 
             # a last round of marker removal
@@ -463,11 +568,19 @@ rule hwe_autos_geno:
                 str(lastTrunk),
                 str(outTrunk),
                 sample = False,
-                threshold = params.geno_rare,
+                threshold = params.geno_rate,
                 result_file = output.results,
                 plot_file = output.plot,
                 plinklocal = plinklocal,
                 rule_info = rule_info
+            )
+
+            dev_log(
+                inTrunk = outTrunk,
+                step = f"hwe_autos_geno",
+                batch = wildcards.batch,
+                population = wildcards.role,
+                plinklocal = plinklocal
             )
 
             # and set a common caption
