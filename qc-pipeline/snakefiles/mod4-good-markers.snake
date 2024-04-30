@@ -17,16 +17,15 @@ def dev_log(
     """
 
     # Samples
+    print("Debug: samples")
     fam_file = str(inTrunk) + ".fam"
-    print(f"Debug: samples {fam_file}")
     fam_data = pd.read_csv(
         fam_file,
         delimiter = ' ',
         header = None
     )
-    print(f"Debug: {fam_file.head()}")
-    ids = fam_data[[1, 2, 3]].to_numpy()
-    print(f"Debug: {ids[1:10]}")
+    ids = np.unique(fam_data[[1, 2, 3]].to_numpy().flatten())
+    ids = ids[ids != 0]
     n_samples = len(ids)
 
     # Variants
