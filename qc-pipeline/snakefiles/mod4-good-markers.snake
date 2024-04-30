@@ -28,12 +28,12 @@ rule mod4_keep_main_cluster:
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
 
-            # Developpers log: save maf range, number of variants and individuals
+            # Dev log
             out_dir = Path(output.bed).parent
-            outTrunk = out_dir / "log_in"
+            outFreq = out_dir / "log_in"
             freq_data = mqc.get_freq_data(
                 inTrunk = inTrunk,
-                outTrunk = outTrunk,
+                outTrunk = outFreq,
                 plinklocal = plinklocal
             )
             print(rule_stem, " - min maf: ", freq_data['MAF'].min())

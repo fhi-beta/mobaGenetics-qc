@@ -975,7 +975,7 @@ def filter_excess_het(
              f'{dropouts.get("actionTakenCount")} outside threshold\n'
              f'--maf > {threshold} HET exceeds {sd} std.dev\n{dropouts.get("Timestamp")}')
     plot_hist(
-        out_bedset+".exclude.total",
+        out_bedset + ".exclude.total",
         plot_file,
         column = "het_rate",
         title = title,
