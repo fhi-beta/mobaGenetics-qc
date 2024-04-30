@@ -41,7 +41,7 @@ def dev_log(
     chromosomes_string = ','.join(map(str, chromosomes.flatten()))
 
     print("*** Debug ***")
-    print("inTrunk")
+    print(inTrunk)
     print("Chromosomes: ", chromosomes_string)
     print("min maf: ", min_maf)
     print("*************")
