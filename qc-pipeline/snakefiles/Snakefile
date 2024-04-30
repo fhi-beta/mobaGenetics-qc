@@ -98,7 +98,8 @@ rule all:
         mod3_md_file_1kg = expand(github_docs / "{batch}" / "pca_1kg_moba.md", batch = batches),
 
         # Module 4:
-        m4_debug = expand(tmpMod4/ "{batch}" / "{role}" / ("mod4_keep_main_cluster.bed"), batch = batches, role = roles)
+        m4_debug = expand(tmpMod4/ "{batch}" / ("mod4_keep_main_cluster.bed"), batch = batches, role = roles)
+        # m4_debug = expand(tmpMod4/ "{batch}" / "{role}" / ("split_founders_offspring.bed"), batch = batches, role = roles)
         # m4_output_good_markers = expand(tmpMod4 / "{batch}" / 'm4_output_good_markers.bed', batch = batches)
 
 
