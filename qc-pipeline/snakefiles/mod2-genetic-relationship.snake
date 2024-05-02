@@ -210,7 +210,6 @@ rule callrate_permanent_removal:
             inTrunk =  mqc.plinkBase(input.bedset[0])
             permTrunk =  mqc.plinkBase(output.bedset[0])
 
-            # PERMANENT removal of very-missing individuals from FULL dataset
             subprocess.run(
                 [
                     plinklocal,

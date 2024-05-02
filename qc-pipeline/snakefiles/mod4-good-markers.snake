@@ -256,8 +256,6 @@ rule ibd_estimate:
                 plinklocal = plinklocal
             )
 
-            raise Exception("*** DEBUG ***")
-
             subprocess.run(
                 [
                     kinglocal,
@@ -305,7 +303,7 @@ rule_stem = "ibd_exclusion"
 rule ibd_exclusion:
     threads: 2
     input:
-        bed = rules.ibd_estimate.output.bed_clean_snps,
+        bed = rules.ibd_estimate.input.bed,
         id_exclusion_file = rules.ibd_accum.output.id_exclusion_file
     output:
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
@@ -342,6 +340,8 @@ rule ibd_exclusion:
                 population = wildcards.role,
                 plinklocal = plinklocal
             )
+
+            raise Exception("*** DEBUG ***")
 
             dropouts = mqc.checkUpdates(
                 inTrunk + ".fam",
