@@ -805,7 +805,6 @@ rule clean_male_x:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
-# Note that this rule_stem is hardcoded in m3_output_good_markers
 rule_stem = 'sex_clean'
 rule sex_clean:
     threads: 2
@@ -814,7 +813,6 @@ rule sex_clean:
         excl_failed_hwe_female_x = rules.female_xmarkers.output.exclude_markers,
         excl_failed_hwe_par_regions = rules.par_regions.output.exclude_markers,
         excl_male_x_markers = rules.clean_male_x.output.exclude_markers,
-        f_x = tmpMod4 / "{batch}" / "{role}" / "sexcheck_report_x.sexcheck"
     output:
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
         bim = tmpMod4 / "{batch}" / '{role}' / (rule_stem + '.bim'),
@@ -838,7 +836,7 @@ rule sex_clean:
             inTrunk = mqc.plinkBase(input.bed)
             outTrunk = mqc.plinkBase(output.bed)
 
-            # Make a list of all earlier fails
+            # Make a list of all markers to exclude and exclude them
             subprocess.call(
                 f'cat {input.excl_failed_hwe_female_x}'
                 f' {input.excl_failed_hwe_par_regions}'
@@ -846,13 +844,11 @@ rule sex_clean:
                 shell = True
             )
 
-            # and remove them
             subprocess.run(
                 [
                     plinklocal,
-                    "--bfile",
-                    inTrunk,
-                    "--exclude",
+                    "--bfile", inTrunk,
+                    "--exclude", output.exclude_markers,
                     "--out",
                     "--make-bed"
                 ],
