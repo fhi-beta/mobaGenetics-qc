@@ -895,13 +895,8 @@ rule m4_output_good_markers:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, rule_info[rule]["QC test"])
 
-            print("* debug m4_output_good_markers log")
             inTrunk = mqc.plinkBase(input.bedset[0])
-            print("* debug m4_output_good_markers input")
             outTrunk = mqc.plinkBase(output.m4_output_good_markers[0])
-
-            print("inTrunk: ", inTrunk)
-            print("outTrunk: ", outTrunk)
 
             # Module 5: find common markers and extract them from original set
             mqc.intersect_rsid(
@@ -933,8 +928,8 @@ rule m4_output_good_markers:
             dropouts.update(rule_info[rule])  # Metainfo and documentation about the rule
             dropouts["Rule"] = rule
             # Let the yaml-file contain info abut last step as well.
-            founders = mqc.line_count(input.markers[0])
-            offspring = mqc.line_count(input.markers[1])
+            founders = mqc.line_count(input.markers_offspring)
+            offspring = mqc.line_count(input.markers_founders)
             common = mqc.line_count(output.good_markers)
             dropouts["Final markers"] = f"founders/offspring/common {founders}/{offspring}/{common}\n"
             mqc.saveYamlResults(output.results,dropouts)
