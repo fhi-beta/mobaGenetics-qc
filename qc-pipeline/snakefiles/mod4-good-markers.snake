@@ -615,7 +615,6 @@ rule sex_check:
         ),
         # File containing the F-statistics for the sex chromosomes
         f_x = tmpMod4 / "{batch}" / "{role}" / "sexcheck_report_x.sexcheck",
-        f_y = tmpMod4 / "{batch}" / "{role}" / "sexcheck_report_y.sexcheck",
         # in addition to the removal list, a removal.samples.txt is produced, sporting only the sample-list
         plot = report(
             resultPath / "{batch}" / "{role}" / (rule_stem + ".png"),

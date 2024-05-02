@@ -1221,6 +1221,7 @@ def sex_check(
     tmpPath = Path(out_bed).parent
     inTrunk = plinkBase(in_bed)
     outTrunk = plinkBase(out_bed)
+
     # prime/chr23
     sex_check_parameters = config_sex_check_indep_pairwise.split()
     subprocess.run(
@@ -1280,8 +1281,14 @@ def sex_check(
         check=True
     )
 
-    dropouts = checkUpdates(inTrunk+".fam", outTrunk+".fam", cols=[0, 1],
-                            sanityCheck="removal", fullList=True)
+    dropouts = checkUpdates(
+        inTrunk + ".fam",
+        outTrunk + ".fam",
+        cols = [0, 1],
+        sanityCheck = "removal",
+        fullList = True
+    )
+
     dropouts.update(rule_info[rule])   # Extra documentation about the rule
     dropouts["Threshold"] = f"Female={f_threshold} Male={m_threshold}"
     dropouts["Rule"] = rule
@@ -1290,9 +1297,17 @@ def sex_check(
              f'{dropouts.get("actionTakenCount")} outside threshold\n'
              f'Threshold {dropouts.get("Threshold")}\n'
              f'{dropouts.get("Timestamp")}')
-    plot_hist(tmpPath/"sexcheck_report_x.sexcheck", plot_file,
-              column="F", title=title, separator='\s+',
-              threshold=0, logx=False, bins=100)
+    plot_hist(
+        tmpPath/"sexcheck_report_x.sexcheck",
+        plot_file,
+        column = "F",
+        title = title,
+        separator = '\s+',
+        threshold = 0,
+        logx = False,
+        bins = 100
+    )
+
     return
 
 
