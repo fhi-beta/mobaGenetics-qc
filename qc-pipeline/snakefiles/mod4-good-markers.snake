@@ -249,7 +249,7 @@ rule ibd_estimate:
             )
 
             dev_log(
-                inTrunk = offspringTrunk,
+                inTrunk = outTrunk,
                 step = "filter_from_m2",
                 batch = wildcards.batch,
                 population = wildcards.role,
