@@ -849,7 +849,7 @@ rule sex_clean:
                     plinklocal,
                     "--bfile", inTrunk,
                     "--exclude", output.exclude_markers,
-                    "--out",
+                    "--out", output.bed,
                     "--make-bed"
                 ],
                 check = True
