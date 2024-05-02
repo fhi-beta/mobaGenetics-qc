@@ -341,8 +341,6 @@ rule ibd_exclusion:
                 plinklocal = plinklocal
             )
 
-            raise Exception("*** DEBUG ***")
-
             dropouts = mqc.checkUpdates(
                 inTrunk + ".fam",
                 outTrunk + ".fam",
@@ -515,6 +513,10 @@ rule hwe_autos_geno:
 
                 else:
                     markers_categories = ["common", "rare"]
+
+                print("categories: ", markers_categories)
+
+                raise Exception("*** DEBUG ***")
 
                 for markers_category in markers_categories:
 
