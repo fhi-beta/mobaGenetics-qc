@@ -16,8 +16,10 @@ def dev_log(
     Developpers' log for module 4.
     """
 
+    inTrunk = str(inTrunk)
+
     # Samples
-    fam_file = str(inTrunk) + ".fam"
+    fam_file = inTrunk + ".fam"
     fam_data = pd.read_csv(
         fam_file,
         delimiter = ' ',
