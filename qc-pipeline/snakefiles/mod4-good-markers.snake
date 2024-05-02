@@ -894,7 +894,10 @@ rule m4_output_good_markers:
 
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, rule_info[rule]["QC test"])
+
+            print("* debug m4_output_good_markers log")
             inTrunk = mqc.plinkBase(input.bedset[0])
+            print("* debug m4_output_good_markers input")
             outTrunk = mqc.plinkBase(output.m4_output_good_markers[0])
 
             print("inTrunk: ", inTrunk)
