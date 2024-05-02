@@ -814,9 +814,7 @@ rule sex_clean:
         excl_failed_hwe_female_x = rules.female_xmarkers.output.exclude_markers,
         excl_failed_hwe_par_regions = rules.par_regions.output.exclude_markers,
         excl_male_x_markers = rules.clean_male_x.output.exclude_markers,
-        # File containing the F-statistics for the sex chromosomes
-        f_x = tmpMod4 / "{batch}" / "{role}" / "sexcheck_report_x.sexcheck",
-        f_y = tmpMod4 / "{batch}" / "{role}" / "sexcheck_report_y.sexcheck"
+        f_x = tmpMod4 / "{batch}" / "{role}" / "sexcheck_report_x.sexcheck"
     output:
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
         bim = tmpMod4 / "{batch}" / '{role}' / (rule_stem + '.bim'),
