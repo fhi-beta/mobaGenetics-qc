@@ -755,7 +755,9 @@ rule par_regions:
                 threshold = params.threshold,
                 hwe_switches = ["--chr", "25", "--hardy", "midp"],
                 result_file = output.results,
-                plot_file = output.plot
+                plot_file = output.plot,
+                plinklocal = plinklocal,
+                rule_info = rule_info
             )
             mqc.make_rule_caption(rule_info, rule, resultPath)
 
