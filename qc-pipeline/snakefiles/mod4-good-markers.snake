@@ -694,10 +694,6 @@ rule female_xmarkers:
             inTrunk = mqc.plinkBase(input.bed)
             outTrunk = mqc.plinkBase(output.bed)
 
-            print("*** DEBUG TEMP ***")
-            print(inTrunk)
-            print(outTrunk)
-
             mqc.filter_hwe(
                 rule,
                 inTrunk,

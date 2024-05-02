@@ -761,8 +761,6 @@ def filter_hwe(
 
     """
 
-    print("* debug1")
-
     compute_hwe(
         in_bedset,
         out_bedset,
@@ -771,11 +769,7 @@ def filter_hwe(
         plinklocal = plinklocal
     )
 
-    print("* debug2")
-
     hwe_p_values = out_bedset + ".hwe"
-
-    print("* debug3")
 
     # low values detected, now extract, make results and plot
     subprocess.run(
@@ -789,8 +783,6 @@ def filter_hwe(
         check = True
     )
 
-    print("* debug4")
-
     dropouts = checkUpdates(
         in_bedset + ".bim",
         out_bedset + ".bim",
@@ -799,15 +791,10 @@ def filter_hwe(
         fullList = True
     )
 
-    print("* debug5")
-
     dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
     dropouts["Threshold"] = threshold
     dropouts["Rule"] = rule
     saveYamlResults(result_file, dropouts)
-
-
-    print("* debug6: ", plot_file)
 
     p = hweg_qq_plot(hwe_p_values, prec = 2, x = 'P')
     t_line = p9.geom_hline(
