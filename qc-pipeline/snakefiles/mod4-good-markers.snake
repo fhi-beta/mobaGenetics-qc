@@ -409,12 +409,16 @@ rule geno_rates:
                     population = wildcards.role,
                     plinklocal = plinklocal
                 )
-                
+
+                print("*** DEBUG STR ***")
                 lastTrunk = outTrunk
                 file_name = ruleTrunk + "_mind" + str(i)
                 outTrunk = out_dir / file_name
+                print("outTrunk: ", outTrunk)
                 res_file = Path(params.docs_folder) / (file_name + ".yaml")
+                print("res_file: ", res_file)
                 plot_file = Path(params.docs_folder) / (file_name + ".png")
+
 
                 mqc.missing_genotype_rate(
                     rule,
@@ -496,7 +500,7 @@ rule hwe_autos_geno:
                 file_name = rule + "_freq" + str(i)
                 outTrunk = out_dir / file_name
 
-                freq_data = get_freq_data(
+                freq_data = mqc.get_freq_data(
                     inTrunk = lastTrunk,
                     outTrunk = outTrunk,
                     plinklocal = plinklocal
