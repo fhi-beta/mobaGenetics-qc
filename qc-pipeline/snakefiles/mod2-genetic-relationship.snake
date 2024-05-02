@@ -361,7 +361,7 @@ rule hardy_weinberg_filtered_markers:
             inTrunk =  mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
 
-            mqc.low_hwe_rate(
+            mqc.filter_hwe(
                 rule,
                 inTrunk,
                 outTrunk,
