@@ -855,6 +855,14 @@ rule sex_clean:
                 check = True
             )
 
+            dev_log(
+                inTrunk = outTrunk,
+                step = f"sex_clean",
+                batch = wildcards.batch,
+                population = wildcards.role,
+                plinklocal = plinklocal
+            )
+
             dropouts = mqc.checkUpdates(
                 inTrunk + ".bim",
                 outTrunk + ".bim",
@@ -915,6 +923,14 @@ rule m4_output_good_markers:
                     "--make-bed"
                 ],
                 check = True
+            )
+
+            dev_log(
+                inTrunk = outTrunk,
+                step = f"m4_output",
+                batch = wildcards.batch,
+                population = "all",
+                plinklocal = plinklocal
             )
 
             dropouts = mqc.checkUpdates(
