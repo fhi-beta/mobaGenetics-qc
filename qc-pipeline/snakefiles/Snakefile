@@ -99,7 +99,7 @@ rule all:
 
         # Module 4:
         # m4_debug = expand(tmpMod4/ "{batch}" / ("mod4_keep_main_cluster.bed"), batch = batches, role = roles)
-        m4_debug = expand(tmpMod4/ "{batch}" / "{role}" / ("sex_check.bed"), batch = batches, role = roles)
+        m4_debug = expand(tmpMod4/ "{batch}" / "{role}" / ("female_xmarkers.bed"), batch = batches, role = roles)
         # m4_output_good_markers = expand(tmpMod4 / "{batch}" / 'm4_output_good_markers.bed', batch = batches)
 
 
