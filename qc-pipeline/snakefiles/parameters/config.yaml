@@ -5,7 +5,7 @@ raw_folder: "/mnt/archive/Momics/MomicsPub/snpArray/Datasets"
 documentationDataset: "https://github.com/fhi-beta/mobaDocsBackoffice/wiki/MoBaGenPub"
 documentationQC: "https://github.com/fhi-beta/mobaDocsBackoffice/wiki/pipeline"
 githubSource: "https://github.com/fhi-beta/mobaGenetics-qc"
-output_base: "/mnt/archive/snpQc/pipeOut_dev_2024.01.05"
+output_base: "/mnt/archive/snpQc/pipeOut_dev_2024.05.02"
 
 # Phenotypes
 expected_relationships: "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz"
@@ -104,16 +104,15 @@ sex_check_female: 0.2
 sex_check_male: 0.8  # plink 1.9 default
 sex_check_indep_pairwise: 20000 2000 0.5
 
-
-# used for all samples in several different rules
+# used for all samples in several rules
 xmarkers_clean: 0.000001
 
 # parameters to finalize core
-core_mind: 0.02
+# core_mind: 0.02
 
 # Same limits for common/rare
-core_maf: 0.01
-core_sd_het: 4
+# core_maf: 0.01
+# core_sd_het: 4
 
 
 
