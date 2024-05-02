@@ -879,7 +879,8 @@ rule m4_output_good_markers:
     threads: 2
     input:
         bedset = rules.m2_output.output.bedset,
-        markers = expand(os.path.join(tmpMod4, "{batch}", '{role}', 'sex_clean.bim'), role = roles, batch = batches)  # Final markerlists
+        markers_offspring = tmpMod4 / "{batch}" / 'offspring' / (rule_stem + '.bim'),
+        markers_founders = tmpMod4 / "{batch}" / 'founders' / (rule_stem + '.bim')
     output:
         good_markers = tmpMod4 / "{batch}" / (rule_stem + ".txt"),
         m4_output_good_markers = multiext(os.path.join(tmpMod4, "{batch}", rule_stem), '.bed', '.bim', '.fam'),
@@ -891,19 +892,18 @@ rule m4_output_good_markers:
     run:
         try:
 
-            print("* markers: ", input.markers[0])
-
             item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog,rule_info[rule]["QC test"])
+            mqc.log(runlog, rule_info[rule]["QC test"])
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.m4_output_good_markers[0])
-            markers_offsping = tmpMod4 / wildcards.batch / "offspring" / 'sex_clean.bim'
-            markers_founders = tmpMod4 / wildcards.batch / "founders" / 'sex_clean.bim'
+
+            print("inTrunk: ", inTrunk)
+            print("outTrunk: ", outTrunk)
 
             # Module 5: find common markers and extract them from original set
             mqc.intersect_rsid(
-                markers_offsping,
-                markers_founders,
+                input.markers_offspring,
+                input.markers_founders,
                 output.good_markers,
                 small_col = 1,
                 big_col = 1
