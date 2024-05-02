@@ -894,6 +894,7 @@ rule m4_output_good_markers:
             mqc.log(runlog,rule_info[rule]["QC test"])
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.m4_output_good_markers[0])
+
             # Module 5: find common markers and extract them from original set
             mqc.intersect_rsid(
                 input.markers[1],
