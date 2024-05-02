@@ -480,107 +480,17 @@ sex_clean:
   rule action: remove
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
-  Timestamp: 
+  Timestamp:
 
-m3_output_good_markers:    
-  QC test: Find good markers common to founders/offspring and combine it with module 2 results. 
-  Description: These are the output of module 3, and will be used both in module 4 and 5. The report here is the diff between module 2 and the start of module5
-  Rule order: mod3Final
-  rule type: markers
-  rule action: remove
-  # Placeholders that the pipeline will fill in
-  Rule: Will be the same as the key of this entry
-  Timestamp: 
-    
-core_missingness:
-  QC test: Start of Core sets creation (module 4). Remove samples/indiviuals with high missingness 
-  Description: Starts with result earlier of split_founder_offspring and will continue tuning after this rule. Also reduces markers to the common good marker-set found in module 3
-  Rule order: mod4.a
+m4_output_good_markers:
+  QC test: Filters the output of module 2 for the markers in module 4.
+  Description:
+  Rule order: mod4Final.1c
   rule type: samples
   rule action: remove
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
-  Timestamp: 
-
-core_het:
-  QC test: Creates core LMM sets for founders/offspring. Remove samples with high heterozygosity using common and rare autosomal markers. 
-  Description: Creates plots and logs for both common and rare autosomal markers
-  Rule order: mod4.b
-  rule type: samples
-  rule action: remove
-  # Placeholders that the pipeline will fill in
-  Rule: Will be the same as the key of this entry
-  Timestamp: 
-
-core_ibd_estimate:
-  QC test: IBD estimation using a reduced set of markers found in module2
-  Description: Used for later for extracting too related individuals. 
-  Rule order: mod4.c
-  rule type: samples
-  rule action: plot
-  # Placeholders that the pipeline will fill in
-  Rule: Will be the same as the key of this entry
-  Timestamp: 
-
-core_ibd_accum_exclusion:
-  QC test: Remove samples that are too closely related
-  Description: Djenghis Khan effect is done through R with handset thresholds. Remove samples with excess accumulated PI_HAT
-  Rule order: mod4.d
-  rule type: samples
-  rule action: remove
-  # Placeholders that the pipeline will fill in
-  Rule: Will be the same as the key of this entry
-  Timestamp: 
-
-core_ibd_direct_exclusion:   
-  QC test: Remove samples that are straightforward related 
-  Description: Resulting set has ibd removed accumulated (from core_ibd_accum_exclusion) as well as direct
-  Rule order: mod4.e
-  rule type: samples
-  rule action: remove
-  # Placeholders that the pipeline will fill in
-  Rule: Will be the same as the key of this entry
-  Timestamp: 
-
-core_pca:   
-  QC test: PCA on the same subset of markers we did PCA on earlier
-  Description: 
-  Rule order: mod4.f
-  rule type: markers
-  rule action: pca/plot (on a subset of markers)
-  # Placeholders that the pipeline will fill in
-  Rule: Will be the same as the key of this entry
-  Timestamp: 
-
-m4_core_individuals:   
-  QC test: Merges founders/offsprint for lmm and unrelated individuals (including covariates)
-  Description: 
-  Rule order: mod4.g
-  rule type: samples
-  rule action: Merge founders/offspring
-  # Placeholders that the pipeline will fill in
-  Rule: Will be the same as the key of this entry
-  Timestamp: 
-
-m4_output_lmm_samples:
-  QC test: Reports the effect of module for as a whole, for individuals (lmm). Split on founders/offspring. 
-  Description: 
-  Rule order: mod4Final.1a
-  rule type: samples
-  rule action: remove
-  # Placeholders that the pipeline will fill in
-  Rule: Will be the same as the key of this entry
-  Timestamp: 
-
-m4_output_unrelated_samples:
-  QC test: Reports the effect of module for as a whole, for individuals (unrelated). Split on founders/offspring. 
-  Description: 
-  Rule order: mod4Final.1b
-  rule type: samples
-  rule action: remove
-  # Placeholders that the pipeline will fill in
-  Rule: Will be the same as the key of this entry
-  Timestamp: 
+  Timestamp:
     
 
 
