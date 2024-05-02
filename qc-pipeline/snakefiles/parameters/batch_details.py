@@ -56,9 +56,9 @@ batch_name = {
 }
 
 batch_snp_table = {
-    "snp011": "/mnt/archive/Momics/MomicsPub/snpArray/Datasets/snp011/raw-data/auxiliaries/snp-table.txt",
-    "snp012": "/mnt/archive/Momics/MomicsPub/snpArray/Datasets/snp012/raw-data/auxiliaries/snp_table.txt",
-    "snp014": "/mnt/archive/Momics/MomicsPub/snpArray/Datasets/snp014/raw-data/auxiliaries/snp_table.txt"
+    "snp011": "/mnt/archive/Momics/MomicsPub/snpArray/Datasets/snp011/raw-data/aux/snp-table.txt",
+    "snp012": "/mnt/archive/Momics/MomicsPub/snpArray/Datasets/snp012/raw-data/aux/snp_table.txt",
+    "snp014": "/mnt/archive/Momics/MomicsPub/snpArray/Datasets/snp014/raw-data/aux/snp_table.txt"
 }
 
 batch_cluster_sep_col_name = {
