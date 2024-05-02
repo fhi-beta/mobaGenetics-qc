@@ -694,6 +694,10 @@ rule female_xmarkers:
             inTrunk = mqc.plinkBase(input.bed)
             outTrunk = mqc.plinkBase(output.bed)
 
+            print("*** DEBUG TEMP ***")
+            print(inTrunk)
+            print(outTrunk)
+
             mqc.filter_hwe(
                 rule,
                 inTrunk,
@@ -701,7 +705,9 @@ rule female_xmarkers:
                 threshold = params.threshold,
                 hwe_switches = ["--filter-females", "--chr", "23", "--hardy", "midp"],
                 result_file = output.results,
-                plot_file = output.plot
+                plot_file = output.plot,
+                plinklocal = plinklocal,
+                rule_info = rule_info
             )
             mqc.make_rule_caption(rule_info, rule, resultPath)
 
