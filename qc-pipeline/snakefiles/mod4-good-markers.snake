@@ -412,13 +412,10 @@ rule geno_rates:
                     plinklocal = plinklocal
                 )
 
-                print("*** DEBUG STR ***")
                 lastTrunk = outTrunk
                 file_name = ruleTrunk + "_mind" + str(i)
                 outTrunk = out_dir / file_name
-                print("outTrunk: ", outTrunk)
                 res_file = Path(params.docs_folder) / (file_name + ".yaml")
-                print("res_file: ", res_file)
                 plot_file = Path(params.docs_folder) / (file_name + ".png")
 
 
@@ -511,18 +508,12 @@ rule hwe_autos_geno:
                 min_maf = freq_data['MAF'].min()
                 maf_threshold = getattr(params, f"maf{i}")
 
-                print("min maf: ", min_maf)
-
                 if min_maf > maf_threshold:
                     markers_categories = ["common"]
                     print("No variant with maf < ", maf_threshold, " found at iteration ", i, ", skipping HWE/HET for rare variants.")
 
                 else:
                     markers_categories = ["common", "rare"]
-
-                print("categories: ", markers_categories)
-
-                raise Exception("*** DEBUG ***")
 
                 for markers_category in markers_categories:
 
