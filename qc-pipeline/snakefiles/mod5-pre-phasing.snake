@@ -217,7 +217,7 @@ rule mod5_exclude:
             subprocess.run(
                 [
                     plinklocal,
-                    "--bfile", intrunk,
+                    "--bfile", inTrunk,
                     "--exclude", input.exclude,
                     "--make-bed",
                     "--out", outTrunk  
