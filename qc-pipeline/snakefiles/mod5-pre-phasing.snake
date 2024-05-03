@@ -13,7 +13,7 @@ rule m5_dummy:
                 [
                     plinklocal,
                     "--bfile", inTrunk,
-                    "--maf", 0.05,
+                    "--maf", str(0.05),
                     "--make-bed",
                     "--out", outTrunk,
                 ]
