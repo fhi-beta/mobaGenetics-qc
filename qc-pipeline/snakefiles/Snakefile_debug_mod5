@@ -70,7 +70,7 @@ batches_debug = ['snp_012']
 rule all:
     input:
         # Module 5:
-        m5_dummy_bed = expand(tmpMod5/ "{batch}" / ("mod5_exclude.bed"), batch = batches_debug)
+        m5_dummy_bed = expand(tmpMod5/ "{batch}" / ("mod5_update_chr.bed"), batch = batches_debug)
 
 
 
