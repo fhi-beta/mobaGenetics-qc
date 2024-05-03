@@ -8,10 +8,10 @@
 libdir = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'lib'))
 bcftools = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/bcftools-1.7/bcftools'))
 vcftools = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/vcftools-0.1.13/vcftools'))
+hrc1000g = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir),'bin/HRC-100G/HRC-1000G-check-bim.pl'))
 beagle = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/beagle/beagle.01Mar24.d36.jar'))
 conform_gt = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/beagle/conform-gt.24May16.cee.jar'))
 plinklocal = Path(os.path.dirname(workflow.basedir))/'bin'/'plink-1.90b5.4'/'plink'
-hrc1000g = Path(os.path.dirname(workflow.basedir))/'bin'/'HRC-100G'/'HRC-1000G-check-bim.pl'
 plink2local = Path(os.path.dirname(workflow.basedir))/'bin'/'plink-1.90b5.4'/'plink'
 flashpca = Path(os.path.dirname(workflow.basedir))/'bin'/'flashpca_x86-64'
 kinglocal = Path(os.path.dirname(workflow.basedir))/'bin'/'Linux-king'/'king'
