@@ -5,7 +5,7 @@
 #
 # Commands to execute from the qc-pipeline folder:
 # conda activate snp_qc
-# snakemake --snakefile Snakefile --cores 1 --use-conda --rerun-incomplete
+# snakemake --snakefile Snakefile_debug_mod5 --cores 16 --use-conda --rerun-incomplete
 #
 ##
 
