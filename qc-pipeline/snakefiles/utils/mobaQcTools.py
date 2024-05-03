@@ -73,7 +73,6 @@ def plot_hist(dataFile, resultFile, column="name of the column",
             name = f"log10({column})"
         )
     hist.save(
-        plot = hist,
         filename = resultFile,
         dpi = 300
     )
