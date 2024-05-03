@@ -148,8 +148,7 @@ def plot_point_and_line(
 
     print("- Exporting to ", resultFile)
 
-    p9.save(
-        plot = line,
+    line.save(
         filename = resultFile,
         dpi = 300,
         width = 4,
