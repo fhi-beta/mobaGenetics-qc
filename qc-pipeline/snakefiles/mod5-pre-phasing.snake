@@ -192,7 +192,7 @@ rule mod5_hrc1000:
             subprocess.run("echo PATH $PATH", shell = True)
             subprocess.run(
                 [
-                    "/usr/bin/perl", hrc1000g, 
+                    "/usr/bin/perl", "/mnt/work/oystein/github/mobaGenetics-qc/qc-pipeline/bin/HRC-1000G/HRC-1000G-check-bim.pl", 
                     "-b", input.bedset[1],
                     "-f", input.frq,
                     "-r", hrc_sites,
