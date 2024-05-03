@@ -1,5 +1,4 @@
 #!/usr/bin/python3
-import os
 
 ### generate missing folders ###########################
 if not os.path.exists(config['output_base']):

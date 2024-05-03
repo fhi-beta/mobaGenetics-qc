@@ -9,6 +9,27 @@
 #
 ##
 
+# External libraries
+from pathlib import Path
+from shutil import copyfile
+import pandas as pd
+import numpy as np
+import plotnine as p9
+import matplotlib
+import math
+import sys
+import yaml
+import io
+import shutil
+import os
+matplotlib.use('Agg')
+from shutil import copyfile
+
+
+# Local libraries
+sys.path.append('utils')  # in order to find our local packages
+import mobaQcTools as mqc
+
 
 # Config file
 configfile: "parameters/config.yaml"
@@ -17,12 +38,6 @@ configfile: "parameters/config.yaml"
 include: "parameters/variables.py"
 include: "parameters/batch_details.py"
 include: "parameters/setup.py"
-
-# External libraries
-sys.path.append('utils')  # in order to find our local packages
-import mobaQcTools as mqc  # local moba utils package
-from shutil import copyfile
-import pandas as pd
 
 # Ensure bash as shell
 shell.executable("/bin/bash")
