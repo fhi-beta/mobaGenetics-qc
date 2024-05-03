@@ -147,9 +147,8 @@ def plot_point_and_line(
     )
 
     print("- Exporting to ", resultFile)
-    print("- Line ", line)
 
-    p9.ggsave(
+    p9.save(
         plot = line,
         filename = resultFile,
         dpi = 300,
