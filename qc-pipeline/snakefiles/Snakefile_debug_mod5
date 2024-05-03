@@ -48,12 +48,14 @@ include: "mod3-population-clustering.snake"
 include: "mod4-good-markers.snake"
 include: "mod5-pre-phasing.snake"
 
+# Debug code
+batches_debug = ['snp_012']
 
 # rule all, lists the output of every module
 rule all:
     input:
         # Module 5:
-        m5_dummy_bed = expand(tmpMod5/ "{batch}" / ("m5_dummy.bed"), batch = batches)
+        m5_dummy_bed = expand(tmpMod5/ "{batch}" / ("m5_dummy.bed"), batch = batches_debug)
 
 
 

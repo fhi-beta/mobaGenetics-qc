@@ -1,8 +1,8 @@
 
-rule_stem = 'mod5_debug'
+rule_stem = 'm5_dummy'
 rule m5_dummy:
     input:
-        bedset = multiext("/mnt/work/marc/qc/test_mod5_24.05.02", ".bed", ".bim", ".fam"),
+        bedset = multiext(str("/mnt/work/marc/qc/test_mod5_24.05.02", "{batch}", "m4_output_good_markers"), ".bed", ".bim", ".fam"),
     output:
         bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam"),
     run:
