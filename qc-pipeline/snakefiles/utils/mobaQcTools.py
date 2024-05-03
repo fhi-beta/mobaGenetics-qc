@@ -146,6 +146,9 @@ def plot_point_and_line(
         x = xlabel
     )
 
+    print("- Exporting to ", resultFile)
+    print("- Line ", line)
+
     p9.ggsave(
         plot = line,
         filename = resultFile,

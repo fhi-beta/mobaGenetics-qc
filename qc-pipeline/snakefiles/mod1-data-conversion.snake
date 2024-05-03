@@ -280,8 +280,6 @@ rule remove_markers_cluster_sep:
                     check = True
                 )
 
-                print("*** debug update")
-
                 dropouts = mqc.checkUpdates(
                     inTrunk + ".bim",
                     outTrunk +".bim",
@@ -291,7 +289,6 @@ rule remove_markers_cluster_sep:
                     allele_flip = True
                 )
 
-                print("*** debug dropout")
                 dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
                 dropouts["Threshold"] = params.threshold
                 dropouts["Rule"] = rule
@@ -299,8 +296,8 @@ rule remove_markers_cluster_sep:
 
                 mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} markers(NSNP_CLUSTERSEP_LOST) out of {dropouts["in"]} (BEFORE_SNPTABLE), leaving {dropouts["out"]} markers. Treshhold {params.threshold}\n')
 
+                print("Plotting to ", output.plot)
 
-                print("*** plot")
                 mqc.plot_point_and_line(
                     dropouts,
                     input.snptable,
