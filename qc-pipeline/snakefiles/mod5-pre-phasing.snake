@@ -188,9 +188,11 @@ rule mod5_hrc1000:
         id = tmpMod5 / "{batch}" / ("ID-" + rule_stem + "-HRC.txt")
     run:
         try:
+            subprocess.run("echo Current working directory: $(pwd)")
+            subprocess.run("echo $PATH")
             subprocess.run(
                 [
-                    "perl", hrc1000g, 
+                    "/usr/bin/perl", hrc1000g, 
                     "-b", input.bedset[1],
                     "-f", input.frq,
                     "-r", hrc_sites,
