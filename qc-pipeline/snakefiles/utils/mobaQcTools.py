@@ -72,7 +72,7 @@ def plot_hist(dataFile, resultFile, column="name of the column",
         hist += p9.scale_x_log10(
             name = f"log10({column})"
         )
-    p9.ggsave(
+    hist.save(
         plot = hist,
         filename = resultFile,
         dpi = 300
@@ -179,8 +179,7 @@ def plot_text(
         )
     )
 
-    p9.ggsave(
-        plot = p,
+    p.save(
         filename = plotFile,
         dpi = 300,
         width = 4,
@@ -839,8 +838,7 @@ def filter_hwe(
     p += t_line    # threshold. Note that plot removed above
     title = f'HWE > -log({threshold}) \n{dropouts.get("actionTakenCount")} outside threshold\n{dropouts.get("Timestamp")}'
     p += p9.labs(title = title)
-    p9.ggsave(
-        plot = p,
+    p.save(
         filename = plot_file,
         dpi = 600
     )
@@ -1437,8 +1435,7 @@ def count_families(famfile, regex):
 #     # corresponding test to remove outliers.
 #     p += p9.stat_ellipse()
 #     p += p9.geom_point()
-#     p9.ggsave(
-#         plot = p,
+#     p.save(
 #         filename = "foo.png",
 #         dpi = 300
 #     )
