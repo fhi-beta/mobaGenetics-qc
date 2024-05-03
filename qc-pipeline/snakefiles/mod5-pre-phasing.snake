@@ -182,7 +182,7 @@ rule mod5_hrc1000:
     output:
         exclude = tmpMod5 / "{batch}" / ("Exclude-" + rule_stem + "-HRC.txt"),
         chromosome = tmpMod5 / "{batch}" / ("Chromosome-" + rule_stem + "-HRC.txt"),
-        postition = tmpMod5 / "{batch}" / ("Position-" + rule_stem + "-HRC.txt"),
+        position = tmpMod5 / "{batch}" / ("Position-" + rule_stem + "-HRC.txt"),
         strand_flip = tmpMod5 / "{batch}" / ("Strand-Flip-" + rule_stem + "-HRC.txt"),
         force = tmpMod5 / "{batch}" / ("Force-Allele1-" + rule_stem + "-HRC.txt"),
         id = tmpMod5 / "{batch}" / ("ID-" + rule_stem + "-HRC.txt")
