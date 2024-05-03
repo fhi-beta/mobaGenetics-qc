@@ -139,7 +139,7 @@ rule mod5_missingness_and_hwe:
             subprocess.run(
                 [
                     plinklocal,
-                    "--bfile", intrunk,
+                    "--bfile", inTrunk,
                     "--hwe", "1e-6",
                     "--geno", "0.02",
                     "--make-bed",
