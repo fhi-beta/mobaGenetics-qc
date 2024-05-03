@@ -155,7 +155,7 @@ rule mod5_compute_allele_frequencies:
     input:
         bedset = rules.mod5_missingness_and_hwe.output.bedset
     output:
-        bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
+        bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam"),
         frq = tmpMod5 / "{batch}" / (rule_stem + ".frq")
     run:
         try:
@@ -177,14 +177,14 @@ rule mod5_compute_allele_frequencies:
 rule_stem = "mod5_hrc1000"
 rule mod5_hrc1000:
     input:
-        bedset = rules.mod5_compute_allele_frequencies.output.bedset
+        bedset = rules.mod5_compute_allele_frequencies.output.bedset,
         frq = rules.mod5_compute_allele_frequencies.output.frq
     output:
-        exclude = tmpMod5 / "{batch}" / ("Exclude-" + rule_stem + "-HRC.txt")
-        chromosome = tmpMod5 / "{batch}" / ("Chromosome-" + rule_stem + "-HRC.txt")
-        postition = tmpMod5 / "{batch}" / ("Position-" + rule_stem + "-HRC.txt")
-        strand_flip = tmpMod5 / "{batch}" / ("Strand-Flip-" + rule_stem + "-HRC.txt")
-        force = tmpMod5 / "{batch}" / ("Force-Allele1-" + rule_stem + "-HRC.txt")
+        exclude = tmpMod5 / "{batch}" / ("Exclude-" + rule_stem + "-HRC.txt"),
+        chromosome = tmpMod5 / "{batch}" / ("Chromosome-" + rule_stem + "-HRC.txt"),
+        postition = tmpMod5 / "{batch}" / ("Position-" + rule_stem + "-HRC.txt"),
+        strand_flip = tmpMod5 / "{batch}" / ("Strand-Flip-" + rule_stem + "-HRC.txt"),
+        force = tmpMod5 / "{batch}" / ("Force-Allele1-" + rule_stem + "-HRC.txt"),
         id = tmpMod5 / "{batch}" / ("ID-" + rule_stem + "-HRC.txt")
     run:
         try:
@@ -205,7 +205,7 @@ rule mod5_hrc1000:
 rule_stem = "mod5_exclude"
 rule mod5_exclude:
     input:
-        exclude = rules.mod5_hrc1000.output.exclude
+        exclude = rules.mod5_hrc1000.output.exclude,
         bedset = rules.mod5_compute_allele_frequencies.output.bedset
     output:
         bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
@@ -229,7 +229,7 @@ rule mod5_exclude:
 rule_stem = "mod5_update_chr"
 rule mod5_update_chr:
     input:
-        chromosome = rules.mod5_hrc1000.output.chromosome
+        chromosome = rules.mod5_hrc1000.output.chromosome,
         bedset = rules.mod5_exclude.output.bedset
     output:
         bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
@@ -253,7 +253,7 @@ rule mod5_update_chr:
 rule_stem = "mod5_update_map"
 rule mod5_update_map:
     input:
-        position = rules.mod5_hrc1000.output.position
+        position = rules.mod5_hrc1000.output.position,
         bedset = rules.mod5_update_chr.output.bedset
     output:
         bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
@@ -277,7 +277,7 @@ rule mod5_update_map:
 rule_stem = "mod5_strand_flip"
 rule mod5_strand_flip:
     input:
-        strand_flip = rules.mod5_hrc1000.output.strand_flip
+        strand_flip = rules.mod5_hrc1000.output.strand_flip,
         bedset = rules.mod5_update_map.output.bedset
     output:
         bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
@@ -301,7 +301,7 @@ rule mod5_strand_flip:
 rule_stem = "mod5_force_allele"
 rule mod5_force_allele:
     input:
-        force = rules.mod5_hrc1000.output.force
+        force = rules.mod5_hrc1000.output.force,
         bedset = rules.mod5_strand_flip.output.bedset
     output:
         bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
@@ -325,7 +325,7 @@ rule mod5_force_allele:
 rule_stem = "mod5_update_name"
 rule mod5_update_name:
     input:
-        id = rules.mod5_hrc1000.output.id
+        id = rules.mod5_hrc1000.output.id,
         bedset = rules.mod5_force_allele.output.bedset
     output:
         bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
