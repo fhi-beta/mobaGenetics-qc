@@ -174,7 +174,7 @@ rule mod5_compute_allele_frequencies:
             print(f"An exception occurred in rule {rule_stem}.")
             print(e)
 
-rule_stem = "mod5_hrc1000"
+# rule_stem must be same as for input bim file
 rule mod5_hrc1000:
     input:
         bedset = rules.mod5_compute_allele_frequencies.output.bedset,
@@ -188,8 +188,6 @@ rule mod5_hrc1000:
         id = tmpMod5 / "{batch}" / ("ID-" + rule_stem + "-HRC.txt")
     run:
         try:
-            subprocess.run("echo Current working directory: $(pwd)", shell = True)
-            subprocess.run("echo PATH $PATH", shell = True)
             subprocess.run(
                 [
                     "/usr/bin/perl", "/mnt/work/oystein/github/mobaGenetics-qc/qc-pipeline/bin/HRC-1000G/HRC-1000G-check-bim.pl", 
@@ -201,7 +199,7 @@ rule mod5_hrc1000:
             )
             
         except Exception as e:
-            print(f"An exception occurred in rule {rule_stem}.")
+            print(f"An exception occurred in rule {rule}.")
             print(e)
 
 rule_stem = "mod5_exclude"
