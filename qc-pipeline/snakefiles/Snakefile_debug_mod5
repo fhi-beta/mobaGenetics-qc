@@ -47,7 +47,6 @@ include: "mod2-genetic-relationship.snake"
 include: "mod3-population-clustering.snake"
 include: "mod4-good-markers.snake"
 include: "mod5-pre-phasing.snake"
-include: "mod6-imputation.snake"
 
 
 # rule all, lists the output of every module
