@@ -44,11 +44,11 @@ def dev_log(
     chromosomes = freq_data['CHR'].unique()
     chromosomes_string = ','.join(map(str, chromosomes.flatten()))
 
-    print("*** Debug ***")
-    print(inTrunk)
-    print("Chromosomes: ", chromosomes_string)
-    print("min maf: ", min_maf)
-    print("*************")
+    # print("*** Debug ***")
+    # print(inTrunk)
+    # print("Chromosomes: ", chromosomes_string)
+    # print("min maf: ", min_maf)
+    # print("*************")
 
     with open(inTrunk + ".devLog", "w") as dev_log:
         dev_log.write("batch\tpopulation\tstep\tchromosomes\tmin_maf\tmax_maf\tn_markers\tn_samples\n")
