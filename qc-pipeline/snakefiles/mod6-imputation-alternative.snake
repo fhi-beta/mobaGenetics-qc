@@ -25,10 +25,10 @@ rule mod6_create_vcf:
     input:
         bedset = rules.mod6_split_into_chromosomes.output.bedset
     output:
-        str(tmpMod6 / "{batch}" / "mod6_create_vcf.chr{chr}.nofam.vcf")
+        vcf = str(tmpMod6 / "{batch}" / "mod6_create_vcf.chr{chr}.nofam.vcf")
     run:
         inTrunk = mqc.plinkBase(input.bedset[0])
-        outTrunk = mqc.plinkBase(output)
+        outTrunk = mqc.plinkBase(output.vcf[0])
         fam = str(input.bedset[2])
         bim = input.bedset[1]
         fam_orig = fam + ".orig"
