@@ -1,9 +1,9 @@
-# rule_stem = "mod6_split_into_chromosomes"
+rule_stem = "mod6_split_into_chromosomes"
 rule mod6_split_into_chromosomes:
     input:
         bedset = rules.mod5_output.output.bedset
     output:
-        bedset = multiext(str(tmpMod6 / "{batch}" / "mod6_split_into_chromosomes.chr{chr}"), ".bed", ".bim", ".fam")
+        bedset = multiext(str(tmpMod6 / "{batch}" / rule_stem + ".chr{chr}"), ".bed", ".bim", ".fam")
         #bed = "/mnt/archive/snpQc/pipeOut_dev_2024.05.02/mod6-imputation/snp_012/mod6_split_into_chromosomes.chr1.bed"
     run:
         inTrunk = mqc.plinkBase(input.bedset[0])
