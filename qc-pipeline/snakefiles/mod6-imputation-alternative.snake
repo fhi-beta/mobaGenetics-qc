@@ -3,36 +3,70 @@ rule mod6_split_into_chromosomes:
     input:
         bedset = rules.mod5_output.output.bedset
     output:
-        bedset = multiext(str(tmpMod6 / "{batch}" / (rule_stem + ".chr{chr}")), ".bed", ".bim", ".fam")
-        #bed = "/mnt/archive/snpQc/pipeOut_dev_2024.05.02/mod6-imputation/snp_012/mod6_split_into_chromosomes.chr1.bed"
+        bedset = multiext(str(tmpMod6 / "{batch}" / "mod6_split_into_chromosomes.chr{chr}"), ".bed", ".bim", ".fam")
+    run:
+        try:
+            inTrunk = mqc.plinkBase(input.bedset[0])
+            outTrunk = mqc.plinkBase(output.bedset[0])
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", inTrunk,
+                    "--chr", wildcards.chr,
+                    "--make-bed",
+                    "--out", outTrunk
+                ]
+            )
+        except Exception as e:
+            print(f"An exception occurred in rule {rule_stem}.")
+            print(e)
+
+rule mod6_create_vcf:
+    input:
+        bedset = rules.mod6_split_into_chromosomes.output.bedset
+    output:
+        nofam_vcf = str(tmpMod6 / "{batch}" / "mod6_create_vcf.chr{chr}.nofam.vcf")
     run:
         inTrunk = mqc.plinkBase(input.bedset[0])
         outTrunk = mqc.plinkBase(output.bedset[0])
+        fam = input.bedset[2]
+        bim = input.bedset[1]
+        fam_orig = fam + ".orig"
+        wo_fam_fam = inTrunk + ".wo_fam.fam"
+        nofam = inTrunk + ".nofam"
+        nofam_vcf = nofam + ".vcf"
+        nofam_sorted_vcf = nofam + ".sorted.vcf"
+        # Copy fam to fam_orig:
         subprocess.run(
             [
-                plinklocal,
-                "--bfile", inTrunk,
-                "--chr", wildcards.chr,
-                "--make-bed",
-                "--out", outTrunk
+                "cp", fam, fam_orig
             ]
         )
-
-    # shell:
-    #     """
-    #     {plinklocal} --bfile {input.bedset.rsplit('.', 1)[0]} --chr {chr} --make-bed --out {output.bedset.rsplit('.', 1)[0]}
-    #     """
-# rule_stem = "mod6a_impute"
-# rule mod6a_impute:
-#     input:
-#         bed = rules.mod6a_split_into_chromosomes.input.bed
-#         bim = rules.mod6a_split_into_chromosomes.input.bim
-#         fam = rules.mod6a_split_into_chromosomes.input.fam
-#     output:
-#         bed = expand(os.path.join(tmpMod6 / "{batch}" / rule_stem + ".chr{chr}.bed"), batch = batches, chr = chrom)
-#         bim = expand(os.path.join(tmpMod6 / "{batch}" / rule_stem + ".chr{chr}.bim"), batch = batches, chr = chrom)
-#         fam = expand(os.path.join(tmpMod6 / "{batch}" / rule_stem + ".chr{chr}.fam"), batch = batches, chr = chrom)
-#     shell:
-#         """
-        
-#         """
+        # remove family information:
+        cmd = "awk '{OFS=""\t""}{$1=$3=$4=0;print$2,$3,$4,$5,$6}' " + fam " > " + wo_fam_fam
+        subproces.run(
+            cmd, 
+            shell = True
+        )
+        subproces.run(
+            [
+                "mv", wo_fam_fam, fam
+            ]
+        )
+         # create vcf file
+        subproces.run(
+            [
+                plink2local,
+                "--bfile", inTrunk,
+                "--recode", "vcf",
+                "--ref-allele", bim, "5", "2",
+                "--no-fid",
+                "--out", nofam            
+            ]
+        )
+        # copy fam_orig to fam
+        subprocess.run(
+            [
+                "cp", fam_orig, fam
+            ]
+        )

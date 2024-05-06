@@ -72,7 +72,7 @@ chrs = list(range(1,23))
 rule all:
     input:
         # Module 6:
-        expand(tmpMod6/ "{batch}" / ("mod6_split_into_chromosomes.chr{chr}.bed"), batch = batches_debug, chr = chrs)
+        expand(tmpMod6/ "{batch}" / ("mod6_create_vcf.chr{chr}.nofam.vcf"), batch = batches_debug, chr = chrs)
 
 
 

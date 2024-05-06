@@ -1,4 +1,5 @@
 # Maybe better to do the subprocess runs in separate rules?
+# Don't use this one, I think. Too clumsy with the python loop over chromosomes
 rule_stem = "mod6_imputation"
 rule mod6_imputation:
     input:
