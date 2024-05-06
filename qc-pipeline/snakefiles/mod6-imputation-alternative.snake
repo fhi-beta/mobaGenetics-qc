@@ -59,7 +59,7 @@ rule mod6_create_vcf:
                 plink2local,
                 "--bfile", inTrunk,
                 "--recode", "vcf",
-                "--ref-allele", bim, "5", "2",
+                "--ref-allele", f"{bim} 5 2",
                 "--no-fid",
                 "--out", nofam            
             ]
