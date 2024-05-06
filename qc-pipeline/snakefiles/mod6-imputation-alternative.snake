@@ -28,7 +28,7 @@ rule mod6_create_vcf:
         vcf = str(tmpMod6 / "{batch}" / "mod6_create_vcf.chr{chr}.nofam.vcf")
     run:
         inTrunk = mqc.plinkBase(input.bedset[0])
-        outTrunk = mqc.plinkBase(output.vcf[0])
+        outTrunk = mqc.plinkBase(output.vcf)
         fam = str(input.bedset[2])
         bim = input.bedset[1]
         fam_orig = fam + ".orig"
