@@ -188,10 +188,9 @@ rule mod5_hrc1000:
         id = tmpMod5 / "{batch}" / ("ID-" + rule_stem + "-HRC.txt")
     run:
         try:
-            # perl does not recognize the path from variables.py. TODO: remove hardcoding
             subprocess.run(
                 [
-                    "/usr/bin/perl", hrc1000g, 
+                    "perl", hrc1000g, 
                     "-b", input.bedset[1],
                     "-f", input.frq,
                     "-r", hrc_sites,
