@@ -64,13 +64,13 @@ include: "mod4-good-markers.snake"
 include: "mod5-pre-phasing.snake"
 
 # Debug code
-batches_debug = ['snp_012']
+batches_debug = ['snp_012']738
 
 # rule all, lists the output of every module
 rule all:
     input:
         # Module 5:
-        m5_dummy_bed = expand(tmpMod5/ "{batch}" / ("mod5_update_chr.bed"), batch = batches_debug)
+        m5_dummy_bed = expand(tmpMod5/ "{batch}" / ("mod5_output.bed"), batch = batches_debug)
 
 
 
