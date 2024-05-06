@@ -3,7 +3,7 @@ rule mod6_split_into_chromosomes:
     input:
         bedset = rules.mod5_output.output.bedset
     output:
-        bed = expand(tmpMod6 / "{batch}" / "mod6_split_into_chromosomes.chr{chrnr}.bed", chrnr = list(range(1,23)))
+        bed = expand(tmpMod6 / "{batch}" / "mod6_split_into_chromosomes.chr{chrnr}.bed", batch = batches_debug, chrnr = list(range(1,23)))
         #bed = "/mnt/archive/snpQc/pipeOut_dev_2024.05.02/mod6-imputation/snp_012/mod6_split_into_chromosomes.chr1.bed"
     shell:
         """
