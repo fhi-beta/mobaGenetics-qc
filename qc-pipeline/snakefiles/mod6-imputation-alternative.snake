@@ -29,10 +29,10 @@ rule mod6_create_vcf:
     run:
         inTrunk = mqc.plinkBase(input.bedset[0])
         outTrunk = mqc.plinkBase(output)
-        fam = input.bedset[2]
+        fam = str(input.bedset[2])
         bim = input.bedset[1]
         fam_orig = fam + ".orig"
-        wo_fam_fam = inTrunk + ".wo_fam.fam"
+        wo_fam_fam = str(inTrunk + ".wo_fam.fam")
         # Copy fam to fam_orig:
         cmd = f"cp {fam} {fam_orig}"
         subprocess.run(cmd, shell = True)
