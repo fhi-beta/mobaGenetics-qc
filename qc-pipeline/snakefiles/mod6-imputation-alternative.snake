@@ -34,28 +34,19 @@ rule mod6_create_vcf:
         fam_orig = fam + ".orig"
         wo_fam_fam = inTrunk + ".wo_fam.fam"
         # Copy fam to fam_orig:
-        subprocess.run(
-            [
-                "cp", fam, fam_orig
-            ]
-        )
+        cmd = f"cp {fam} {fam_orig}"
+        subprocess.run(cmd, shell = True|)
         # remove family information:
         cmd = "awk '{OFS=""\t""}{$1=$3=$4=0;print$2,$3,$4,$5,$6}' " + fam " > " + wo_fam_fam
         subproces.run(
             cmd, 
             shell = True
         )
-        subproces.run(
-            [
-                "mv", wo_fam_fam, fam
-            ]
-        )
+        cmd = f"mv {wo_fam_fam} {fam}"
+        subproces.run(cmd, shell = True)
          # create vcf file
         cmd = f"{plink2local} --bfile {inTrunk} --recode vcf --ref-allele {bim} 5 2 --no-fid --out {outTrunk}"
         subproces.run(cmd, shell = True)
         # copy fam_orig to fam
-        subprocess.run(
-            [
-                "cp", fam_orig, fam
-            ]
-        )
+        cmd = f"cp {fam_orig} {fam}"
+        subprocess.run(cmd, shell = True)
