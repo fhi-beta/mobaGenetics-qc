@@ -361,7 +361,7 @@ rule mod5_output:
             outTrunk = mqc.plinkBase(output.bedset[0])
             subprocess.run(
                 [
-                    plinklocal,
+                    plink2local,
                     "--bfile", inTrunk,
                     "--rm-dup", "force-first",
                     "--make-bed",

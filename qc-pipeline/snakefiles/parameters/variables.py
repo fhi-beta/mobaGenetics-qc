@@ -12,7 +12,7 @@ hrc1000g = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir),'bin/H
 beagle = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/beagle/beagle.01Mar24.d36.jar'))
 conform_gt = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'bin/beagle/conform-gt.24May16.cee.jar'))
 plinklocal = Path(os.path.dirname(workflow.basedir))/'bin'/'plink-1.90b5.4'/'plink'
-plink2local = Path(os.path.dirname(workflow.basedir))/'bin'/'plink-1.90b5.4'/'plink'
+plink2local = Path(os.path.dirname(workflow.basedir))/'bin'/'plink2'/'plink2'
 flashpca = Path(os.path.dirname(workflow.basedir))/'bin'/'flashpca_x86-64'
 kinglocal = Path(os.path.dirname(workflow.basedir))/'bin'/'Linux-king'/'king'
 
