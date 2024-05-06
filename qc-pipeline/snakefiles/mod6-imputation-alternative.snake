@@ -43,10 +43,10 @@ rule mod6_create_vcf:
             shell = True
         )
         cmd = f"mv {wo_fam_fam} {fam}"
-        subproces.run(cmd, shell = True)
+        subprocess.run(cmd, shell = True)
          # create vcf file
         cmd = f"{plink2local} --bfile {inTrunk} --recode vcf --ref-allele {bim} 5 2 --no-fid --out {outTrunk}"
-        subproces.run(cmd, shell = True)
+        subprocess.run(cmd, shell = True)
         # copy fam_orig to fam
         cmd = f"cp {fam_orig} {fam}"
         subprocess.run(cmd, shell = True)
