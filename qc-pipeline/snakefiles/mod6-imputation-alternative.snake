@@ -3,7 +3,7 @@ rule mod6a_split_into_chromosomes:
     input:
         bedset = rules.mod5_output.output.bedset
     output:
-        bed = expand(str(tmpMod6 / "{batch}" / "mod6_split_into_chromosomes.chr{chr}.bed"), batch = batches, chr = chromx)
+        bed = expand(str(tmpMod6 / "{batch}" / "mod6_split_into_chromosomes.chr{chr}.bed"), batch = batches, chr = list(range(1,23)))
     shell:
         """
         {plinklocal} --bfile {input.bedset.rsplit('.', 1)[0]} --chr {chr} --make-bed --out {output.bed.rsplit('.', 1)[0]}
