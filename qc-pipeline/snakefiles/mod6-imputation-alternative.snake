@@ -25,17 +25,14 @@ rule mod6_create_vcf:
     input:
         bedset = rules.mod6_split_into_chromosomes.output.bedset
     output:
-        nofam_vcf = str(tmpMod6 / "{batch}" / "mod6_create_vcf.chr{chr}.nofam.vcf")
+        str(tmpMod6 / "{batch}" / "mod6_create_vcf.chr{chr}.nofam.vcf")
     run:
         inTrunk = mqc.plinkBase(input.bedset[0])
-        outTrunk = mqc.plinkBase(output.bedset[0])
+        outTrunk = mqc.plinkBase(output)
         fam = input.bedset[2]
         bim = input.bedset[1]
         fam_orig = fam + ".orig"
         wo_fam_fam = inTrunk + ".wo_fam.fam"
-        nofam = inTrunk + ".nofam"
-        nofam_vcf = nofam + ".vcf"
-        nofam_sorted_vcf = nofam + ".sorted.vcf"
         # Copy fam to fam_orig:
         subprocess.run(
             [
@@ -54,16 +51,8 @@ rule mod6_create_vcf:
             ]
         )
          # create vcf file
-        subproces.run(
-            [
-                plink2local,
-                "--bfile", inTrunk,
-                "--recode", "vcf",
-                "--ref-allele", f"{bim} 5 2",
-                "--no-fid",
-                "--out", nofam            
-            ]
-        )
+        cmd = f"{plink2local} --bfile {inTrunk} --recode vcf --ref-allele {bim} 5 2 --no-fid --out {outTrunk}"
+        subproces.run(cmd, shell = True)
         # copy fam_orig to fam
         subprocess.run(
             [
