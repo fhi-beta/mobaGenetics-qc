@@ -288,12 +288,15 @@ rule remove_markers_cluster_sep:
                     fullList = True,
                     allele_flip = True
                 )
+
                 dropouts.update(rule_info[rule])   # Metainfo and documentation about the rule
                 dropouts["Threshold"] = params.threshold
                 dropouts["Rule"] = rule
                 mqc.saveYamlResults(output.results, dropouts)
 
                 mqc.log(runlog, f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - Batch {wildcards.batch}: Removed {dropouts["actionTakenCount"]} markers(NSNP_CLUSTERSEP_LOST) out of {dropouts["in"]} (BEFORE_SNPTABLE), leaving {dropouts["out"]} markers. Treshhold {params.threshold}\n')
+
+                print("Plotting to ", output.plot)
 
                 mqc.plot_point_and_line(
                     dropouts,

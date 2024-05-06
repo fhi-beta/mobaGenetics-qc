@@ -49,14 +49,33 @@ def plot_hist(dataFile, resultFile, column="name of the column",
         return
 
     df = df.sort_values(column)
-    p = p9.ggplot(data=df, mapping=p9.aes(x=column))
-    hist = p + p9.geom_histogram(bins=bins)
-    hist += p9.labs(title=title, x=column)
+    p = p9.ggplot(
+        data = df,
+        mapping = p9.aes(
+            x = column
+        )
+    )
+
+    hist = p + p9.geom_histogram(
+        bins = bins
+    )
+    hist += p9.labs(
+        title = title,
+        x = column
+    )
     if threshold != 0:
-        hist += p9.geom_vline(xintercept=threshold, color='red')
+        hist += p9.geom_vline(
+            xintercept = threshold,
+            color = 'red'
+        )
     if logx:
-        hist += p9.scale_x_log10(name=f"log10({column})")
-    p9.ggsave(plot=hist, filename=resultFile, dpi=300)
+        hist += p9.scale_x_log10(
+            name = f"log10({column})"
+        )
+    hist.save(
+        filename = resultFile,
+        dpi = 300
+    )
     return
 
 
@@ -126,8 +145,9 @@ def plot_point_and_line(
         x = xlabel
     )
 
-    p9.ggsave(
-        plot = line,
+    print("- Exporting to ", resultFile)
+
+    line.save(
         filename = resultFile,
         dpi = 300,
         width = 4,
@@ -158,8 +178,7 @@ def plot_text(
         )
     )
 
-    p9.ggsave(
-        plot = p,
+    p.save(
         filename = plotFile,
         dpi = 300,
         width = 4,
@@ -357,13 +376,18 @@ def dict_count_items(fil, cols=[0, 1], warn=True):
     Will print error/warning if dictionary is empty or if replicates found
 
     """
-    # pandas is overkill here, but since we will use it anyway ...
     # Grab the relevant columns only
     try:
-        df = pd.read_csv(fil, usecols=cols, delim_whitespace=True, header=None)
+        df = pd.read_csv(
+            fil,
+            usecols = cols,
+            sep = '\s+',
+            header = None
+        )
     except Exception as e:
         print(f"Could not open file {fil}, {str(e)}")
         return
+
     # concat them as strings, handling NA
     df = pd.Series(df.fillna('NA').values.tolist()).map(lambda x: ' '.join(map(str, x)))
     # ... and finally make a dictionary. Note that we will here also count identical lines.
@@ -389,7 +413,11 @@ def lookupDict(fil, indx=1):
     indx is the column that you will lookup on later, 0 is the first column
     """
     try:
-        all = pd.read_csv(fil, delim_whitespace=True, header=None).astype(str)
+        all = pd.read_csv(
+            fil,
+        sep = '\s+',
+            header = None
+        ).astype(str)
     except Exception as e:
         print(f"Could not open mapping file {fil}, {str(e)}")
         return
@@ -555,11 +583,16 @@ def create_exclude_list(duplicates, callRates, resultfile, excludelist):
         mt.touch()
         return
     try:
-        calls = pd.read_csv(callRates, usecols=['CHR', 'SNP', 'F_MISS'],
-                            delim_whitespace=True)
-        dups = pd.read_csv(duplicates,
-                           usecols=['CHR', 'POS', 'ALLELES', 'IDS'],
-                           delimiter='\t')
+        calls = pd.read_csv(
+            callRates,
+            usecols = ['CHR', 'SNP', 'F_MISS'],
+            sep = '\s+'
+        )
+        dups = pd.read_csv(
+            duplicates,
+            usecols = ['CHR', 'POS', 'ALLELES', 'IDS'],
+            delimiter='\t'
+        )
     except Exception as e:
         print(f"Could not open inputfile, {str(e)}")
         return
@@ -804,8 +837,7 @@ def filter_hwe(
     p += t_line    # threshold. Note that plot removed above
     title = f'HWE > -log({threshold}) \n{dropouts.get("actionTakenCount")} outside threshold\n{dropouts.get("Timestamp")}'
     p += p9.labs(title = title)
-    p9.ggsave(
-        plot = p,
+    p.save(
         filename = plot_file,
         dpi = 600
     )
@@ -833,7 +865,10 @@ def compute_excess_het(het_file, out_file, sd):
     """
     my_name = inspect.currentframe().f_code.co_name      # This functions name
     try:
-        df = pd.read_csv(het_file, delim_whitespace = True)
+        df = pd.read_csv(
+            het_file,
+            sep = '\s+'
+        )
     except Exception as e:
         print(f"{my_name}: {str(e)}")
         return
@@ -997,7 +1032,11 @@ def exclude_strand_ambigious_markers(
     plink will produce the output-bedset
     """
     try:
-        df = pd.read_csv(input + ".bim", delim_whitespace = True, header = None).astype(str)
+        df = pd.read_csv(
+            input + ".bim",
+            sep = '\s+',
+            header = None
+        ).astype(str)
     except Exception as e:
         print(f"Could not open .bim-file of bedset {input}, {str(e)}")
         return
@@ -1123,14 +1162,28 @@ def dotplot(
     """
     my_name = inspect.currentframe().f_code.co_name      # This function's name
     try:
-        df = pd.read_csv(genomedata, usecols=[c, x, y], delim_whitespace=True)
+        df = pd.read_csv(
+            genomedata,
+            usecols = [c, x, y],
+            sep = '\s+'
+        )
     except Exception as e:
         print(f"{my_name}: {str(e)}")
         return
 
-    p = p9.ggplot(data=df.round(prec).drop_duplicates(),
-                  mapping=p9.aes(x=x, y=y, color=c, shape=c))
-    p += p9.scale_colour_brewer(type="qual", palette="Set1")  # better for colourblind
+    p = p9.ggplot(
+        data = df.round(prec).drop_duplicates(),
+        mapping = p9.aes(
+            x = x,
+            y = y,
+            color = c,
+            shape = c
+        )
+    )
+    p += p9.scale_colour_brewer(
+        type="qual",
+        palette="Set1"
+    )
     p += p9.geom_point()
 
     return p
@@ -1150,7 +1203,7 @@ def hweg_qq_plot(
     The numbers will be rounded to prec(ision) and made unique before
     the plot is made.
 
-    The preicision is there to not cluster set plot when there are two
+    The precision is there to not cluster set plot when there are too
     many points to be seen The data is found in a whitespace separated
     pfile where they x denotes the header
 
@@ -1160,7 +1213,7 @@ def hweg_qq_plot(
         df = pd.read_csv(
             pfile,
             usecols = [x],
-            delim_whitespace = True
+            sep = '\s+'
         ).sort_values(
             by = [x],
             na_position = 'first',
@@ -1346,35 +1399,45 @@ def count_families(famfile, regex):
             counts["nomatch"] = counts.get("nomatch", 0) + 1
     return(counts)
 
-
-def find_moba_pca_outlier(df):
-    """NOT IN USE/WORKING!
-
-    Actually this seems to work when memory is available.
-
-    The idea is to use stat_ellipse() with good parameters to draw an
-    ellipse/circle around the center - and remove them with at
-    corresponing pandas test df is a dataframe containing
-
-    * "PC1" and "PC2" columns (pca components, float values'
-    * "SuperPop" and "Population" columns. Will be edited for outliers
-      adding "(outlier")
-    A list of outliers will be produced to ... (file)
-
-    """
-    # print(df.head(40))
-    # need copy for this to work
-    df.loc[df["PC1"] > 0, 'SuperPop'] = df['SuperPop'] + "(outlier)"
-    df.loc[df["PC1"] > 0, 'Population'] = df['Population'] + "(outlier)"
-
-    p = p9.ggplot(data=df, mapping=p9.aes(x='PC1', y='PC2',
-                                          color="Population"))
-    # show an ellipse. sounds like a good idea, but didnt work for large sets
-    # while  harvest server was overloaded. If this works, we could use the
-    # corresponding test to remove outliers.
-    p += p9.stat_ellipse()
-    p += p9.geom_point()
-    p9.ggsave(plot=p, filename="foo.png", dpi=300)
+#
+# def find_moba_pca_outlier(df):
+#     """NOT IN USE/WORKING!
+#
+#     Actually this seems to work when memory is available.
+#
+#     The idea is to use stat_ellipse() with good parameters to draw an
+#     ellipse/circle around the center - and remove them with at
+#     corresponing pandas test df is a dataframe containing
+#
+#     * "PC1" and "PC2" columns (pca components, float values'
+#     * "SuperPop" and "Population" columns. Will be edited for outliers
+#       adding "(outlier")
+#     A list of outliers will be produced to ... (file)
+#
+#     """
+#     # print(df.head(40))
+#     # need copy for this to work
+#     df.loc[df["PC1"] > 0, 'SuperPop'] = df['SuperPop'] + "(outlier)"
+#     df.loc[df["PC1"] > 0, 'Population'] = df['Population'] + "(outlier)"
+#
+#     p = p9.ggplot(
+#         data = df,
+#         mapping = p9.aes(
+#             x = 'PC1',
+#             y = 'PC2',
+#             color = "Population"
+#         )
+#     )
+#
+#     # show an ellipse. sounds like a good idea, but didnt work for large sets
+#     # while  harvest server was overloaded. If this works, we could use the
+#     # corresponding test to remove outliers.
+#     p += p9.stat_ellipse()
+#     p += p9.geom_point()
+#     p.save(
+#         filename = "foo.png",
+#         dpi = 300
+#     )
 
 # dir="/mnt/work2/gutorm/pipeOut/mod2-data-preparation/founders/"
 # intersect_rsid("/mnt/work/gutorm/git/mobaGenetics-qc/qc-pipeline/snakefiles/foo", dir+"23", "bar", small_col=0, big_col=1)
@@ -1397,32 +1460,52 @@ def create_fam_map(fam_file, map_in_file,  map_out_file):
     my_name = inspect.currentframe().f_code.co_name  # Generic way of find function name
     try:
         # 4 columns 0-3
-        fam = pd.read_csv(fam_file, header=None,
-                          delim_whitespace=True)
+        fam = pd.read_csv(
+            fam_file,
+            header = None,
+            sep = '\s+'
+        )
         # 2 columns 4-5
-        map = pd.read_csv(map_in_file, header=None,
-                          delim_whitespace=True)
+        map = pd.read_csv(
+            map_in_file,
+            header = None,
+            sep = '\s+'
+        )
     except Exception as e:
         print(f"{my_name}: {str(e)}")
         return
 
     # print(map)
-    all = fam.merge(map, left_on=[1], right_on=[0],
-                    indicator=True, validate="1:1")
+    all = fam.merge(
+        map,
+        left_on = [1],
+        right_on = [0],
+        indicator = True,
+        validate = "1:1"
+    )
     # 0_x is old familyname, 
     # 1_x is old ID (retrievalID), 1_y is new (sentrixId)
-    all[["0_x","1_x","1_y","1_y"]].to_csv(map_out_file, sep=" ",
-                                          header=False,
-                                          index=False)
+    all[["0_x","1_x","1_y","1_y"]].to_csv(
+        map_out_file,
+        sep = " ",
+        header = False,
+        index = False
+    )
     # end create_fam_map
 
 
 def main():
     # if you want to test a function
     print("Main called")
-    y = checkUpdates("/mnt/work/gutorm/1000Genomes/all_phase3.bim",
-                     "/mnt/work2/gutorm/pipeOut/mod3-good-markers/pca_ref.bim", cols=[0,1,3,4,5], indx=1, sanityCheck="none",
-                     fullList=True, allele_flip=True)
+    y = checkUpdates(
+        "/mnt/work/gutorm/1000Genomes/all_phase3.bim",
+        "/mnt/work2/gutorm/pipeOut/mod3-good-markers/pca_ref.bim",
+        cols = [0, 1, 3, 4, 5],
+        indx = 1,
+        sanityCheck = "none",
+        fullList = True,
+        allele_flip = True
+    )
     print(y)
 if __name__ == "__main__":
     main()
