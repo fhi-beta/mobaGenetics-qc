@@ -62,6 +62,7 @@ include: "mod2-genetic-relationship.snake"
 include: "mod3-population-clustering.snake"
 include: "mod4-good-markers.snake"
 include: "mod5-pre-phasing.snake"
+include: "mod6-imputation-alternative.snake"
 
 # Debug code
 batches_debug = ['snp_012']
@@ -69,8 +70,8 @@ batches_debug = ['snp_012']
 # rule all, lists the output of every module
 rule all:
     input:
-        # Module 5:
-        m5_dummy_bed = expand(tmpMod5/ "{batch}" / ("mod5_output.bed"), batch = batches_debug)
+        # Module 6:
+        expand(tmpMod6/ "{batch}" / ("mod6_split_into_chromosomes.chr1.bed"), batch = batches_debug)
 
 
 

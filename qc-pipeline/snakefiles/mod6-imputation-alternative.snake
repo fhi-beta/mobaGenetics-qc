@@ -1,0 +1,26 @@
+rule_stem = "mod6_split_into_chromosomes"
+rule mod6a_split_into_chromosomes:
+    input:
+        bedset = rules.mod5_output.output.bedset
+    output:
+        bed = expand(os.path.join(tmpMod6 / "{batch}" / rule_stem + ".chr{chr}.bed"), batch = batches, chr = chromx)
+        bim = expand(os.path.join(tmpMod6 / "{batch}" / rule_stem + ".chr{chr}.bim"), batch = batches, chr = chromx)
+        fam = expand(os.path.join(tmpMod6 / "{batch}" / rule_stem + ".chr{chr}.fam"), batch = batches, chr = chromx)
+    shell:
+        """
+        {plinklocal} --bfile {input.bedset.rsplit('.', 1)[0]} --chr {chr} --make-bed --out {output.bed.rsplit('.', 1)[0]}
+        """
+# rule_stem = "mod6a_impute"
+# rule mod6a_impute:
+#     input:
+#         bed = rules.mod6a_split_into_chromosomes.input.bed
+#         bim = rules.mod6a_split_into_chromosomes.input.bim
+#         fam = rules.mod6a_split_into_chromosomes.input.fam
+#     output:
+#         bed = expand(os.path.join(tmpMod6 / "{batch}" / rule_stem + ".chr{chr}.bed"), batch = batches, chr = chrom)
+#         bim = expand(os.path.join(tmpMod6 / "{batch}" / rule_stem + ".chr{chr}.bim"), batch = batches, chr = chrom)
+#         fam = expand(os.path.join(tmpMod6 / "{batch}" / rule_stem + ".chr{chr}.fam"), batch = batches, chr = chrom)
+#     shell:
+#         """
+        
+#         """
