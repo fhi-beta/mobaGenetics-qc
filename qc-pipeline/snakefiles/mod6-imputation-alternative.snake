@@ -7,7 +7,7 @@ rule mod6_split_into_chromosomes:
         #bed = "/mnt/archive/snpQc/pipeOut_dev_2024.05.02/mod6-imputation/snp_012/mod6_split_into_chromosomes.chr1.bed"
     shell:
         """
-        {plinklocal} --bfile {input.bedset.rsplit('.', 1)[0]} --chr {chr} --make-bed --out {output.bed.rsplit('.', 1)[0]}
+        {plinklocal} --bfile {input.bedset.rsplit('.', 1)[0]} --chr {chr} --make-bed --out {output.bedset.rsplit('.', 1)[0]}
         """
 # rule_stem = "mod6a_impute"
 # rule mod6a_impute:
