@@ -64,7 +64,7 @@ include: "mod4-good-markers.snake"
 include: "mod5-pre-phasing.snake"
 
 # Debug code
-batches_debug = ['snp_012']738
+batches_debug = ['snp_012']
 
 # rule all, lists the output of every module
 rule all:
