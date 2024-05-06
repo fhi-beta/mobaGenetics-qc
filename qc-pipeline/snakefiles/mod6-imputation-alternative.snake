@@ -3,8 +3,8 @@ rule mod6a_split_into_chromosomes:
     input:
         bedset = rules.mod5_output.output.bedset
     output:
-        bed = expand(os.path.join(tmpMod6 / "{batch}" / rule_stem + ".chr{chr}.bed"), batch = batches, chr = chromx)
-        bim = expand(os.path.join(tmpMod6 / "{batch}" / rule_stem + ".chr{chr}.bim"), batch = batches, chr = chromx)
+        bed = expand(os.path.join(tmpMod6 / "{batch}" / rule_stem + ".chr{chr}.bed"), batch = batches, chr = chromx),
+        bim = expand(os.path.join(tmpMod6 / "{batch}" / rule_stem + ".chr{chr}.bim"), batch = batches, chr = chromx),
         fam = expand(os.path.join(tmpMod6 / "{batch}" / rule_stem + ".chr{chr}.fam"), batch = batches, chr = chromx)
     shell:
         """
