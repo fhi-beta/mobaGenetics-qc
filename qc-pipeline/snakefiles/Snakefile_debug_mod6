@@ -66,12 +66,13 @@ include: "mod6-imputation-alternative.snake"
 
 # Debug code
 batches_debug = ['snp_012']
+chrs = list(range(1,23))
 
 # rule all, lists the output of every module
 rule all:
     input:
         # Module 6:
-        expand(tmpMod6/ "{batch}" / ("mod6_split_into_chromosomes.chr1.bed"), batch = batches_debug)
+        expand(tmpMod6/ "{batch}" / ("mod6_split_into_chromosomes.chr{chr}.bed"), batch = batches_debug, chr = chrs)
 
 
 
