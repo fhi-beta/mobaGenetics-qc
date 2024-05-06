@@ -191,7 +191,7 @@ rule mod5_hrc1000:
             # perl does not recognize the path from variables.py. TODO: remove hardcoding
             subprocess.run(
                 [
-                    "/usr/bin/perl", "/mnt/work/oystein/github/mobaGenetics-qc/qc-pipeline/bin/HRC-1000G/HRC-1000G-check-bim.pl", 
+                    "/usr/bin/perl", hrc1000g, 
                     "-b", input.bedset[1],
                     "-f", input.frq,
                     "-r", hrc_sites,
