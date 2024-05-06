@@ -363,7 +363,7 @@ rule mod5_output:
                 [
                     plinklocal,
                     "--bfile", inTrunk,
-                    "-rm-dup", "force-first",
+                    "--rm-dup", "force-first",
                     "--output-chr", "26",
                     "--make-bed",
                     "--out", outTrunk
