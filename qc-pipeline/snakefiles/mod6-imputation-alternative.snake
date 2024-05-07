@@ -21,33 +21,73 @@ rule mod6_split_into_chromosomes:
             print(f"An exception occurred in rule {rule_stem}.")
             print(e)
 
+rule_stem = "mod6_create_vcf"
 rule mod6_create_vcf:
     input:
         bedset = rules.mod6_split_into_chromosomes.output.bedset
     output:
         vcf = str(tmpMod6 / "{batch}" / "mod6_create_vcf.chr{chr}.nofam.vcf")
     run:
-        inTrunk = mqc.plinkBase(input.bedset[0])
-        outTrunk = mqc.plinkBase(output.vcf)
-        fam = str(input.bedset[2])
-        bim = input.bedset[1]
-        fam_orig = fam + ".orig"
-        wo_fam_fam = str(inTrunk + ".wo_fam.fam")
-        # Copy fam to fam_orig:
-        cmd = f"cp {fam} {fam_orig}"
-        subprocess.run(cmd, shell = True)
-        # remove family information:
-        # cmd = "awk '{OFS=""\t""}{$1=$3=$4=0;print$2,$3,$4,$5,$6}' " + fam + " > " + wo_fam_fam
-        cmd = "awk '{OFS=\"\\t\"}{$1=$3=$4=0;print$2,$3,$4,$5,$6}' " + fam + " > " + wo_fam_fam
-        subprocess.run(
-            cmd, 
-            shell = True
-        )
-        cmd = f"mv {wo_fam_fam} {fam}"
-        subprocess.run(cmd, shell = True)
-         # create vcf file
-        cmd = f"{plink2local} --bfile {inTrunk} --recode vcf --ref-allele {bim} 5 2 --no-fid --out {outTrunk}"
-        subprocess.run(cmd, shell = True)
-        # copy fam_orig to fam
-        cmd = f"cp {fam_orig} {fam}"
-        subprocess.run(cmd, shell = True)
+        try:
+            inTrunk = mqc.plinkBase(input.bedset[0])
+            outTrunk = mqc.plinkBase(output.vcf)
+            fam = str(input.bedset[2])
+            bim = input.bedset[1]
+            fam_orig = fam + ".orig"
+            wo_fam_fam = str(inTrunk + ".wo_fam.fam")
+            # Copy fam to fam_orig:
+            cmd = f"cp {fam} {fam_orig}"
+            subprocess.run(cmd, shell = True, check=True)
+            # remove family information:
+            cmd = "awk '{OFS=\"\\t\"}{$1=$3=$4=0;print$2,$3,$4,$5,$6}' " + fam + " > " + wo_fam_fam
+            subprocess.run(
+                cmd, 
+                shell = True
+            )
+            cmd = f"mv {wo_fam_fam} {fam}"
+            subprocess.run(cmd, shell = True, check=True)
+            # create vcf file
+            cmd = f"{plink2local} --bfile {inTrunk} --recode vcf --ref-allele {bim} 5 2 --no-fid --out {outTrunk}"
+            subprocess.run(cmd, shell = True)
+            # copy fam_orig to fam
+            cmd = f"cp {fam_orig} {fam}"
+            subprocess.run(cmd, shell = True, check=True)
+        except Exception as e:
+            print(f"An exception occurred in rule {rule_stem}.")
+            print(e)
+
+rule_stem = "mod6_sort"
+rule mod6_sort:
+    input:
+        vcf = rules.mod6_create_vcf.output.vcf
+    output:
+        sorted_vcf = str(tmpMod6 / "{batch}" / "mod6_sort.chr{chr}.nofam.sorted.vcf")
+    run:
+        cmd = f"bcftools sort {input.vcf} -o {output.sorted_vcf}"
+        subproces.run(cmd, shell=True, check=True)
+
+rule_stem = "mod6_impute"
+rule mod6_impute:
+    input:
+        sorted_vcf = rules.mod6_sort.output.sorted_vcf
+    output:
+        imputed_vcf_gz = str(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz")
+    run:
+        try:
+            import glob
+            outTrunk = mqc.plinkBase(mqc.plinkBase(output.imputed_vcf_gz))
+            conformed_trunk = mqc.plinkBase(outTrunk) + ".conformed"
+            conformed_vcf_gz = conformed_trunk + ".vcf.gz"
+            reffile_list = glob.glob(hrc_ega + "/EGA*/HRC.r1-1.EGA.GRCh37." + wildcards.chr + ".haplotypes*.vcf.gz")
+            if len(reffile_list) > 0:
+                reffile = reffile_list[0]
+                cmd = f"java -Xmx498g -jar {conform_gt} gt={input.sorted_vcf} ref={reffile} out={conformed_trunk} chrom={wildcards.chr} match=pos"
+                subprocess.run(cmd, shell=True, check=True)
+                mapfile = f"{mapfiles}/plink.{wildcards.chr}.GRCh37.map" # mapfiles must be copied to server! See config
+                cmd = f"java -Xmx498g -jar {beagle} gt={conformed_vcf_gz} ref={reffile} impute=true out={outTrunk} chrom={wildcards.chr} seed=12345 map={mapfile}"
+                subprocess.run(cmd, shell=True, check=True)
+            else:
+                raise Exception(f"Reference file not found for chromosome {wildcards.chr}")
+        except Exception as e:
+            print(f"An exception occurred in rule {rule_stem}.")
+            print(e)
