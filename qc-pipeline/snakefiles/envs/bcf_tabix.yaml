@@ -1,0 +1,7 @@
+name: bcf_tabix
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - bcftools=1.20
+  - tabix=1.11
