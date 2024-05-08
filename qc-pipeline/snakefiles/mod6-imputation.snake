@@ -77,7 +77,7 @@ rule mod6_conform:
         conformed_vcf = str(tmpMod6 / "{batch}" / "mod6_conform.chr{chr}.conformed.vcf.gz")
     shell:
         """
-        reffile={hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes*.vcf.gz
+        reffile=$(echo {hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes*.vcf.gz)
         output={output.conformed_vcf}
         outTrunk="${{output%.vcf.gz}}"
         java -Xmx498g -jar {conform_gt} gt={input.sorted_vcf} ref=$reffile out=$outTrunk chrom={wildcards.chr} match=POS
