@@ -78,7 +78,7 @@ rule mod6_conform:
     shell:
         """
         reffile={hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes*.vcf.gz
-        output = {output.imputed_vcf_gz}
+        output = {output.conformed_vcf_gz}
         outTrunk = "${output%.vcf.gz}"
         java -Xmx498g -jar {conform-gt} gt={input.sorted_vcf} ref=$reffile out=$outTrunk chrom={wildcards.chr} match=POS
         """
