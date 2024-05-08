@@ -88,7 +88,7 @@ rule mod6_impute:
                 mapfile = f"{mapfiles}/plink.{wildcards.chr}.GRCh37.map" # mapfiles must be copied to server! See config
                 cmd = f"java -Xmx498g -jar {beagle} gt={conformed_vcf_gz} ref={reffile} impute=true out={outTrunk} chrom={wildcards.chr} seed=12345 map={mapfile}"
                 subprocess.run(cmd, shell=True, check=True)
-                cmd = f"tabix -p vcf {output.imputed_vcf_gz}".
+                cmd = f"tabix -p vcf {output.imputed_vcf_gz}"
                 subprocess.run(cmd, shell=True, check=True)
             else:
                 raise Exception(f"Reference file not found for chromosome {wildcards.chr}")
