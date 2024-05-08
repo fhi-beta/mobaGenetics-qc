@@ -1,0 +1,16 @@
+# cull samples for faster debug. do not use in prod!
+rule_stem = "mod4point5_cull_samples"
+rule mod4point5_cull_samples:
+    input:
+        bedset=multiext("/mnt/work/marc/qc/test_mod5_24.05.02/{batch}/m4_output_good_markers", ".bed", ".bim", ".fam")
+    output:
+        bedset=multiext(str(tmpMod4point5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
+    shell:
+        """
+        input_bed={input.bedset[0]}
+        output_bed={output.bedset[0]}
+        inTrunk="${{input_bed%.bed}}"
+        outTrunk="${{output_bed%.bed}}"
+        head -n 100 {input.bedset[2]} > first100samples.txt
+        {plinklocal} --bfile $inTrunk --keep first100samples.txt --make-bed --out $outTrunk
+        """
