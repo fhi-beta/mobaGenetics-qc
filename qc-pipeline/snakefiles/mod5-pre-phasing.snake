@@ -25,7 +25,8 @@
 rule_stem = 'mod5_exclude_duplicates'
 rule mod5_exclude_duplicates:
     input:
-        bedset=multiext("/mnt/work/marc/qc/test_mod5_24.05.02/{batch}/m4_output_good_markers", ".bed", ".bim", ".fam")
+        # bedset=multiext("/mnt/work/marc/qc/test_mod5_24.05.02/{batch}/m4_output_good_markers", ".bed", ".bim", ".fam")
+        bedset=rules.mod4point5_cull_samples.output.bedset # culled bedset for faster debug
     output:
         bedset=multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam"),
     run:
