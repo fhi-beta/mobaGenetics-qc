@@ -19,7 +19,7 @@ hrc_sites: "/mnt/archive/snpQc/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
 hrc_ega: "/mnt/archive/HRC_1.1_EGA/download"
 
 # Genetic maps found at https://bochet.gcc.biostat.washington.edu/beagle/genetic_maps/
-mapfiles: "mapfile_path_goes_here"
+mapfiles: "/mnt/archive/genetic_maps"
 
 # From https://github.com/long-covid-hg/pca_projection/blob/main/docs/prerequisites.md#download-the-pre-computed-pca-loadings-and-reference-allele-frequencies
 # Contains precomputed PCA loadings and reference allele frequencies from Human Genome Diversity Project (HGDP) and the 1000 Genomes Project

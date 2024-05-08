@@ -81,7 +81,9 @@ rule mod6_impute:
     shell:
         """
             reffile={hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes.vcf.gz
-            echo FILE FOUND: $reffile
+            mapfile={mapfiles}/plink.chr{wildcards.chr}.GRCh37.map
+            echo reffile for chromosome {wildcards.chr}: $reffile
+            echo mapfile for chromosome {wildcards.chr}: $mapfile
         """
         
 
