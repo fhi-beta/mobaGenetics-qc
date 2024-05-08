@@ -76,29 +76,43 @@ rule mod6_impute:
         sorted_vcf = rules.mod6_sort.output.sorted_vcf
     output:
         imputed_vcf_gz = str(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz")
-    run:
-        try:
-            import glob
-            outTrunk = mqc.plinkBase(mqc.plinkBase(output.imputed_vcf_gz))
-            conformed_trunk = mqc.plinkBase(outTrunk) + ".conformed"
-            conformed_vcf_gz = conformed_trunk + ".vcf.gz"
-            reffile_list = glob.glob(hrc_ega + "/EGA*/HRC.r1-1.EGA.GRCh37." + wildcards.chr + ".haplotypes*.vcf.gz")
-            if len(reffile_list) > 0:
-                reffile = reffile_list[0]
-                cmd = f"java -Xmx498g -jar {conform_gt} gt={input.sorted_vcf} ref={reffile} out={conformed_trunk} chrom={wildcards.chr} match=pos"
-                subprocess.run(cmd, shell=True, check=True)
-                mapfile = f"{mapfiles}/plink.{wildcards.chr}.GRCh37.map" # mapfiles must be copied to server! See config
-                cmd = f"java -Xmx498g -jar {beagle} gt={conformed_vcf_gz} ref={reffile} impute=true out={outTrunk} chrom={wildcards.chr} seed=12345 map={mapfile}"
-                subprocess.run(cmd, shell=True, check=True)
-                cmd = f"tabix -p vcf {output.imputed_vcf_gz}"
-                subprocess.run(cmd, shell=True, check=True)
-            else:
-                raise Exception(f"Reference file not found for chromosome {wildcards.chr}")
-        except Exception as e:
-            print(f"An exception occurred in rule {rule_stem}.")
-            print(e)
+    conda:
+        "envs/bcf_tabix.yaml"
+    shell:
+        """
+            reffile={hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes.vcf.gz
+            echo FILE FOUND: $reffile
+        """
+        
 
-rule_stem = "mod6_query"
-rule mod6_query:
-    input:
+
+# rule_stem = "mod6_impute"
+# rule mod6_impute:
+#     input:
+#         sorted_vcf = rules.mod6_sort.output.sorted_vcf
+#     output:
+#         imputed_vcf_gz = str(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz")
+#     run:
+#         try:
+#             import glob
+#             outTrunk = mqc.plinkBase(mqc.plinkBase(output.imputed_vcf_gz))
+#             conformed_trunk = mqc.plinkBase(outTrunk) + ".conformed"
+#             conformed_vcf_gz = conformed_trunk + ".vcf.gz"
+#             reffile_list = glob.glob(hrc_ega + "/EGA*/HRC.r1-1.EGA.GRCh37." + wildcards.chr + ".haplotypes*.vcf.gz")
+#             if len(reffile_list) > 0:
+#                 reffile = reffile_list[0]
+#                 cmd = f"java -Xmx498g -jar {conform_gt} gt={input.sorted_vcf} ref={reffile} out={conformed_trunk} chrom={wildcards.chr} match=pos"
+#                 subprocess.run(cmd, shell=True, check=True)
+#                 mapfile = f"{mapfiles}/plink.{wildcards.chr}.GRCh37.map" # mapfiles must be copied to server! See config
+#                 cmd = f"java -Xmx498g -jar {beagle} gt={conformed_vcf_gz} ref={reffile} impute=true out={outTrunk} chrom={wildcards.chr} seed=12345 map={mapfile}"
+#                 subprocess.run(cmd, shell=True, check=True)
+#                 cmd = f"tabix -p vcf {output.imputed_vcf_gz}"
+#                 subprocess.run(cmd, shell=True, check=True)
+#             else:
+#                 raise Exception(f"Reference file not found for chromosome {wildcards.chr}")
+#         except Exception as e:
+#             print(f"An exception occurred in rule {rule_stem}.")
+#             print(e)
+
+
         
