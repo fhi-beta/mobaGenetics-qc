@@ -74,7 +74,8 @@ rule all:
     input:
         # expand(tmpMod5/ "{batch}" / ("mod5_output.bed"), batch = batches_debug)
         # expand(tmpMod4point5/ "{batch}" / ("mod4point5_cull_samples.bed"), batch = batches_debug)
-        expand(tmpMod6/ "{batch}" / ("mod6_conform.chr{chr}.conformed.vcf.gz"), batch = batches_debug, chr = chrs)
+        # expand(tmpMod6/ "{batch}" / ("mod6_conform.chr{chr}.conformed.vcf.gz"), batch = batches_debug, chr = chrs)
+        expand(tmpMod6/ "{batch}" / ("mod6_impute.chr{chr}.imputed.vcf.gz"), batch = batches_debug, chr = chrs)
 
 
 

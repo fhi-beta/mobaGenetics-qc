@@ -83,19 +83,20 @@ rule mod6_conform:
         java -Xmx498g -jar {conform_gt} gt={input.sorted_vcf} ref=$reffile out=$outTrunk chrom={wildcards.chr} match=POS
         """
 
-
-
-# rule_stem = "mod6_impute"
-# rule mod6_impute:
-#     input:
-#         sorted_vcf = rules.mod6_sort.output.sorted_vcf
-#     output:
-#         imputed_vcf_gz = str(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz")
-#     shell:
-#         """
-#         reffile={hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes*.vcf.gz
-#         mapfile={mapfiles}/plink.chr{wildcards.chr}.GRCh37.map
-#         """
+rule_stem = "mod6_impute"
+rule mod6_impute:
+    input:
+        conformed_vcf = rules.mod6_conform.output.conformed_vcf
+    output:
+        imputed_vcf = str(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz")
+    shell:
+        """
+        reffile={hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes*.vcf.gz
+        mapfile={mapfiles}/plink.chr{wildcards.chr}.GRCh37.map
+        output={output.imputed_vcf}
+        outTrunk="${{output%.vcf.gz}}"
+        java -Xmx498g -jar {beagle} gt={input.conformed_vcf} ref=$reffile impute=true out=$outTrunk chrom={wildcards.chr} seed=12345 map=$mapfile
+        """
         
 
 
