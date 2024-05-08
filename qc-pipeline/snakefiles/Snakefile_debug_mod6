@@ -71,7 +71,7 @@ chrs = list(range(1,23))
 # rule all, lists the output of every module
 rule all:
     input:
-        expand(tmpMod6/ "{batch}" / ("mod6_impute.chr{chr}.imputed.vcf.gz"), batch = batches_debug, chr = chrs)
+        expand(tmpMod6/ "{batch}" / ("mod6_conform.chr{chr}.conformed.vcf.gz"), batch = batches_debug, chr = chrs)
 
 
 
