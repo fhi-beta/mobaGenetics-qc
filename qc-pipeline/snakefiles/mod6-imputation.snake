@@ -64,9 +64,11 @@ rule mod6_sort:
         sorted_vcf = str(tmpMod6 / "{batch}" / "mod6_sort.chr{chr}.nofam.sorted.vcf")
     conda:
         "envs/bcf_tabix"
-    run:
-        cmd = f"bcftools sort {input.vcf} -o {output.sorted_vcf}"
-        subproces.run(cmd, shell=True, check=True)
+    shell:
+        "bcftools sort {input.vcf} -o {output.sorted_vcf}"
+    # run:
+    #     cmd = f"bcftools sort {input.vcf} -o {output.sorted_vcf}"
+    #     subproces.run(cmd, shell=True, check=True)
 
 rule_stem = "mod6_impute"
 rule mod6_impute:
