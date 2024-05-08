@@ -78,8 +78,8 @@ rule mod6_conform:
     shell:
         """
         reffile={hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes*.vcf.gz
-        output = {output.conformed_vcf}
-        outTrunk = "${{output%.vcf.gz}}"
+        output={output.conformed_vcf}
+        outTrunk="${{output%.vcf.gz}}"
         java -Xmx498g -jar {conform_gt} gt={input.sorted_vcf} ref=$reffile out=$outTrunk chrom={wildcards.chr} match=POS
         """
 
