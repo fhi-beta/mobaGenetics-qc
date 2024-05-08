@@ -95,7 +95,7 @@ rule mod6_impute:
         mapfile={mapfiles}/plink.chr{wildcards.chr}.GRCh37.map
         output={output.imputed_vcf}
         outTrunk="${{output%.vcf.gz}}"
-        java -Xmx498g -jar {beagle} gt={input.conformed_vcf} ref=$reffile impute=true out=$outTrunk chrom={wildcards.chr} seed=12345 map=$mapfile
+        java -Xmx498g -jar {beagle} gt={input.conformed_vcf} ref=$reffile impute=true out=$outTrunk chrom={wildcards.chr} seed=12345 nthreads=10 map=$mapfile
         """
         
 
