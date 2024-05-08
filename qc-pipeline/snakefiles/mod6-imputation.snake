@@ -63,7 +63,7 @@ rule mod6_sort:
     output:
         sorted_vcf = str(tmpMod6 / "{batch}" / "mod6_sort.chr{chr}.nofam.sorted.vcf")
     conda:
-        "envs/bcf_tabix"
+        "envs/bcf_tabix.yaml"
     shell:
         "bcftools sort {input.vcf} -o {output.sorted_vcf}"
     # run:
