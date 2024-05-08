@@ -72,7 +72,8 @@ chrs = ['1', '4', '5']
 # rule all, lists the output of every module
 rule all:
     input:
-        expand(tmpMod4point5/ "{batch}" / ("mod4point5_cull_samples.bed"), batch = batches_debug)
+        expand(tmpMod5/ "{batch}" / ("mod5_output.bed"), batch = batches_debug)
+        # expand(tmpMod4point5/ "{batch}" / ("mod4point5_cull_samples.bed"), batch = batches_debug)
         # expand(tmpMod6/ "{batch}" / ("mod6_conform.chr{chr}.conformed.vcf.gz"), batch = batches_debug, chr = chrs)
 
 
