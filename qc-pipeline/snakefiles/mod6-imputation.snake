@@ -86,6 +86,8 @@ rule mod6_impute:
         conformed_vcf = rules.mod6_conform.output.conformed_vcf
     output:
         imputed_vcf = str(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz")
+    conda:
+        "envs/bcf_tabix.yaml"
     shell:
         """
         reffile=$(echo {hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes*.vcf.gz)
@@ -93,7 +95,10 @@ rule mod6_impute:
         output={output.imputed_vcf}
         outTrunk="${{output%.vcf.gz}}"
         java -jar {beagle} gt={input.conformed_vcf} ref=$reffile impute=true out=$outTrunk chrom={wildcards.chr} seed=12345 map=$mapfile
+        tabix -p vcf {output.imputed_vcf}
+        bcftools query -f '%POS %REF %ALT %DR2 %AF\n' {output.imputed_vcf} -o ${{outTrunk}}.info
         """
+
 
 rule mod6_output:
     input:
@@ -108,8 +113,3 @@ rule mod6_output:
         outTrunk="${{output%.bed}}"
         {plink2local} --vcf {input.imputed_vcf} --make-bed --out $outTrunk
         """
-
-
-        # for rule mod6_conform:
-        # tabix -p vcf {input.imputed_vcf}
-        # bcftools query -f '%POS %REF %ALT %DR2 %AF\n' {input.imputed_vcf} -o ${{inTrunk}}.info
