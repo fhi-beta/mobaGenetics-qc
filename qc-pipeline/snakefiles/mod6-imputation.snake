@@ -66,9 +66,6 @@ rule mod6_sort:
         "envs/bcf_tabix.yaml"
     shell:
         "bcftools sort {input.vcf} -o {output.sorted_vcf}"
-    # run:
-    #     cmd = f"bcftools sort {input.vcf} -o {output.sorted_vcf}"
-    #     subproces.run(cmd, shell=True, check=True)
 
 rule mod6_conform:
     input:
@@ -97,36 +94,21 @@ rule mod6_impute:
         outTrunk="${{output%.vcf.gz}}"
         java -jar {beagle} gt={input.conformed_vcf} ref=$reffile impute=true out=$outTrunk chrom={wildcards.chr} seed=12345 map=$mapfile
         """
-        
 
-
-# rule_stem = "mod6_impute"
-# rule mod6_impute:
-#     input:
-#         sorted_vcf = rules.mod6_sort.output.sorted_vcf
-#     output:
-#         imputed_vcf_gz = str(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz")
-#     run:
-#         try:
-#             import glob
-#             outTrunk = mqc.plinkBase(mqc.plinkBase(output.imputed_vcf_gz))
-#             conformed_trunk = mqc.plinkBase(outTrunk) + ".conformed"
-#             conformed_vcf_gz = conformed_trunk + ".vcf.gz"
-#             reffile_list = glob.glob(hrc_ega + "/EGA*/HRC.r1-1.EGA.GRCh37." + wildcards.chr + ".haplotypes*.vcf.gz")
-#             if len(reffile_list) > 0:
-#                 reffile = reffile_list[0]
-#                 cmd = f"java -Xmx498g -jar {conform_gt} gt={input.sorted_vcf} ref={reffile} out={conformed_trunk} chrom={wildcards.chr} match=pos"
-#                 subprocess.run(cmd, shell=True, check=True)
-#                 mapfile = f"{mapfiles}/plink.{wildcards.chr}.GRCh37.map" # mapfiles must be copied to server! See config
-#                 cmd = f"java -Xmx498g -jar {beagle} gt={conformed_vcf_gz} ref={reffile} impute=true out={outTrunk} chrom={wildcards.chr} seed=12345 map={mapfile}"
-#                 subprocess.run(cmd, shell=True, check=True)
-#                 cmd = f"tabix -p vcf {output.imputed_vcf_gz}"
-#                 subprocess.run(cmd, shell=True, check=True)
-#             else:
-#                 raise Exception(f"Reference file not found for chromosome {wildcards.chr}")
-#         except Exception as e:
-#             print(f"An exception occurred in rule {rule_stem}.")
-#             print(e)
-
-
-        
+rule mod6_output:
+    input:
+        imputed_vcf = rules.mod6_impute.output.imputed_vcf
+    output:
+        bedset = multiext(str(tmpMod6 / "{batch}" / "mod6_output.chr{chr}"), ".bed", ".bim", ".fam")
+    conda:
+        "envs/bcf_tabix.yaml"
+    shell:
+        """
+        input={input.imputed_vcf}
+        inTrunk="${{input%.imputed.vcf.gz}}"
+        output={output.bedset[0]}
+        outTrunk="${{output%.bed}}"
+        tabix -p vcf {input.imputed_vcf}
+        bcftools query -f '%POS %REF %ALT %DR2 %AF\n' {input.imputed_vcf} -o $inTrunk
+        {plink2local} --vcf {input.imputed_vcf} --make-bed --out {outTrunk}
+        """
