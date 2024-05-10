@@ -100,15 +100,16 @@ rule mod6_output:
         imputed_vcf = rules.mod6_impute.output.imputed_vcf
     output:
         bedset = multiext(str(tmpMod6 / "{batch}" / "mod6_output.chr{chr}"), ".bed", ".bim", ".fam")
-    conda:
-        "envs/bcf_tabix.yaml"
     shell:
         """
         input={input.imputed_vcf}
         inTrunk="${{input%.imputed.vcf.gz}}"
         output={output.bedset[0]}
         outTrunk="${{output%.bed}}"
-        tabix -p vcf {input.imputed_vcf}
-        bcftools query -f '%POS %REF %ALT %DR2 %AF\n' {input.imputed_vcf} -o ${{inTrunk}}.info
         {plink2local} --vcf {input.imputed_vcf} --make-bed --out $outTrunk
         """
+
+
+        # for rule mod6_conform:
+        # tabix -p vcf {input.imputed_vcf}
+        # bcftools query -f '%POS %REF %ALT %DR2 %AF\n' {input.imputed_vcf} -o ${{inTrunk}}.info
