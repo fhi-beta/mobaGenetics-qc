@@ -61,7 +61,6 @@ include: "mod1-data-conversion.snake"
 include: "mod2-genetic-relationship.snake"
 include: "mod3-population-clustering.snake"
 include: "mod4-good-markers.snake"
-include: "mod4point5-cull-samples-for-debug.snake"
 include: "mod5-pre-phasing.snake"
 include: "mod6-imputation.snake"
 
