@@ -6,33 +6,37 @@ rule mod4point5_cull_samples:
     output:
         bedset=multiext(str(tmpMod4point5 / "{batch}" / "mod4point5_{number_of_samples}_samples"), ".bed", ".bim", ".fam")
     run:
-        inTrunk = mqc.plinkBase(input.bedset[0])
-        outTrunk = mqc.plinkBase(output.bedset[0])
-        if lower(wildcards.number_of_samples) == "all":
-            subprocess.run(
-                [
-                    plinklocal,
-                    "--bfile", inTrunk,
-                    "--make-bed",
-                    "--out", outTrunk
-                ]
-            )
-        elif wildcards.number_of_samples.isdigit():
-            samples_txt = f"first{wildcards.number_of_samples}samples.txt"
-            input_bed = input.bedset[2]
-            cmd = f"head -n {wildcards.number_of_samples} {input_bed}  > {samples_txt}"
-            subprocess.run(cmd, shell=True, check=True)
-            subprocess.run(
-                [
-                    plinklocal,
-                    "--bfile", inTrunk,
-                    "--keep", samples_txt,
-                    "--make-bed",
-                    "--out", outTrunk
-                ]
-            )
-        else:
-            raise Exception("number_of_samples must be a digit")
+        try:
+            inTrunk = mqc.plinkBase(input.bedset[0])
+            outTrunk = mqc.plinkBase(output.bedset[0])
+            if lower(wildcards.number_of_samples) == "all":
+                subprocess.run(
+                    [
+                        plinklocal,
+                        "--bfile", inTrunk,
+                        "--make-bed",
+                        "--out", outTrunk
+                    ]
+                )
+            elif wildcards.number_of_samples.isdigit():
+                samples_txt = f"first{wildcards.number_of_samples}samples.txt"
+                input_bed = input.bedset[2]
+                cmd = f"head -n {wildcards.number_of_samples} {input_bed}  > {samples_txt}"
+                subprocess.run(cmd, shell=True, check=True)
+                subprocess.run(
+                    [
+                        plinklocal,
+                        "--bfile", inTrunk,
+                        "--keep", samples_txt,
+                        "--make-bed",
+                        "--out", outTrunk
+                    ]
+                )
+            else:
+                raise Exception("number_of_samples must be a digit")
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
     # shell:
     #     """
     #     input_bed={input.bedset[0]}
