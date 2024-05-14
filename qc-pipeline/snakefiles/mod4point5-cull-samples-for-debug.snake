@@ -9,7 +9,7 @@ rule mod4point5_cull_samples:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
-            if lower(wildcards.number_of_samples) == "all":
+            if wildcards.number_of_samples.lower() == "all":
                 subprocess.run(
                     [
                         plinklocal,
