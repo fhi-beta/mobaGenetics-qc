@@ -28,7 +28,7 @@ rule mod5_exclude_duplicates:
         # bedset=multiext("/mnt/work/marc/qc/test_mod5_24.05.02/{batch}/m4_output_good_markers", ".bed", ".bim", ".fam")
         bedset=rules.mod4point5_cull_samples.output.bedset # culled bedset for faster debug
     output:
-        bedset=multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam"),
+        bedset=multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}" / rule_stem), ".bed", ".bim", ".fam"),
     run:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
@@ -61,7 +61,7 @@ rule mod5_exclude_nonstandard_alleles:
     input:
         bedset=rules.mod5_exclude_duplicates.output.bedset
     output:
-        bedset=multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
+        bedset=multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}" / rule_stem), ".bed", ".bim", ".fam")
     run:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
@@ -84,7 +84,7 @@ rule mod5_exclude_ambiguous_snps:
     input:
         bedset = rules.mod5_exclude_nonstandard_alleles.output.bedset
     output:
-        bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
+        bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}" / rule_stem), ".bed", ".bim", ".fam")
     run:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
@@ -132,7 +132,7 @@ rule mod5_missingness_and_hwe:
     input:
         bedset = rules.mod5_zero_out_mendelian_errors.output.bedset
     output:
-        bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
+        bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}" / rule_stem), ".bed", ".bim", ".fam")
     run:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
@@ -156,7 +156,7 @@ rule mod5_compute_allele_frequencies:
     input:
         bedset = rules.mod5_missingness_and_hwe.output.bedset
     output:
-        bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam"),
+        bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}" / rule_stem), ".bed", ".bim", ".fam"),
         frq = tmpMod5 / "{batch}" / (rule_stem + ".frq")
     run:
         try:
@@ -181,12 +181,12 @@ rule mod5_hrc1000:
         bedset = rules.mod5_compute_allele_frequencies.output.bedset,
         frq = rules.mod5_compute_allele_frequencies.output.frq
     output:
-        exclude = tmpMod5 / "{batch}" / ("Exclude-" + rule_stem + "-HRC.txt"),
-        chromosome = tmpMod5 / "{batch}" / ("Chromosome-" + rule_stem + "-HRC.txt"),
-        position = tmpMod5 / "{batch}" / ("Position-" + rule_stem + "-HRC.txt"),
-        strand_flip = tmpMod5 / "{batch}" / ("Strand-Flip-" + rule_stem + "-HRC.txt"),
-        force = tmpMod5 / "{batch}" / ("Force-Allele1-" + rule_stem + "-HRC.txt"),
-        id = tmpMod5 / "{batch}" / ("ID-" + rule_stem + "-HRC.txt")
+        exclude = tmpMod5 / "{batch}" / "{number_of_samples}" / ("Exclude-" + rule_stem + "-HRC.txt"),
+        chromosome = tmpMod5 / "{batch}" / "{number_of_samples}" / ("Chromosome-" + rule_stem + "-HRC.txt"),
+        position = tmpMod5 / "{batch}" / "{number_of_samples}" / ("Position-" + rule_stem + "-HRC.txt"),
+        strand_flip = tmpMod5 / "{batch}" / "{number_of_samples}" / ("Strand-Flip-" + rule_stem + "-HRC.txt"),
+        force = tmpMod5 / "{batch}" / "{number_of_samples}" / ("Force-Allele1-" + rule_stem + "-HRC.txt"),
+        id = tmpMod5 / "{batch}" / "{number_of_samples}" / ("ID-" + rule_stem + "-HRC.txt")
     run:
         try:
             subprocess.run(
@@ -209,7 +209,7 @@ rule mod5_exclude:
         exclude = rules.mod5_hrc1000.output.exclude,
         bedset = rules.mod5_compute_allele_frequencies.output.bedset
     output:
-        bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
+        bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}" / rule_stem), ".bed", ".bim", ".fam")
     run:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
@@ -233,7 +233,7 @@ rule mod5_update_chr:
         chromosome = rules.mod5_hrc1000.output.chromosome,
         bedset = rules.mod5_exclude.output.bedset
     output:
-        bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
+        bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}" / rule_stem), ".bed", ".bim", ".fam")
     run:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
@@ -257,7 +257,7 @@ rule mod5_update_map:
         position = rules.mod5_hrc1000.output.position,
         bedset = rules.mod5_update_chr.output.bedset
     output:
-        bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
+        bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}" / rule_stem), ".bed", ".bim", ".fam")
     run:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
@@ -281,7 +281,7 @@ rule mod5_strand_flip:
         strand_flip = rules.mod5_hrc1000.output.strand_flip,
         bedset = rules.mod5_update_map.output.bedset
     output:
-        bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
+        bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}" / rule_stem), ".bed", ".bim", ".fam")
     run:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
@@ -305,7 +305,7 @@ rule mod5_force_allele:
         force = rules.mod5_hrc1000.output.force,
         bedset = rules.mod5_strand_flip.output.bedset
     output:
-        bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
+        bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}" / rule_stem), ".bed", ".bim", ".fam")
     run:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
@@ -329,7 +329,7 @@ rule mod5_update_name:
         id = rules.mod5_hrc1000.output.id,
         bedset = rules.mod5_force_allele.output.bedset
     output:
-        bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
+        bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}" / rule_stem), ".bed", ".bim", ".fam")
     run:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
@@ -353,7 +353,7 @@ rule mod5_remove_variants_with_missing_IDs:
     input:
         bedset = rules.mod5_update_name.output.bedset
     output:
-        bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
+        bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}" / rule_stem), ".bed", ".bim", ".fam")
     run:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
@@ -376,7 +376,7 @@ rule mod5_output:
     input:
         bedset = rules.mod5_remove_variants_with_missing_IDs.output.bedset
     output:
-        bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
+        bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}" / rule_stem), ".bed", ".bim", ".fam")
     run:
         try:
             # Exclude duplicates again

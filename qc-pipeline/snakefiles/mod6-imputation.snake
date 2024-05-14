@@ -3,7 +3,7 @@ rule mod6_split_into_chromosomes:
     input:
         bedset = rules.mod5_output.output.bedset
     output:
-        bedset = multiext(str(tmpMod6 / "{batch}" / "mod6_split_into_chromosomes.chr{chr}"), ".bed", ".bim", ".fam")
+        bedset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}" / "mod6_split_into_chromosomes.chr{chr}"), ".bed", ".bim", ".fam")
     run:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
@@ -26,7 +26,7 @@ rule mod6_create_vcf:
     input:
         bedset = rules.mod6_split_into_chromosomes.output.bedset
     output:
-        vcf = str(tmpMod6 / "{batch}" / "mod6_create_vcf.chr{chr}.nofam.vcf")
+        vcf = str(tmpMod6 / "{batch}" / "{number_of_samples}" / "mod6_create_vcf.chr{chr}.nofam.vcf")
     run:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
@@ -61,7 +61,7 @@ rule mod6_sort:
     input:
         vcf = rules.mod6_create_vcf.output.vcf
     output:
-        sorted_vcf = str(tmpMod6 / "{batch}" / "mod6_sort.chr{chr}.nofam.sorted.vcf")
+        sorted_vcf = str(tmpMod6 / "{batch}" / "{number_of_samples}" / "mod6_sort.chr{chr}.nofam.sorted.vcf")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -85,7 +85,7 @@ rule mod6_impute:
     input:
         conformed_vcf = rules.mod6_conform.output.conformed_vcf
     output:
-        imputed_vcf = str(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz")
+        imputed_vcf = str(tmpMod6 / "{batch}" / "{number_of_samples}" / "mod6_impute.chr{chr}.imputed.vcf.gz")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -104,7 +104,7 @@ rule mod6_output:
     input:
         imputed_vcf = rules.mod6_impute.output.imputed_vcf
     output:
-        bedset = multiext(str(tmpMod6 / "{batch}" / "mod6_output.chr{chr}"), ".bed", ".bim", ".fam")
+        bedset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}" / "mod6_output.chr{chr}"), ".bed", ".bim", ".fam")
     shell:
         """
         input={input.imputed_vcf}
