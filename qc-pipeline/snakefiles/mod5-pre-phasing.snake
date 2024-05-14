@@ -157,7 +157,7 @@ rule mod5_compute_allele_frequencies:
         bedset = rules.mod5_missingness_and_hwe.output.bedset
     output:
         bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}" / rule_stem), ".bed", ".bim", ".fam"),
-        frq = tmpMod5 / "{batch}" / (rule_stem + ".frq")
+        frq = tmpMod5 / "{batch}" / "{number_of_samples}" / (rule_stem + ".frq")
     run:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
