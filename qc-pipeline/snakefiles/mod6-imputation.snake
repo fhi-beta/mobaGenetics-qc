@@ -71,7 +71,7 @@ rule mod6_conform:
     input:
         sorted_vcf = rules.mod6_sort.output.sorted_vcf
     output:
-        conformed_vcf = str(tmpMod6 / "{batch}" / "mod6_conform.chr{chr}.conformed.vcf.gz")
+        conformed_vcf = str(tmpMod6 / "{batch}" /  "{number_of_samples}" / "mod6_conform.chr{chr}.conformed.vcf.gz")
     shell:
         """
         reffile=$(echo {hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes*.vcf.gz)
