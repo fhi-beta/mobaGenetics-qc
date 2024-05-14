@@ -1,4 +1,4 @@
-# cull samples for faster debug
+# cull samples for faster debug. bypass by passing number_of_samples = 'all'
 rule_stem = "mod4point5_cull_samples"
 rule mod4point5_cull_samples:
     input:
@@ -33,7 +33,7 @@ rule mod4point5_cull_samples:
                     ]
                 )
             else:
-                raise Exception("number_of_samples must be a digit")
+                raise Exception("number_of_samples must either be a digit or 'all'")
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
             print(e)
