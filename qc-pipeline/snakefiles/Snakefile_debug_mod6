@@ -73,7 +73,7 @@ samples = ["50"]
 # rule all, lists the output of every module
 rule all:
     input:
-        expand(tmpMod5/ "{batch}" / "{number_of_samples}" / ("mod5_output.bed"), batch = batches_debug. number_of_samples = samples)
+        expand(tmpMod5/ "{batch}" / "{number_of_samples}" / ("mod5_output.bed"), batch = batches_debug, number_of_samples = samples)
         # expand(tmpMod4point5/ "{batch}" / ("mod4point5_cull_samples.bed"), batch = batches_debug)
         # expand(tmpMod6/ "{batch}" / ("mod6_conform.chr{chr}.conformed.vcf.gz"), batch = batches_debug, chr = chrs)
         # expand(tmpMod6/ "{batch}" / ("mod6_impute.chr{chr}.imputed.vcf.gz"), batch = batches_debug, chr = chrs)
