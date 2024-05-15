@@ -88,14 +88,13 @@ rule mod6_impute:
         imputed_vcf = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_impute.chr{chr}.imputed.vcf.gz")
     conda:
         "envs/bcf_tabix.yaml"
-    threads: config["rule_threads"]
     shell:
         """
         reffile=$(echo {hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes*.vcf.gz)
         mapfile={mapfiles}/plink.chr{wildcards.chr}.GRCh37.map
         output={output.imputed_vcf}
         outTrunk="${{output%.vcf.gz}}"
-        java -jar {beagle} gt={input.conformed_vcf} ref=$reffile impute=true out=$outTrunk chrom={wildcards.chr} nthreads={config[beagle_threads]} seed=12345 map=$mapfile
+        java -jar {beagle} gt={input.conformed_vcf} ref=$reffile impute=true out=$outTrunk chrom={wildcards.chr} seed=12345 map=$mapfile
         tabix -p vcf {output.imputed_vcf}
         bcftools query -f '%POS %REF %ALT %DR2 %AF\n' {output.imputed_vcf} -o ${{outTrunk}}.info
         """
