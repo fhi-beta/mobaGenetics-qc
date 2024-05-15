@@ -94,7 +94,7 @@ rule mod6_impute:
         mapfile={mapfiles}/plink.chr{wildcards.chr}.GRCh37.map
         output={output.imputed_vcf}
         outTrunk="${{output%.vcf.gz}}"
-        java -jar {beagle} gt={input.conformed_vcf} ref=$reffile impute=true out=$outTrunk chrom={wildcards.chr} seed=12345 map=$mapfile
+        java -jar {beagle} gt={input.conformed_vcf} ref=$reffile impute=true out=$outTrunk chrom={wildcards.chr} nthreads=10 seed=12345 map=$mapfile
         tabix -p vcf {output.imputed_vcf}
         bcftools query -f '%POS %REF %ALT %DR2 %AF\n' {output.imputed_vcf} -o ${{outTrunk}}.info
         """
