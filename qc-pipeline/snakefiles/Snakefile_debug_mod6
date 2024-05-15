@@ -67,7 +67,6 @@ include: "mod6-imputation.snake"
 # Debug code
 batches_debug = ['snp_012']
 chrs = ['1', '4', '5']
-samples = ["1000"]
 
 # rule all, lists the output of every module
 rule all:
@@ -76,7 +75,7 @@ rule all:
         # expand(tmpMod4point5/ "{batch}" / ("mod4point5_cull_samples.bed"), batch = batches_debug)
         # expand(tmpMod6/ "{batch}" / ("mod6_conform.chr{chr}.conformed.vcf.gz"), batch = batches_debug, chr = chrs)
         # expand(tmpMod6/ "{batch}" / ("mod6_impute.chr{chr}.imputed.vcf.gz"), batch = batches_debug, chr = chrs)
-        expand(tmpMod6/ "{batch}" / "1000_samples" / ("mod6_output.chr{chr}.bed"), batch = batches_debug, chr = chrs)
+        expand(tmpMod6/ "{batch}" / "all_samples" / ("mod6_output.chr{chr}.bed"), batch = batches_debug, chr = chrs)
 
 
 
