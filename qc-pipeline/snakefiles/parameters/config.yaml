@@ -107,6 +107,10 @@ sex_check_indep_pairwise: 20000 2000 0.5
 # used for all samples in several rules
 xmarkers_clean: 0.000001
 
+# java memory and thread allocation
+mem: "20g"
+nthreads: 10
+
 # parameters to finalize core
 # core_mind: 0.02
 
