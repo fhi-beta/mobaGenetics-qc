@@ -19,7 +19,7 @@ rule mod5_cull_samples:
                     ]
                 )
             elif wildcards.number_of_samples.isdigit():
-                samples_txt = f"first{wildcards.number_of_samples}samples.txt"
+                samples_txt = f"{outTrunk}.first{wildcards.number_of_samples}samples.txt"
                 input_bed = input.bedset[2]
                 cmd = f"head -n {wildcards.number_of_samples} {input_bed}  > {samples_txt}"
                 subprocess.run(cmd, shell=True, check=True)
@@ -37,7 +37,7 @@ rule mod5_cull_samples:
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
             print(e)
-            
+
 rule_stem = 'mod5_exclude_duplicates'
 rule mod5_exclude_duplicates:
     input:
