@@ -88,6 +88,7 @@ rule mod6_impute:
         imputed_vcf = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_impute.chr{chr}.imputed.vcf.gz")
     conda:
         "envs/bcf_tabix.yaml"
+    threads: config["mod6impute_threads"]
     shell:
         """
         reffile=$(echo {hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes*.vcf.gz)
