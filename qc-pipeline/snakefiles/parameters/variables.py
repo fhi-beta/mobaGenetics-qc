@@ -32,7 +32,6 @@ tmpMod1 = base/'mod1-data-preparation'
 tmpMod2 = base/'mod2-genetic-relationship'
 tmpMod3 = base/'mod3-population-clustering'
 tmpMod4 = base/'mod4-good_markers'
-tmpMod4point5 = base/'mod4point5-cull-samples' # debug
 tmpMod5 = base/'mod5-pre-phasing'
 tmpMod6 = base/'mod6-imputation'
 # tmpMod5 = base/'mod5-samples_unrelated'
