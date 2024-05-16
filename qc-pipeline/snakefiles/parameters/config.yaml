@@ -108,8 +108,8 @@ sex_check_indep_pairwise: 20000 2000 0.5
 xmarkers_clean: 0.000001
 
 # beagle impute memory and thread allocation
-mem: "20g"
-beagle_threads: 10
+mem: "88g"
+beagle_threads: 32
 mod6impute_threads: 32
 
 # parameters to finalize core
