@@ -75,8 +75,8 @@ rule mod6_conform:
     shell:
         """
         reffile=$(echo {hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes*.vcf.gz)
-        output={output.conformed_vcf}
-        outTrunk="${{output%.vcf.gz}}"
+        output_full={output.conformed_vcf}
+        outTrunk="${{output_full%.vcf.gz}}"
         java -jar {conform_gt} gt={input.sorted_vcf} ref=$reffile out=$outTrunk chrom={wildcards.chr} match=POS
         """
 
@@ -93,8 +93,8 @@ rule mod6_impute:
         """
         reffile=$(echo {hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes*.vcf.gz)
         mapfile={mapfiles}/plink.chr{wildcards.chr}.GRCh37.map
-        output={output.imputed_vcf}
-        outTrunk="${{output%.vcf.gz}}"
+        output_full={output.imputed_vcf}
+        outTrunk="${{output_full%.vcf.gz}}"
         java -Xmx{config[mem]} -jar {beagle} gt={input.conformed_vcf} ref=$reffile impute=true out=$outTrunk chrom={wildcards.chr} nthreads={config[beagle_threads]} seed=12345 map=$mapfile
         tabix -p vcf {output.imputed_vcf}
         bcftools query -f '%POS %REF %ALT %DR2 %AF\n' {output.imputed_vcf} -o ${{outTrunk}}.info
@@ -108,9 +108,7 @@ rule mod6_output:
         bedset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output.chr{chr}"), ".bed", ".bim", ".fam")
     shell:
         """
-        input={input.imputed_vcf}
-        inTrunk="${{input%.imputed.vcf.gz}}"
-        output={output.bedset[0]}
-        outTrunk="${{output%.bed}}"
+        output_full={output.bedset[0]}
+        outTrunk="${{output_full%.bed}}"
         {plink2local} --vcf {input.imputed_vcf} --make-bed --out $outTrunk
         """
