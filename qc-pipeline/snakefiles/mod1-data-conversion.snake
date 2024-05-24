@@ -203,12 +203,10 @@ rule mod1_generate_start_stats:
 
 
 # Check for duplicate markers, and remove all but one (keep best callrate)
-# The code here is copied and reused in remove_dup_markers_1kg
-# This rule could be smarter in the case no duplicate markers are found
 rule_stem = 'remove_duplicate_markers'
 rule remove_duplicate_markers:
     input:
-        bedset = rules.remove_chr0.output.bedset,
+        bedset = rules.split_x.output.bedset,
     output:
         bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         excludeList = tmpMod1/"{batch}"/(rule_stem + ".txt"),
