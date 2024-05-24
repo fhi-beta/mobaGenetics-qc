@@ -639,6 +639,11 @@ rule sex_check:
 
             # print("*** Debug ***")
             print(inTrunk)
+            freq_data = mqc.get_freq_data(
+                inTrunk = inTrunk,
+                outTrunk = outTrunk,
+                plinklocal = plinklocal
+            )
             chromosomes = freq_data['CHR'].unique()
             chromosomes_string = ','.join(map(str, chromosomes.flatten()))
             print("Chromosomes: ", chromosomes_string)
