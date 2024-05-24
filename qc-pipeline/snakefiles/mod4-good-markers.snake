@@ -501,7 +501,7 @@ rule hwe_autos_geno:
 
                 freq_data = mqc.get_freq_data(
                     inTrunk = lastTrunk,
-                    outTrunk = lastTrunk + "_freq",
+                    outTrunk = str(lastTrunk) + "_freq",
                     plinklocal = plinklocal
                 )
 
@@ -641,7 +641,7 @@ rule sex_check:
             # print(inTrunk)
             # freq_data = mqc.get_freq_data(
             #     inTrunk = inTrunk,
-            #     outTrunk = inTrunk + "_freq",
+            #     outTrunk = str(inTrunk) + "_freq",
             #     plinklocal = plinklocal
             # )
             # min_maf = freq_data['MAF'].min()
