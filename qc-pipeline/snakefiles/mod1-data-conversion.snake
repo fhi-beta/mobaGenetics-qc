@@ -125,8 +125,6 @@ rule split_x:
             print("Chromosomes: ", chromosomes_string)
             print("*************")
 
-            raise Exception("SPLIT")
-
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
             print(e)
@@ -146,7 +144,6 @@ rule mod1_generate_start_stats:
     threads: 1
     run:
         try:
-            raise "start stats"
             # Plink base paths
             plink_input = mqc.plinkBase(input.bedset[0])
             plink_het_output = mqc.plinkBase(output.het)

@@ -501,7 +501,7 @@ rule hwe_autos_geno:
 
                 freq_data = mqc.get_freq_data(
                     inTrunk = lastTrunk,
-                    outTrunk = outTrunk,
+                    outTrunk = lastTrunk + "_freq",
                     plinklocal = plinklocal
                 )
 
@@ -638,16 +638,18 @@ rule sex_check:
             outTrunk = mqc.plinkBase(output.bed)
 
             # print("*** Debug ***")
-            print(inTrunk)
-            freq_data = mqc.get_freq_data(
-                inTrunk = inTrunk,
-                outTrunk = outTrunk,
-                plinklocal = plinklocal
-            )
-            chromosomes = freq_data['CHR'].unique()
-            chromosomes_string = ','.join(map(str, chromosomes.flatten()))
-            print("Chromosomes: ", chromosomes_string)
-            print("min maf: ", min_maf)
+            # print(inTrunk)
+            # freq_data = mqc.get_freq_data(
+            #     inTrunk = inTrunk,
+            #     outTrunk = inTrunk + "_freq",
+            #     plinklocal = plinklocal
+            # )
+            # min_maf = freq_data['MAF'].min()
+            # max_maf = freq_data['MAF'].max()
+            # chromosomes = freq_data['CHR'].unique()
+            # chromosomes_string = ','.join(map(str, chromosomes.flatten()))
+            # print("Chromosomes: ", chromosomes_string)
+            # print("min maf: ", min_maf)
             # print("*************")
 
             mqc.sex_check(
