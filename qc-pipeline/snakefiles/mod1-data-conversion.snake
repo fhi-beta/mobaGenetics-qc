@@ -61,12 +61,81 @@ rule remove_chr0:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
+# If this has not been done before, extract the pseudo-autosomal region of the X chromosome.
+rule_stem = 'split_x'
+rule split_x:
+    input:
+        bedset = rules.remove_chr0.output.bedset
+    output:
+        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam')
+    threads: 1
+    run:
+        try:
+            item_type = rule_info[rule]["rule type"]
+            mqc.log(runlog, rule_info[rule]["QC test"])
+            inTrunk = mqc.plinkBase(input.bedset[0])
+            outTrunk = mqc.plinkBase(output.bedset[0])
+
+            print(inTrunk)
+            freq_data = mqc.get_freq_data(
+                inTrunk = inTrunk,
+                outTrunk = outTrunk,
+                plinklocal = plinklocal
+            )
+            chromosomes = freq_data['CHR'].unique()
+
+            print("*** Debug ***")
+            chromosomes_string = ','.join(map(str, chromosomes.flatten()))
+            print("Chromosomes: ", chromosomes_string)
+            print("*************")
+
+            if not 25 in chromosomes:
+
+                subprocess.run(
+                    [
+                        plinklocal,
+                        "--bfile",inTrunk,
+                        "--not-chr", "0",
+                        "--out", outTrunk,
+                        "--make-bed"
+                    ],
+                    check=True
+                )
+
+                mqc.log(runlog,f'{datetime.now().strftime("%Y-%m-%d_%H:%M:%S")} - (X chromosome split) Batch {wildcards.batch}\n')
+
+            else:
+
+                mqc.copy_bedset(
+                    inTrunk,
+                    outTrunk
+                )
+
+            print(inTrunk)
+            freq_data = mqc.get_freq_data(
+                inTrunk = inTrunk,
+                outTrunk = outTrunk,
+                plinklocal = plinklocal
+            )
+            chromosomes = freq_data['CHR'].unique()
+
+            print("*** Debug ***")
+            chromosomes_string = ','.join(map(str, chromosomes.flatten()))
+            print("Chromosomes: ", chromosomes_string)
+            print("*************")
+
+            raise "SPLIT"
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
 
 # Generate statistics on raw dataset before anything happens to the data
 rule_stem = 'mod1_generate_start_stats'
 rule mod1_generate_start_stats:
     input:
-        bedset = rules.remove_chr0.output.bedset
+        bedset = rules.split_x.output.bedset
     output:
         het = tmpMod1/"{batch}"/'mod1_start_het.het',
         hwe = tmpMod1/"{batch}"/'mod1_start_hwe.hwe',
@@ -76,6 +145,7 @@ rule mod1_generate_start_stats:
     threads: 1
     run:
         try:
+            raise "start stats"
             # Plink base paths
             plink_input = mqc.plinkBase(input.bedset[0])
             plink_het_output = mqc.plinkBase(output.het)
