@@ -41,13 +41,9 @@ resultPath = base/'results'
 ### Batch settings
 batches = ['snp001', 'snp002', 'snp003', 'snp007', 'snp008', 'snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018c', 'snp018d', 'snp018e']
 batches = ['snp007', 'snp008', 'snp009', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018d'] # Checked up to module 3
-batches = ['snp011', 'snp012', 'snp014', 'snp015a', 'snp015b'] # Checked mod4
-# Notes: snp015a fails sex chromosomes
+batches = ['snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b'] # Checked mod4
 
 
 ### workflow settings ##################################
-# chrom = list(range(1,24))
-# chromx = list(range(1,23)) + ['X']
 roles = ["founders", "offspring"]
-# roles = ["offspring"] # Debug module 4
 
