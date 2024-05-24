@@ -288,7 +288,7 @@ rule ibd_accum:
         md_file = github_docs / "{batch}" / rule_stem / "{role}" / (rule_stem + ".md"),
     conda:
         "envs/r_4.2.yaml"
-    threads: 1
+    threads: 32 # This rule uses ~100G of RAM
     shell:
         """
         Rscript utils/pedigree/relatedness_filtering.R \
