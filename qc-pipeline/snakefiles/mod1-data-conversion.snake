@@ -78,7 +78,7 @@ rule split_x:
             print(inTrunk)
             freq_data = mqc.get_freq_data(
                 inTrunk = inTrunk,
-                outTrunk = outTrunk,
+                outTrunk = inTrunk,
                 plinklocal = plinklocal
             )
             chromosomes = freq_data['CHR'].unique()
@@ -112,7 +112,7 @@ rule split_x:
 
             print(inTrunk)
             freq_data = mqc.get_freq_data(
-                inTrunk = inTrunk,
+                inTrunk = outTrunk,
                 outTrunk = outTrunk,
                 plinklocal = plinklocal
             )
@@ -123,7 +123,7 @@ rule split_x:
             print("Chromosomes: ", chromosomes_string)
             print("*************")
 
-            raise "SPLIT"
+            raise Exception("SPLIT")
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
