@@ -7,6 +7,7 @@ batch_genotyping_chip = {
     "snp007": "Illumina Human Omni Express 24 v.1.0",
     "snp008": "Illumina Human Omni Express 24 v.1.0",
     "snp009": "Illumina Infinium Omni Express 24 v.1.2",
+    "snp010": "Illumina Global Screening Array MD v1.0", # Needs to be checked
     "snp011": "Illumina Infinium Omni Express 24 v.1.2",
     "snp012": "Illumina Global Screening Array MD v1.0",
     "snp014": "Illumina Global Screening Array MD v1.0",
@@ -34,6 +35,7 @@ batch_name = {
     "snp007": "Norment Jan15",
     "snp008": "Norment Jun15",
     "snp009": "Norment May16",
+    "snp010": "Norment Feb18",
     "snp011": "Ted1",
     "snp012": "Rotterdam1",
     "snp014": "Rotterdam2",
