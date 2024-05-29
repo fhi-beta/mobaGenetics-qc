@@ -410,7 +410,7 @@ rule mod5_output:
                     "--out", outTrunk
                 ]
             ),
-            pre_imputation_report.write_report(output.md, wildcards.batch, output.bedset|)
+            pre_imputation_report.write_report(output.md, wildcards.batch, output.bedset)
             # md_file = open(output.md, "a")
             # md_file.write(f"#Pre-imputation report for batch {wildcards.batch}")
             # fam_df = pd.read_csv(output.bedset[2], delim_whitespace=True, header=None,
