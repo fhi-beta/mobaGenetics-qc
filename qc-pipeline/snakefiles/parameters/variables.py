@@ -41,9 +41,11 @@ resultPath = base/'results'
 ### Batch settings
 batches = ['snp001', 'snp002', 'snp003', 'snp007', 'snp008', 'snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018c', 'snp018d', 'snp018e']
 batches = ['snp007', 'snp008', 'snp009', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018d'] # Checked up to module 3
-batches = ['snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f'] # Checked up to module 4
+batches = ['snp001', 'snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f'] # Checked up to module 4
 # Notes:
-# - batches 18* need to be merged.
+# - Batch 1-3 all SNPs removed after merging with ref - no common SNPs?
+# - Batches 7 and 8 need a bypass for the offspring/founder split
+# - Batches 18* need to be merged.
 # - Batch 19 needs to be checked for overlap with other batches before being added. Gutorm notes that it probably does not need to be included.
 
 
