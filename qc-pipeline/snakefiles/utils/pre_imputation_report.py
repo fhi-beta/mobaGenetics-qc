@@ -11,9 +11,9 @@ def write_report(output_filename, batch, bedset):
     has_mother_in_data = fam_df[(fam_df["MID"] != "0") & (fam_df["MID"].isin(fam_df["IID"]))]
     n_has_mother_in_data = has_mother_in_data.shape[0]
     n_missing_mothers=n_has_mother-n_has_mother_in_data
-    has_father=fam_df[fam_df["FID"] != "0"]
+    has_father=fam_df[fam_df["PID"] != "0"]
     n_has_father = has_father.shape[0]
-    has_father_in_data = fam_df[(fam_df["FID"] != "0") & (fam_df["FID"].isin(fam_df["IID"]))]
+    has_father_in_data = fam_df[(fam_df["PID"] != "0") & (fam_df["PID"].isin(fam_df["IID"]))]
     n_has_father_in_data = has_father_in_data.shape[0]
     n_missing_fathers=n_has_father-n_has_father_in_data
     md_file.write(f"\n{n_has_mother} offspring with mother ID")
