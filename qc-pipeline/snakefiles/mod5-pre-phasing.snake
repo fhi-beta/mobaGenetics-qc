@@ -411,13 +411,6 @@ rule mod5_output:
                 ]
             ),
             pre_imputation_report.write_report(output.md, wildcards.batch, output.bedset)
-            # md_file = open(output.md, "a")
-            # md_file.write(f"#Pre-imputation report for batch {wildcards.batch}")
-            # fam_df = pd.read_csv(output.bedset[2], delim_whitespace=True, header=None,
-            # names=['FID', 'IID', 'PID', 'MID', 'Sex', 'Phenotype'])
-            # included_number_of_samples = fam_df.shape[0]
-            # md_file.write(f"{included_number_of_samples} samples included")
-            # md_file.close()
         except Exception as e:
             print(f"An exception occurred in rule {rule_stem}.")
             print(e)
