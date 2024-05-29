@@ -394,6 +394,7 @@ rule mod5_output:
         bedset = rules.mod5_remove_variants_with_missing_IDs.output.bedset
     output:
         bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam")
+        md=str(tmpMod5/ "{batch}" / "{number_of_samples}_samples" / "mod5_output_report.md")
     run:
         try:
             # Exclude duplicates again
@@ -409,6 +410,13 @@ rule mod5_output:
                     "--out", outTrunk
                 ]
             )
+            md_file = open(output.md, "a")
+            md_file.write(f"#Pre-imputation report for batch {wildcards.batch}")
+            fam_df = pd.read_csv(output.bedset[2], delim_whitespace=True, header=None,
+            names=['FID', 'IID', 'PID', 'MID', 'Sex', 'Phenotype'])
+            included_number_of_samples = fam_df.shape[0]
+            md_file.write(f"{included_number_of_samples} samples included")
+            md_file.close()
         except Exception as e:
             print(f"An exception occurred in rule {rule_stem}.")
             print(e)
