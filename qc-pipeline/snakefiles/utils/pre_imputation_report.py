@@ -17,9 +17,7 @@ def write_report(output_filename, batch, bedset):
     n_has_father_in_data = has_father_in_data.shape[0]
     n_missing_fathers=n_has_father-n_has_father_in_data
     md_file.write(f"\n{n_has_mother} offspring with mother ID")
-    md_file.write(f"\n{n_has_mother_in_data} offspring with mother ID in dataset")
     md_file.write(f"\n{n_missing_mothers} mothers missing from dataset")
     md_file.write(f"\n{n_has_father} offspring with father ID")
-    md_file.write(f"\n{n_has_father_in_data} offspring with father ID in dataset")
     md_file.write(f"\n{n_missing_fathers} fathers missing from dataset")
     md_file.close()
