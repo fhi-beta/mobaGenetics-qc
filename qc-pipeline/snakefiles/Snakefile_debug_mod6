@@ -29,7 +29,7 @@ from shutil import copyfile
 # Local libraries
 sys.path.append('utils')  # in order to find our local packages
 import mobaQcTools as mqc
-import report
+import pre_imputation_report
 
 
 # Config file

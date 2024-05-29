@@ -1,5 +1,5 @@
 import pandas as pd
-def write_pre_imputation_report(output_filename, batch, bedset):
+def write_report(output_filename, batch, bedset):
     md_file = open(output_filename, "a")
     md_file.write(f"#Pre-imputation report for batch {batch}")
     fam_df = pd.read_csv(bedset[2], delim_whitespace=True, header=None,
