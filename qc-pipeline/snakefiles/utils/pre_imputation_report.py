@@ -23,8 +23,10 @@ def write_report(output_filename, batch, file_trunk):
 
     md_file.write(f"\n<br>{n_kinship_clusters} kinship clusters")
     md_file.write(f"\n<br>{n_has_mother} offspring with mother ID")
+    md_file.write(f"\n<br>{n_has_mother_in_data} mothers in dataset")
     md_file.write(f"\n<br>{n_missing_mothers} mothers missing from dataset")
     md_file.write(f"\n<br>{n_has_father} offspring with father ID")
+    md_file.write(f"\n<br>{n_has_father_in_data} fathers in dataset")
     md_file.write(f"\n<br>{n_missing_fathers} fathers missing from dataset")
 
     md_file.write(f"\n## Call rates")
