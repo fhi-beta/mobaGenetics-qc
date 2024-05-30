@@ -30,15 +30,15 @@ def write_report(output_filename, batch, file_trunk):
     md_file.write(f"\n## Call rates")
     imiss_df = pd.read_csv(file_trunk + ".imiss", delim_whitespace=True)
     lmiss_df = pd.read_csv(file_trunk + ".lmiss", delim_whitespace=True)
-    write_stats_and_plot(md_file, "Sample call rates", 1-imiss_df["F_MISS"], output_filename)
-    write_stats_and_plot(md_file, "SNP call rates", 1-lmiss_df["F_MISS"], output_filename)
+    write_stats_and_plot(md_file, "Sample call rates", 1-imiss_df["F_MISS"], output_filename, x_label="Call rate")
+    write_stats_and_plot(md_file, "SNP call rates", 1-lmiss_df["F_MISS"], output_filename, x_label="Call rate")
 
     md_file.write(f"\n## F_het")
     fhet_df = pd.read_csv(file_trunk + ".het", delim_whitespace=True)
-    write_stats_and_plot(md_file, "F_het", fhet_df["F"], output_filename, False)
+    write_stats_and_plot(md_file, "F_het", fhet_df["F"], x_label="$F_{het}$" output_filename, False)
     md_file.close()
 
-def write_stats_and_plot(md_file, title, series, output_filename, subheader = True):
+def write_stats_and_plot(md_file, title, series, output_filename, x_label = "Value", subheader = True):
     if subheader:
         md_file.write(f"\n### {title}")
     md_file.write(f"\nmin: {series.min()}")
@@ -47,7 +47,7 @@ def write_stats_and_plot(md_file, title, series, output_filename, subheader = Tr
     plt.figure()
     series.plot.hist(bins=30, alpha = 0.7, color='blue')
     plt.title(title)
-    plt.xlabel("Value")
+    plt.xlabel(x_label)
     plt.ylabel("Counts")
     path = os.path.dirname(output_filename)
     title_png = f'{title.replace(" ","_")}_histogram.png'
