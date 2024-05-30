@@ -2,7 +2,8 @@
 rule_stem = "mod5_cull_samples"
 rule mod5_cull_samples:
     input:
-        bedset=multiext("/mnt/work/marc/qc/test_mod5_24.05.02/{batch}/m4_output_good_markers", ".bed", ".bim", ".fam")
+        # bedset=multiext("/mnt/work/marc/qc/test_mod5_24.05.02/{batch}/m4_output_good_markers", ".bed", ".bim", ".fam")
+        bedset=rules.m4_output_good_markers.output.m4_output_good_markers
     output:
         bedset=multiext(str(tmpMod5 / "{batch}" / "mod5_input_{number_of_samples}_samples"), ".bed", ".bim", ".fam")
     run:
