@@ -418,7 +418,7 @@ rule mod5_output:
                 "--missing",
                 "--out", missingTrunk
             ])
-            pre_imputation_report.write_report(output.md, wildcards.batch, output.bedset)
+            pre_imputation_report.write_report(output.md, wildcards.batch, output.bedset, output.missing[0], output.missing[1])
         except Exception as e:
             print(f"An exception occurred in rule {rule_stem}.")
             print(e)
