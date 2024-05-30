@@ -30,20 +30,20 @@ def write_report(output_filename, batch, file_trunk):
     md_file.write(f"\n## Call rates")
     imiss_df = pd.read_csv(file_trunk + ".imiss", delim_whitespace=True)
     lmiss_df = pd.read_csv(file_trunk + ".lmiss", delim_whitespace=True)
-    write_stats_and_plot(md_file, "Sample call rates", 1-imiss_df["F_MISS"], output_filename, x_label="Call rate")
-    write_stats_and_plot(md_file, "SNP call rates", 1-lmiss_df["F_MISS"], output_filename, x_label="Call rate")
+    write_stats_and_histogram(md_file, "Sample call rates", 1-imiss_df["F_MISS"], output_filename, x_label="Call rate")
+    write_stats_and_histogram(md_file, "SNP call rates", 1-lmiss_df["F_MISS"], output_filename, x_label="Call rate")
 
     md_file.write(f"\n## F_het")
     fhet_df = pd.read_csv(file_trunk + ".het", delim_whitespace=True)
-    write_stats_and_plot(md_file, "F_het", fhet_df["F"], output_filename, x_label="$F_{het}$", subheader= False)
+    write_stats_and_histogram(md_file, "F_het", fhet_df["F"], output_filename, x_label="$F_{het}$", subheader= False)
 
     md_file.write(f"\n## Hardy-Weinberg P-values")
     hwe_df = pd.read_csv(file_trunk + ".hwe", delim_whitespace=True)
-    write_stats_and_plot(md_file, "Hardy-Weinberg P-values", hwe_df["P"], output_filename, x_label="P-value", subheader= False)
+    write_stats_and_histogram(md_file, "Hardy-Weinberg P-values", hwe_df["P"], output_filename, x_label="P-value", subheader= False)
 
     md_file.close()
 
-def write_stats_and_plot(md_file, title, series, output_filename, x_label = "Value", subheader = True):
+def write_stats_and_histogram(md_file, title, series, output_filename, x_label = "Value", subheader = True):
     if subheader:
         md_file.write(f"\n### {title}")
     md_file.write(f"\nmin: {series.min()}")
@@ -57,6 +57,6 @@ def write_stats_and_plot(md_file, title, series, output_filename, x_label = "Val
     path = os.path.dirname(output_filename)
     title_png = f'{title.replace(" ","_")}_histogram.png'
     title_path = f"{path}/{title_png}"
-    plt.savefig(title_path, dpi=200)
+    plt.savefig(title_path, dpi=100)
     md_image_syntax = f'\n<br>![]({title_png})'
     md_file.write(md_image_syntax)

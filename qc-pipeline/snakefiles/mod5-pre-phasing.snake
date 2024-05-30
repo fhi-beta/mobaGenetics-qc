@@ -397,6 +397,7 @@ rule mod5_output:
         missing = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".imiss", ".lmiss"),
         het=str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".het")),
         hwe=str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".hwe")),
+        sexcheck=str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".sexcheck")),
         md=str(github_docs/"{batch}"/"{number_of_samples}_samples"/ "pre_imputation_report.md")
     run:
         try:
@@ -420,6 +421,7 @@ rule mod5_output:
                 "--missing",
                 "--het",
                 "--hardy",
+                "--check-sex"
                 "--out", missingTrunk
             ])
             pre_imputation_report.write_report(output.md, wildcards.batch, outTrunk)
