@@ -2,10 +2,10 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import mobaQcTools as mqc
 import os
-def write_report(output_filename, batch, bedset, imiss, lmiss):
+def write_report(output_filename, batch, file_trunk):
     md_file = open(output_filename, "a")
     md_file.write(f"# Pre-imputation report for batch {batch}")
-    fam_df = pd.read_csv(bedset[2], delim_whitespace=True, header=None, names=['FID', 'IID', 'PID', 'MID', 'Sex', 'Phenotype'])
+    fam_df = pd.read_csv(file_trunk + ".fam", delim_whitespace=True, header=None, names=['FID', 'IID', 'PID', 'MID', 'Sex', 'Phenotype'])
     md_file.write(f"\n## Samples overview")
     included_number_of_samples = fam_df.shape[0]
     md_file.write(f"\n{included_number_of_samples} samples")
@@ -28,26 +28,30 @@ def write_report(output_filename, batch, bedset, imiss, lmiss):
     md_file.write(f"\n<br>{n_missing_fathers} fathers missing from dataset")
 
     md_file.write(f"\n## Call rates")
-    imiss_df = pd.read_csv(imiss, delim_whitespace=True)
-    lmiss_df = pd.read_csv(lmiss, delim_whitespace=True)
-    write_call_rates(md_file, "Sample", imiss_df, output_filename)
-    write_call_rates(md_file, "SNP", lmiss_df, output_filename)
+    imiss_df = pd.read_csv(file_trunk + ".imiss", delim_whitespace=True)
+    lmiss_df = pd.read_csv(file_trunk + ".lmiss", delim_whitespace=True)
+    write_stats_and_plot(md_file, "Sample call rates", 1-imiss_df["F_MISS"], output_filename)
+    write_stats_and_plot(md_file, "SNP call rates", 1-lmiss_df["F_MISS"], output_filename)
+
+    md_file.write(f"\n## F_het")
+    fhet_df = pd.read_csv(file_trunk + ".het", delim_whitespace=True)
+    write_stats_and_plot(md_file, "F_het", fhet_df["F"], output_filename, False)
     md_file.close()
 
-def write_call_rates(md_file, prefix, df, output_filename):
-    md_file.write(f"\n### {prefix} call rates")
-    call_rates = 1-df["F_MISS"]
-    md_file.write(f"\nmin: {call_rates.min()}")
-    md_file.write(f"\n<br>max: {call_rates.max()}")
-    md_file.write(f"\n<br>median: {call_rates.median()}")
+def write_stats_and_plot(md_file, title, series, output_filename, subheader = True):
+    if subheader:
+        md_file.write(f"\n### {title}")
+    md_file.write(f"\nmin: {series.min()}")
+    md_file.write(f"\n<br>max: {series.max()}")
+    md_file.write(f"\n<br>median: {series.median()}")
     plt.figure()
-    call_rates.plot.hist(bins=30, alpha = 0.7, color='blue')
-    plt.title(f"{prefix} call rates")
-    plt.xlabel("Call rate")
+    series.plot.hist(bins=30, alpha = 0.7, color='blue')
+    plt.title(title)
+    plt.xlabel("Value")
     plt.ylabel("Counts")
     path = os.path.dirname(output_filename)
-    call_rates_png = f'{prefix}_call_rates_histogram.png'
-    call_rates_path = f"{path}/{call_rates_png}"
-    plt.savefig(call_rates_path, dpi=300)
-    md_image_syntax = f'\n<br>![]({call_rates_png})'
+    title_png = f'{title.replace(" ","_")}_histogram.png'
+    title_path = f"{path}/{title_png}"
+    plt.savefig(title_path, dpi=300)
+    md_image_syntax = f'\n<br>![]({title_png})'
     md_file.write(md_image_syntax)
