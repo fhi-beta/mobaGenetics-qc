@@ -404,7 +404,6 @@ rule mod5_output:
             # Exclude duplicates again
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
-            missingTrunk = mqc.plinkBase(output.missing[0])
             subprocess.run(
                 [
                     plink2local,
@@ -422,7 +421,7 @@ rule mod5_output:
                 "--het",
                 "--hardy",
                 "--check-sex", "ycount",
-                "--out", missingTrunk
+                "--out", outTrunk
             ])
             pre_imputation_report.write_report(output.md, wildcards.batch, outTrunk)
         except Exception as e:
