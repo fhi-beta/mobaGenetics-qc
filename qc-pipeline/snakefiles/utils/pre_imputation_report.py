@@ -5,13 +5,13 @@ import os
 def write_report(output_filename, batch, file_trunk):
     md_file = open(output_filename, "a")
     md_file.write(f"# Pre-imputation report for batch {batch}")
-    fam_df = pd.read_csv(file_trunk + ".fam", delim_whitespace=True)
+    fam_df = pd.read_csv(file_trunk + ".fam", delim_whitespace=True, header=None, names=['FID', 'IID', 'PID', 'MID', 'Sex', 'Phenotype'])
     md_file.write(f"\n## Samples overview")
     included_number_of_samples = fam_df.shape[0]
     md_file.write(f"\n{included_number_of_samples} samples")
 
-    n_has_mother, n_has_mother_in_data, n_missing_mothers, n_mothers, mothers = parental_data("MID", fam_df)
-    n_has_father, n_has_father_in_data, n_missing_fathers, n_fathers, fathers = parental_data("PID", fam_df)
+    n_has_mother, n_has_mother_in_data, n_missing_mothers, n_mothers = parental_data("MID", fam_df)
+    n_has_father, n_has_father_in_data, n_missing_fathers, n_fathers = parental_data("PID", fam_df)
 
     n_kinship_clusters = fam_df.drop_duplicates(subset=["FID"]).shape[0]
 
@@ -50,15 +50,15 @@ def write_report(output_filename, batch, file_trunk):
     write_stats_and_histogram(md_file, "PEDSEX Female F-statistics", pedsex_female["F"], output_filename, x_label="F", subheader=True)
     md_file.close()
 
-def parental_data(type, fam_df):
-    has_parent=fam_df[fam_df[type] != "0"]
+def parental_data(parent_type, fam_df):
+    has_parent=fam_df[fam_df[parent_type] != "0"]
     n_has_parent = has_parent.shape[0]
-    has_parent_in_data = fam_df[(fam_df[type] != "0") & (fam_df[type].isin(fam_df["IID"]))]
+    has_parent_in_data = fam_df[(fam_df[parent_type] != "0") & (fam_df[parent_type].isin(fam_df["IID"]))]
     n_has_parent_in_data = has_parent_in_data.shape[0]
     n_missing_parents=n_has_parent-n_has_parent_in_data
-    parents = fam_df[fam_df["IID"].isin(fam_df[type])]
+    parents = fam_df[fam_df["IID"].isin(fam_df[parent_type])]
     n_parents = parents.shape[0]
-    return n_has_parent, n_has_parent_in_data, n_missing_parents, n_parents, parents
+    return n_has_parent, n_has_parent_in_data, n_missing_parents, n_parents
 
 def write_stats_and_histogram(md_file, title, series, output_filename, x_label = "Value", subheader = True):
     if subheader:
