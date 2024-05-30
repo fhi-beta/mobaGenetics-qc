@@ -417,7 +417,7 @@ rule mod5_output:
                 plinklocal,
                 "--bfile", outTrunk,
                 "--missing",
-                "--het"
+                "--het",
                 "--out", missingTrunk
             ])
             pre_imputation_report.write_report(output.md, wildcards.batch, output.bedset, output.missing[0], output.missing[1])
