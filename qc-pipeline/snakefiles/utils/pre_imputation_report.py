@@ -36,6 +36,11 @@ def write_report(output_filename, batch, file_trunk):
     md_file.write(f"\n## F_het")
     fhet_df = pd.read_csv(file_trunk + ".het", delim_whitespace=True)
     write_stats_and_plot(md_file, "F_het", fhet_df["F"], output_filename, x_label="$F_{het}$", subheader= False)
+
+    md_file.write(f"\n## Hardy-Weinberg P-values")
+    hwe_df = pd.read_csv(file_trunk + ".hwe", delim_whitespace=True)
+    write_stats_and_plot(md_file, "Hardy-Weinberg P-values", hwe_df["P"], output_filename, x_label="P-value", subheader= False)
+
     md_file.close()
 
 def write_stats_and_plot(md_file, title, series, output_filename, x_label = "Value", subheader = True):
