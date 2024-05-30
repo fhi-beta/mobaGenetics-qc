@@ -421,7 +421,7 @@ rule mod5_output:
                 "--missing",
                 "--het",
                 "--hardy",
-                "--check-sex", "ycount"
+                "--check-sex", "ycount",
                 "--out", missingTrunk
             ])
             pre_imputation_report.write_report(output.md, wildcards.batch, outTrunk)
