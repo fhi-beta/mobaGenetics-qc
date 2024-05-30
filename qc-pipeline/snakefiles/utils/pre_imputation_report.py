@@ -1,6 +1,7 @@
 import pandas as pd
 import matplotlib.pyplot as plt
 import mobaQcTools as mqc
+import os
 def write_report(output_filename, batch, bedset, imiss, lmiss):
     md_file = open(output_filename, "a")
     md_file.write(f"# Pre-imputation report for batch {batch}")
@@ -39,8 +40,10 @@ def write_report(output_filename, batch, bedset, imiss, lmiss):
     plt.title("Sample call rates")
     plt.xlabel("Call rate")
     plt.ylabel("Counts")
+    path = os.path.dirname(output_filename)
     sample_call_rates_png = 'sample_call_rates_histogram.png'
-    plt.savefig(sample_call_rates_png)
+    sample_call_rates_path = f"{path}/{sample_call_rates_png}"
+    plt.savefig(sample_call_rates_path)
     md_image_syntax = f'\n<br>![]({sample_call_rates_png})'
     md_file.write(md_image_syntax)
     md_file.close()
