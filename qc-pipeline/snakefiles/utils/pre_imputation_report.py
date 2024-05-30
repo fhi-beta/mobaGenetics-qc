@@ -30,7 +30,7 @@ def write_report(output_filename, batch, bedset, imiss, lmiss):
     md_file.write(f"\n### Sample call rates")
     imiss_df = pd.read_csv(imiss, delim_whitespace=True)
     sample_call_rates = 1-imiss_df["F_MISS"]
-    md_file.write(f"\n<br>min: {sample_call_rates.min()}")
+    md_file.write(f"\nmin: {sample_call_rates.min()}")
     md_file.write(f"\n<br>max: {sample_call_rates.max()}")
     md_file.write(f"\n<br>median: {sample_call_rates.median()}")
     outTrunk = mqc.plinkBase(output_filename)
@@ -39,7 +39,8 @@ def write_report(output_filename, batch, bedset, imiss, lmiss):
     plt.title("Sample call rates")
     plt.xlabel("Call rate")
     plt.ylabel("Counts")
-    plt.savefig(outTrunk+'.sample_call_rates_histogram.png')
-    md_image_syntax = f'<br>![Call Rates Histogram]({outTrunk}.call_rates_histogram.png)\n'
+    sample_call_rates_png = outTrunk+'.sample_call_rates_histogram.png'
+    plt.savefig(sample_call_rates_png)
+    md_image_syntax = f'<br>![Call Rates Histogram]({sample_call_rates_png})\n'
     md_file.write(md_image_syntax)
     md_file.close()
