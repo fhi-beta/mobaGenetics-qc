@@ -17,6 +17,7 @@ def write_report(output_filename, batch, bedset):
     n_has_father_in_data = has_father_in_data.shape[0]
     n_missing_fathers=n_has_father-n_has_father_in_data
     n_kinship_clusters = fam_df.drop_duplicates(subset=["FID"]).shape[0]
+    
     md_file.write(f"\n{n_kinship_clusters} kinship clusters")
     md_file.write(f"\n{n_has_mother} offspring with mother ID")
     md_file.write(f"\n{n_missing_mothers} mothers missing from dataset")

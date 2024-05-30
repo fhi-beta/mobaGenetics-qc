@@ -77,7 +77,8 @@ rule all:
         # expand(tmpMod6/ "{batch}" / "all_samples" / ("mod6_conform.chr{chr}.conformed.vcf.gz"), batch = batches_debug, chr = chrs)
         # expand(tmpMod6/ "{batch}" / ("mod6_impute.chr{chr}.imputed.vcf.gz"), batch = batches_debug, chr = chrs)
         # expand(tmpMod6/ "{batch}" / "all_samples" / ("mod6_output.chr{chr}.bed"), batch = batches_debug, chr = chrs)
-        expand(github_docs/"{batch}"/"all_samples"/"pre_imputation_report.md", batch = batches_debug)
+        # expand(github_docs/"{batch}"/"all_samples"/"pre_imputation_report.md", batch = batches_debug)
+        expand(github_docs/"{batch}"/"all_samples"/"mod5_ouput.imiss", batch = batches_debug)
 
 
 
