@@ -52,6 +52,6 @@ def write_stats_and_plot(md_file, title, series, output_filename, x_label = "Val
     path = os.path.dirname(output_filename)
     title_png = f'{title.replace(" ","_")}_histogram.png'
     title_path = f"{path}/{title_png}"
-    plt.savefig(title_path, dpi=300)
+    plt.savefig(title_path, dpi=200)
     md_image_syntax = f'\n<br>![]({title_png})'
     md_file.write(md_image_syntax)
