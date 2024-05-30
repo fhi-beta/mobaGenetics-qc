@@ -28,22 +28,42 @@ def write_report(output_filename, batch, bedset, imiss, lmiss):
     md_file.write(f"\n<br>{n_missing_fathers} fathers missing from dataset")
 
     md_file.write(f"\n## Call rates")
-    md_file.write(f"\n### Sample call rates")
     imiss_df = pd.read_csv(imiss, delim_whitespace=True)
-    sample_call_rates = 1-imiss_df["F_MISS"]
-    md_file.write(f"\nmin: {sample_call_rates.min()}")
-    md_file.write(f"\n<br>max: {sample_call_rates.max()}")
-    md_file.write(f"\n<br>median: {sample_call_rates.median()}")
-    outTrunk = mqc.plinkBase(output_filename)
+    lmiss_df = pd.read_csv(lmiss, delim_whitespace=True)
+    write_call_rates(md_file, "Sample", imiss_df, output_filename)
+    write_call_rates(md_file, "SNP", lmiss_df, output_filename)
+    # sample_call_rates = 1-imiss_df["F_MISS"]
+    # md_file.write(f"\nmin: {sample_call_rates.min()}")
+    # md_file.write(f"\n<br>max: {sample_call_rates.max()}")
+    # md_file.write(f"\n<br>median: {sample_call_rates.median()}")
+    # outTrunk = mqc.plinkBase(output_filename)
+    # plt.figure()
+    # sample_call_rates.plot.hist(bins=30, alpha = 0.7, color='blue')
+    # plt.title("Sample call rates")
+    # plt.xlabel("Call rate")
+    # plt.ylabel("Counts")
+    # path = os.path.dirname(output_filename)
+    # sample_call_rates_png = 'sample_call_rates_histogram.png'
+    # sample_call_rates_path = f"{path}/{sample_call_rates_png}"
+    # plt.savefig(sample_call_rates_path)
+    # md_image_syntax = f'\n<br>![]({sample_call_rates_png})'
+    # md_file.write(md_image_syntax)
+    md_file.close()
+
+def write_call_rates(md_file, prefix, df, output_filename):
+    md_file.write(f"\n### {prefix} call rates")
+    call_rates = 1-df["F_MISS"]
+    md_file.write(f"\nmin: {call_rates.min()}")
+    md_file.write(f"\n<br>max: {call_rates.max()}")
+    md_file.write(f"\n<br>median: {call_rates.median()}")
     plt.figure()
-    sample_call_rates.plot.hist(bins=30, alpha = 0.7, color='blue')
-    plt.title("Sample call rates")
+    call_rates.plot.hist(bins=30, alpha = 0.7, color='blue')
+    plt.title(f"{prefix} call rates")
     plt.xlabel("Call rate")
     plt.ylabel("Counts")
     path = os.path.dirname(output_filename)
-    sample_call_rates_png = 'sample_call_rates_histogram.png'
-    sample_call_rates_path = f"{path}/{sample_call_rates_png}"
-    plt.savefig(sample_call_rates_path)
-    md_image_syntax = f'\n<br>![]({sample_call_rates_png})'
+    call_rates_png = f'{prefix}_call_rates_histogram.png'
+    call_rates_path = f"{path}/{call_rates_png}"
+    plt.savefig(call_rates_path)
+    md_image_syntax = f'\n<br>![]({call_rates_png})'
     md_file.write(md_image_syntax)
-    md_file.close()
