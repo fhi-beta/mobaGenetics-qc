@@ -413,7 +413,7 @@ rule mod5_output:
                 ]
             )
             subprocess.run([
-                plink2local,
+                plinklocal,
                 "--bfile", outTrunk,
                 "--missing",
                 "--out", missingTrunk
