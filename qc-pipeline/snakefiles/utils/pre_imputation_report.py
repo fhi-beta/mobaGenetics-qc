@@ -39,8 +39,8 @@ def write_report(output_filename, batch, bedset, imiss, lmiss):
     plt.title("Sample call rates")
     plt.xlabel("Call rate")
     plt.ylabel("Counts")
-    sample_call_rates_png = outTrunk+'.sample_call_rates_histogram.png'
+    sample_call_rates_png = 'sample_call_rates_histogram.png'
     plt.savefig(sample_call_rates_png)
-    md_image_syntax = f'<br>![]({sample_call_rates_png})\n'
+    md_image_syntax = f'\n<br>![]({sample_call_rates_png})'
     md_file.write(md_image_syntax)
     md_file.close()
