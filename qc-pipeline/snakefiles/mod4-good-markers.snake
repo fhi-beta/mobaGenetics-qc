@@ -952,7 +952,7 @@ rule m4_output_good_markers:
 
             elif len(input.markers) == 1:
                 print("debug2")
-                copyfile(input.markers, output.good_markers)
+                copyfile(input.markers[0], output.good_markers[0])
 
             else:
                 raise Exception(f"Unexpected number of populations for batch {wildcards.batch}")
