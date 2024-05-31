@@ -951,8 +951,8 @@ rule m4_output_good_markers:
                 )
 
             elif len(input.markers) == 1:
-                print("path: " + input.markers)
-                copyfile(input.markers, output.good_markers)
+                print("path: " + input.markers[0])
+                copyfile(input.markers[0], output.good_markers)
                 print("debug3")
 
             else:
