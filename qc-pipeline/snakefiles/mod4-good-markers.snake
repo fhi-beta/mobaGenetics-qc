@@ -950,8 +950,8 @@ rule m4_output_good_markers:
 
             if len(input.markers) == 2:
                 mqc.intersect_rsid(
-                    input.markers_offspring,
-                    input.markers_founders,
+                    input.markers[0],
+                    input.markers[1],
                     output.good_markers,
                     small_col = 1,
                     big_col = 1

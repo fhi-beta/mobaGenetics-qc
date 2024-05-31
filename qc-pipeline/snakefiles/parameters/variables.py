@@ -45,7 +45,7 @@ batches = ['snp008', 'snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a'
 batches = ['snp018a']
 # Notes:
 # - Batch 1-3 all SNPs removed after merging with ref - no common SNPs?
-# - Batches 18* need to be merged.
+# - Batches 18a only parents?
 # - Batch 19 needs to be checked for overlap with other batches before being added. Gutorm notes that it probably does not need to be included.
 
 
