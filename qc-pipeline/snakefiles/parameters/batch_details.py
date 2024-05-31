@@ -21,11 +21,7 @@ batch_genotyping_chip = {
     "snp017d": "DeCodeGenetics v3 1_v2",
     "snp017e": "DeCodeGenetics v3 1_v2",
     "snp017f": "DeCodeGenetics v3 1_v2",
-    "snp018a": "DeCodeGenetics v3 1_v2",
-    "snp018b": "DeCodeGenetics v3 1_v2",
-    "snp018c": "DeCodeGenetics v3 1_v2",
-    "snp018d": "DeCodeGenetics v3 1_v2",
-    "snp018e": "DeCodeGenetics v3 1_v2",
+    "snp018": "DeCodeGenetics v3 1_v2",
     "snp019": "GSAMD-24v2-0_20024620_B1"
 }
 batch_name = {
