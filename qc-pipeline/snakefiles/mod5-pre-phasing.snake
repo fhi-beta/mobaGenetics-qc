@@ -2,7 +2,8 @@
 rule_stem = "mod5_cull_samples"
 rule mod5_cull_samples:
     input:
-        bedset=multiext("/mnt/work/marc/qc/test_mod5_24.05.02/{batch}/m4_output_good_markers", ".bed", ".bim", ".fam")
+        # bedset=multiext("/mnt/work/marc/qc/test_mod5_24.05.02/{batch}/m4_output_good_markers", ".bed", ".bim", ".fam")
+        bedset=rules.m4_output_good_markers.output.m4_output_good_markers
     output:
         bedset=multiext(str(tmpMod5 / "{batch}" / "mod5_input_{number_of_samples}_samples"), ".bed", ".bim", ".fam")
     run:
@@ -393,7 +394,12 @@ rule mod5_output:
     input:
         bedset = rules.mod5_remove_variants_with_missing_IDs.output.bedset
     output:
-        bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam")
+        bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam"),
+        missing = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".imiss", ".lmiss"),
+        het=str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".het")),
+        hwe=str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".hwe")),
+        sexcheck=str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".sexcheck")),
+        md=str(github_docs/"{batch}"/"{number_of_samples}_samples"/ "pre_imputation_report.md")
     run:
         try:
             # Exclude duplicates again
@@ -409,8 +415,18 @@ rule mod5_output:
                     "--out", outTrunk
                 ]
             )
+            subprocess.run([
+                plinklocal,
+                "--bfile", outTrunk,
+                "--missing",
+                "--het",
+                "--hardy",
+                "--check-sex", "ycount",
+                "--out", outTrunk
+            ])
+            pre_imputation_report.write_report(output.md, wildcards.batch, outTrunk)
         except Exception as e:
-            print(f"An exception occurred in rule {rule_stem}.")
+            print(f"An exception occurred in rule {rule}.")
             print(e)
 
 
