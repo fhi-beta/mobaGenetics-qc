@@ -42,7 +42,7 @@ rule initial_merge:
 
                     else:
 
-                        tempTrunk = outTrunk + "_temp" + i
+                        tempTrunk = outTrunk + "_temp" + str(i)
 
 
                     print(f"merging {lastTrunk} with {batchTrunk} into {tempTrunk}")
