@@ -1,10 +1,11 @@
 import pandas as pd
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 import mobaQcTools as mqc
 import os
-def write_report(output_filename, batch, file_trunk):
+def write_report(output_filename, batch, module, file_trunk):
     md_file = open(output_filename, "a")
-    md_file.write(f"# Pre-imputation report for batch {batch}")
+    md_file.write(f"# Batch report for batch {batch}, module {module}")
     fam_df = pd.read_csv(file_trunk + ".fam", delim_whitespace=True, header=None, names=['FID', 'IID', 'PID', 'MID', 'Sex', 'Phenotype'])
     md_file.write(f"\n## Samples overview")
     included_number_of_samples = fam_df.shape[0]
@@ -45,11 +46,32 @@ def write_report(output_filename, batch, file_trunk):
     n_ok_status = ok_status.shape[0]
     md_file.write(f"\n{n_ok_status} out of {included_number_of_samples} OK<br>\n")
     write_sexcheck_table(md_file, sexcheck)
+
+    md_file.write(f"\n### PEDSEX Male")
     pedsex_male = sexcheck[sexcheck["PEDSEX"] == 1]
-    pedsex_female = sexcheck[sexcheck["PEDSEX"] == 2]
+    write_sexcheck_scatterplot(md_file, pedsex_male, "male_F.png", os.path.dirname(output_filename), "F-statistics for PEDSEX Male")
     write_stats_and_histogram(md_file, "PEDSEX Male F-statistics", pedsex_male["F"], output_filename, x_label="F", subheader=True)
+    
+    md_file.write(f"\n### PEDSEX Female")
+    pedsex_female = sexcheck[sexcheck["PEDSEX"] == 2]
+    write_sexcheck_scatterplot(md_file, pedsex_female, "female_F.png", os.path.dirname(output_filename), "F-statistics for PEDSEX Female")
     write_stats_and_histogram(md_file, "PEDSEX Female F-statistics", pedsex_female["F"], output_filename, x_label="F", subheader=True)
     md_file.close()
+
+def write_sexcheck_scatterplot(md_file, sexcheck, png_file, output_path, title):
+    colors = {0: 'red', 1: 'green', 2: 'blue'}
+    color_list = [colors[group] for group in sexcheck['SNPSEX']]
+    legend_handles = [mpatches.Patch(color=colors[1], label="SNPSEX Male"), mpatches.Patch(color=colors[2], label="SNPSEX Female"), mpatches.Patch(color=colors[0], label="SNPSEX Unknown")]
+    ax = sexcheck.plot.scatter("F", "YCOUNT", c=color_list, grid=True)
+    ax.set_ylim([0, None])
+    ax.legend(handles=legend_handles, loc='upper left')
+    ax.set_title(title)
+    plt.savefig(png_file)
+    png_path = f"{output_path}/{png_file}"
+    plt.savefig(png_path, dpi=200)
+    md_image_syntax = f"<br><img src='{png_file}' width='700'/>"
+    md_file.write(md_image_syntax)
+
 
 def write_sexcheck_table(md_file, sexcheck):
     md_file.write("| PEDSEX | Total | SNPSEX Male | SNPSEX Female | SNPSEX Unknown | OK | Problem |\n")
@@ -88,7 +110,7 @@ def write_stats_and_histogram(md_file, title, series, output_filename, x_label =
     md_file.write(f"\n<br>max: {series.max()}")
     md_file.write(f"\n<br>median: {series.median()}")
     plt.figure()
-    series.plot.hist(bins=30, alpha = 0.7, color='blue')
+    series.plot.hist(bins=100, alpha = 0.7, color='blue')
     plt.title(title)
     plt.xlabel(x_label)
     plt.ylabel("Counts")
@@ -96,5 +118,6 @@ def write_stats_and_histogram(md_file, title, series, output_filename, x_label =
     title_png = f'{title.replace(" ","_")}_histogram.png'
     title_path = f"{path}/{title_png}"
     plt.savefig(title_path, dpi=200)
-    md_image_syntax = f'\n<br>![]({title_png})'
+    # md_image_syntax = f'\n<br>![]({title_png})'
+    md_image_syntax = f"<br><img src='{title_png}' width='700'/>"
     md_file.write(md_image_syntax)

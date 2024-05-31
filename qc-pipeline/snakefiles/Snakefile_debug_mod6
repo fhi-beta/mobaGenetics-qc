@@ -29,7 +29,7 @@ from shutil import copyfile
 # Local libraries
 sys.path.append('utils')  # in order to find our local packages
 import mobaQcTools as mqc
-import pre_imputation_report
+import batch_report
 
 
 # Config file
@@ -66,7 +66,7 @@ include: "mod5-pre-phasing.snake"
 include: "mod6-imputation.snake"
 
 # Debug code
-batches_debug = ['snp011']
+batches_debug = ['snp011','snp014', 'snp015a', 'snp015b']
 chrs = ['4']
 
 # rule all, lists the output of every module
@@ -77,7 +77,7 @@ rule all:
         # expand(tmpMod6/ "{batch}" / "all_samples" / ("mod6_conform.chr{chr}.conformed.vcf.gz"), batch = batches_debug, chr = chrs)
         # expand(tmpMod6/ "{batch}" / ("mod6_impute.chr{chr}.imputed.vcf.gz"), batch = batches_debug, chr = chrs)
         # expand(tmpMod6/ "{batch}" / "all_samples" / ("mod6_output.chr{chr}.bed"), batch = batches_debug, chr = chrs)
-        expand(github_docs/"{batch}"/"all_samples"/"pre_imputation_report.md", batch = batches_debug)
+        expand(tmpMod5/"{batch}"/"all_samples"/ "report" /"pre_imputation_report.md", batch = batches_debug)
         # expand(tmpMod5/ "{batch}" / "all_samples" /"mod5_output.imiss", batch = batches_debug)
 
 
