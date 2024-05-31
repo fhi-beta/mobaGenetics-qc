@@ -931,15 +931,12 @@ rule m4_output_good_markers:
         )
     run:
         try:
-            print("debug0")
 
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, rule_info[rule]["QC test"])
 
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.m4_output_good_markers[0])
-
-            print("debug1")
 
             if len(input.markers) == 2:
                 mqc.intersect_rsid(
@@ -951,9 +948,7 @@ rule m4_output_good_markers:
                 )
 
             elif len(input.markers) == 1:
-                print("path: " + input.markers[0])
                 copyfile(input.markers[0], output.good_markers)
-                print("debug3")
 
             else:
                 raise Exception(f"Unexpected number of populations for batch {wildcards.batch}")
@@ -987,12 +982,24 @@ rule m4_output_good_markers:
             )
             dropouts.update(rule_info[rule])  # Metainfo and documentation about the rule
             dropouts["Rule"] = rule
+
             # Let the yaml-file contain info abut last step as well.
-            founders = mqc.line_count(input.markers_offspring)
-            offspring = mqc.line_count(input.markers_founders)
-            common = mqc.line_count(output.good_markers)
-            dropouts["Final markers"] = f"founders/offspring/common {founders}/{offspring}/{common}\n"
-            mqc.saveYamlResults(output.results,dropouts)
+            if len(input.markers) == 2:
+                founders = mqc.line_count(input.markers[0])
+                offspring = mqc.line_count(input.markers[1])
+                common = mqc.line_count(output.good_markers)
+                dropouts["Final markers"] = f"founders/offspring/common {founders}/{offspring}/{common}\n"
+                mqc.saveYamlResults(output.results, dropouts)
+
+            elif len(input.markers) == 1:
+                copyfile(input.markers[0], output.good_markers)
+                input_markers = mqc.line_count(input.markers[0])
+                output_markers = mqc.line_count(output.good_markers)
+                dropouts["Final markers"] = f"input/output {input_markers}/{output_markers}\n"
+                mqc.saveYamlResults(output.results, dropouts)
+
+            else:
+                raise Exception(f"Unexpected number of populations for batch {wildcards.batch}")
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
