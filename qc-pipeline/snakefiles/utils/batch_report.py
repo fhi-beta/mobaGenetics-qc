@@ -110,7 +110,7 @@ def write_stats_and_histogram(md_file, title, series, output_filename, x_label =
     md_file.write(f"\n<br>max: {series.max()}")
     md_file.write(f"\n<br>median: {series.median()}")
     plt.figure()
-    series.plot.hist(bins=30, alpha = 0.7, color='blue')
+    series.plot.hist(bins=100, alpha = 0.7, color='blue')
     plt.title(title)
     plt.xlabel(x_label)
     plt.ylabel("Counts")
