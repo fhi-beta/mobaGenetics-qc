@@ -931,12 +931,15 @@ rule m4_output_good_markers:
         )
     run:
         try:
+            print("debug0")
 
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, rule_info[rule]["QC test"])
 
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.m4_output_good_markers[0])
+
+            print("debug1")
 
             if len(input.markers) == 2:
                 mqc.intersect_rsid(
@@ -946,8 +949,11 @@ rule m4_output_good_markers:
                     small_col = 1,
                     big_col = 1
                 )
+
             elif len(input.markers) == 1:
+                print("debug2")
                 copyfile(input.markers, output.good_markers)
+
             else:
                 raise Exception(f"Unexpected number of populations for batch {wildcards.batch}")
 
