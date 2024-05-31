@@ -9,10 +9,70 @@ from datetime import datetime
 # Paths
 raw_folder_path = Path(config['raw_folder'])
 
+def getInitialBeds(batch):
+    paths = list()
+    for initial_batch in getInitialMerging(batch):
+        paths.append(
+            os.path.join(raw_folder_path, initial_batch, "raw-data", "bedset", initial_batch.bed)
+        )
+    return paths
+rule_stem = 'initial_merge'
+rule initial_merge:
+    input:
+        beds = lambda wildcards: getInitialBeds(wildcards.batch)
+    output:
+        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
+    threads: 1
+    run:
+        try:
+            inTrunk = mqc.plinkBase(input.beds[0])
+            outTrunk = mqc.plinkBase(output.bedset[0])
+
+            if len(input.beds) > 1:
+
+                lastTrunk = inTrunk
+
+                for i in range(1, len(input.beds)):
+
+                    batchTrunk = mqc.plinkBase(input.beds[i])
+
+                    if i == len(input.beds) - 1:
+
+                        tempTrunk = outTrunk
+
+                    else:
+
+                        tempTrunk = outTrunk + "_temp" + i
+
+
+                    print(f"merging {lastTrunk} with {batchTrunk} into {tempTrunk}")
+
+                    subprocess.run(
+                        [
+                            plinklocal,
+                            "--bfile", lastTrunk,
+                            "--merge", batchTrunk,
+                            "--out", tempTrunk,
+                            "--make-bed"
+                        ],
+                        check=True
+                    )
+
+                    lastTrunk = tempTrunk
+
+            else:
+
+                mqc.copy_bedset(inTrunk, outTrunk)
+
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
 rule_stem = 'remove_chr0'
 rule remove_chr0:
     input:
-        bedset = multiext(str(raw_folder_path/"{batch}"/"raw-data"/"bedset"/"{batch}"), '.bed', '.bim', '.fam'),
+        bedset = rules.initial_merge.output.bedset
     output:
         bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         results = report(

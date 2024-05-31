@@ -18,10 +18,20 @@
 # * actionTakenCount: Number of markers/samples affected by the rule
 
 
+initial_merge:
+  QC test: Initial batch merge
+  Description: Some batches are too small to be processed individually. This rule merges them into larger batches.
+  Rule order: mod1-a
+  rule type: markers/samples
+  rule action: update
+  # Placeholders that the pipeline will fill in
+  Rule: Will be the same as the key of this entry
+  Timestamp:
+
 remove_chr0:
   QC test: Remove chromosone 0
   Description: Illumina techincal markers were assigned to chromosone 0. This rule simply removes them all from the bedset.
-  Rule order: mod1-a
+  Rule order: mod1-b
   rule type: markers
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -31,7 +41,7 @@ remove_chr0:
 remove_duplicate_markers:
   QC test: Remove duplicate markers. Keep best call rate.
   Description: Remove duplicate markers. Keep best call rate.
-  Rule order: mod1-b
+  Rule order: mod1-c
   rule type: markers
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -41,7 +51,7 @@ remove_duplicate_markers:
 update_sample_ids:
   QC test: Update sample ids to sentrix ids
   Description: Mapping sample ids to sentrix ids (on the form 203068660094_R01C01)
-  Rule order: mod1-c
+  Rule order: mod1-d
   rule type: samples
   rule action: update
   # Placeholders that the pipeline will fill in
@@ -51,7 +61,7 @@ update_sample_ids:
 update_parents:
   QC test: Update offspring so they are have parents (all sentrix-ids)
   Description: Based om MoBa info
-  Rule order: mod1-d
+  Rule order: mod1-e
   rule type: samples
   rule action: update
   # Placeholders that the pipeline will fill in
@@ -60,7 +70,7 @@ update_parents:
 update_sex:
   QC test: Update sex
   Description: Gender updated using using MoBa information
-  Rule order: mod1-e
+  Rule order: mod1-f
   rule type: samples
   rule action: update
   # Placeholders that the pipeline will fill in
@@ -70,7 +80,7 @@ update_sex:
 remove_markers_cluster_sep:
   QC test: Remove markers with poor cluster separation 
   Description: Clustering metrics were provided by the SNP table exported from GenomeStudio
-  Rule order: mod1-f
+  Rule order: mod1-g
   rule type: markers
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -80,7 +90,7 @@ remove_markers_cluster_sep:
 remove_markers_gc_score:
   QC test: Remove markers with low GC 10% score
   Description: Threshold is set in pipelines config-file. 
-  Rule order: mod1-g
+  Rule order: mod1-h
   rule type: markers
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -90,7 +100,7 @@ remove_markers_gc_score:
 remove_markers_aa_theta_deviation:
   QC test: Remove markers with high AA Theta Deviation
   Description: Threshold is set in pipelines config-file. 
-  Rule order: mod1-h
+  Rule order: mod1-i
   rule type: markers
   rule action: remove
   # Placeholders that the pipeline will fill in
@@ -106,19 +116,6 @@ m1_output:
   # Placeholders that the pipeline will fill in
   Rule: Will be the same as the key of this entry
   Timestamp:
-    
-# Not needed. Can be removed when Rotterdam2 is verified. In the meantime, it documents that
-# last github checksum for Snakefile containing update_sample_ids was e88e25834a54d084f663f9e4339af7e391d5dfeb
-# update_rsids:
-#   QC test: Update rsid of markers. After this step, rsIDs can be repeated in the .bim file
-#   Description: "See <url to come?> for info. Basically we use the GSA chip mapping, but ignore . and select an rsid were several are listed (creating fewer unique rsIDs). Also, chip ids on the form .1 .2 etc are not mapped. These would typcailly come from allele alternatives on the same rsID."
-#   Rule order: mod1-i
-#   rule type: markers
-#   rule action: update
-#   # Placeholders that the pipeline will fill in
-#   Rule: Will be the same as the key of this entry
-#   Timestamp:
-
 
 maf_removal_markers: 
   QC test: Low minor allele frequencies of markers temporarily removed

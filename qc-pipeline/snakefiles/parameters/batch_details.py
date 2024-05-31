@@ -80,6 +80,17 @@ batch_founders_offspring = {
     "snp008": "founders"
 }
 
+initial_batch_merging = {
+    "snp018": ["snp018a", "snp018b", "snp018c", "snp018d", "snp018e"]
+}
+
+# Returns the chip of a given batch
+def getInitialMerging(batch):
+    if batch in initial_batch_merging:
+        return initial_batch_merging[batch]
+    else:
+        return [batch]
+
 # Indicates whether only founders or both founders and offspring need to be QCed
 def getFoundersOffspring(batch):
     if batch in batch_founders_offspring:
