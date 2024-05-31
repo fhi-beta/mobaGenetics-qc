@@ -46,7 +46,8 @@ def write_report(output_filename, batch, module, file_trunk):
     n_ok_status = ok_status.shape[0]
     md_file.write(f"\n{n_ok_status} out of {included_number_of_samples} OK<br>\n")
     write_sexcheck_table(md_file, sexcheck)
-
+    
+    md_file.write(f"\n### All samples")
     write_sexcheck_scatterplot(md_file, sexcheck, "all_F.png", os.path.dirname(output_filename), "F-statistics for all samples", groupby="SNPSEX")
 
     md_file.write(f"\n### PEDSEX Male")
