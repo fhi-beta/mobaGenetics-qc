@@ -21,11 +21,7 @@ batch_genotyping_chip = {
     "snp017d": "DeCodeGenetics v3 1_v2",
     "snp017e": "DeCodeGenetics v3 1_v2",
     "snp017f": "DeCodeGenetics v3 1_v2",
-    "snp018a": "DeCodeGenetics v3 1_v2",
-    "snp018b": "DeCodeGenetics v3 1_v2",
-    "snp018c": "DeCodeGenetics v3 1_v2",
-    "snp018d": "DeCodeGenetics v3 1_v2",
-    "snp018e": "DeCodeGenetics v3 1_v2",
+    "snp018de": "DeCodeGenetics v3 1_v2",
     "snp019": "GSAMD-24v2-0_20024620_B1"
 }
 batch_name = {
@@ -49,11 +45,7 @@ batch_name = {
     "snp017d": "DeCode 1",
     "snp017e": "DeCode 1",
     "snp017f": "DeCode 1",
-    "snp018a": "DeCode 1",
-    "snp018b": "DeCode 1",
-    "snp018c": "DeCode 1",
-    "snp018d": "DeCode 1",
-    "snp018e": "DeCode 1",
+    "snp018de": "DeCode 1",
     "snp019": "LifeBrain"
 }
 
@@ -79,6 +71,17 @@ batch_founders_offspring = {
     "snp007": "founders",
     "snp008": "founders"
 }
+
+initial_batch_merging = {
+    "snp018de": ["snp018d", "snp018e"]
+}
+
+# Returns the chip of a given batch
+def getInitialMerging(batch):
+    if batch in initial_batch_merging:
+        return initial_batch_merging[batch]
+    else:
+        return [batch]
 
 # Indicates whether only founders or both founders and offspring need to be QCed
 def getFoundersOffspring(batch):

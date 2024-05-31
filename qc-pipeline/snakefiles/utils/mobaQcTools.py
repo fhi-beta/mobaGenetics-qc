@@ -604,16 +604,22 @@ def create_exclude_list(duplicates, callRates, resultfile, excludelist):
                    keys=['chr', 'pos', 'alleles', 'id'])
     df['duplicate_group'] = df.index   # The index show grouping, rememeber it
     # include call value to duplicate list
-    all = df.merge(calls, left_on=['chr', 'id'], right_on=['CHR', 'SNP'])
+    all = df.merge(calls, left_on = ['chr', 'id'], right_on = ['CHR', 'SNP'])
 
     # sort, group and keep all but the largest callrate
-    drop = all.sort_values(by=['duplicate_group', 'F_MISS'],
-                           ascending=False).groupby('duplicate_group').apply(lambda g: g.iloc[1:])
+    drop = all.sort_values(
+        by = ['duplicate_group', 'F_MISS'],
+        ascending = False
+    ).groupby(
+        'duplicate_group'
+    ).apply(
+        lambda g: g.iloc[1:]
+    )
 
     # Result file
-    drop.loc[:, ['chr', 'pos', 'alleles', 'SNP','F_MISS']].to_csv(resultfile,sep=" ", index=False)
+    drop.loc[:, ['chr', 'pos', 'alleles', 'SNP','F_MISS']].to_csv(resultfile, sep = " ", index = False)
     # snp idents plink laters can use
-    drop.loc[:, ['SNP']].to_csv(excludelist, sep=" ", index=False, header=False)
+    drop.loc[:, ['SNP']].to_csv(excludelist, sep=" ", index = False, header = False)
     print("**** .... and we should make a yaml file with summary in it")
 
 
