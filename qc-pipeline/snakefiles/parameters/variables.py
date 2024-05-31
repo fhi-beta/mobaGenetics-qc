@@ -49,6 +49,4 @@ batches = ['snp008', 'snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a'
 # - Batch 19 needs to be checked for overlap with other batches before being added. Gutorm notes that it probably does not need to be included.
 
 
-### workflow settings ##################################
-roles = ["founders", "offspring"]
 
