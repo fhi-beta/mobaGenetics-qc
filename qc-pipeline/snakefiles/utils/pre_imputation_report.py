@@ -39,7 +39,7 @@ def write_report(output_filename, batch, file_trunk):
     hwe_df = pd.read_csv(file_trunk + ".hwe", delim_whitespace=True)
     write_stats_and_histogram(md_file, "Hardy-Weinberg P-values", hwe_df["P"], output_filename, x_label="P-value", subheader= False)
 
-    md_file.write(f"\n## F-stats for sexcheck")
+    md_file.write(f"\n## Sexcheck")
     sexcheck = pd.read_csv(file_trunk + ".sexcheck", delim_whitespace=True)
     ok_status = sexcheck[sexcheck["STATUS"] == "OK"]
     n_ok_status = ok_status.shape[0]
