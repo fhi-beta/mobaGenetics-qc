@@ -51,7 +51,7 @@ rule initial_merge:
                         [
                             plinklocal,
                             "--bfile", lastTrunk,
-                            "--merge", batchTrunk,
+                            "--bmerge", batchTrunk,
                             "--out", tempTrunk,
                             "--make-bed"
                         ],
