@@ -76,6 +76,7 @@ batch_aa_theta_dev_col_name = {
 batch_founders_offspring = {
     "snp007": "founders",
     "snp008": "founders",
+    "snp018b": "founders",
     "snp018de": "founders"
 }
 
