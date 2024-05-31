@@ -467,8 +467,6 @@ rule geno_rates:
             print(e)
 
 
-rule_stem = 'hwe_autos_geno'
-# Note 27.04.24: The documentation and log are written at every step of this rule. The captioning system of the previous implementation needs to be fixed.
 rule hwe_autos_geno:
     threads: 1
     input:
@@ -482,7 +480,7 @@ rule hwe_autos_geno:
         maf2 = config["maf2"],
         sd_het2 = config["sd_het2"],
         geno_rate = config["geno_rate"],
-        docs_folder = resultPath / "{batch}" /  "{role}"
+        docs_folder = os.path.join(resultPath, "{batch}",  "{role}") # Note 31.05.24: using path returns an error because wildcards are not evaluated.
     output:
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
         results = report(
@@ -532,8 +530,8 @@ rule hwe_autos_geno:
 
                     file_name = rule + "_hwe" + str(i)
                     outTrunk = out_dir / file_name
-                    res_file = params.docs_folder / (file_name + ".yaml")
-                    plot_file = params.docs_folder / (file_name + ".png")
+                    res_file = Path(params.docs_folder) / (file_name + ".yaml")
+                    plot_file = Path(params.docs_folder) / (file_name + ".png")
 
                     # Filters and plot
                     mqc.filter_hwe(
@@ -559,8 +557,8 @@ rule hwe_autos_geno:
                     lastTrunk = outTrunk
                     file_name = rule + "_het" + str(i)
                     outTrunk = out_dir / file_name
-                    res_file = params.docs_folder / (file_name + ".yaml")
-                    plot_file = params.docs_folder / (file_name + ".png")
+                    res_file = Path(params.docs_folder) / (file_name + ".yaml")
+                    plot_file = Path(params.docs_folder) / (file_name + ".png")
 
                     mqc.filter_excess_het(
                         rule,
@@ -608,7 +606,7 @@ rule hwe_autos_geno:
             )
 
             # and set a common caption
-            mqc.make_rule_caption(rule_info, rule, params.docs_folder)
+            mqc.make_rule_caption(rule_info, rule, Path(params.docs_folder))
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -912,7 +910,6 @@ def getMarkers(batch):
     paths = []
     for population in getFoundersOffspring(batch):
         paths.append(tmpMod4 / batch / population / 'sex_clean.bim')
-    print(f"Paths for {batch}: {paths}")
     return paths
 
 rule_stem = 'm4_output_good_markers'
