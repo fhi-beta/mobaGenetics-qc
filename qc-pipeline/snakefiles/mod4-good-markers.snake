@@ -898,7 +898,7 @@ rule sex_clean:
 def getMarkers(batch):
     print(f"population for {batch}: {getFoundersOffspring(batch)}")
     paths = []
-    for i in seq(0, getFoundersOffspring(batch)):
+    for population in getFoundersOffspring(batch):
         paths.append(tmpMod4 / batch / population / 'sex_clean.bim')
     print(f"Paths for {batch}: {paths}")
     return paths
