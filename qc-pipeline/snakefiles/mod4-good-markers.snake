@@ -907,9 +907,11 @@ rule sex_clean:
             print(e)
 
 def getMarkers(batch):
-    paths = []
+    paths = list()
     for population in getFoundersOffspring(batch):
-        paths.append(tmpMod4 / batch / population / 'sex_clean.bim')
+        paths.append(
+            os.path.join(tmpMod4, batch, population, 'sex_clean.bim')
+        )
     return paths
 
 rule_stem = 'm4_output_good_markers'
