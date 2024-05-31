@@ -83,7 +83,7 @@ batch_founders_offspring = {
 # Indicates whether only founders or both founders and offspring need to be QCed
 def getFoundersOffspring(batch):
     if batch in batch_founders_offspring:
-        return batch_founders_offspring[batch]
+        return [batch_founders_offspring[batch]]
     else:
         return ["founders", "offspring"]
 
