@@ -47,6 +47,8 @@ def write_report(output_filename, batch, module, file_trunk):
     md_file.write(f"\n{n_ok_status} out of {included_number_of_samples} OK<br>\n")
     write_sexcheck_table(md_file, sexcheck)
 
+    write_sexcheck_scatterplot(md_file, sexcheck, "all_F.png", os.path.dirname(output_filename), "F-statistics for all samples", groupby="SNPSEX")
+
     md_file.write(f"\n### PEDSEX Male")
     pedsex_male = sexcheck[sexcheck["PEDSEX"] == 1]
     write_sexcheck_scatterplot(md_file, pedsex_male, "male_F.png", os.path.dirname(output_filename), "F-statistics for PEDSEX Male")
@@ -58,10 +60,10 @@ def write_report(output_filename, batch, module, file_trunk):
     write_stats_and_histogram(md_file, "PEDSEX Female F-statistics", pedsex_female["F"], output_filename, x_label="F", subheader=True)
     md_file.close()
 
-def write_sexcheck_scatterplot(md_file, sexcheck, png_file, output_path, title):
+def write_sexcheck_scatterplot(md_file, sexcheck, png_file, output_path, title, groupby = 'SNPSEX'):
     colors = {0: 'red', 1: 'green', 2: 'blue'}
-    color_list = [colors[group] for group in sexcheck['SNPSEX']]
-    legend_handles = [mpatches.Patch(color=colors[1], label="SNPSEX Male"), mpatches.Patch(color=colors[2], label="SNPSEX Female"), mpatches.Patch(color=colors[0], label="SNPSEX Unknown")]
+    color_list = [colors[group] for group in sexcheck[groupby]]
+    legend_handles = [mpatches.Patch(color=colors[1], label=f"{groupby} Male"), mpatches.Patch(color=colors[2], label=f"{groupby} Female"), mpatches.Patch(color=colors[0], label=f"{groupby} Unknown")]
     ax = sexcheck.plot.scatter("F", "YCOUNT", c=color_list, grid=True)
     ax.set_ylim([0, None])
     ax.legend(handles=legend_handles, loc='upper left')
