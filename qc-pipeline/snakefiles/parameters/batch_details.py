@@ -21,7 +21,7 @@ batch_genotyping_chip = {
     "snp017d": "DeCodeGenetics v3 1_v2",
     "snp017e": "DeCodeGenetics v3 1_v2",
     "snp017f": "DeCodeGenetics v3 1_v2",
-    "snp018": "DeCodeGenetics v3 1_v2",
+    "snp018de": "DeCodeGenetics v3 1_v2",
     "snp019": "GSAMD-24v2-0_20024620_B1"
 }
 batch_name = {
@@ -45,7 +45,7 @@ batch_name = {
     "snp017d": "DeCode 1",
     "snp017e": "DeCode 1",
     "snp017f": "DeCode 1",
-    "snp018": "DeCode 1",
+    "snp018de": "DeCode 1",
     "snp019": "LifeBrain"
 }
 
@@ -73,7 +73,7 @@ batch_founders_offspring = {
 }
 
 initial_batch_merging = {
-    "snp018": ["snp018a", "snp018b", "snp018c", "snp018d", "snp018e"]
+    "snp018de": ["snp018d", "snp018e"]
 }
 
 # Returns the chip of a given batch
