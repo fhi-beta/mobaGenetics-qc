@@ -44,11 +44,32 @@ def write_report(output_filename, batch, file_trunk):
     ok_status = sexcheck[sexcheck["STATUS"] == "OK"]
     n_ok_status = ok_status.shape[0]
     md_file.write(f"\n{n_ok_status} out of {included_number_of_samples} OK")
+    write_sexcheck_table(md_file, sexcheck)
     pedsex_male = sexcheck[sexcheck["PEDSEX"] == 1]
     pedsex_female = sexcheck[sexcheck["PEDSEX"] == 2]
     write_stats_and_histogram(md_file, "PEDSEX Male F-statistics", pedsex_male["F"], output_filename, x_label="F", subheader=True)
     write_stats_and_histogram(md_file, "PEDSEX Female F-statistics", pedsex_female["F"], output_filename, x_label="F", subheader=True)
     md_file.close()
+
+def write_sexcheck_table(md_file, sexcheck):
+    md_file.write("|PEDSEX|SNPSEX Male|SNPSEX Female| SNPSEX Unknown|OK|Problem|Total|")
+    md_file.write("|---|---|---|---|---|---|")
+    sexcheck_male = sexcheck[sexcheck["PEDSEX"] == 1]
+    sexcheck_female = sexcheck[sexcheck["PEDSEX"] == 2]
+    sexcheck_unknown = sexcheck[sexcheck["PEDSEX"] == 0]
+    write_sexcheck_stats(md_file, sexcheck_male, "Male")
+    write_sexcheck_stats(md_file, sexcheck_female, "Female")
+    write_sexcheck_stats(md_file, sexcheck_unknown, "Unknown")
+
+
+def write_sexcheck_stats(md_file, sexcheck, sex):
+    n_total = sexcheck.shape[0]
+    n_males = sexcheck[sexcheck["SNPSEX"] == 1].shape[0]
+    n_females = sexcheck[sexcheck["SNPSEX"] == 2].shape[0]
+    n_unknown = sexcheck[sexcheck["SNPSEX"] == 0].shape[0]
+    n_ok = sexcheck[sexcheck["STATUS"] == "OK"].shape[0]
+    n_problem = sexcheck[sexcheck["STATUS"] == "PROBLEM"].shape[0]
+    md_file.write(f"|{sex}|{n_males}|{n_females}|{n_unknown}|{n_ok}|{n_problem}|{n_total}")
 
 def parental_data(parent_type, fam_df):
     has_parent=fam_df[fam_df[parent_type] != "0"]
