@@ -466,7 +466,8 @@ rule geno_rates:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
-
+rule_stem = 'hwe_autos_geno'
+# Note 27.04.24: The documentation and log are written at every step of this rule. The captioning system of the previous implementation needs to be fixed.
 rule hwe_autos_geno:
     threads: 1
     input:
