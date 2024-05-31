@@ -469,7 +469,7 @@ rule hwe_autos_geno:
         maf2 = config["maf2"],
         sd_het2 = config["sd_het2"],
         geno_rate = config["geno_rate"],
-        docs_folder = os.path.join(resultPath, "{batch}",  "{role}")
+        docs_folder = resultPath / "{batch}" /  "{role}"
     output:
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
         results = report(
@@ -519,8 +519,8 @@ rule hwe_autos_geno:
 
                     file_name = rule + "_hwe" + str(i)
                     outTrunk = out_dir / file_name
-                    res_file = Path(params.docs_folder) / (file_name + ".yaml")
-                    plot_file = Path(params.docs_folder) / (file_name + ".png")
+                    res_file = params.docs_folder / (file_name + ".yaml")
+                    plot_file = params.docs_folder / (file_name + ".png")
 
                     # Filters and plot
                     mqc.filter_hwe(
@@ -546,8 +546,8 @@ rule hwe_autos_geno:
                     lastTrunk = outTrunk
                     file_name = rule + "_het" + str(i)
                     outTrunk = out_dir / file_name
-                    res_file = Path(params.docs_folder) / (file_name + ".yaml")
-                    plot_file = Path(params.docs_folder) / (file_name + ".png")
+                    res_file = params.docs_folder / (file_name + ".yaml")
+                    plot_file = params.docs_folder / (file_name + ".png")
 
                     mqc.filter_excess_het(
                         rule,
@@ -595,7 +595,7 @@ rule hwe_autos_geno:
             )
 
             # and set a common caption
-            mqc.make_rule_caption(rule_info, rule, Path(params.docs_folder))
+            mqc.make_rule_caption(rule_info, rule, params.docs_folder)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -895,6 +895,11 @@ rule sex_clean:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
+def getMarkers(batch):
+    paths = []
+    for population in getFoundersOffspring(batch):
+        paths.append(tmpMod4 / batch / population / 'sex_clean.bim')
+    return paths
 
 rule_stem = 'm4_output_good_markers'
 rule m4_output_good_markers:
@@ -902,8 +907,7 @@ rule m4_output_good_markers:
     threads: 2
     input:
         bedset = rules.m2_output.output.bedset,
-        markers_offspring = tmpMod4 / "{batch}" / 'offspring' / 'sex_clean.bim',
-        markers_founders = tmpMod4 / "{batch}" / 'founders' / 'sex_clean.bim'
+        markers = lambda wildcards: getMarkers(wildcards.batch)
     output:
         good_markers = tmpMod4 / "{batch}" / (rule_stem + ".txt"),
         m4_output_good_markers = multiext(os.path.join(tmpMod4, "{batch}", rule_stem), '.bed', '.bim', '.fam'),
@@ -921,14 +925,19 @@ rule m4_output_good_markers:
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.m4_output_good_markers[0])
 
-            # Module 5: find common markers and extract them from original set
-            mqc.intersect_rsid(
-                input.markers_offspring,
-                input.markers_founders,
-                output.good_markers,
-                small_col = 1,
-                big_col = 1
-            )
+            if len(input.markers) == 2:
+                mqc.intersect_rsid(
+                    input.markers_offspring,
+                    input.markers_founders,
+                    output.good_markers,
+                    small_col = 1,
+                    big_col = 1
+                )
+            elif len(input.markers) == 1:
+                copyfile(input.markers, output.good_markers)
+            else:
+                raise Exception(f"Unexpected number of populations for batch {wildcards.batch}")
+
             subprocess.run(
                 [
                     plinklocal,

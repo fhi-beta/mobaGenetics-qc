@@ -75,6 +75,18 @@ batch_aa_theta_dev_col_name = {
     "snp014": "GSAMD-24v1-0_20011747_A4.bpm.AA T Dev"
 }
 
+batch_founders_offspring = {
+    "snp007": "founders",
+    "snp008": "founders"
+}
+
+# Indicates whether only founders or both founders and offspring need to be QCed
+def getFoundersOffspring(batch):
+    if batch in batch_founders_offspring:
+        return batch_founders_offspring[batch]
+    else:
+        return ["founders", "offspring"]
+
 # Returns the chip of a given batch
 def getChip(batch):
     return batch_genotyping_chip[batch]
