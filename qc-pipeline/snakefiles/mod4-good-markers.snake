@@ -125,32 +125,39 @@ rule mod4_keep_main_cluster:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
-# Split parents and children into founders and offspring.
-def getBedSplit(batch, split_rule_stem):
-    paths = []
-    for population in getFoundersOffspring(batch):
-        paths.append(tmpMod4 / batch / population / (split_rule_stem + ".bed"))
-    print(f"Paths for {batch}: {paths}")
-    return paths
+# Split parents and children into founders and offspring. If no splitting is required, the bedsets are copied.
 rule_stem = "split_founders_offspring"
 split_rule_stem = rule_stem  # Placeholder for other rules using the output of the split
 rule split_founders_offspring:
     input:
         bedset = rules.mod4_keep_main_cluster.output.bedset
     output:
-        split_bed = lambda wildcards: getBedSplit(wildcards.batch, rule_stem)
+        bedset_founders = multiext(str(tmpMod4 / "{batch}" / "founders" / rule_stem), '.bed', '.bim', '.fam'),
+        bedset_offspring = multiext(str(tmpMod4 / "{batch}" / "offspring" / rule_stem), '.bed', '.bim', '.fam'),
+        results_founders = report(
+            resultPath / "{batch}" / (rule_stem + "_founders.yaml"),
+            category = "Module 4 Good markers",
+            caption = resultPath / "{batch}" / (rule_stem + "_founders.rst")
+        ),
+        results_offspring = report(
+            resultPath / "{batch}" / (rule_stem + "_offspring.yaml"),
+            category = "Module 4 Good markers",
+            caption = resultPath / "{batch}" / (rule_stem + "_offspring.rst")
+        )
     benchmark:
         tmpMod4 / "{batch}" / (rule_stem + ".benchmark")
     run:
         try:
             item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog, rule_info[rule]["QC test"])
+            mqc.log(runlog,rule_info[rule]["QC test"])
 
-            if len(output.split_bed) == 2:
+            inTrunk = mqc.plinkBase(input.bedset[0])
+            foundersTrunk = mqc.plinkBase(output.bedset_founders[0])
+            offspringTrunk = mqc.plinkBase(output.bedset_offspring[0])
 
-                inTrunk = mqc.plinkBase(input.bedset[0])
-                foundersTrunk = mqc.plinkBase(output.split_bed[0])
-                offspringTrunk = mqc.plinkBase(output.split_bed[1])
+            populations = getFoundersOffspring(batch)
+
+            if len(populations) == 2:
 
                 subprocess.run(
                     [
@@ -161,14 +168,6 @@ rule split_founders_offspring:
                         "--make-bed"
                     ],
                     check = True
-                )
-
-                dev_log(
-                    inTrunk = foundersTrunk,
-                    step = "filter-founders",
-                    batch = wildcards.batch,
-                    population = "founders",
-                    plinklocal = plinklocal
                 )
 
                 subprocess.run(
@@ -183,22 +182,51 @@ rule split_founders_offspring:
                     check = True
                 )
 
-                dev_log(
-                    inTrunk = offspringTrunk,
-                    step = "filter-founders",
-                    batch = wildcards.batch,
-                    population = "offspring",
-                    plinklocal = plinklocal
-                )
+            elif len(populations) == 1:
 
-            elif len(input.markers) == 1:
-
-                inTrunk = mqc.plinkBase(input.bedset[0])
-                outTrunk = mqc.plinkBase(output.split_bed[0])
-                mqc.copy_bedset(str(inTrunk), str(outTrunk))
+                mqc.copy_bedset(inTrunk, foundersTrunk)
+                mqc.copy_bedset(inTrunk, offspringTrunk)
 
             else:
                 raise Exception(f"Unexpected number of populations for batch {wildcards.batch}")
+
+            dev_log(
+                inTrunk = foundersTrunk,
+                step = "filter-founders",
+                batch = wildcards.batch,
+                population = "founders",
+                plinklocal = plinklocal
+            )
+
+            dropouts = mqc.checkUpdates(
+                inTrunk + ".fam",
+                foundersTrunk + ".fam",
+                cols = [1],
+                sanityCheck = "removal",
+                fullList = True
+            )
+            dropouts.update(rule_info[rule])  # Metainfo and documentation about the rule
+            dropouts["Rule"] = rule
+            mqc.saveYamlResults(output.results_founders, dropouts)
+
+            dev_log(
+                inTrunk = offspringTrunk,
+                step = "filter-founders",
+                batch = wildcards.batch,
+                population = "offspring",
+                plinklocal = plinklocal
+            )
+
+            dropouts = mqc.checkUpdates(
+                inTrunk + ".fam",
+                offspringTrunk + ".fam",
+                cols = [1],
+                sanityCheck = "removal",
+                fullList = True
+            )
+            dropouts.update(rule_info[rule])  # Metainfo and documentation about the rule
+            dropouts["Rule"] = rule
+            mqc.saveYamlResults(output.results_offspring,dropouts)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -881,7 +909,6 @@ rule sex_clean:
             print(e)
 
 def getMarkers(batch):
-    print(f"population for {batch}: {getFoundersOffspring(batch)}")
     paths = []
     for population in getFoundersOffspring(batch):
         paths.append(tmpMod4 / batch / population / 'sex_clean.bim')
