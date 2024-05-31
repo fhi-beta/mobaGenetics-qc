@@ -45,11 +45,7 @@ batch_name = {
     "snp017d": "DeCode 1",
     "snp017e": "DeCode 1",
     "snp017f": "DeCode 1",
-    "snp018a": "DeCode 1",
-    "snp018b": "DeCode 1",
-    "snp018c": "DeCode 1",
-    "snp018d": "DeCode 1",
-    "snp018e": "DeCode 1",
+    "snp018": "DeCode 1",
     "snp019": "LifeBrain"
 }
 
