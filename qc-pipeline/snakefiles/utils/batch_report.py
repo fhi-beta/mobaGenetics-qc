@@ -68,7 +68,8 @@ def write_sexcheck_scatterplot(md_file, sexcheck, png_file, output_path):
     plt.savefig(png_file)
     title_path = f"{output_path}/{png_file}"
     plt.savefig(title_path, dpi=200)
-    md_image_syntax = f'\n<br>![]({png_file})'
+    # md_image_syntax = f'\n<br>![]({png_file})'
+    md_image_syntax = f"<br><img src='{png_file}' width='500'/>"
     md_file.write(md_image_syntax)
 
 
@@ -118,5 +119,5 @@ def write_stats_and_histogram(md_file, title, series, output_filename, x_label =
     title_path = f"{path}/{title_png}"
     plt.savefig(title_path, dpi=200)
     # md_image_syntax = f'\n<br>![]({title_png})'
-    md_image_syntax = f"<br><img src='{title_png}' width='200'/>"
+    md_image_syntax = f"<br><img src='{title_png}' width='500'/>"
     md_file.write(md_image_syntax)
