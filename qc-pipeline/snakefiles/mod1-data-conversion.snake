@@ -13,7 +13,7 @@ def getInitialBeds(batch):
     paths = list()
     for initial_batch in getInitialMerging(batch):
         paths.append(
-            os.path.join(raw_folder_path, initial_batch, "raw-data", "bedset", initial_batch.bed)
+            os.path.join(raw_folder_path, initial_batch, "raw-data", "bedset", initial_batch + ".bed")
         )
     return paths
 rule_stem = 'initial_merge'
