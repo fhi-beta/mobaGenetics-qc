@@ -967,8 +967,7 @@ rule m4_output_good_markers:
                     header = 0
                 )
                 sexcheck_data = pd.concat(
-                    sexcheck_data_1,
-                    sexcheck_data_2,
+                    [sexcheck_data_1, sexcheck_data_2],
                     ignore_index = True
                 )
                 sexcheck_data.to_csv(
