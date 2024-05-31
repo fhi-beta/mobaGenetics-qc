@@ -49,26 +49,26 @@ def write_report(output_filename, batch, module, file_trunk):
 
     md_file.write(f"\n### PEDSEX Male")
     pedsex_male = sexcheck[sexcheck["PEDSEX"] == 1]
-    write_sexcheck_scatterplot(md_file, pedsex_male, "male_F.png", os.path.dirname(output_filename))
+    write_sexcheck_scatterplot(md_file, pedsex_male, "male_F.png", os.path.dirname(output_filename), "F-statistics for PEDSEX Male")
     write_stats_and_histogram(md_file, "PEDSEX Male F-statistics", pedsex_male["F"], output_filename, x_label="F", subheader=True)
     
     md_file.write(f"\n### PEDSEX Female")
     pedsex_female = sexcheck[sexcheck["PEDSEX"] == 2]
-    write_sexcheck_scatterplot(md_file, pedsex_female, "female_F.png", os.path.dirname(output_filename))
+    write_sexcheck_scatterplot(md_file, pedsex_female, "female_F.png", os.path.dirname(output_filename), "F-statistics for PEDSEX Female")
     write_stats_and_histogram(md_file, "PEDSEX Female F-statistics", pedsex_female["F"], output_filename, x_label="F", subheader=True)
     md_file.close()
 
-def write_sexcheck_scatterplot(md_file, sexcheck, png_file, output_path):
+def write_sexcheck_scatterplot(md_file, sexcheck, png_file, output_path, title):
     colors = {0: 'red', 1: 'green', 2: 'blue'}
     color_list = [colors[group] for group in sexcheck['SNPSEX']]
-    legend_handles = [mpatches.Patch(color=colors[1], label="Male"), mpatches.Patch(color=colors[2], label="Female"), mpatches.Patch(color=colors[0], label="Unknown")]
+    legend_handles = [mpatches.Patch(color=colors[1], label="SNPSEX Male"), mpatches.Patch(color=colors[2], label="SNPSEX Female"), mpatches.Patch(color=colors[0], label="SNPSEX Unknown")]
     ax = sexcheck.plot.scatter("F", "YCOUNT", c=color_list, grid=True)
     ax.set_ylim([0, None])
     ax.legend(handles=legend_handles, loc='upper left')
+    ax.set_title(title)
     plt.savefig(png_file)
-    title_path = f"{output_path}/{png_file}"
-    plt.savefig(title_path, dpi=200)
-    # md_image_syntax = f'\n<br>![]({png_file})'
+    png_path = f"{output_path}/{png_file}"
+    plt.savefig(png_path, dpi=200)
     md_image_syntax = f"<br><img src='{png_file}' width='700'/>"
     md_file.write(md_image_syntax)
 
