@@ -125,7 +125,7 @@ rule mod4_keep_main_cluster:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
-# Split parents and children into founders and offspring. Note that the output of this rule is also used in module 5 via the input of 'ibd_estimate'.
+# Split parents and children into founders and offspring. If no splitting is required, the bedsets are copied.
 rule_stem = "split_founders_offspring"
 split_rule_stem = rule_stem  # Placeholder for other rules using the output of the split
 rule split_founders_offspring:
@@ -150,20 +150,45 @@ rule split_founders_offspring:
         try:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog,rule_info[rule]["QC test"])
+
             inTrunk = mqc.plinkBase(input.bedset[0])
             foundersTrunk = mqc.plinkBase(output.bedset_founders[0])
             offspringTrunk = mqc.plinkBase(output.bedset_offspring[0])
 
-            subprocess.run(
-                [
-                    plinklocal,
-                    "--bfile", inTrunk,
-                    "--filter-founders",
-                    "--out", foundersTrunk,
-                    "--make-bed"
-                ],
-                check = True
-            )
+            populations = getFoundersOffspring(batch)
+
+            if len(populations) == 2:
+
+                subprocess.run(
+                    [
+                        plinklocal,
+                        "--bfile", inTrunk,
+                        "--filter-founders",
+                        "--out", foundersTrunk,
+                        "--make-bed"
+                    ],
+                    check = True
+                )
+
+                subprocess.run(
+                    [
+                        plinklocal,
+                        "--bfile", inTrunk,
+                        "--filter-nonfounders",
+                        "--make-founders",
+                        "--out", offspringTrunk,
+                        "--make-bed"
+                    ],
+                    check = True
+                )
+
+            elif len(populations) == 1:
+
+                mqc.copy_bedset(inTrunk, foundersTrunk)
+                mqc.copy_bedset(inTrunk, offspringTrunk)
+
+            else:
+                raise Exception(f"Unexpected number of populations for batch {wildcards.batch}")
 
             dev_log(
                 inTrunk = foundersTrunk,
@@ -183,18 +208,6 @@ rule split_founders_offspring:
             dropouts.update(rule_info[rule])  # Metainfo and documentation about the rule
             dropouts["Rule"] = rule
             mqc.saveYamlResults(output.results_founders, dropouts)
-
-            subprocess.run(
-                [
-                    plinklocal,
-                    "--bfile", inTrunk,
-                    "--filter-nonfounders",
-                    "--make-founders",
-                    "--out", offspringTrunk,
-                    "--make-bed"
-                ],
-                check = True
-            )
 
             dev_log(
                 inTrunk = offspringTrunk,
@@ -453,7 +466,6 @@ rule geno_rates:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
-
 rule_stem = 'hwe_autos_geno'
 # Note 27.04.24: The documentation and log are written at every step of this rule. The captioning system of the previous implementation needs to be fixed.
 rule hwe_autos_geno:
@@ -469,7 +481,7 @@ rule hwe_autos_geno:
         maf2 = config["maf2"],
         sd_het2 = config["sd_het2"],
         geno_rate = config["geno_rate"],
-        docs_folder = os.path.join(resultPath, "{batch}",  "{role}")
+        docs_folder = os.path.join(resultPath, "{batch}",  "{role}") # Note 31.05.24: using path returns an error because wildcards are not evaluated.
     output:
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
         results = report(
@@ -895,6 +907,13 @@ rule sex_clean:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
+def getMarkers(batch):
+    paths = list()
+    for population in getFoundersOffspring(batch):
+        paths.append(
+            os.path.join(tmpMod4, batch, population, 'sex_clean.bim')
+        )
+    return paths
 
 rule_stem = 'm4_output_good_markers'
 rule m4_output_good_markers:
@@ -902,8 +921,7 @@ rule m4_output_good_markers:
     threads: 2
     input:
         bedset = rules.m2_output.output.bedset,
-        markers_offspring = tmpMod4 / "{batch}" / 'offspring' / 'sex_clean.bim',
-        markers_founders = tmpMod4 / "{batch}" / 'founders' / 'sex_clean.bim'
+        markers = lambda wildcards: getMarkers(wildcards.batch)
     output:
         good_markers = tmpMod4 / "{batch}" / (rule_stem + ".txt"),
         m4_output_good_markers = multiext(os.path.join(tmpMod4, "{batch}", rule_stem), '.bed', '.bim', '.fam'),
@@ -921,14 +939,21 @@ rule m4_output_good_markers:
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.m4_output_good_markers[0])
 
-            # Module 5: find common markers and extract them from original set
-            mqc.intersect_rsid(
-                input.markers_offspring,
-                input.markers_founders,
-                output.good_markers,
-                small_col = 1,
-                big_col = 1
-            )
+            if len(input.markers) == 2:
+                mqc.intersect_rsid(
+                    input.markers_offspring,
+                    input.markers_founders,
+                    output.good_markers,
+                    small_col = 1,
+                    big_col = 1
+                )
+
+            elif len(input.markers) == 1:
+                copyfile(input.markers[0], output.good_markers)
+
+            else:
+                raise Exception(f"Unexpected number of populations for batch {wildcards.batch}")
+
             subprocess.run(
                 [
                     plinklocal,
@@ -958,12 +983,24 @@ rule m4_output_good_markers:
             )
             dropouts.update(rule_info[rule])  # Metainfo and documentation about the rule
             dropouts["Rule"] = rule
+
             # Let the yaml-file contain info abut last step as well.
-            founders = mqc.line_count(input.markers_offspring)
-            offspring = mqc.line_count(input.markers_founders)
-            common = mqc.line_count(output.good_markers)
-            dropouts["Final markers"] = f"founders/offspring/common {founders}/{offspring}/{common}\n"
-            mqc.saveYamlResults(output.results,dropouts)
+            if len(input.markers) == 2:
+                founders = mqc.line_count(input.markers[0])
+                offspring = mqc.line_count(input.markers[1])
+                common = mqc.line_count(output.good_markers)
+                dropouts["Final markers"] = f"founders/offspring/common {founders}/{offspring}/{common}\n"
+                mqc.saveYamlResults(output.results, dropouts)
+
+            elif len(input.markers) == 1:
+                copyfile(input.markers[0], output.good_markers)
+                input_markers = mqc.line_count(input.markers[0])
+                output_markers = mqc.line_count(output.good_markers)
+                dropouts["Final markers"] = f"input/output {input_markers}/{output_markers}\n"
+                mqc.saveYamlResults(output.results, dropouts)
+
+            else:
+                raise Exception(f"Unexpected number of populations for batch {wildcards.batch}")
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
