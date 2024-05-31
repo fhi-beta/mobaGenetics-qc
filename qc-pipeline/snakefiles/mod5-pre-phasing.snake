@@ -399,7 +399,7 @@ rule mod5_output:
         het=str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".het")),
         hwe=str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".hwe")),
         sexcheck=str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".sexcheck")),
-        md=str(github_docs/"{batch}"/"{number_of_samples}_samples"/ "pre_imputation_report.md")
+        md=str(tmpMod5 / "{batch}"/"{number_of_samples}_samples"/ "report" / "pre_imputation_report.md")
     run:
         try:
             # Exclude duplicates again
