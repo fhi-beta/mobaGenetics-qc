@@ -52,7 +52,7 @@ def write_report(output_filename, batch, file_trunk):
     md_file.close()
 
 def write_sexcheck_table(md_file, sexcheck):
-    md_file.write("| PEDSEX | SNPSEX Male | SNPSEX Female | SNPSEX Unknown | OK | Problem | Total |\n")
+    md_file.write("| PEDSEX | Total | SNPSEX Male | SNPSEX Female | SNPSEX Unknown | OK | Problem |\n")
     md_file.write("| ------ | ------ | ------ | ------ | ------ | ------ | ------ |\n")
     sexcheck_male = sexcheck[sexcheck["PEDSEX"] == 1]
     sexcheck_female = sexcheck[sexcheck["PEDSEX"] == 2]
@@ -69,7 +69,7 @@ def write_sexcheck_stats(md_file, sexcheck, sex):
     n_unknown = sexcheck[sexcheck["SNPSEX"] == 0].shape[0]
     n_ok = sexcheck[sexcheck["STATUS"] == "OK"].shape[0]
     n_problem = sexcheck[sexcheck["STATUS"] == "PROBLEM"].shape[0]
-    md_file.write(f"| {sex} | {n_males} | {n_females} | {n_unknown} | {n_ok} | {n_problem} | {n_total} |\n")
+    md_file.write(f"| {sex} | {n_total} | {n_males} | {n_females} | {n_unknown} | {n_ok} | {n_problem} |\n")
 
 def parental_data(parent_type, fam_df):
     has_parent=fam_df[fam_df[parent_type] != "0"]
