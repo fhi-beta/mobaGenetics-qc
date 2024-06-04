@@ -10,6 +10,7 @@ batch_genotyping_chip = {
     "snp010": "Illumina Global Screening Array MD v1.0", # Needs to be checked
     "snp011": "Illumina Infinium Omni Express 24 v.1.2",
     "snp012": "Illumina Global Screening Array MD v1.0",
+    "snp013": "DeCodeGenetics V1_v2", # Needs to be checked
     "snp014": "Illumina Global Screening Array MD v1.0",
     "snp015a": "Illumina Global Screening Array MD v1.0",
     "snp015b": "Illumina Global Screening Array MD v3.0",
@@ -37,6 +38,7 @@ batch_name = {
     "snp010": "Norment Feb18",
     "snp011": "Ted1",
     "snp012": "Rotterdam1",
+    "snp013": "Ted2",
     "snp014": "Rotterdam2",
     "snp015a": "Norment Feb20 1",
     "snp015b": "Norment Feb20 3",
