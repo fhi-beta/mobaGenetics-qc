@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import mobaQcTools as mqc
 import os
-def write_report(output_filename, batch, module, file_trunk, sexcheck):
+def write_report(output_filename, batch, module, file_trunk, sexcheck_path):
     md_file = open(output_filename, "a")
     md_file.write(f"# Batch report for batch {batch}, module {module}")
     fam_df = pd.read_csv(file_trunk + ".fam", delim_whitespace=True, header=None, names=['FID', 'IID', 'PID', 'MID', 'Sex', 'Phenotype'])
@@ -41,7 +41,7 @@ def write_report(output_filename, batch, module, file_trunk, sexcheck):
     write_stats_and_histogram(md_file, "Hardy-Weinberg P-values", hwe_df["P"], output_filename, x_label="P-value", subheader= False)
 
     md_file.write(f"\n## Sexcheck")
-    # sexcheck = pd.read_csv(file_trunk + ".sexcheck", delim_whitespace=True)
+    sexcheck = pd.read_csv(sexcheck_path, delim_whitespace=True)
     ok_status = sexcheck[sexcheck["STATUS"] == "OK"]
     n_ok_status = ok_status.shape[0]
     md_file.write(f"\n{n_ok_status} out of {included_number_of_samples} OK<br>\n")
