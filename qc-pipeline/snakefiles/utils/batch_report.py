@@ -3,7 +3,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 import mobaQcTools as mqc
 import os
-def write_report(output_filename, batch, module, file_trunk):
+def write_report(output_filename, batch, module, file_trunk, sexcheck_path):
     md_file = open(output_filename, "a")
     md_file.write(f"# Batch report for batch {batch}, module {module}")
     fam_df = pd.read_csv(file_trunk + ".fam", delim_whitespace=True, header=None, names=['FID', 'IID', 'PID', 'MID', 'Sex', 'Phenotype'])
@@ -41,39 +41,53 @@ def write_report(output_filename, batch, module, file_trunk):
     write_stats_and_histogram(md_file, "Hardy-Weinberg P-values", hwe_df["P"], output_filename, x_label="P-value", subheader= False)
 
     md_file.write(f"\n## Sexcheck")
-    sexcheck = pd.read_csv(file_trunk + ".sexcheck", delim_whitespace=True)
+    sexcheck = pd.read_csv(sexcheck_path, delim_whitespace=True)
     ok_status = sexcheck[sexcheck["STATUS"] == "OK"]
     n_ok_status = ok_status.shape[0]
     md_file.write(f"\n{n_ok_status} out of {included_number_of_samples} OK<br>\n")
     write_sexcheck_table(md_file, sexcheck)
-    
     md_file.write(f"\n### All samples")
-    write_sexcheck_scatterplot(md_file, sexcheck, "all_F.png", os.path.dirname(output_filename), "F-statistics for all samples", groupby="SNPSEX")
+    write_sexcheck_scatterplot(md_file, sexcheck, os.path.dirname(output_filename))
+    write_stats_and_histogram(md_file, "All samples F-statistics", sexcheck["F"], output_filename, x_label="F", subheader=True)
+    # md_file.write(f"\n### All samples")
+    # write_sexcheck_scatterplot(md_file, sexcheck, "all_F.png", os.path.dirname(output_filename), "F-statistics for all samples", groupby="SNPSEX")
 
     md_file.write(f"\n### PEDSEX Male")
     pedsex_male = sexcheck[sexcheck["PEDSEX"] == 1]
-    write_sexcheck_scatterplot(md_file, pedsex_male, "male_F.png", os.path.dirname(output_filename), "F-statistics for PEDSEX Male")
     write_stats_and_histogram(md_file, "PEDSEX Male F-statistics", pedsex_male["F"], output_filename, x_label="F", subheader=True)
     
     md_file.write(f"\n### PEDSEX Female")
     pedsex_female = sexcheck[sexcheck["PEDSEX"] == 2]
-    write_sexcheck_scatterplot(md_file, pedsex_female, "female_F.png", os.path.dirname(output_filename), "F-statistics for PEDSEX Female")
     write_stats_and_histogram(md_file, "PEDSEX Female F-statistics", pedsex_female["F"], output_filename, x_label="F", subheader=True)
     md_file.close()
 
-def write_sexcheck_scatterplot(md_file, sexcheck, png_file, output_path, title, groupby = 'SNPSEX'):
+def write_sexcheck_scatterplot(md_file, sexcheck, output_path):
+    png_file = "sexcheck_scatter.png"
     colors = {0: 'red', 1: 'green', 2: 'blue'}
-    color_list = [colors[group] for group in sexcheck[groupby]]
-    legend_handles = [mpatches.Patch(color=colors[1], label=f"{groupby} Male"), mpatches.Patch(color=colors[2], label=f"{groupby} Female"), mpatches.Patch(color=colors[0], label=f"{groupby} Unknown")]
-    ax = sexcheck.plot.scatter("F", "YCOUNT", c=color_list, grid=True)
-    ax.set_ylim([0, None])
-    ax.legend(handles=legend_handles, loc='upper left')
-    ax.set_title(title)
+    color_list = [colors[group] for group in sexcheck["SNPSEX"]]
+    ax = sexcheck.plot.scatter("PEDSEX", "F", c=color_list, grid=True, figsize=(7, 7))
+    ax.set_xticks([0,1,2], labels=["Unknown", "Male", "Female"])
+    ax.set_title("F-stats for sexcheck")
     plt.savefig(png_file)
     png_path = f"{output_path}/{png_file}"
     plt.savefig(png_path, dpi=200)
     md_image_syntax = f"<br><img src='{png_file}' width='700'/>"
     md_file.write(md_image_syntax)
+
+
+# def write_sexcheck_scatterplot(md_file, sexcheck, png_file, output_path, title, groupby = 'SNPSEX'):
+#     colors = {0: 'red', 1: 'green', 2: 'blue'}
+#     color_list = [colors[group] for group in sexcheck[groupby]]
+#     legend_handles = [mpatches.Patch(color=colors[1], label=f"{groupby} Male"), mpatches.Patch(color=colors[2], label=f"{groupby} Female"), mpatches.Patch(color=colors[0], label=f"{groupby} Unknown")]
+#     ax = sexcheck.plot.scatter("F", "YCOUNT", c=color_list, grid=True)
+#     ax.set_ylim([0, None])
+#     ax.legend(handles=legend_handles, loc='upper left')
+#     ax.set_title(title)
+#     plt.savefig(png_file)
+#     png_path = f"{output_path}/{png_file}"
+#     plt.savefig(png_path, dpi=200)
+#     md_image_syntax = f"<br><img src='{png_file}' width='700'/>"
+#     md_file.write(md_image_syntax)
 
 
 def write_sexcheck_table(md_file, sexcheck):

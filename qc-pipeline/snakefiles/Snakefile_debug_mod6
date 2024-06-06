@@ -66,8 +66,8 @@ include: "mod5-pre-phasing.snake"
 include: "mod6-imputation.snake"
 
 # Debug code
-batches_debug = ['snp011', 'snp012', 'snp014', 'snp015a', 'snp015b']
-chrs = ['4']
+batches_debug = ['snp009', 'snp010', 'snp015a', 'snp015b', 'snp016a', 'snp016b']
+chrs = ['5', '6']
 
 # rule all, lists the output of every module
 rule all:
@@ -78,6 +78,7 @@ rule all:
         # expand(tmpMod6/ "{batch}" / ("mod6_impute.chr{chr}.imputed.vcf.gz"), batch = batches_debug, chr = chrs)
         # expand(tmpMod6/ "{batch}" / "all_samples" / ("mod6_output.chr{chr}.bed"), batch = batches_debug, chr = chrs)
         expand(tmpMod5/"{batch}"/"all_samples"/ "report" /"pre_imputation_report.md", batch = batches_debug)
+        # str(tmpMod7 / "all_samples" / "merge_list.txt")
         # expand(tmpMod5/ "{batch}" / "all_samples" /"mod5_output.imiss", batch = batches_debug)
 
 

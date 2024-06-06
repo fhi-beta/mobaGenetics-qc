@@ -16,7 +16,7 @@ birth_year: "/mnt/archive/snpQc/phenotypes/birth_year_24.04.12.gz"
 # Used by the Will Rayner perl-script in mod5.
 # 2.8Gig
 hrc_sites: "/mnt/archive/snpQc/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
-hrc_ega: "/mnt/archive/HRC_1.1_EGA/download"
+hrc_ega: "/mnt/archive/HRC_1.1_EGA/24.05.30"
 
 # Genetic maps found at https://bochet.gcc.biostat.washington.edu/beagle/genetic_maps/
 mapfiles: "/mnt/archive/genetic_maps"

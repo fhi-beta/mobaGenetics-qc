@@ -392,13 +392,13 @@ rule mod5_remove_variants_with_missing_IDs:
 rule_stem = "mod5_output"
 rule mod5_output:
     input:
-        bedset = rules.mod5_remove_variants_with_missing_IDs.output.bedset
+        bedset = rules.mod5_remove_variants_with_missing_IDs.output.bedset,
+        sexcheck = rules.m4_output_good_markers.output.sexcheck
     output:
         bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam"),
         missing = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".imiss", ".lmiss"),
         het=str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".het")),
         hwe=str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".hwe")),
-        sexcheck=str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".sexcheck")),
         md=str(tmpMod5 / "{batch}"/"{number_of_samples}_samples"/ "report" / "pre_imputation_report.md")
     run:
         try:
@@ -421,10 +421,9 @@ rule mod5_output:
                 "--missing",
                 "--het",
                 "--hardy",
-                "--check-sex", "ycount",
                 "--out", outTrunk
             ])
-            batch_report.write_report(output.md, wildcards.batch, "mod5-pre-phasing", outTrunk)
+            batch_report.write_report(output.md, wildcards.batch, "mod5-pre-phasing", outTrunk, input.sexcheck)
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
             print(e)
