@@ -49,8 +49,6 @@ def write_report(output_filename, batch, module, file_trunk, sexcheck_path):
     md_file.write(f"\n### All samples")
     write_sexcheck_scatterplot(md_file, sexcheck, os.path.dirname(output_filename))
     write_stats_and_histogram(md_file, "All samples F-statistics", sexcheck["F"], output_filename, x_label="F", subheader=True)
-    # md_file.write(f"\n### All samples")
-    # write_sexcheck_scatterplot(md_file, sexcheck, "all_F.png", os.path.dirname(output_filename), "F-statistics for all samples", groupby="SNPSEX")
 
     md_file.write(f"\n### PEDSEX Male")
     pedsex_male = sexcheck[sexcheck["PEDSEX"] == 1]
@@ -73,21 +71,6 @@ def write_sexcheck_scatterplot(md_file, sexcheck, output_path):
     plt.savefig(png_path, dpi=200)
     md_image_syntax = f"<br><img src='{png_file}' width='700'/>"
     md_file.write(md_image_syntax)
-
-
-# def write_sexcheck_scatterplot(md_file, sexcheck, png_file, output_path, title, groupby = 'SNPSEX'):
-#     colors = {0: 'red', 1: 'green', 2: 'blue'}
-#     color_list = [colors[group] for group in sexcheck[groupby]]
-#     legend_handles = [mpatches.Patch(color=colors[1], label=f"{groupby} Male"), mpatches.Patch(color=colors[2], label=f"{groupby} Female"), mpatches.Patch(color=colors[0], label=f"{groupby} Unknown")]
-#     ax = sexcheck.plot.scatter("F", "YCOUNT", c=color_list, grid=True)
-#     ax.set_ylim([0, None])
-#     ax.legend(handles=legend_handles, loc='upper left')
-#     ax.set_title(title)
-#     plt.savefig(png_file)
-#     png_path = f"{output_path}/{png_file}"
-#     plt.savefig(png_path, dpi=200)
-#     md_image_syntax = f"<br><img src='{png_file}' width='700'/>"
-#     md_file.write(md_image_syntax)
 
 
 def write_sexcheck_table(md_file, sexcheck):
@@ -135,6 +118,5 @@ def write_stats_and_histogram(md_file, title, series, output_filename, x_label =
     title_png = f'{title.replace(" ","_")}_histogram.png'
     title_path = f"{path}/{title_png}"
     plt.savefig(title_path, dpi=200)
-    # md_image_syntax = f'\n<br>![]({title_png})'
     md_image_syntax = f"<br><img src='{title_png}' width='700'/>"
     md_file.write(md_image_syntax)
