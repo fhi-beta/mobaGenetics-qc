@@ -66,7 +66,7 @@ include: "mod5-pre-phasing.snake"
 include: "mod6-imputation.snake"
 
 # Debug code
-batches_debug = ['snp016a']
+batches_debug = ['snp016b']
 chrs = ['5', '6']
 
 # rule all, lists the output of every module
