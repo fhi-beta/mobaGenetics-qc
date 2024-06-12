@@ -1280,7 +1280,7 @@ def sex_check(
     inTrunk = plinkBase(in_bed)
     outTrunk = plinkBase(out_bed)
 
-    # prime/chr23
+    # prune/chr23
     sex_check_parameters = config_sex_check_indep_pairwise.split()
     subprocess.run(
         [
