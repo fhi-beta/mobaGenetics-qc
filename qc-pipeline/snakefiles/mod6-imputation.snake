@@ -81,6 +81,7 @@ rule mod6_conform:
         outTrunk="${{output_full%.vcf.gz}}"
         echo here
         java -jar {conform_gt} gt={input.sorted_vcf} ref=$reffile out=$outTrunk chrom={wildcards.chr} match=POS
+        echo done with chr{wildcards.chr}
         """
 
 rule_stem = "mod6_impute"
