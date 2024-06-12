@@ -16,6 +16,7 @@ def getInitialBeds(batch):
             os.path.join(raw_folder_path, initial_batch, "raw-data", "bedset", initial_batch + ".bed")
         )
     return paths
+
 rule_stem = 'initial_merge'
 rule initial_merge:
     input:
@@ -122,6 +123,7 @@ rule remove_chr0:
             print(e)
 
 # If this has not been done before, extract the pseudo-autosomal region of the X chromosome.
+# Note: this should be run before merging batches.
 rule_stem = 'split_x'
 rule split_x:
     input:
