@@ -649,7 +649,7 @@ rule sex_check:
             inTrunk = mqc.plinkBase(input.bed)
             outTrunk = mqc.plinkBase(output.bed)
 
-            # print("*** Debug ***")
+            print("*** Debug ***")
             print(inTrunk)
             freq_data = mqc.get_freq_data(
                 inTrunk = inTrunk,
@@ -662,7 +662,17 @@ rule sex_check:
             chromosomes_string = ','.join(map(str, chromosomes.flatten()))
             print("Chromosomes: ", chromosomes_string)
             print("min maf: ", min_maf)
-            # print("*************")
+            print("*************")
+
+            subprocess.run(
+                [
+                    plinklocal,
+                            "--bfile", inTrunk,
+                            "--check-sex", "ycount",
+                            "--out", outTrunk + "_debug"
+                ],
+                check = True
+            )
 
             mqc.sex_check(
                 rule,
