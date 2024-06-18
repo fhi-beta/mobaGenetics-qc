@@ -35,6 +35,7 @@ tmpMod4 = base/'mod4-good_markers'
 tmpMod5 = base/'mod5-pre-phasing'
 tmpMod6 = base/'mod6-imputation'
 tmpMod7 = base/'mod7-post-imputation'
+n_samples = config['n_samples']
 # tmpMod5 = base/'mod5-samples_unrelated'
 # tmpMod6 = base/'mod6-phasing-preparation'
 resultPath = base/'results'

@@ -7,7 +7,7 @@ rule mod7_merge:
             chr=chrs
         )
     output:
-        bedset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge"), ".bed", ".bim", ".fam")
+        # bedset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge"), ".bed", ".bim", ".fam")
         merge_list = str(tmpMod7 / "{number_of_samples}_samples" / "merge_list.txt")
     run:
         bed_files = [Path(bed) for bed in input.bedset]
