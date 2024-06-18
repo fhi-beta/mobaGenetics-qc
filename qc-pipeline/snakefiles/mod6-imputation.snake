@@ -80,7 +80,7 @@ rule mod6_conform:
         output_full={output.conformed_vcf}
         outTrunk="${{output_full%.vcf.gz}}"
         echo here
-        java -jar {conform_gt} gt={input.sorted_vcf} ref=$reffile out=$outTrunk chrom={wildcards.chr} match=POS
+        java -Xmx{config[mod6conform_mem]} -jar {conform_gt} gt={input.sorted_vcf} ref=$reffile out=$outTrunk chrom={wildcards.chr} match=POS
         echo done with chr{wildcards.chr}
         """
 

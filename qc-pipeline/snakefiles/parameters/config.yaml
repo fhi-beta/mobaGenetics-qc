@@ -111,6 +111,7 @@ xmarkers_clean: 0.000001
 mem: "88g"
 beagle_threads: 31
 mod6conform_threads: 3
+mod6conform_mem: "28g"
 mod6impute_threads: 31
 
 # parameters to finalize core
