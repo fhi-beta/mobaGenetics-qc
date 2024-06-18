@@ -72,11 +72,12 @@ chrs = ['4', '5']
 # rule all, lists the output of every module
 rule all:
     input:
-        # expand(tmpMod5/ "{batch}" / "{number_of_samples}" / ("mod5_output.bed"), batch = batches_debug, number_of_samples = samples)
+        # expand(tmpMod4/ "{batch}" / "{number_of_samples}" / ("mod5_output.bed"), batch = batches_debug, number_of_samples = samples)
         # expand(tmpMod4point5/ "{batch}" / ("mod4point5_cull_samples.bed"), batch = batches_debug)
         # expand(tmpMod6/ "{batch}" / "all_samples" / ("mod6_conform.chr{chr}.conformed.vcf.gz"), batch = batches_debug, chr = chrs)
         # expand(tmpMod6/ "{batch}" / ("mod6_impute.chr{chr}.imputed.vcf.gz"), batch = batches_debug, chr = chrs)
-        expand(tmpMod6/ "{batch}" / "100_samples" / ("mod6_output.chr{chr}.bed"), batch = batches_debug, chr = chrs)
+        # expand(tmpMod6/ "{batch}" / "100_samples" / ("mod6_output.chr{chr}.bed"), batch = batches_debug, chr = chrs)
+        expand(tmpMod4/ "{batch}" / "m4_output_good_markers.bed", batch = batches_debug
         # expand(tmpMod5/"{batch}"/"all_samples"/ "report" /"pre_imputation_report.md", batch = batches_debug)
         # str(tmpMod7 / "all_samples" / "merge_list.txt")
         # expand(tmpMod5/ "{batch}" / "all_samples" /"mod5_output.imiss", batch = batches_debug)
