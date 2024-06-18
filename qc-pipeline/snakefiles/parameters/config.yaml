@@ -107,6 +107,8 @@ sex_check_indep_pairwise: 20000 2000 0.5
 # used for all samples in several rules
 xmarkers_clean: 0.000001
 
+n_samples: "all"
+
 # beagle impute memory and thread allocation
 mem: "88g"
 beagle_threads: 31
