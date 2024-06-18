@@ -891,6 +891,28 @@ id_to_family_sex_mother_father <- id_to_family_sex_mother %>%
     father_id = ifelse(is.na(father_id), 0, father_id)
   )
 
+# Sanity check that we have the right ids
+
+if (length(unique(id_to_family_sex_mother_father$id)) != nrow(id_to_family_sex_mother_father)) {
+  
+  stop("Duplicate ids in reconstructed fam file")
+  
+}
+
+if (length(sample_ids) != nrow(id_to_family_sex_mother_father)) {
+  
+  stop(paste0(nrow(id_to_family_sex_mother_father), " ids in reconstructed fam file where " , length(sample_ids), " expected."))
+  
+}
+
+n_missing <- sum(!sample_ids %in% id_to_family_sex_mother_father$id)
+
+if (n_missing > 0) {
+  
+  stop(paste0(n_missing, " ids missing in reconstructed fam file."))
+  
+}
+
 
 # build fam file
 
@@ -903,7 +925,14 @@ updated_fam_data <- id_to_family_sex_mother_father %>%
     sex
   ) %>% 
   mutate(
-    pheno = -9
+    pheno = -9,
+    order = factor(id, sample_ids)
+  ) %>% 
+  arrange(
+    order
+  ) %>% 
+  select(
+    -order
   )
 
 if (length(unique(updated_fam_data$id)) != nrow(updated_fam_data)) {
