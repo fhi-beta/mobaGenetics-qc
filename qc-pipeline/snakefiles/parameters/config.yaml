@@ -5,7 +5,7 @@ raw_folder: "/mnt/archive/Momics/MomicsPub/snpArray/Datasets"
 documentationDataset: "https://github.com/fhi-beta/mobaDocsBackoffice/wiki/MoBaGenPub"
 documentationQC: "https://github.com/fhi-beta/mobaDocsBackoffice/wiki/pipeline"
 githubSource: "https://github.com/fhi-beta/mobaGenetics-qc"
-output_base: "/mnt/archive/snpQc/pipeOut_dev_2024.05.02"
+output_base: "/mnt/archive/snpQc/pipeOut_dev_2024.06.18"
 
 # Phenotypes
 expected_relationships: "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz"
