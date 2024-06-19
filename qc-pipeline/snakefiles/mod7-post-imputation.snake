@@ -1,11 +1,7 @@
 # work in progress...
 rule mod7_merge:
     input:
-        bedset = expand(
-            str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output.chr{chr}.bed"), 
-            batch=batches_debug,
-            chr=chrs
-        )
+        bedset = rules.mod6_output.output.bedset
     output:
         # bedset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge"), ".bed", ".bim", ".fam")
         merge_list = str(tmpMod7 / "{number_of_samples}_samples" / "merge_list.txt")
