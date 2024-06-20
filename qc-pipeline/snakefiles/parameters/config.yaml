@@ -110,11 +110,11 @@ xmarkers_clean: 0.000001
 n_samples: "all"
 
 # beagle impute memory and thread allocation
-mem: "88g"
-beagle_threads: 31
-mod6conform_threads: 3
-mod6conform_mem: "28g"
-mod6impute_threads: 31
+mem: "90g"
+beagle_threads: 30
+mod6conform_threads: 30
+mod6conform_mem: "90g"
+mod6impute_threads: 30
 
 # parameters to finalize core
 # core_mind: 0.02
