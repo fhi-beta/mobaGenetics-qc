@@ -1,16 +1,16 @@
-# work in progress...
-rule mod7_merge:
-    input:
-        bed_files = expand(str(tmpMod6 / "{batch}" / "all_samples" / "mod6_output.chr{chr}.bed"), batch=['snp008'], chr=['18', '19']),
-        bim_files = expand(str(tmpMod6 / "{batch}" / "all_samples" / "mod6_output.chr{chr}.bim"), batch=['snp008'], chr=['18', '19']),
-        fam_files = expand(str(tmpMod6 / "{batch}" / "all_samples" / "mod6_output.chr{chr}.fam"), batch=['snp008'], chr=['18', '19'])
-    output:
-        bedset = multiext(str(tmpMod7 / "all_samples" / "mod7_merge"), ".bed", ".bim", ".fam")
-        bed = str(tmpMod7 / "all_samples" / "mod7_merge.bed")
-    shell:
-        """
-        output_full={output.bedset[0]}
-        outTrunk="${{output_full%.bed}}"
-        bed_list=$(echo {input.bed_files} | tr ' ' '\n' | sed 's/.bed$//')
-        {plink2local} --bfile $(echo $bed_list | tr '\n' ' ' | sed 's/ / --bfile /g') --merge-list $bed_list --make-bed --out $outTrunk
-        """
+# # work in progress...
+# rule mod7_merge:
+#     input:
+#         bed_files = expand(str(tmpMod6 / "{batch}" / "all_samples" / "mod6_output.chr{chr}.bed"), batch=['snp008'], chr=['18', '19']),
+#         bim_files = expand(str(tmpMod6 / "{batch}" / "all_samples" / "mod6_output.chr{chr}.bim"), batch=['snp008'], chr=['18', '19']),
+#         fam_files = expand(str(tmpMod6 / "{batch}" / "all_samples" / "mod6_output.chr{chr}.fam"), batch=['snp008'], chr=['18', '19'])
+#     output:
+#         bedset = multiext(str(tmpMod7 / "all_samples" / "mod7_merge"), ".bed", ".bim", ".fam")
+#         bed = str(tmpMod7 / "all_samples" / "mod7_merge.bed")
+#     shell:
+#         """
+#         output_full={output.bedset[0]}
+#         outTrunk="${{output_full%.bed}}"
+#         bed_list=$(echo {input.bed_files} | tr ' ' '\n' | sed 's/.bed$//')
+#         {plink2local} --bfile $(echo $bed_list | tr '\n' ' ' | sed 's/ / --bfile /g') --merge-list $bed_list --make-bed --out $outTrunk
+#         """
