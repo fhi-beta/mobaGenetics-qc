@@ -6,6 +6,7 @@ rule mod7_merge:
         fam_files = expand(str(tmpMod6 / "{batch}" / "all_samples" / "mod6_output.chr{chr}.fam"), batch=batches_debug, chr=chrs)
     output:
         bedset = multiext(str(tmpMod7 / "all_samples" / "mod7_merge"), ".bed", ".bim", ".fam")
+        bed = str(tmpMod7 / "all_samples" / "mod7_merge.bed")
     shell:
         """
         output_full={output.bedset[0]}
