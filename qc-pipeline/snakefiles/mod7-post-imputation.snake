@@ -1,11 +1,11 @@
 # work in progress...
 rule mod7_merge:
     input:
-        bed_files = expand(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output.chr{chr}.bed"), batch=batches_debug, chr=chrs),
-        bim_files = expand(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output.chr{chr}.bim"), batch=batches_debug, chr=chrs),
-        fam_files = expand(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output.chr{chr}.fam"), batch=batches_debug, chr=chrs)
+        bed_files = expand(str(tmpMod6 / "{batch}" / "all_samples" / "mod6_output.chr{chr}.bed"), batch=batches_debug, chr=chrs),
+        bim_files = expand(str(tmpMod6 / "{batch}" / "all_samples" / "mod6_output.chr{chr}.bim"), batch=batches_debug, chr=chrs),
+        fam_files = expand(str(tmpMod6 / "{batch}" / "all_samples" / "mod6_output.chr{chr}.fam"), batch=batches_debug, chr=chrs)
     output:
-        bedset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge"), ".bed", ".bim", ".fam")
+        bedset = multiext(str(tmpMod7 / "all_samples" / "mod7_merge"), ".bed", ".bim", ".fam")
     shell:
         """
         output_full={output.bedset[0]}
