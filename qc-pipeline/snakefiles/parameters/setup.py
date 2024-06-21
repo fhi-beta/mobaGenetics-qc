@@ -26,9 +26,6 @@ if not os.path.exists(resultPath):
     os.makedirs(resultPath)
 
 for batch in batches:
-    batch_folder = os.path.join(config['output_base'], batch)
-    if not os.path.isdir(batch_folder):
-        os.mkdir(batch_folder)
 
     batch_folder = os.path.join(tmp_path, batch)
     if not os.path.isdir(batch_folder):
