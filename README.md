@@ -1,20 +1,21 @@
+[![License: GPL v3](https://img.shields.io/badge/License-GPLv3-blue.svg)](https://www.gnu.org/licenses/gpl-3.0)
+
 ## MoBa Genetics QC
+This reposirtory contains code and resources that were used for the quality control of genotyping data from the [Norwegian Mother, Father and Child Cohort Study (MoBa)](https://www.fhi.no/en/studies/moba/).
 
-This reposirtory contains code and resources that were used for the quality control of genetics data from the [Norwegian Mother, Father and Child Cohort Study (MoBa)](https://www.fhi.no/en/studies/moba/).
+### Content
+- [Phenotypes](phenotypes/readme.md): this folder contains code and resources for the handling of phenotypes used in the pipeline.
+- [QC Pipeline](qc-pipeline/readme.md): this folder contains code, resources, and documentation for the QC pipeline
+- [Qaranteen](quaranteen/readme.md): this folder contains general executables and resources.
 
-## Content
+### Issues and suggestions
+If despite our efforts at enforcing good practices in our work, you encounter issues or have suggestions of improvement, please use our [issue tracker](https://github.com/fhi-beta/mobaGenetics-qc/issues).
 
-- The QC pipeline for methylation data is available under [methylation](methylation/README.md)
+### Credits
+This repository is maintained by the Genetics and Bioinformatics department of the [Norwegian Insitute of Public Health](https://www.fhi.no/om/organisasjon/genetikk-og-bioinformatikk/).
 
-- The QC pipeline for SNP array data is available under [qc-pipeline](qc-pipeline/README.md)
+### License
+The code and resources generated for the QC pipeline is freely available under the permissive [GNU General Public License v3.0](LICENSE). Other licenses might apply for external components of the pipeline. No copyright infringement intended.
 
-
-## Credits
-
-This repository is maintained by the by the Genetics and Bioinformatics department of the [Norwegian Insitute of Public Health](https://www.fhi.no/om/organisasjon/genetikk-og-bioinformatikk/).
-
-
-## Issues and suggestions
-
-Please use our [issue tracker](https://github.com/fhi-beta/mobaGenetics-qc/issues) to submit issues or suggestions.
-
+### Code of Conduct
+As part of our efforts toward delivering open and inclusive science, we follow the [Contributor Convenant](https://www.contributor-covenant.org/) [Code of Conduct for Open Source Projects](CODE_OF_CONDUCT.md).

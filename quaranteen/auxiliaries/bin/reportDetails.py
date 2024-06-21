@@ -61,7 +61,7 @@ def main(argv):
 
     """
 
-    result_dir = "."
+    result_dir = ""
     files_to_check = "markers.csv"
     parser = argparse.ArgumentParser(description='Reports on what rules in the QC did what to a sample/marker')
     parser.add_argument("--resultdir","-r", default=result_dir, help=f"A direcory containing QC results (default {result_dir}). Prefix to all files listet in configfile")
