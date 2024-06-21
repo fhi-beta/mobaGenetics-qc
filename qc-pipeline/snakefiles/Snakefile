@@ -36,7 +36,7 @@ import mobaQcTools as mqc
 # Pipeline variables and setup
 include: "parameters/variables.py"
 include: "parameters/batch_details.py"
-include: "parameters/setup.py"
+include: "utils/setup.py"
 
 # Ensure bash as shell
 shell.executable("/bin/bash")
