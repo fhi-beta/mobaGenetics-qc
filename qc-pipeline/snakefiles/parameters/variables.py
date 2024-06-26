@@ -43,7 +43,7 @@ resultPath = base/'results'
 ### Batch settings
 batches = ['snp001', 'snp002', 'snp003', 'snp007', 'snp008', 'snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018c', 'snp018d', 'snp018e']
 batches = ['snp007', 'snp008', 'snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018c', 'snp018de'] # Checked up to module 4
-batches = ['snp009']
+batches = ['snp007', 'snp008', 'snp009']
 # Notes:
 # - Batch 1-3 all SNPs removed after merging with ref - no common SNPs?
 # - Batches 18ab fail the split, check the selection criteria.
