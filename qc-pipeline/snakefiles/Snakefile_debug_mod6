@@ -38,7 +38,6 @@ configfile: "parameters/config.yaml"
 # Pipeline variables and setup
 include: "parameters/variables.py"
 include: "parameters/batch_details.py"
-include: "parameters/setup.py"
 
 # Ensure bash as shell
 shell.executable("/bin/bash")
