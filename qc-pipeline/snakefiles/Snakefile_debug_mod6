@@ -38,7 +38,6 @@ configfile: "parameters/config.yaml"
 # Pipeline variables and setup
 include: "parameters/variables.py"
 include: "parameters/batch_details.py"
-include: "parameters/setup.py"
 
 # Ensure bash as shell
 shell.executable("/bin/bash")
@@ -67,8 +66,8 @@ include: "mod6-imputation.snake"
 # include: "mod7-post-imputation.snake"
 
 # Debug code
-batches_debug = ['snp010']
-chrs = ['18', '19', '20', '21']
+batches_debug = ['snp007', 'snp008']
+chrs = ['4', '5']
 
 # rule all, lists the output of every module
 rule all:
