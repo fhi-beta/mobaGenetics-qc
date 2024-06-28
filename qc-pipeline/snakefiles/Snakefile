@@ -20,8 +20,6 @@ import math
 import sys
 import yaml
 import io
-import gzip
-import shutil
 import os
 matplotlib.use('Agg')
 from shutil import copyfile

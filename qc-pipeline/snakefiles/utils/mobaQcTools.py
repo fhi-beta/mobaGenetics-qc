@@ -13,6 +13,8 @@ from datetime import datetime
 from shutil import copyfile
 import inspect    # to find stack-info, such as the functions name
 import matplotlib
+import gzip
+import shutil
 matplotlib.use('Agg')
 
 
