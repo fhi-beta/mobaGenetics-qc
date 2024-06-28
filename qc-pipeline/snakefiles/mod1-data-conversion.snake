@@ -140,28 +140,20 @@ rule update_ab_alleles:
 
             if allele_mapping_file != "None":
 
-                tempTrunk = outTrunk + "_temp"
-
                 subprocess.run(
                     [
                         plinklocal,
                         "--bfile", inTrunk,
                         "--update-alleles", allele_mapping_file,
-                        "--out", tempTrunk,
+                        "--out", outTrunk,
                         "--make-bed"
                     ],
                     check=True
                 )
 
-                subprocess.run(
-                    [
-                        plinklocal,
-                        "--bfile", tempTrunk,
-                        "--extract", allele_mapping_file,
-                        "--out", outTrunk,
-                        "--make-bed"
-                    ],
-                    check=True
+                mqc.copy_bedset(
+                    outTrunk,
+                    outTrunk + "_debug"
                 )
 
                 raise Exception("Alleles updated")
