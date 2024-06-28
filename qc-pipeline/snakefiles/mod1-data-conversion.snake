@@ -141,7 +141,7 @@ rule update_ab_alleles:
             if allele_mapping_file != "None":
 
                 temp_mapping_file = os.path.join(tmpMod1, wildcards.batch, allele_mapping_file[:-3])
-                mqc.extract_gz(allele_mapping_file, tmpMod1, temp_mapping_file)
+                mqc.extract_gz(allele_mapping_file, temp_mapping_file)
 
                 subprocess.run(
                     [
