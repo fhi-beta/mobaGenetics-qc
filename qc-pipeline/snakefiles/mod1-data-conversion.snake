@@ -140,11 +140,14 @@ rule update_ab_alleles:
 
             if allele_mapping_file != "None":
 
+                temp_mapping_file = os.path.join(tmpMod1, wildcards.batch, allele_mapping_file[:-3])
+                extract_gz(allele_mapping_file, tmpMod1, temp_mapping_file)
+
                 subprocess.run(
                     [
                         plinklocal,
                         "--bfile", inTrunk,
-                        "--update-alleles", allele_mapping_file,
+                        "--update-alleles", temp_mapping_file,
                         "--out", outTrunk,
                         "--make-bed"
                     ],
@@ -156,8 +159,6 @@ rule update_ab_alleles:
                     outTrunk + "_debug"
                 )
 
-                raise Exception("Alleles updated")
-
             else:
 
                 mqc.copy_bedset(
@@ -168,6 +169,8 @@ rule update_ab_alleles:
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
             print(e)
+
+        raise Exception("Alleles updated")
 
 # Convert the strand from top to forward
 rule_stem = 'update_strand'
