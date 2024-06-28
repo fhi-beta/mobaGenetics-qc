@@ -17,7 +17,7 @@ def getInitialBeds(batch):
         )
     return paths
 
-rule_stem = 'initial_merge'
+rule_stem = 'initial_merge' # Note: at this stage, the batches merged need to have identical formatting, e.g. regarding alleles and chromosomes.
 rule initial_merge:
     input:
         beds = lambda wildcards: getInitialBeds(wildcards.batch)
@@ -122,10 +122,9 @@ rule remove_chr0:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
-# If this has not been done before, extract the pseudo-autosomal region of the X chromosome.
-# Note: this should be run before merging batches.
-rule_stem = 'split_x'
-rule split_x:
+# Convert the alleles for batches in A/B format
+rule_stem = 'update_ab_alleles'
+rule update_ab_alleles:
     input:
         bedset = rules.remove_chr0.output.bedset
     output:
@@ -136,27 +135,252 @@ rule split_x:
 
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
+
+            allele_mapping_file = getAbAlleleMappingFile(wildcards.batch)
+
+            if allele_mapping_file != "None":
+
+                tempTrunk = outTrunk + "_temp"
+
+                subprocess.run(
+                    [
+                        plinklocal,
+                        "--bfile", inTrunk,
+                        "--update-alleles", allele_mapping_file,
+                        "--out", tempTrunk,
+                        "--make-bed"
+                    ],
+                    check=True
+                )
+
+                subprocess.run(
+                    [
+                        plinklocal,
+                        "--bfile", tempTrunk,
+                        "--extract", allele_mapping_file,
+                        "--out", outTrunk,
+                        "--make-bed"
+                    ],
+                    check=True
+                )
+
+                raise Exception("Alleles updated")
+
+            else:
+
+                mqc.copy_bedset(
+                    inTrunk,
+                    outTrunk
+                )
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+# Convert the strand from top to forward
+rule_stem = 'update_strand'
+rule update_strand:
+    input:
+        bedset = rules.update_ab_alleles.output.bedset
+    output:
+        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam')
+    threads: 1
+    run:
+        try:
+
+            inTrunk = mqc.plinkBase(input.bedset[0])
+            outTrunk = mqc.plinkBase(output.bedset[0])
+
+            strand_mapping_file = getStrandMappingFile(wildcards.batch)
+
+            if strand_mapping_file != "None":
+
+                strand_mapping_table = pd.read_csv(
+                    strand_mapping_file,
+                    delimiter = '\t'
+                )
+
+                # Update chr
+                strand_mapping_table_chr = strand_mapping_table.iloc[:, [0, 1]]
+                mapping_file = outTrunk + "_mapping_chr"
+                tempTrunkChr = outTrunk + "_tempChr"
+                strand_mapping_table_chr.to_csv(
+                    mapping_file,
+                    sep = ' ',
+                    index = False,
+                    header = False
+                )
+
+                subprocess.run(
+                    [
+                        plinklocal,
+                        "--bfile", inTrunk,
+                        "--update-chr", mapping_file,
+                        "--out", tempTrunkChr,
+                        "--make-bed"
+                    ],
+                    check=True
+                )
+
+                # Update pos
+                strand_mapping_table_pos = strand_mapping_table.iloc[:, [0, 2]]
+                mapping_file = outTrunk + "_mapping_pos"
+                tempTrunkPos = outTrunk + "_tempPos"
+                strand_mapping_table_pos.to_csv(
+                    mapping_file,
+                    sep = ' ',
+                    index = False,
+                    header = False
+                )
+
+                subprocess.run(
+                    [
+                        plinklocal,
+                        "--bfile", tempTrunkChr,
+                        "--update-map", mapping_file,
+                        "--out", tempTrunkPos,
+                        "--make-bed"
+                    ],
+                    check=True
+                )
+
+                # Update flip
+                strand_mapping_table_flip = strand_mapping_table[strand_mapping_table.iloc[:, 4].str.contains('-')].iloc[:, 0]
+                mapping_file = outTrunk + "_flip"
+                tempTrunkFlip = outTrunk + "_tempFlip"
+                strand_mapping_table_pos.to_csv(
+                    mapping_file,
+                    sep = ' ',
+                    index = False,
+                    header = False
+                )
+
+                subprocess.run(
+                    [
+                        plinklocal,
+                        "--bfile", tempTrunkPos,
+                        "--flip", mapping_file,
+                        "--out", tempTrunkFlip,
+                        "--make-bed"
+                    ],
+                    check=True
+                )
+
+                # Exlude variants that are not in the mapping file
+                subprocess.run(
+                    [
+                        plinklocal,
+                        "--bfile", tempTrunkFlip,
+                        "--extract", strand_mapping_file,
+                        "--out", outTrunk,
+                        "--make-bed"
+                    ],
+                    check=True
+                )
+
+                raise Exception("Strand updated")
+
+
+            else:
+
+                mqc.copy_bedset(
+                    inTrunk,
+                    outTrunk
+                )
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+# Exclude blacklisted variants
+rule_stem = 'black_list'
+rule black_list:
+    input:
+        bedset = rules.update_strand.output.bedset
+    output:
+        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam')
+    threads: 1
+    run:
+        try:
+
+            inTrunk = mqc.plinkBase(input.bedset[0])
+            outTrunk = mqc.plinkBase(output.bedset[0])
+
+            black_list_files = getBlackListFiles(wildcards.batch)
+
+            if len(black_list_files) > 0:
+
+                previousTrunk = inTrunk
+
+                for i in range(1, len(black_list_files)):
+
+                    black_list_file = black_list_files[i]
+
+                    if i == len(black_list_files) - 1:
+                        tempTrunk = outTrunk
+                    else:
+                        tempTrunk = outTrunk + "_temp" + str(i)
+
+                    subprocess.run(
+                        [
+                            plinklocal,
+                            "--bfile", previousTrunk,
+                            "--exclude", black_list_file,
+                            "--out", tempTrunk,
+                            "--make-bed"
+                        ],
+                        check=True
+                    )
+
+                    previousTrunk = tempTrunk
+
+                raise Exception("blacklists applied")
+
+            else:
+
+                mqc.copy_bedset(
+                    inTrunk,
+                    outTrunk
+                )
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+
+# If this has not been done before, extract the pseudo-autosomal region of the X chromosome.
+rule_stem = 'split_x'
+rule split_x:
+    input:
+        bedset = rules.black_list.output.bedset
+    output:
+        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam')
+    threads: 1
+    run:
+        try:
+
+            inTrunk = mqc.plinkBase(input.bedset[0])
+            outTrunk = mqc.plinkBase(output.bedset[0])
             freqTrunk = mqc.plinkBase(input.bedset[0]) + '_freq'
 
-            print(inTrunk)
             freq_data = mqc.get_freq_data(
                 inTrunk = inTrunk,
                 outTrunk = freqTrunk,
                 plinklocal = plinklocal
             )
-            chromosomes = freq_data['CHR'].unique()
 
-            print("*** Debug ***")
-            chromosomes_string = ','.join(map(str, chromosomes.flatten()))
-            print("Chromosomes: ", chromosomes_string)
-            print("*************")
+            # print("*** Debug ***")
+            # chromosomes = freq_data['CHR'].unique()
+            # chromosomes_string = ','.join(map(str, chromosomes.flatten()))
+            # print("Chromosomes: ", chromosomes_string)
+            # print("*************")
 
             if not 25 in chromosomes:
 
                 subprocess.run(
                     [
                         plinklocal,
-                        "--bfile",inTrunk,
+                        "--bfile", inTrunk,
                         "--split-x", "b37",
                         "--out", outTrunk,
                         "--make-bed"
@@ -180,12 +404,12 @@ rule split_x:
                 outTrunk = freqTrunk,
                 plinklocal = plinklocal
             )
-            chromosomes = freq_data['CHR'].unique()
 
-            print("*** Debug ***")
-            chromosomes_string = ','.join(map(str, chromosomes.flatten()))
-            print("Chromosomes: ", chromosomes_string)
-            print("*************")
+            # print("*** Debug ***")
+            # chromosomes = freq_data['CHR'].unique()
+            # chromosomes_string = ','.join(map(str, chromosomes.flatten()))
+            # print("Chromosomes: ", chromosomes_string)
+            # print("*************")
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")

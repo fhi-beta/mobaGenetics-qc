@@ -157,11 +157,7 @@ rule split_founders_offspring:
 
             populations = getFoundersOffspring(wildcards.batch)
 
-            print(populations)
-
             if len(populations) == 2:
-
-                print("split")
 
                 subprocess.run(
                     [

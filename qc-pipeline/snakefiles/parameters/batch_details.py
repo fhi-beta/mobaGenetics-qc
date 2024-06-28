@@ -82,6 +82,24 @@ batch_founders_offspring = {
     "snp018de": "founders"
 }
 
+batch_ab_allele_mapping_files = {
+    "snp001": "resources/ab_conversion/HumanCoreExome-12v1-1_B.update_alleles.txt.gz",
+    "snp002": "resources/ab_conversion/HumanCoreExome-12v1-1_B.update_alleles.txt.gz",
+    "snp003": "resources/ab_conversion/HumanCoreExome-24v1-0_A.update_alleles.txt.gz"
+}
+
+batch_strand_mapping_files = {
+    "snp001": "resources/ab_conversion/HumanCoreExome-12v1-1_B-b37.Ilmn_chr.strand.gz",
+    "snp002": "resources/ab_conversion/HumanCoreExome-12v1-1_B-b37.Ilmn_chr.strand.gz",
+    "snp003": "resources/ab_conversion/HumanCoreExome-24v1-0_A-b37.Ilmn_chr.strand.gz"
+}
+
+batch_exclusion_files = {
+    "snp001": ["resources/excplusion_harvest/CHARGE_ExomeChip_v1.0_Excluded_Variants.txt", "pchip_blackList_dec2015_stripped.txt"],
+    "snp002": ["resources/excplusion_harvest/CHARGE_ExomeChip_v1.0_Excluded_Variants.txt", "pchip_blackList_dec2015_stripped.txt"],
+    "snp003": ["resources/excplusion_harvest/CHARGE_ExomeChip_v1.0_Excluded_Variants.txt", "pchip_blackList_dec2015_stripped.txt"]
+}
+
 initial_batch_merging = {
     "snp018de": ["snp018d", "snp018e"]
 }
@@ -92,6 +110,18 @@ def getInitialMerging(batch):
         return initial_batch_merging[batch]
     else:
         return [batch]
+
+# Returns the file needed for AB allele mapping, "None" if no mapping is needed.
+def getAbAlleleMappingFile(batch):
+    return batch_ab_allele_mapping_files.get(batch, "None")
+
+# Returns the file needed for strand mapping, "None" if no mapping is needed.
+def getStrandMappingFile(batch):
+    return batch_strand_mapping_files.get(batch, "None")
+
+# Returns a list of variant exclusion files
+def getBlackListFiles(batch):
+    return batch_exclusion_files.get(batch, [])
 
 # Indicates whether only founders or both founders and offspring need to be QCed
 def getFoundersOffspring(batch):
@@ -106,23 +136,14 @@ def getChip(batch):
 
 # Returns the snp table of a given batch
 def getSnpTable(batch):
-    if batch in batch_snp_table:
-        return batch_snp_table[batch]
-    else:
-        return "utils/dummy"
+    return batch_snp_table.get(batch, "utils/dummy")
 
 # Returns the column for cluster separation in a given snp table
 def getClusterSeparationColumn(batch):
-    if batch in batch_cluster_sep_col_name:
-        return batch_cluster_sep_col_name[batch]
-    else:
-        return "None"
+    return batch_cluster_sep_col_name.get(batch, "None")
 
 # Returns the column for cluster separation in a given snp table
 def getAaThetaDevColumn(batch):
-    if batch in batch_aa_theta_dev_col_name:
-        return batch_aa_theta_dev_col_name[batch]
-    else:
-        return "None"
+    return batch_aa_theta_dev_col_name.get(batch, "None")
 
 

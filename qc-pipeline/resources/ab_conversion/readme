@@ -1,0 +1,1 @@
+This folder contains files used to convert alleles from AB top format to ACTG forward. Files were obtained from Will Rayner's website (https://www.chg.ox.ac.uk/~wrayner/strand/ilmnStrand/index.html) and chromosome codes updated to plink numeric.
