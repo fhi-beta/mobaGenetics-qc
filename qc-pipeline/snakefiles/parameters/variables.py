@@ -17,7 +17,8 @@ flashpca = Path(os.path.dirname(workflow.basedir))/'bin'/'flashpca_x86-64'
 kinglocal = Path(os.path.dirname(workflow.basedir))/'bin'/'Linux-king'/'king'
 
 # Resources
-high_ld_regions_hg19 = Path(os.path.dirname(workflow.basedir))/'resources'/'high-ld-regions-hg19'
+resources_folder = Path(os.path.dirname(workflow.basedir))/'resources'
+high_ld_regions_hg19 = resources_folder/'high-ld-regions-hg19'
 hrc_sites = Path(config['hrc_sites'])
 mapfiles = Path(config['mapfiles'])
 exclude_variants = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'resources/exclude_variants.txt')) # used to exclude variants with missing IDs

@@ -136,7 +136,7 @@ rule update_ab_alleles:
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
 
-            allele_mapping_file = getAbAlleleMappingFile(wildcards.batch)
+            allele_mapping_file = os.path.join(resources_folder, getAbAlleleMappingFile(wildcards.batch))
 
             if allele_mapping_file != "None":
 
@@ -191,7 +191,7 @@ rule update_strand:
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
 
-            strand_mapping_file = getStrandMappingFile(wildcards.batch)
+            strand_mapping_file = os.path.join(resources_folder, getStrandMappingFile(wildcards.batch))
 
             if strand_mapping_file != "None":
 

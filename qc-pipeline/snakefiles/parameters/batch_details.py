@@ -83,21 +83,21 @@ batch_founders_offspring = {
 }
 
 batch_ab_allele_mapping_files = {
-    "snp001": "resources/ab_conversion/HumanCoreExome-12v1-1_B.update_alleles.txt.gz",
-    "snp002": "resources/ab_conversion/HumanCoreExome-12v1-1_B.update_alleles.txt.gz",
-    "snp003": "resources/ab_conversion/HumanCoreExome-24v1-0_A.update_alleles.txt.gz"
+    "snp001": "ab_conversion/HumanCoreExome-12v1-1_B.update_alleles.txt.gz",
+    "snp002": "ab_conversion/HumanCoreExome-12v1-1_B.update_alleles.txt.gz",
+    "snp003": "ab_conversion/HumanCoreExome-24v1-0_A.update_alleles.txt.gz"
 }
 
 batch_strand_mapping_files = {
-    "snp001": "resources/ab_conversion/HumanCoreExome-12v1-1_B-b37.Ilmn_chr.strand.gz",
-    "snp002": "resources/ab_conversion/HumanCoreExome-12v1-1_B-b37.Ilmn_chr.strand.gz",
-    "snp003": "resources/ab_conversion/HumanCoreExome-24v1-0_A-b37.Ilmn_chr.strand.gz"
+    "snp001": "ab_conversion/HumanCoreExome-12v1-1_B-b37.Ilmn_chr.strand.gz",
+    "snp002": "ab_conversion/HumanCoreExome-12v1-1_B-b37.Ilmn_chr.strand.gz",
+    "snp003": "ab_conversion/HumanCoreExome-24v1-0_A-b37.Ilmn_chr.strand.gz"
 }
 
 batch_exclusion_files = {
-    "snp001": ["resources/excplusion_harvest/CHARGE_ExomeChip_v1.0_Excluded_Variants.txt", "pchip_blackList_dec2015_stripped.txt"],
-    "snp002": ["resources/excplusion_harvest/CHARGE_ExomeChip_v1.0_Excluded_Variants.txt", "pchip_blackList_dec2015_stripped.txt"],
-    "snp003": ["resources/excplusion_harvest/CHARGE_ExomeChip_v1.0_Excluded_Variants.txt", "pchip_blackList_dec2015_stripped.txt"]
+    "snp001": ["exclusion_harvest/CHARGE_ExomeChip_v1.0_Excluded_Variants.txt", "exclusion_harvest/pchip_blackList_dec2015_stripped.txt"],
+    "snp002": ["exclusion_harvest/CHARGE_ExomeChip_v1.0_Excluded_Variants.txt", "exclusion_harvest/pchip_blackList_dec2015_stripped.txt"],
+    "snp003": ["exclusion_harvest/CHARGE_ExomeChip_v1.0_Excluded_Variants.txt", "exclusion_harvest/pchip_blackList_dec2015_stripped.txt"]
 }
 
 initial_batch_merging = {
