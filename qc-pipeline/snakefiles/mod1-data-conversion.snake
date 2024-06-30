@@ -360,9 +360,9 @@ rule split_x:
                 outTrunk = freqTrunk,
                 plinklocal = plinklocal
             )
+            chromosomes = freq_data['CHR'].unique()
 
             # print("*** Debug ***")
-            # chromosomes = freq_data['CHR'].unique()
             # chromosomes_string = ','.join(map(str, chromosomes.flatten()))
             # print("Chromosomes: ", chromosomes_string)
             # print("*************")
@@ -389,7 +389,6 @@ rule split_x:
                     outTrunk
                 )
 
-            print(inTrunk)
             freqTrunk = mqc.plinkBase(output.bedset[0]) + '_freq'
             freq_data = mqc.get_freq_data(
                 inTrunk = outTrunk,
