@@ -340,8 +340,6 @@ rule black_list:
             print(e)
 
 
-        raise Exception("blacklists applied")
-
 # If this has not been done before, extract the pseudo-autosomal region of the X chromosome.
 rule_stem = 'split_x'
 rule split_x:
