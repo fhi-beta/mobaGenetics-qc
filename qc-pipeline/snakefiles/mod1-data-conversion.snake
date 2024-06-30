@@ -286,8 +286,6 @@ rule update_strand:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
-        raise Exception("Strand updated")
-
 # Exclude blacklisted variants
 rule_stem = 'black_list'
 rule black_list:
@@ -330,8 +328,6 @@ rule black_list:
 
                     previousTrunk = tempTrunk
 
-                raise Exception("blacklists applied")
-
             else:
 
                 mqc.copy_bedset(
@@ -343,6 +339,8 @@ rule black_list:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
+
+        raise Exception("blacklists applied")
 
 # If this has not been done before, extract the pseudo-autosomal region of the X chromosome.
 rule_stem = 'split_x'
