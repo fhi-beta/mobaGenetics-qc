@@ -154,11 +154,6 @@ rule update_ab_alleles:
                     check=True
                 )
 
-                mqc.copy_bedset(
-                    outTrunk,
-                    outTrunk + "_debug"
-                )
-
             else:
 
                 mqc.copy_bedset(
@@ -169,8 +164,6 @@ rule update_ab_alleles:
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
             print(e)
-
-        raise Exception("Alleles updated")
 
 # Convert the strand from top to forward
 rule_stem = 'update_strand'
@@ -273,8 +266,6 @@ rule update_strand:
                     check=True
                 )
 
-                raise Exception("Strand updated")
-
 
             else:
 
@@ -286,6 +277,8 @@ rule update_strand:
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
             print(e)
+
+        raise Exception("Strand updated")
 
 # Exclude blacklisted variants
 rule_stem = 'black_list'
