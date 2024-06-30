@@ -306,7 +306,7 @@ rule black_list:
 
                 previousTrunk = inTrunk
 
-                for i in range(1, len(black_list_files)):
+                for i in range(0, len(black_list_files)):
 
                     black_list_file = os.path.join(resources_folder, black_list_files[i])
 
