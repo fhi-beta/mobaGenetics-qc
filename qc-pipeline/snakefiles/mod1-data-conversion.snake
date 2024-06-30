@@ -236,7 +236,7 @@ rule update_strand:
                 strand_mapping_table_flip = strand_mapping_table[strand_mapping_table.iloc[:, 4].str.contains('-')].iloc[:, 0]
                 mapping_file = outTrunk + "_flip"
                 tempTrunkFlip = outTrunk + "_tempFlip"
-                strand_mapping_table_pos.to_csv(
+                strand_mapping_table_flip.to_csv(
                     mapping_file,
                     sep = ' ',
                     index = False,
@@ -255,11 +255,19 @@ rule update_strand:
                 )
 
                 # Exlude variants that are not in the mapping file
+                strand_mapping_table_ids = strand_mapping_table.iloc[:, 0]
+                ids_file = outTrunk + "_mapping_ids"
+                strand_mapping_table_ids.to_csv(
+                    ids_file,
+                    sep = ' ',
+                    index = False,
+                    header = False
+                )
                 subprocess.run(
                     [
                         plinklocal,
                         "--bfile", tempTrunkFlip,
-                        "--extract", strand_mapping_file,
+                        "--extract", ids_file,
                         "--out", outTrunk,
                         "--make-bed"
                     ],
