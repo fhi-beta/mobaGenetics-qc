@@ -7,10 +7,10 @@ Relatedness filtering, {length(ids)} individuals.
 ![](ibd_accum/kinship_density.png)
 - Cummulative positive kinship
 ![](ibd_accum/cumulated_kinship_density.png)
-Percolation of the relatedness graph using a Kinship threshold of 0.1: 2729 excluded, 5601 remaining.
+Percolation of the relatedness graph using a Kinship threshold of 0.1: 1521 excluded, 3920 remaining.
 ## Relatedness after relatedness filtering
 - Pairwise kinship
 ![](ibd_accum/kinship_density_unrelated.png)
 - Cummulative positive kinship
 ![](ibd_accum/cumulated_kinship_density_unrelated.png)
-Removal of samples with accumulated kinship using threshold of 0.015: 0 excluded, 5601 remaining.
+Removal of samples with accumulated kinship using threshold of 0.015: 0 excluded, 3920 remaining.
