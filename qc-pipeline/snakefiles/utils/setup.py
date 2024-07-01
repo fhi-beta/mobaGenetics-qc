@@ -4,6 +4,9 @@
 if not os.path.exists(config['output_base']):
     os.makedirs(config['output_base'])
 
+if not os.path.exists(github_docs):
+    os.makedirs(github_docs)
+
 if not os.path.exists(tmp_path):
     os.makedirs(tmp_path)
 

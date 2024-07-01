@@ -113,19 +113,3 @@ rule all:
         m4_output_good_markers = expand(tmpMod4/ "{batch}" / ("m4_output_good_markers.bed"), batch = batches)
 
 
-
-# Legacy code from Guthorm - for small tests.
-rule test:
-    output: touch("foo")
-    log: "test.log"
-    run:
-        print(config["plinklocal"])
-        #mqc.test_me()
-        print(config["plinklocal"])
-
-# This can be ued to check/log stuff (like available memory). Is run once. 
-# onstart:
-#     print("NOT Starting the baby")
-#     print(rules.test.log)
-
-
