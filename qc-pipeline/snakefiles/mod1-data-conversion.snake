@@ -136,9 +136,10 @@ rule update_ab_alleles:
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
 
-            allele_mapping_file = os.path.join(resources_folder, getAbAlleleMappingFile(wildcards.batch))
+            allele_mapping_file_name = getAbAlleleMappingFile(wildcards.batch)
+            allele_mapping_file = os.path.join(resources_folder, allele_mapping_file_name)
 
-            if allele_mapping_file != "None":
+            if allele_mapping_file_name != "None":
 
                 temp_mapping_file = os.path.join(tmpMod1, wildcards.batch, allele_mapping_file[:-3])
                 mqc.extract_gz(allele_mapping_file, temp_mapping_file)
@@ -179,9 +180,10 @@ rule update_strand:
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
 
-            strand_mapping_file = os.path.join(resources_folder, getStrandMappingFile(wildcards.batch))
+            strand_mapping_file_name = getStrandMappingFile(wildcards.batch)
+            strand_mapping_file = os.path.join(resources_folder, strand_mapping_file_name)
 
-            if strand_mapping_file != "None":
+            if strand_mapping_file_name != "None":
 
                 strand_mapping_table = pd.read_csv(
                     strand_mapping_file,
