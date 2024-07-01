@@ -6,7 +6,7 @@ This reposirtory contains code and resources that were used for the quality cont
 ### Content
 - [Phenotypes](phenotypes/readme.md): this folder contains code and resources for the handling of phenotypes used in the pipeline.
 - [QC Pipeline](qc-pipeline/readme.md): this folder contains code, resources, and documentation for the QC pipeline
-- [Qaranteen](quaranteen/readme.md): this folder contains general executables and resources.
+- [Qaranteen](quarantine/readme.md): this folder contains general executables and resources.
 
 ### Issues and suggestions
 If despite our efforts at enforcing good practices in our work, you encounter issues or have suggestions of improvement, please use our [issue tracker](https://github.com/fhi-beta/mobaGenetics-qc/issues).
