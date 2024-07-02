@@ -67,7 +67,7 @@ include: "mod6-imputation.snake"
 
 # Debug code
 batches_debug = ['snp007']
-chrs = ['21']
+chrs = ['20']
 
 # rule all, lists the output of every module
 rule all:

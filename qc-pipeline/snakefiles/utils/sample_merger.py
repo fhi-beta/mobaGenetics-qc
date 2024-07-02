@@ -1,5 +1,6 @@
 # #drafting some methods for merging batches. Work in progress...
 
+# import pandas as pd
 # def merge_bedsets(file_dict, batches, path):
 #     duplicate_individuals = find_duplicate_individuals(file_dict["fam"], batches, path)
 #     samples_to_remove = choose_samples_to_remove(duplicate_individuals, file_dict)
@@ -56,5 +57,5 @@
 #     n_family_members = fam_df[fam_df["FID"]== FID].shape[0]
 #     return n_family_members > 1
 
-# # def remove_samples(samples_to_remove, path):
-# #     for batch, IID in samples_to_remove.items():
+# def remove_samples(samples_to_remove, path):
+#     for batch, IID in samples_to_remove.items():
