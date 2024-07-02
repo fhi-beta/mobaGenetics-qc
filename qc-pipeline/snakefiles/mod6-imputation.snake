@@ -116,7 +116,7 @@ rule mod6_convert_to_bed:
         outTrunk="${{output_full%.bed}}"
         {plink2local} --vcf {input.imputed_vcf} --make-bed --out $outTrunk
         """
-
+chrs = ['20', '21']
 rule mod6_output:
     input:
         beds = expand(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output.chr{chr}.bed"), chr=chrs)
