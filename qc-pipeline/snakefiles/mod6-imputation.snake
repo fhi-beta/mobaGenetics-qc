@@ -105,7 +105,7 @@ rule mod6_impute:
         """
 
 
-rule mod6_output:
+rule mod6_convert_to_bed:
     input:
         imputed_vcf = rules.mod6_impute.output.imputed_vcf
     output:
@@ -115,4 +115,26 @@ rule mod6_output:
         output_full={output.bedset[0]}
         outTrunk="${{output_full%.bed}}"
         {plink2local} --vcf {input.imputed_vcf} --make-bed --out $outTrunk
+        """
+
+rule mod6_output:
+    input:
+        beds = expand(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output.chr{chr}.bed"), chr=chrs)
+    output:
+        bedset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output"), ".bed", ".bim", ".fam")
+    shell:
+        """
+        # Generate list of files to merge
+        echo {input.beds} | tr ' ' '\n' | sed 's/.bed//' > bed_list.txt
+
+        # First file to merge
+        first_file=$(head -n 1 bed_list.txt)
+        
+        # Remove the first file from the list
+        tail -n +2 bed_list.txt > remaining_files.txt
+        output_full={output.bedset[0]}
+        outTrunk="${{output_full%.bed}}"
+
+        # Merge files with plink
+        {plink2local} --bfile $first_file --merge-list remaining_files.txt --make-bed --out $outTrunk
         """
