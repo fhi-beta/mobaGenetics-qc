@@ -126,16 +126,9 @@ rule mod6_output:
         """
         # Generate list of files to merge
         echo {input.pgens} | tr ' ' '\n' | sed 's/.pgen//' > pgen_list.txt
-
-        # # First file to merge
-        # first_file=$(head -n 1 bed_list.txt)
         
-        # # Remove the first file from the list
-        # tail -n +2 bed_list.txt > remaining_files.txt
         output_full={output.pgenset[0]}
         outTrunk="${{output_full%.pgen}}"
 
-        # Merge files with plink
-        # {plink2local} --bfile $first_file --pmerge-list pgen_list.txt --make-pgen --out $outTrunk
         {plink2local} --pmerge-list pgen_list.txt --make-pgen --out $outTrunk
         """
