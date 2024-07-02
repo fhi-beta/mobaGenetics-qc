@@ -105,36 +105,36 @@ rule mod6_impute:
         """
 
 
-rule mod6_convert_to_bed:
+rule mod6_convert_to_pgen:
     input:
         imputed_vcf = rules.mod6_impute.output.imputed_vcf
     output:
-        bedset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output.chr{chr}"), ".bed", ".bim", ".fam")
+        pgenset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output.chr{chr}"), ".pgen", ".pvar", ".psam")
     shell:
         """
         output_full={output.bedset[0]}
         outTrunk="${{output_full%.bed}}"
-        {plink2local} --vcf {input.imputed_vcf} --make-bed --out $outTrunk
+        {plink2local} --vcf {input.imputed_vcf} --make-pgen --out $outTrunk
         """
 # chrs = ['20', '21']
 rule mod6_output:
     input:
-        beds = expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_output.chr{chr}.bed"), chr=chrs_debug, batch=batches_debug)
+        pgens = expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_output.chr{chr}.pgen"), chr=chrs_debug, batch=batches_debug)
     output:
-        bedset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output"), ".bed", ".bim", ".fam")
+        pgenset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output"), ".pgen", ".pvar", ".psam")
     shell:
         """
         # Generate list of files to merge
-        echo {input.beds} | tr ' ' '\n' | sed 's/.bed//' > bed_list.txt
+        echo {input.pgens} | tr ' ' '\n' | sed 's/.pgen//' > pgen_list.txt
 
-        # First file to merge
-        first_file=$(head -n 1 bed_list.txt)
+        # # First file to merge
+        # first_file=$(head -n 1 bed_list.txt)
         
-        # Remove the first file from the list
-        tail -n +2 bed_list.txt > remaining_files.txt
-        output_full={output.bedset[0]}
-        outTrunk="${{output_full%.bed}}"
+        # # Remove the first file from the list
+        # tail -n +2 bed_list.txt > remaining_files.txt
+        output_full={output.pgenset[0]}
+        outTrunk="${{output_full%.pgen}}"
 
         # Merge files with plink
-        {plink2local} --bfile $first_file --pmerge-list remaining_files.txt --make-bed --out $outTrunk
+        {plink2local} --bfile $first_file --pmerge-list pgen_list.txt --make-pgen --out $outTrunk
         """
