@@ -136,5 +136,5 @@ rule mod6_output:
         outTrunk="${{output_full%.bed}}"
 
         # Merge files with plink
-        {plink2local} --bfile $first_file --merge-list remaining_files.txt --make-bed --out $outTrunk
+        {plink2local} --bfile $first_file --pmerge-list remaining_files.txt --make-bed --out $outTrunk
         """
