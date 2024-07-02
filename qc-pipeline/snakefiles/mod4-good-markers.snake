@@ -155,13 +155,9 @@ rule split_founders_offspring:
             foundersTrunk = mqc.plinkBase(output.bedset_founders[0])
             offspringTrunk = mqc.plinkBase(output.bedset_offspring[0])
 
-            populations = getFoundersOffspring(batch)
-
-            print(populations)
+            populations = getFoundersOffspring(wildcards.batch)
 
             if len(populations) == 2:
-
-                print("split")
 
                 subprocess.run(
                     [

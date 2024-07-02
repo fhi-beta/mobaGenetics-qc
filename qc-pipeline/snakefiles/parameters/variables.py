@@ -17,17 +17,18 @@ flashpca = Path(os.path.dirname(workflow.basedir))/'bin'/'flashpca_x86-64'
 kinglocal = Path(os.path.dirname(workflow.basedir))/'bin'/'Linux-king'/'king'
 
 # Resources
-high_ld_regions_hg19 = Path(os.path.dirname(workflow.basedir))/'resources'/'high-ld-regions-hg19'
+resources_folder = Path(os.path.dirname(workflow.basedir))/'resources'
+high_ld_regions_hg19 = resources_folder/'high-ld-regions-hg19'
 hrc_sites = Path(config['hrc_sites'])
 mapfiles = Path(config['mapfiles'])
 exclude_variants = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'resources/exclude_variants.txt')) # used to exclude variants with missing IDs
 
 # Folder paths
-tmp_path = Path(config['output_base']) / 'tmp'
-runlog = Path(config['output_base']) / 'runlog.txt'
-base = Path(config['output_base'])
+tmp_path = Path(config['output_base']) / config['release'] / 'tmp'
+runlog = Path(config['output_base']) / config['release'] / 'runlog.txt'
+base = Path(config['output_base']) / config['release']
 hrc_ega = Path(config['hrc_ega'])
-github_docs = Path(os.path.dirname(workflow.basedir)) / 'docs'
+github_docs = Path(os.path.dirname(workflow.basedir)) / 'docs' / config['release']
 tmpMod1 = base/'mod1-data-preparation'
 tmpMod2 = base/'mod2-genetic-relationship'
 tmpMod3 = base/'mod3-population-clustering'
@@ -41,12 +42,9 @@ n_samples = config['n_samples']
 resultPath = base/'results'
 
 ### Batch settings
-batches = ['snp001', 'snp002', 'snp003', 'snp007', 'snp008', 'snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018c', 'snp018d', 'snp018e']
-batches = ['snp007', 'snp008', 'snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018c', 'snp018de'] # Checked up to module 4
-batches = ['snp009']
+batches = ['snp001', 'snp002', 'snp003', 'snp007', 'snp008', 'snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018c', 'snp018de']
 # Notes:
-# - Batch 1-3 all SNPs removed after merging with ref - no common SNPs?
-# - Batches 18ab fail the split, check the selection criteria.
+# - Batches 18ab seem to be parent/child only, check the selection criteria.
 # - Batch 13 lacks documentation and needs to be checked for overlap with other batches before being added. Gutorm notes that it probably cannot be included.
 # - Batch 19 needs to be checked for overlap with other batches before being added. Gutorm notes that it probably does not need to be included.
 

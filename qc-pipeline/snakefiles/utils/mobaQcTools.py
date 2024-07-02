@@ -13,6 +13,8 @@ from datetime import datetime
 from shutil import copyfile
 import inspect    # to find stack-info, such as the functions name
 import matplotlib
+import gzip
+import shutil
 matplotlib.use('Agg')
 
 
@@ -905,6 +907,19 @@ def compute_excess_het(het_file, out_file, sd):
         sep = " ",
         index = False
     )
+
+def extract_gz(
+        gzfile,
+        destinationFile
+):
+    """
+    Extract the content of a gzipped file to another file
+    """
+
+    with gzip.open(gzfile, 'rb') as file_in:
+        with open(destinationFile, 'wb') as file_out:
+            shutil.copyfileobj(file_in, file_out)
+
 
 
 def get_freq_data(

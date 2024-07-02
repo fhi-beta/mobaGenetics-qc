@@ -3,7 +3,7 @@
 # This snakefile executes the QC pipeline. The different parts of the pipeline are organized in modules represented in different snake files.
 # The pipeline is expected to run in the conda environment named 'snpQc' built using `auxiliaries/environment/snpQc-env.txt`.
 #
-# Commands to execute from the qc-pipeline folder:
+# Commands to execute from the qc-pipeline/snakefiles folder:
 # conda activate snp_qc
 # snakemake --snakefile Snakefile --cores 16 --use-conda --rerun-incomplete
 #
@@ -20,7 +20,6 @@ import math
 import sys
 import yaml
 import io
-import shutil
 import os
 matplotlib.use('Agg')
 from shutil import copyfile
@@ -112,21 +111,5 @@ rule all:
 
         # Module 4:
         m4_output_good_markers = expand(tmpMod4/ "{batch}" / ("m4_output_good_markers.bed"), batch = batches)
-
-
-
-# Legacy code from Guthorm - for small tests.
-rule test:
-    output: touch("foo")
-    log: "test.log"
-    run:
-        print(config["plinklocal"])
-        #mqc.test_me()
-        print(config["plinklocal"])
-
-# This can be ued to check/log stuff (like available memory). Is run once. 
-# onstart:
-#     print("NOT Starting the baby")
-#     print(rules.test.log)
 
 

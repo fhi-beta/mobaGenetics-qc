@@ -16,9 +16,9 @@
 ## Mother sex check
 | Inferred sex |   |
 | ------------ | - |
-| Unknown | 15 |
+| Unknown | 14 |
 | Male | 2 |
-| Female | 4111 |
+| Female | 4112 |
 
 ![](fam_reconstruction/mother_sex_plot.png)
 ## Father sex check

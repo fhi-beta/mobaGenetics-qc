@@ -676,6 +676,11 @@ write(
   append = T
 )
 write(
+  x = "\n",
+  file = md_file,
+  append = T
+)
+write(
   x = paste0(nrow(child_father_missing), " father-child relationships expected."),
   file = md_file,
   append = T
@@ -687,6 +692,11 @@ write(
 )
 write(
   x = paste0("- ", sum(child_father_missing$genetic_relationship == "Missing"), " (", round(100 * sum(child_father_missing$genetic_relationship == "Missing")/nrow(child_father_missing), digits = 2), "%) not recovered by genetic relationships."),
+  file = md_file,
+  append = T
+)
+write(
+  x = "\n",
   file = md_file,
   append = T
 )
@@ -804,6 +814,11 @@ write(
 )
 write(
   x = paste0("- ", sum(genetic_relationship_match$mismatch == "Missing"), " (", round(100 * sum(genetic_relationship_match$mismatch == "Missing")/nrow(genetic_relationship_match), digits = 2), "%) do not match to registry."),
+  file = md_file,
+  append = T
+)
+write(
+  x = "\n",
   file = md_file,
   append = T
 )
