@@ -113,7 +113,7 @@ rule mod6_convert_to_pgen:
     shell:
         """
         output_full={output.pgenset[0]}
-        outTrunk="${{output_full%.bed}}"
+        outTrunk="${{output_full%.pgen}}"
         {plink2local} --vcf {input.imputed_vcf} --make-pgen --out $outTrunk
         """
 # chrs = ['20', '21']
