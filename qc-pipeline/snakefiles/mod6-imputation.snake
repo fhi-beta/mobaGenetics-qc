@@ -75,13 +75,11 @@ rule mod6_conform:
     threads: config["mod6conform_threads"]
     shell:
         """
-        echo running mod6_conform
+        echo running mod6_conform for chr {wildcards.chr}
         reffile=$(echo {hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes*.vcf.gz)
         output_full={output.conformed_vcf}
         outTrunk="${{output_full%.vcf.gz}}"
-        echo here
         java -Xmx{config[mod6conform_mem]} -jar {conform_gt} gt={input.sorted_vcf} ref=$reffile out=$outTrunk chrom={wildcards.chr} match=POS
-        echo done with chr{wildcards.chr}
         """
 
 rule_stem = "mod6_impute"
@@ -104,19 +102,30 @@ rule mod6_impute:
         bcftools query -f '%POS %REF %ALT %DR2 %AF\n' {output.imputed_vcf} -o ${{outTrunk}}.info
         """
 
+rule mod6_norm:
+    input:
+        imputed_vcf = rules.mod6_impute.output.imputed_vcf
+    output:
+        normalized_vcf = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_norm.chr{chr}.imputed.vcf.gz")
+    conda:
+        "envs/bcf_tabix.yaml"
+    shell:
+        """
+        bcftools -m + {input.imputed_vcf} -o {output.normalized_vcf}
+        """
+
 
 rule mod6_convert_to_pgen:
     input:
-        imputed_vcf = rules.mod6_impute.output.imputed_vcf
+        normalized_vcf_vcf = rules.mod6_norm.output.normalized_vcf_vcf
     output:
         pgenset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output.chr{chr}"), ".pgen", ".pvar", ".psam")
     shell:
         """
         output_full={output.pgenset[0]}
         outTrunk="${{output_full%.pgen}}"
-        {plink2local} --vcf {input.imputed_vcf} --make-pgen --out $outTrunk
+        {plink2local} --vcf {input.normalized_vcf} --make-pgen --out $outTrunk
         """
-# chrs = ['20', '21']
 rule mod6_output:
     input:
         pgens = expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_output.chr{chr}.pgen"), chr=chrs_debug, batch=batches_debug)
@@ -125,10 +134,11 @@ rule mod6_output:
     shell:
         """
         # Generate list of files to merge
-        echo {input.pgens} | tr ' ' '\n' | sed 's/.pgen//' > pgen_list.txt
-        
+        pgenset_dir=$(dirname "{input.pgens[0]}")
+        echo {input.pgens} | tr ' ' '\n' | sed 's/.pgen//' > $pgenset_dir/pgen_list.txt
+
         output_full={output.pgenset[0]}
         outTrunk="${{output_full%.pgen}}"
 
-        {plink2local} --pmerge-list pgen_list.txt --make-pgen --out $outTrunk
+        {plink2local} --pmerge-list $pgenset_dir/pgen_list.txt --make-pgen --out $outTrunk
         """
