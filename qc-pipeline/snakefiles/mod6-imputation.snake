@@ -114,10 +114,9 @@ rule mod6_norm:
         bcftools -m + {input.imputed_vcf} -o {output.normalized_vcf}
         """
 
-
 rule mod6_convert_to_pgen:
     input:
-        normalized_vcf_vcf = rules.mod6_norm.output.normalized_vcf_vcf
+        normalized_vcf = rules.mod6_norm.output.normalized_vcf
     output:
         pgenset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output.chr{chr}"), ".pgen", ".pvar", ".psam")
     shell:
