@@ -111,7 +111,7 @@ rule mod6_norm:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        bcftools -m + {input.imputed_vcf} -o {output.normalized_vcf}
+        bcftools norm -m + {input.imputed_vcf} -o {output.normalized_vcf}
         """
 
 rule mod6_convert_to_pgen:
