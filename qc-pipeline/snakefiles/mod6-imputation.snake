@@ -3,21 +3,11 @@ rule mod6_split_into_chromosomes:
     input:
         bedset = rules.mod5_output.output.bedset
     output:
-        psam = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_split_into_chromosomes.psam"),
         pgenset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_split_into_chromosomes.chr{chr}"), ".pgen", ".pvar", ".psam")
     run:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.pgenset[0])
-            psamOutTrunk = mqc.plinkBase(output.psam)
-            # keep full original .psam file for later
-            subprocess.run(
-                plink2local,
-                "--bfile", inTrunk,
-                "--make-just-psam",
-                "--out", psamOutTrunk
-
-            )
             subprocess.run(
                 [
                     plink2local,
