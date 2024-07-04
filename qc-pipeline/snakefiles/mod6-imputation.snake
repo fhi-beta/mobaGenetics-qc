@@ -3,7 +3,7 @@ rule mod6_split_into_chromosomes:
     input:
         bedset = rules.mod5_output.output.bedset
     output:
-        psam = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_split_into_chromosomes.psam")
+        psam = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_split_into_chromosomes.psam"),
         pgenset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_split_into_chromosomes.chr{chr}"), ".pgen", ".pvar", ".psam")
     run:
         try:
