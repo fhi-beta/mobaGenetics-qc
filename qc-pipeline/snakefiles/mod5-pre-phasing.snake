@@ -417,12 +417,12 @@ rule mod5_output:
                 ]
             )
             # keep full original .psam file for later
-            subprocess.run(
+            subprocess.run([
                 plink2local,
-                "--bfile", inTrunk,
+                "--bfile", outTrunk,
                 "--make-just-psam",
                 "--out", outTrunk
-            )
+            ])
             subprocess.run([
                 plinklocal,
                 "--bfile", outTrunk,
