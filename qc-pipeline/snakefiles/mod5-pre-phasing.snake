@@ -399,7 +399,7 @@ rule mod5_output:
         missing = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".imiss", ".lmiss"),
         het=str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".het")),
         hwe=str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".hwe")),
-        md=str(tmpMod5 / "{batch}"/"{number_of_samples}_samples"/ "report" / "pre_imputation_report.md")
+        md=str(github_docs / "{batch}"/"{number_of_samples}_samples"/ "pre_imputation_report" / "pre_imputation_report.md")
     run:
         try:
             # Exclude duplicates again
