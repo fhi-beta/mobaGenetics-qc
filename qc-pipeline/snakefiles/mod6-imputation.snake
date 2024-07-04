@@ -3,17 +3,27 @@ rule mod6_split_into_chromosomes:
     input:
         bedset = rules.mod5_output.output.bedset
     output:
-        bedset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_split_into_chromosomes.chr{chr}"), ".bed", ".bim", ".fam")
+        psam = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_split_into_chromosomes.psam")
+        pgenset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_split_into_chromosomes.chr{chr}"), ".pgen", ".pvar", ".psam")
     run:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
-            outTrunk = mqc.plinkBase(output.bedset[0])
+            outTrunk = mqc.plinkBase(output.pgenset[0])
+            psamOutTrunk = mqc.plinkBase(output.psam)
+            # keep full original .psam file for later
+            subprocess.run(
+                plink2local,
+                "--bfile", inTrunk,
+                "--make-just-psam",
+                "--out", psamOutTrunk
+
+            )
             subprocess.run(
                 [
-                    plinklocal,
+                    plink2local,
                     "--bfile", inTrunk,
                     "--chr", wildcards.chr,
-                    "--make-bed",
+                    "--make-pgen",
                     "--out", outTrunk
                 ]
             )
@@ -24,12 +34,12 @@ rule mod6_split_into_chromosomes:
 rule_stem = "mod6_create_vcf"
 rule mod6_create_vcf:
     input:
-        bedset = rules.mod6_split_into_chromosomes.output.bedset
+        pgenset = rules.mod6_split_into_chromosomes.output.pgenset
     output:
         vcf = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_create_vcf.chr{chr}.vcf")
     run:
         try:
-            inTrunk = mqc.plinkBase(input.bedset[0])
+            inTrunk = mqc.plinkBase(input.pgenset[0])
             outTrunk = mqc.plinkBase(output.vcf)
             # fam = str(input.bedset[2])
             bim = input.bedset[1]
@@ -50,7 +60,7 @@ rule mod6_create_vcf:
             # create vcf file
             # cmd = f"{plink2local} --bfile {inTrunk} --recode vcf --ref-allele {bim} 5 2 --no-fid --out {outTrunk}"
 
-            cmd = f"{plink2local} --bfile {inTrunk} --recode vcf-iid --ref-allele {bim} 5 2 --out {outTrunk}"
+            cmd = f"{plink2local} --pfile {inTrunk} --recode vcf-iid --ref-allele {bim} 5 2 --out {outTrunk}"
             subprocess.run(cmd, shell = True)
             # copy fam_orig to fam
             # cmd = f"cp {fam_orig} {fam}"
