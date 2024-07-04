@@ -396,7 +396,7 @@ rule mod5_output:
         sexcheck = rules.m4_output_good_markers.output.sexcheck
     output:
         bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam"),
-        psam = str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem + ".psam"),
+        psam = str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".psam")),
         missing = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".imiss", ".lmiss"),
         het=str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".het")),
         hwe=str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".hwe")),
