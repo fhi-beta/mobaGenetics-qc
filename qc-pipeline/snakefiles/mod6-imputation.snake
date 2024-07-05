@@ -142,5 +142,5 @@ rule mod6_output:
         output_full={output.pgenset[0]}
         outTrunk="${{output_full%.pgen}}"
 
-        {plink2local} --pmerge-list $pgenset_dir/pgen_list.txt --make-pgen --out $outTrunk
+        {plink2local} --pmerge-list $pgenset_dir/pgen_list.txt --out $outTrunk
         """
