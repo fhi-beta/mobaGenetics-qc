@@ -47,7 +47,7 @@ batches = ['snp001', 'snp002', 'snp003', 'snp007', 'snp008', 'snp009', 'snp010',
 # - Batches 18ab seem to be parent/child only, check the selection criteria.
 # - Batch 13 lacks documentation and needs to be checked for overlap with other batches before being added. Gutorm notes that it probably cannot be included.
 # - Batch 19 needs to be checked for overlap with other batches before being added. Gutorm notes that it probably does not need to be included.
-batches_debug = ['snp010']
+batches_debug = ['snp011']
 chrs_debug = ['20', '21']
 
 
