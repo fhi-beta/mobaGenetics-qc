@@ -150,6 +150,7 @@ rule mod6_output:
         # add source ID to .psam and restore family information:
         psam_file = input.original_psam
         df = pd.read_csv(psam_file, delim_whitespace=True, dtype={'SEX': 'str'})
+        df["SEX"] = df["SEX"].fillna(0)
         df.insert(2, "SID", wildcards.batch)
         df.to_csv(output.pgenset[2], sep='\t', index=False)
 
