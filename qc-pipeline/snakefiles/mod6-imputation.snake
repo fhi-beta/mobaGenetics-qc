@@ -149,7 +149,7 @@ rule mod6_output:
         subprocess.run(cmd, shell=True, check=True)
         # add source ID to .psam and restore family information:
         psam_file = input.original_psam
-        df = pd.read_csv(psam_file, delim_whitespace=True, dtype={'SEX': 'int32'})
+        df = pd.read_csv(psam_file, delim_whitespace=True, dtype={'SEX': 'str'})
         df.insert(2, "SID", wildcards.batch)
         df.to_csv(output.pgenset[2], sep='\t', index=False)
 
