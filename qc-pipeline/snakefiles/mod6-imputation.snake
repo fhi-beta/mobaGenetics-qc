@@ -130,7 +130,7 @@ rule mod6_convert_to_pgen:
         """
 rule mod6_output:
     input:
-        pgens = expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_output.chr{chr}.pgen"), chr=chrs_debug, batch=batches_debug)
+        pgens = expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_output.chr{chr}.pgen"), chr=chrs_debug, batch=batches_debug),
         original_psam = rules.mod5_output.output.psam
     output:
         pgenset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output"), ".pgen", ".pvar", ".psam")
