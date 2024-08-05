@@ -138,7 +138,7 @@ rule mod6_output:
         cmd = """
         # Generate list of files to merge
         pgenset_dir=$(dirname "{input.pgens[0]}")
-        echo {input.pgens} | tr ' ' '\n' | sed 's/.pgen//' > $pgenset_dir/pgen_list.txt
+        echo {input.pgens} | tr ' ' '\\n' | sed 's/.pgen//' > $pgenset_dir/pgen_list.txt
 
         output_full={output.pgenset[0]}
         outTrunk="${{output_full%.pgen}}"
