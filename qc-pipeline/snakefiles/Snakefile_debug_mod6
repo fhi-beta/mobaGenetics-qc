@@ -63,7 +63,7 @@ include: "mod3-population-clustering.snake"
 include: "mod4-good-markers.snake"
 include: "mod5-pre-phasing.snake"
 include: "mod6-imputation.snake"
-# include: "mod7-post-imputation.snake"
+include: "mod7-post-imputation.snake"
 
 # Debug code
 # batches_debug = ['snp007']
