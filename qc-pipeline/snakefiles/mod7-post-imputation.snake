@@ -1,6 +1,6 @@
 rule mod7_find_duplicate_samples:
     input:
-        psams = expand(str(tmpMod6 / "{batch}" / "all_samples" / "mod6_output.psam", batch=batches_debug))
+        psams = expand(str(tmpMod6 / "{batch}" / "all_samples" / "mod6_output.psam"), batch=batches_debug)
     output:
         duplicates = str(tmpMod7 / "all_samples" / "mod7_duplicate_samples.txt")
     run:
