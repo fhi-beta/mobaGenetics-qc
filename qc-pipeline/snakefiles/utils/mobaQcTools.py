@@ -1514,6 +1514,17 @@ def create_fam_map(fam_file, map_in_file,  map_out_file):
     )
     # end create_fam_map
 
+def find_duplicate_samples(psam_files):
+    dfs = []
+    for psam_file in psam_files:
+        # df = pd.read_csv(psam_files, delim_whitespace=True, header=None, names=['FID', 'IID', 'SID', 'PAT', 'MAT', 'SEX'])
+        df = pd.read_csv(psam_file, delim_whitespace=True)
+        dfs.append(df)
+    combined_df = pd.concat(dfs, ignore_index=False)
+    duplicates = combined_df[combined_df.duplicated('IID', keep=False)]
+    # duplicates.to_csv(path + '\duplicate_samples.txt', sep='\t', index=False)
+    return duplicates
+
 
 def main():
     # if you want to test a function

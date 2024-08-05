@@ -31,30 +31,9 @@ rule mod6_create_vcf:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.vcf)
-            # fam = str(input.bedset[2])
             bim = input.bedset[1]
-
-            # fam_orig = fam + ".orig"
-            # wo_fam_fam = str(inTrunk + ".wo_fam.fam")
-            # # Copy fam to fam_orig:
-            # cmd = f"cp {fam} {fam_orig}"
-            # subprocess.run(cmd, shell = True, check=True)
-            # # remove family information:
-            # cmd = "awk '{OFS=\"\\t\"}{$1=$3=$4=0;print$2,$3,$4,$5,$6}' " + fam + " > " + wo_fam_fam
-            # subprocess.run(
-            #     cmd, 
-            #     shell = True
-            # )
-            # cmd = f"mv {wo_fam_fam} {fam}"
-            # subprocess.run(cmd, shell = True, check=True)
-            # create vcf file
-            # cmd = f"{plink2local} --bfile {inTrunk} --recode vcf --ref-allele {bim} 5 2 --no-fid --out {outTrunk}"
-
             cmd = f"{plink2local} --bfile {inTrunk} --recode vcf-iid --ref-allele {bim} 5 2 --out {outTrunk}"
             subprocess.run(cmd, shell = True)
-            # copy fam_orig to fam
-            # cmd = f"cp {fam_orig} {fam}"
-            # subprocess.run(cmd, shell = True, check=True)
         except Exception as e:
             print(f"An exception occurred in rule {rule_stem}.")
             print(e)
@@ -143,8 +122,6 @@ rule mod6_output:
         output_full={output.pgenset[0]}
         outTrunk="${{output_full%.pgen}}"
         {plink2local} --pmerge-list $pgenset_dir/pgen_list.txt --out $outTrunk
-        # Copy original psam file to merged set
-        # cp {input.original_psam} {output.pgenset[2]}
         """
         subprocess.run(cmd, shell=True, check=True)
         # add source ID to .psam and restore family information:
