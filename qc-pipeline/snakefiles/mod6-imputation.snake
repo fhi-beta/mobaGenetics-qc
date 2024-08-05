@@ -135,7 +135,7 @@ rule mod6_output:
     output:
         pgenset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output"), ".pgen", ".pvar", ".psam")
     run:
-        cmd = """
+        cmd = f"""
         # Generate list of files to merge
         pgenset_dir=$(dirname "{input.pgens[0]}")
         echo {input.pgens} | tr ' ' '\\n' | sed 's/.pgen//' > $pgenset_dir/pgen_list.txt
