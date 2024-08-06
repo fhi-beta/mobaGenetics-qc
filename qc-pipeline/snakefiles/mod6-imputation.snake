@@ -94,10 +94,12 @@ rule mod6_merge_chrs:
         imputed_vcfs = get_vcf_chr_files_for_batch
     output:
         merged_vcf = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_merge_chrs.vcf.gz")
-    run:
-        input_files = ' '.join(str(file) for file in input.imputed_vcfs)
-        cmd = f"bcftools concat {input_files} -o {output.merged_vcf}"
-        subprocess.run(cmd, shell=True, check=True)
+    conda:
+        "envs/bcf_tabix.yaml"
+    shell:
+        """
+        bcftools concat {input.imputed_vcfs} -o {output.merged_vcf}
+        """
 
 
 
