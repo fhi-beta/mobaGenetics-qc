@@ -7,6 +7,23 @@ rule mod7_find_duplicate_samples:
         duplicates = mqc.find_duplicate_samples(input.psams)
         duplicates.to_csv(output.duplicates, sep='\t', index=False)
 
+
+# should be a rule in between here to deal with duplicates identified in mod7_find_duplicate_samples
+batches = batches_debug
+def batch_pgens_to_merge(wildcards):
+    tmpMod6str = str(tmpMod6)
+    return [f"{tmpMod6str}/{batch}/{n_samples}_samples/mod6_output.pgen" for batch in batches]
+
+rule mod7_merge:
+    input:
+        pgens = batch_pgens_to_merge
+    output:
+        pgenset = multiext(str(tmpMod7 / "all_samples" / "mod7_output"), ".pgen", ".pvar", ".psam"
+    run:
+        out_trunk = mqc.plinkBase(output.pgenset[0])
+        # merge batches:
+        mqc.merge_pgensets(input.pgens, out_trunk, plink2local)
+
 # # work in progress...
 # rule mod7_merge:
 #     input:
