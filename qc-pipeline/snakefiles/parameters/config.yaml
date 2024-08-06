@@ -119,7 +119,7 @@ mem: "120g"
 beagle_threads: 32
 mod6conform_threads: 32
 mod6conform_mem: "120g"
-mod6impute_threads
+mod6impute_threads: 32
 #mod6impute_threads: 30
 
 # parameters to finalize core
