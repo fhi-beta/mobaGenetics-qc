@@ -17,6 +17,17 @@ rule mod7_merge_batches:
         bcftools merge {input.vcfs} -o {output.merged_vcf}
         """
 
+rule mod7_output:
+    input:
+        merged_vcf = rules.mod7_merge_batches.merged_vcf
+    output:
+        pgenset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
+    shell:
+        """
+        output_full={output.pgenset[0]}
+        outTrunk="${{output_full%.pgen}}"
+        {plink2local} --vcf {input.merged_vcf} --make-pgen --out $outTrunk
+        """
 
 
 
