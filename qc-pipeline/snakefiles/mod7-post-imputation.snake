@@ -18,7 +18,7 @@ rule mod7_merge:
     input:
         pgens = batch_pgens_to_merge
     output:
-        pgenset = multiext(str(tmpMod7 / "all_samples" / "mod7_output"), ".pgen", ".pvar", ".psam"
+        pgenset = multiext(str(tmpMod7 / "all_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
     run:
         out_trunk = mqc.plinkBase(output.pgenset[0])
         # merge batches:
