@@ -111,7 +111,7 @@ rule mod6_output:
     input:
         # pgens = expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_output.chr{chr}.pgen"), chr=chrs_debug),
         # pgens = [{str(tmpMod6 / "{batch} / f"{n_samples}_samples" / "mod6_output.chr{chr}.pgen"}]
-        pgens = [["{tmpMod6}/{batch}/{n_samples}_samples/mod6_output.chr{chr}.pgen}".format(tmpMod6=tmpMod6, batch=batch, n_samples=n_samples, chr=chr) for chr in chrs_debug] for batch in batches_debug],
+        pgens = [["{tmpMod6}/{batch}/{n_samples}_samples/mod6_output.chr{chr}.pgen".format(tmpMod6=tmpMod6, batch=batch, n_samples=n_samples, chr=chr) for chr in chrs_debug] for batch in batches_debug],
         original_psam = rules.mod5_output.output.psam
     output:
         pgenset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output"), ".pgen", ".pvar", ".psam")
