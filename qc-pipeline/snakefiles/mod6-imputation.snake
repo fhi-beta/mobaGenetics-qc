@@ -96,7 +96,7 @@ rule mod6_merge_chrs:
         merged_vcf = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_merge_chrs.vcf.gz")
     run:
         input_files = ' '.join(str(file) for file in input.imputed_vcfs)
-        cmd = f"bcftools concat {input_files} -o {input.merged_vcf}"
+        cmd = f"bcftools concat {input_files} -o {output.merged_vcf}"
         subprocess.run(cmd, shell=True, check=True)
 
 
