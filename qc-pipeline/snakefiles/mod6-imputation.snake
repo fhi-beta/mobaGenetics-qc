@@ -98,7 +98,18 @@ rule mod6_merge_chrs:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        bcftools concat {input.imputed_vcfs} -o {output.merged_vcf} --write-index
+        bcftools concat {input.imputed_vcfs} -o {output.merged_vcf}
+        """
+rule mod6_sort_and_index:
+    input:
+        merged_vcf = rules.mod6_merge_chrs.output.merged_vcf
+    output:
+        sorted_vcf = str(tmpMod6 / "{number_of_samples}_samples" / "mod6_sorted.vcf.gz")
+    conda:
+        "envs/bcf_tabix.yaml"
+    shell:
+        """
+        bcftools sort {input.merged_vcf} -o {output.sorted_vcf} --write-index
         """
 
 
