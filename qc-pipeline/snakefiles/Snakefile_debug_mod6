@@ -78,7 +78,7 @@ rule all:
         # expand(tmpMod6/"{batch}"/f"{n_samples}_samples" / "mod6_merge_chrs.vcf.gz", batch = batches_debug)
         # expand(tmpMod4/ "{batch}" / "m4_output_good_markers.bed", batch = batches_debug)
         #expand(tmpMod5/"{batch}"/"all_samples"/ "report" /"pre_imputation_report.md", batch = batches_debug).
-        str(tmpMod7 / "{n_samples}_samples" / "mod7_merge_batches.vcf.gz")
+        str(tmpMod7 / f"{n_samples}_samples" / "mod7_merge_batches.vcf.gz")
         # str(tmpMod7 / "all_samples" / "mod7_duplicate_samples.txt")
         # str(tmpMod7 / "all_samples" / "mod7_output.pgen")
         # expand(tmpMod5/ "{batch}" / "all_samples" /"mod5_output.imiss", batch = batches_debug)
