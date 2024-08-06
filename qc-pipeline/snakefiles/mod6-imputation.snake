@@ -104,7 +104,7 @@ rule mod6_sort_and_index:
     input:
         merged_vcf = rules.mod6_merge_chrs.output.merged_vcf
     output:
-        sorted_vcf = str(tmpMod6 / "{number_of_samples}_samples" / "mod6_sorted.vcf.gz")
+        sorted_vcf = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_sorted.vcf.gz")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
