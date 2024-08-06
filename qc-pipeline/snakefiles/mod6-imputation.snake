@@ -84,6 +84,23 @@ rule mod6_impute:
         bcftools query -f '%POS %REF %ALT %DR2 %AF\n' {output.imputed_vcf} -o ${{outTrunk}}.info
         """
 
+chrs = chrs_debug
+def get_vcf_chr_files_for_batch(wildcards):
+    tmpMod6str = str(tmpMod6)
+    return [f"{tmpMod6str}/{wildcards.batch}/{n_samples}_samples/mod6_impute.chr{chr}.imputed.vcf.gz" for chr in chrs]
+
+rule mod6_merge_chrs:
+    input:
+        imputed_vcfs = get_vcf_chr_files_for_batch
+    output:
+        merged_vcf = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_merge_chrs.vcf.gz")
+    run:
+        input_files = ' '.join(str(file) for file in input.imputed_vcfs)
+        cmd = f"bcftools concat {input_files} -o {input.merged_vcf}"
+        subprocess.run(cmd, shell=True, check=True)
+
+
+
 rule mod6_norm:
     input:
         imputed_vcf = rules.mod6_impute.output.imputed_vcf
