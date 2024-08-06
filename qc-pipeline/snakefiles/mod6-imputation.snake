@@ -103,49 +103,50 @@ rule mod6_merge_chrs:
 
 
 
-rule mod6_norm:
-    input:
-        imputed_vcf = rules.mod6_impute.output.imputed_vcf
-    output:
-        normalized_vcf = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_norm.chr{chr}.imputed.vcf.gz")
-    conda:
-        "envs/bcf_tabix.yaml"
-    shell:
-        """
-        bcftools norm -m + {input.imputed_vcf} -o {output.normalized_vcf}
-        """
 
-rule mod6_convert_to_pgen:
-    input:
-        normalized_vcf = rules.mod6_norm.output.normalized_vcf
-    output:
-        pgenset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output.chr{chr}"), ".pgen", ".pvar", ".psam")
-    shell:
-        """
-        output_full={output.pgenset[0]}
-        outTrunk="${{output_full%.pgen}}"
-        {plink2local} --vcf {input.normalized_vcf} --make-pgen --out $outTrunk
-        """
+# rule mod6_norm:
+#     input:
+#         imputed_vcf = rules.mod6_impute.output.imputed_vcf
+#     output:
+#         normalized_vcf = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_norm.chr{chr}.imputed.vcf.gz")
+#     conda:
+#         "envs/bcf_tabix.yaml"
+#     shell:
+#         """
+#         bcftools norm -m + {input.imputed_vcf} -o {output.normalized_vcf}
+#         """
 
-chrs = chrs_debug
-def get_pgen_chr_files_for_batch(wildcards):
-    tmpMod6str = str(tmpMod6)
-    return [f"{tmpMod6str}/{wildcards.batch}/{n_samples}_samples/mod6_output.chr{chr}.pgen" for chr in chrs]
-rule mod6_output:
-    input:
-        pgens = get_pgen_chr_files_for_batch,
-        original_psam = rules.mod5_output.output.psam
-    output:
-        pgenset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output"), ".pgen", ".pvar", ".psam")
-    run:
-        out_trunk = mqc.plinkBase(output.pgenset[0])
-        # merge chromosomes:
-        mqc.merge_pgensets(input.pgens, out_trunk, plink2local)
-        # add source ID to .psam and restore family information:
-        psam_file = input.original_psam
-        df = pd.read_csv(psam_file, delim_whitespace=True, dtype={'SEX': 'str'})
-        df["SEX"] = df["SEX"].fillna(0)
-        df.insert(2, "SID", wildcards.batch)
-        df.to_csv(output.pgenset[2], sep='\t', index=False)
+# rule mod6_convert_to_pgen:
+#     input:
+#         normalized_vcf = rules.mod6_norm.output.normalized_vcf
+#     output:
+#         pgenset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output.chr{chr}"), ".pgen", ".pvar", ".psam")
+#     shell:
+#         """
+#         output_full={output.pgenset[0]}
+#         outTrunk="${{output_full%.pgen}}"
+#         {plink2local} --vcf {input.normalized_vcf} --make-pgen --out $outTrunk
+#         """
+
+# chrs = chrs_debug
+# def get_pgen_chr_files_for_batch(wildcards):
+#     tmpMod6str = str(tmpMod6)
+#     return [f"{tmpMod6str}/{wildcards.batch}/{n_samples}_samples/mod6_output.chr{chr}.pgen" for chr in chrs]
+# rule mod6_output:
+#     input:
+#         pgens = get_pgen_chr_files_for_batch,
+#         original_psam = rules.mod5_output.output.psam
+#     output:
+#         pgenset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output"), ".pgen", ".pvar", ".psam")
+#     run:
+#         out_trunk = mqc.plinkBase(output.pgenset[0])
+#         # merge chromosomes:
+#         mqc.merge_pgensets(input.pgens, out_trunk, plink2local)
+#         # add source ID to .psam and restore family information:
+#         psam_file = input.original_psam
+#         df = pd.read_csv(psam_file, delim_whitespace=True, dtype={'SEX': 'str'})
+#         df["SEX"] = df["SEX"].fillna(0)
+#         df.insert(2, "SID", wildcards.batch)
+#         df.to_csv(output.pgenset[2], sep='\t', index=False)
 
     
