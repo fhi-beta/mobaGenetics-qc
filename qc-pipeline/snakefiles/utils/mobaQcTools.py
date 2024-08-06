@@ -1532,7 +1532,7 @@ def merge_pgensets(pgens, out_trunk, plink2local):
     """
     cmd = f"""
     # Generate list of files to merge
-    pgenset_dir=$(dirname "{pgens[0]}")
+    pgenset_dir=$(dirname "{out_trunk}")
     echo {pgens} | tr ' ' '\\n' | sed 's/.pgen//' > $pgenset_dir/pgen_list.txt
     {plink2local} --pmerge-list $pgenset_dir/pgen_list.txt --out {out_trunk}
     """
