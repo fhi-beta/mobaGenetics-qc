@@ -1514,29 +1514,32 @@ def create_fam_map(fam_file, map_in_file,  map_out_file):
     )
     # end create_fam_map
 
-def find_duplicate_samples(psam_files):
+def find_duplicate_samples(fam_files, batches):
     dfs = []
-    for psam_file in psam_files:
+    for i in range(len(fam_files)):
+        fam_file = fam_files[i]
         # df = pd.read_csv(psam_files, delim_whitespace=True, header=None, names=['FID', 'IID', 'SID', 'PAT', 'MAT', 'SEX'])
-        df = pd.read_csv(psam_file, delim_whitespace=True)
+        df = pd.read_csv(fam_file, delim_whitespace=True, header=None, names=['FID', 'IID', 'PID', 'MID', 'Sex', 'Phenotype'])
+        df["Batch"] = batches[i]
         dfs.append(df)
     combined_df = pd.concat(dfs, ignore_index=False)
     duplicates = combined_df[combined_df.duplicated('IID', keep=False)]
     # duplicates.to_csv(path + '\duplicate_samples.txt', sep='\t', index=False)
     return duplicates
 
-def merge_pgensets(pgens, out_trunk, plink2local):
-    """
-    pgen: list of .pgen-files
-    merges the pgen-sets associated with the .pgen-files in pgens into a single pgen-set with filebase out_trunk
-    """
-    cmd = f"""
-    # Generate list of files to merge
-    pgenset_dir=$(dirname "{out_trunk}")
-    echo {pgens} | tr ' ' '\\n' | sed 's/.pgen//' > $pgenset_dir/pgen_list.txt
-    {plink2local} --pmerge-list $pgenset_dir/pgen_list.txt --out {out_trunk}
-    """
-    subprocess.run(cmd, shell=True, check=True)
+# merge is not implemented in plink 2 yet
+# def merge_pgensets(pgens, out_trunk, plink2local):
+#     """
+#     pgen: list of .pgen-files
+#     merges the pgen-sets associated with the .pgen-files in pgens into a single pgen-set with filebase out_trunk
+#     """
+#     cmd = f"""
+#     # Generate list of files to merge
+#     pgenset_dir=$(dirname "{out_trunk}")
+#     echo {pgens} | tr ' ' '\\n' | sed 's/.pgen//' > $pgenset_dir/pgen_list.txt
+#     {plink2local} --pmerge-list $pgenset_dir/pgen_list.txt --out {out_trunk}
+#     """
+#     subprocess.run(cmd, shell=True, check=True)
 
 
 def main():
