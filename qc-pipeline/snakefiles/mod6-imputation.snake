@@ -112,7 +112,7 @@ rule mod6_output:
         pgens = expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_output.chr{chr}.pgen"), chr=chrs_debug),
         original_psam = rules.mod5_output.output.psam
     output:
-        pgenset = multiext(expand(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output"), batch=batches_debug), ".pgen", ".pvar", ".psam")
+        pgenset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output"), ".pgen", ".pvar", ".psam")
     run:
         cmd = f"""
         # Generate list of files to merge
