@@ -115,8 +115,8 @@ n_samples: "all"
 # beagle impute memory and thread allocation
 mem: "90g"
 beagle_threads: 30
-mod6conform_threads: 30
-mod6conform_mem: "90g"
+mod6conform_threads: 32
+mod6conform_mem: "120g"
 mod6impute_threads: 30
 
 # parameters to finalize core
