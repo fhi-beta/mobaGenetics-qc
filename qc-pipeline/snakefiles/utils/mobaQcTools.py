@@ -1525,6 +1525,19 @@ def find_duplicate_samples(psam_files):
     # duplicates.to_csv(path + '\duplicate_samples.txt', sep='\t', index=False)
     return duplicates
 
+def merge_pgensets(pgens, out_trunk, plink2local):
+    """
+    pgen: list of .pgen-files
+    merges the pgen-sets associated with the .pgen-files in pgens into a single pgen-set with filebase out_trunk
+    """
+    cmd = f"""
+    # Generate list of files to merge
+    pgenset_dir=$(dirname "{pgens[0]}")
+    echo {pgens} | tr ' ' '\\n' | sed 's/.pgen//' > $pgenset_dir/pgen_list.txt
+    {plink2local} --pmerge-list $pgenset_dir/pgen_list.txt --out {out_trunk}
+    """
+    subprocess.run(cmd, shell=True, check=True)
+
 
 def main():
     # if you want to test a function

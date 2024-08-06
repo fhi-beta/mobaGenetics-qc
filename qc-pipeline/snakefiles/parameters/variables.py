@@ -34,7 +34,7 @@ tmpMod2 = base/'mod2-genetic-relationship'
 tmpMod3 = base/'mod3-population-clustering'
 tmpMod4 = base/'mod4-good_markers'
 tmpMod5 = base/'mod5-pre-phasing'
-tmpMod6 = base/'mod6-imputation'
+tmpMod6 = str(base/'mod6-imputation')
 tmpMod7 = base/'mod7-post-imputation'
 n_samples = config['n_samples']
 # tmpMod5 = base/'mod5-samples_unrelated'
@@ -49,6 +49,4 @@ batches = ['snp001', 'snp002', 'snp003', 'snp007', 'snp008', 'snp009', 'snp010',
 # - Batch 19 needs to be checked for overlap with other batches before being added. Gutorm notes that it probably does not need to be included.
 # batches_debug = ['snp001', 'snp002', 'snp003', 'snp007', 'snp008', 'snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018c', 'snp018de']
 batches_debug = ['snp001', 'snp002', 'snp003']
-chrs_debug = ['20', '21']
-
-
+chrs_debug = ['4', '5']

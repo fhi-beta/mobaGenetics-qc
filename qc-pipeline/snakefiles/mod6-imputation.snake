@@ -109,21 +109,26 @@ rule mod6_convert_to_pgen:
         """
 rule mod6_output:
     input:
-        pgens = expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_output.chr{chr}.pgen"), chr=chrs_debug),
+        # pgens = expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_output.chr{chr}.pgen"), chr=chrs_debug),
+        # pgens = [{str(tmpMod6 / "{batch} / f"{n_samples}_samples" / "mod6_output.chr{chr}.pgen"}]
+        pgens = [["{tmpMod6}/{batch}/{n_samples}_samples/mod6_output.chr{chr}.pgen}".format(tmpMod6=tmpMod6, batch=batch, n_samples=n_samples, chr=chr}) for chr in chrs_debug] for batch in batches_debug]
         original_psam = rules.mod5_output.output.psam
     output:
         pgenset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output"), ".pgen", ".pvar", ".psam")
     run:
-        cmd = f"""
-        # Generate list of files to merge
-        pgenset_dir=$(dirname "{input.pgens[0]}")
-        echo {input.pgens} | tr ' ' '\\n' | sed 's/.pgen//' > $pgenset_dir/pgen_list.txt
+        out_trunk = mqc.plinkBase(output.pgenset[0])
+        for pgen_batch in input.pgens:
+            mqc.merge_pgensets(pgen_batch, out_trunk, plink2local)
+        # cmd = f"""
+        # # Generate list of files to merge
+        # pgenset_dir=$(dirname "{input.pgens[0]}")
+        # echo {input.pgens} | tr ' ' '\\n' | sed 's/.pgen//' > $pgenset_dir/pgen_list.txt
 
-        output_full={output.pgenset[0]}
-        outTrunk="${{output_full%.pgen}}"
-        {plink2local} --pmerge-list $pgenset_dir/pgen_list.txt --out $outTrunk
-        """
-        subprocess.run(cmd, shell=True, check=True)
+        # output_full={output.pgenset[0]}
+        # outTrunk="${{output_full%.pgen}}"
+        # {plink2local} --pmerge-list $pgenset_dir/pgen_list.txt --out $outTrunk
+        # """
+        # subprocess.run(cmd, shell=True, check=True)
         # add source ID to .psam and restore family information:
         psam_file = input.original_psam
         df = pd.read_csv(psam_file, delim_whitespace=True, dtype={'SEX': 'str'})
