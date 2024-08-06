@@ -111,7 +111,7 @@ rule mod6_convert_to_pgen:
 chrs = chrs_debug
 def get_pgen_chr_files_for_batch(wildcards):
     tmpMod6str = str(tmpMod6)
-    return [f"{tmpMod6str}/{wildcards.batch}/{n_samples}_samples/mod6_output_chr{chr}.pgen" for chr in chrs]
+    return [f"{tmpMod6str}/{wildcards.batch}/{n_samples}_samples/mod6_output.chr{chr}.pgen" for chr in chrs]
 rule mod6_output:
     input:
         # pgens = expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_output.chr{chr}.pgen"), chr=chrs_debug),
