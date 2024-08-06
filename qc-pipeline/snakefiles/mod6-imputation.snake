@@ -107,18 +107,23 @@ rule mod6_convert_to_pgen:
         outTrunk="${{output_full%.pgen}}"
         {plink2local} --vcf {input.normalized_vcf} --make-pgen --out $outTrunk
         """
+
+chrs = chrs_debug
+def get_pgen_chr_files_for_batch(wildcards):
+    tmpMod6str = str(tmpMod6)
+    return [f"{tmpMod6str}/{wildcards.batch}/{n_samples}/mod6_output_chr{chr}.pgen" for chr in chrs]
 rule mod6_output:
     input:
         # pgens = expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_output.chr{chr}.pgen"), chr=chrs_debug),
         # pgens = [{str(tmpMod6 / "{batch} / f"{n_samples}_samples" / "mod6_output.chr{chr}.pgen"}]
-        pgens = [["{tmpMod6}/{batch}/{n_samples}_samples/mod6_output.chr{chr}.pgen".format(tmpMod6=tmpMod6, batch=batch, n_samples=n_samples, chr=chr) for chr in chrs_debug] for batch in batches_debug],
+        # pgens = [["{tmpMod6}/{batch}/{n_samples}_samples/mod6_output.chr{chr}.pgen".format(tmpMod6=tmpMod6, batch=batch, n_samples=n_samples, chr=chr) for chr in chrs_debug] for batch in batches_debug],
+        pgens = get_pgen_chr_files_for_batch
         original_psam = rules.mod5_output.output.psam
     output:
         pgenset = multiext(str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output"), ".pgen", ".pvar", ".psam")
     run:
         out_trunk = mqc.plinkBase(output.pgenset[0])
-        for pgen_batch in input.pgens:
-            mqc.merge_pgensets(pgen_batch, out_trunk, plink2local)
+        mqc.merge_pgensets(input.pgens, out_trunk, plink2local)
         # cmd = f"""
         # # Generate list of files to merge
         # pgenset_dir=$(dirname "{input.pgens[0]}")
