@@ -1518,13 +1518,11 @@ def find_duplicate_samples(fam_files, batches):
     dfs = []
     for i in range(len(fam_files)):
         fam_file = fam_files[i]
-        # df = pd.read_csv(psam_files, delim_whitespace=True, header=None, names=['FID', 'IID', 'SID', 'PAT', 'MAT', 'SEX'])
         df = pd.read_csv(fam_file, delim_whitespace=True, header=None, names=['FID', 'IID', 'PID', 'MID', 'Sex', 'Phenotype'])
         df["Batch"] = batches[i]
         dfs.append(df)
     combined_df = pd.concat(dfs, ignore_index=False)
     duplicates = combined_df[combined_df.duplicated('IID', keep=False)]
-    # duplicates.to_csv(path + '\duplicate_samples.txt', sep='\t', index=False)
     return duplicates
 
 # merge is not implemented in plink 2 yet
