@@ -50,4 +50,4 @@ batches = ['snp001', 'snp002', 'snp003', 'snp007', 'snp008', 'snp009', 'snp010',
 # batches_debug = ['snp001', 'snp002', 'snp003', 'snp007', 'snp008', 'snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018c', 'snp018de']
 batches_debug = ['snp003', 'snp007']
 #chrs_debug = ['1', '8', '9']
-chrs_debug = [str(i) for i in range(23)]
+chrs_debug = [str(i) for i in range(1, 23)]
