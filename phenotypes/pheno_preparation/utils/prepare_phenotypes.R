@@ -23,6 +23,7 @@ preg_id_mother <- "2024_04_05_MobaGenetics_PREGID_Mother.sav"
 keys <- "2024_04_05_NOKLER_PDBHDGB.sav"
 smoking <- "2024_04_05_SmokingStatus.sav"
 
+id_mapping_file <- "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz"
 birth_year_file <- "/mnt/archive/snpQc/phenotypes/birth_year_24.04.12.gz"
 expected_relationship_file <- "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz"
 
@@ -131,6 +132,43 @@ for (colName in names(sav_keys)) {
   }
 }
 
+
+# Get ID mapping
+
+id_child <- data.frame(
+  id = paste(sav_preg_id_child$preg_id_hdgb, sav_preg_id_child$barn_nr, sep = "\t"),
+  sentrix_id = sav_preg_id_child$sentrix_id,
+  role = "child"
+)
+
+id_mother <- sav_preg_id_mother %>%
+      select(
+        id = m_id_hdgb,
+        sentrix_id
+      ) %>%
+      mutate(
+        role = "mother"
+      )
+
+id_father <- sav_preg_id_father %>%
+      select(
+        id = f_id_hdgb,
+        sentrix_id
+      ) %>%
+      mutate(
+        role = "father"
+      )
+
+id_table <- rbind(id_child, id_mother, id_father)
+
+write.table(
+  x = id_table,
+  file = gzfile(id_mapping_file),
+  col.names = T,
+  row.names = F,
+  quote = F,
+  sep = "\t"
+)
 
 # Get a data frame of birth years
 
