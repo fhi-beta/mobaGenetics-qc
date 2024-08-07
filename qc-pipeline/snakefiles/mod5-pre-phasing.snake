@@ -39,6 +39,17 @@ rule mod5_cull_samples:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
+
+rule mod5_find_duplicate_samples:
+    input:
+        psams = expand(str(tmpMod5 / "{batch}" / "all_samples" / "mod6_output.psam"), batch=batches_debug)
+    output:
+        duplicates = str(tmpMod7 / "all_samples" / "mod7_duplicate_samples.txt")
+    run:
+        duplicates = mqc.find_duplicate_samples(input.psams)
+        duplicates.to_csv(output.duplicates, sep='\t', index=False)
+
+
 rule_stem = 'mod5_exclude_duplicates'
 rule mod5_exclude_duplicates:
     input:
@@ -396,10 +407,11 @@ rule mod5_output:
         sexcheck = rules.m4_output_good_markers.output.sexcheck
     output:
         bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam"),
+        psam = str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".psam")),
         missing = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".imiss", ".lmiss"),
         het=str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".het")),
         hwe=str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".hwe")),
-        md=str(tmpMod5 / "{batch}"/"{number_of_samples}_samples"/ "report" / "pre_imputation_report.md")
+        md=str(github_docs / "{batch}"/"{number_of_samples}_samples"/ "pre_imputation_report" / "pre_imputation_report.md")
     run:
         try:
             # Exclude duplicates again
@@ -415,6 +427,13 @@ rule mod5_output:
                     "--out", outTrunk
                 ]
             )
+            # keep full original .psam file for later
+            subprocess.run([
+                plink2local,
+                "--bfile", outTrunk,
+                "--make-just-psam",
+                "--out", outTrunk
+            ])
             subprocess.run([
                 plinklocal,
                 "--bfile", outTrunk,

@@ -63,11 +63,9 @@ include: "mod3-population-clustering.snake"
 include: "mod4-good-markers.snake"
 include: "mod5-pre-phasing.snake"
 include: "mod6-imputation.snake"
-# include: "mod7-post-imputation.snake"
+include: "mod7-post-imputation.snake"
 
 # Debug code
-batches_debug = ['snp007', 'snp008']
-chrs = ['4', '5']
 
 # rule all, lists the output of every module
 rule all:
@@ -75,11 +73,14 @@ rule all:
         # expand(tmpMod4/ "{batch}" / "{number_of_samples}" / ("mod5_output.bed"), batch = batches_debug, number_of_samples = samples)
         # expand(tmpMod4point5/ "{batch}" / ("mod4point5_cull_samples.bed"), batch = batches_debug)
         # expand(tmpMod6/ "{batch}" / "all_samples" / ("mod6_conform.chr{chr}.conformed.vcf.gz"), batch = batches_debug, chr = chrs)
-        expand(tmpMod6/ "{batch}" / f"{n_samples}_samples" / ("mod6_output.chr{chr}.bed"), batch = batches_debug, chr = chrs)
+        # expand(tmpMod6/ "{batch}" / f"{n_samples}_samples" / ("mod6_output.chr{chr}.pgen"), batch = batches_debug, chr = chrs_debug)
+        # expand(tmpMod6/ "{batch}" / f"{n_samples}_samples" / ("mod6_output.pgen"), batch = batches_debug)
+        # expand(tmpMod6/"{batch}"/f"{n_samples}_samples" / "mod6_merge_chrs.vcf.gz", batch = batches_debug)
         # expand(tmpMod4/ "{batch}" / "m4_output_good_markers.bed", batch = batches_debug)
-        #expand(tmpMod5/"{batch}"/"all_samples"/ "report" /"pre_imputation_report.md", batch = batches_debug)
-        # str(tmpMod7 / "all_samples" / "merge_list.txt")
-        #str(tmpMod7 / "all_samples" / "mod7_merge.bed")
+        #expand(tmpMod5/"{batch}"/"all_samples"/ "report" /"pre_imputation_report.md", batch = batches_debug).
+         #str(tmpMod7 / f"{n_samples}_samples" / "mod7_merge_batches.vcf.gz")
+        # str(tmpMod7 / "all_samples" / "mod7_duplicate_samples.txt")
+        str(tmpMod7 / "all_samples" / "mod7_output.pgen")
         # expand(tmpMod5/ "{batch}" / "all_samples" /"mod5_output.imiss", batch = batches_debug)
 
 

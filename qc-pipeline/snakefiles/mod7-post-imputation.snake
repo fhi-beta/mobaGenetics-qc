@@ -1,16 +1,61 @@
-# # work in progress...
+
+batches = batches_debug
+# merged_vcf = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_merge_chrs.vcf.gz")
+def get_batch_vcf_files_to_merge(wildcards):
+    tmpMod6str = str(tmpMod6)
+    return [f"{tmpMod6str}/{batch}/{n_samples}_samples/mod6_sorted.vcf.gz" for batch in batches]
+
+rule mod7_merge_batches:
+    input:
+        vcfs = get_batch_vcf_files_to_merge
+    output:
+        merged_vcf = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches.vcf.gz")
+    conda:
+        "envs/bcf_tabix.yaml"
+    shell:
+        """
+        bcftools merge {input.vcfs} -o {output.merged_vcf}
+        """
+
+rule mod7_output:
+    input:
+        merged_vcf = rules.mod7_merge_batches.output.merged_vcf
+    output:
+        pgenset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
+    shell:
+        """
+        output_full={output.pgenset[0]}
+        outTrunk="${{output_full%.pgen}}"
+        {plink2local} --vcf {input.merged_vcf} --make-pgen --out $outTrunk
+        """
+
+
+
+# this rule + a rule for removing duplicates must go before imputation:
+
+# rule mod7_find_duplicate_samples:
+#     input:
+#         psams = expand(str(tmpMod6 / "{batch}" / "all_samples" / "mod6_output.psam"), batch=batches_debug)
+#     output:
+#         duplicates = str(tmpMod7 / "all_samples" / "mod7_duplicate_samples.txt")
+#     run:
+#         duplicates = mqc.find_duplicate_samples(input.psams)
+#         duplicates.to_csv(output.duplicates, sep='\t', index=False)
+
+
+
+# # merge is not implemented in plink 2 yet, so this rule doesn't work
+# batches = batches_debug
+# def batch_pgens_to_merge(wildcards):
+#     tmpMod6str = str(tmpMod6)
+#     return [f"{tmpMod6str}/{batch}/{n_samples}_samples/mod6_output.pgen" for batch in batches]
+
 # rule mod7_merge:
 #     input:
-#         bed_files = expand(str(tmpMod6 / "{batch}" / "all_samples" / "mod6_output.chr{chr}.bed"), batch=['snp008'], chr=['18', '19']),
-#         bim_files = expand(str(tmpMod6 / "{batch}" / "all_samples" / "mod6_output.chr{chr}.bim"), batch=['snp008'], chr=['18', '19']),
-#         fam_files = expand(str(tmpMod6 / "{batch}" / "all_samples" / "mod6_output.chr{chr}.fam"), batch=['snp008'], chr=['18', '19'])
+#         pgens = batch_pgens_to_merge
 #     output:
-#         bedset = multiext(str(tmpMod7 / "all_samples" / "mod7_merge"), ".bed", ".bim", ".fam")
-#         bed = str(tmpMod7 / "all_samples" / "mod7_merge.bed")
-#     shell:
-#         """
-#         output_full={output.bedset[0]}
-#         outTrunk="${{output_full%.bed}}"
-#         bed_list=$(echo {input.bed_files} | tr ' ' '\n' | sed 's/.bed$//')
-#         {plink2local} --bfile $(echo $bed_list | tr '\n' ' ' | sed 's/ / --bfile /g') --merge-list $bed_list --make-bed --out $outTrunk
-#         """
+#         pgenset = multiext(str(tmpMod7 / "all_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
+#     run:
+#         out_trunk = mqc.plinkBase(output.pgenset[0])
+#         # merge batches:
+#         mqc.merge_pgensets(input.pgens, out_trunk, plink2local)
