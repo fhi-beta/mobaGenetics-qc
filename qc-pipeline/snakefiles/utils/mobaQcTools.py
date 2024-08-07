@@ -1514,16 +1514,24 @@ def create_fam_map(fam_file, map_in_file,  map_out_file):
     )
     # end create_fam_map
 
-def find_duplicate_samples(fam_files, batches):
-    dfs = []
-    for i in range(len(fam_files)):
-        fam_file = fam_files[i]
-        df = pd.read_csv(fam_file, delim_whitespace=True, header=None, names=['FID', 'IID', 'PID', 'MID', 'Sex', 'Phenotype'])
-        df["Batch"] = batches[i]
-        dfs.append(df)
-    combined_df = pd.concat(dfs, ignore_index=False)
-    duplicates = combined_df[combined_df.duplicated('IID', keep=False)]
-    return duplicates
+# def find_duplicate_samples(fam_files, batches):
+#     dfs = []
+#     for i in range(len(fam_files)):
+#         fam_file = fam_files[i]
+#         df = pd.read_csv(fam_file, delim_whitespace=True, header=None, names=['FID', 'IID', 'PID', 'MID', 'Sex', 'Phenotype'])
+#         df["Batch"] = batches[i]
+#         dfs.append(df)
+#     combined_df = pd.concat(dfs, ignore_index=False)
+#     duplicates = combined_df[combined_df.duplicated('IID', keep=False)]
+#     return duplicates
+
+# def restore_family_information(original_fam_files, batches, post_imputation_psam_file):
+#     dfs = []
+#     for i in range(len(original_fam_files)):
+#         fam_file = original_fam_files[i]
+#         df = pd.read_csv(fam_file, delim_whitespace=True, header=None, names=['FID', 'IID', 'PID', 'MID', 'Sex', 'Phenotype'])
+#         df["Batch"] = batches[i]
+#         dfs.append(df)
 
 # merge is not implemented in plink 2 yet
 # def merge_pgensets(pgens, out_trunk, plink2local):

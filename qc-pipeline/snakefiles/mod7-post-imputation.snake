@@ -18,7 +18,8 @@ rule mod7_merge_batches:
         """
         bcftools merge {input.vcfs} -o {output.merged_vcf}
         echo "Date: $(date '+%Y-%m-%d %H:%M:%S')" > {log}
-        echo "Merged files: {input.vcfs}" >> {log}
+        echo "Merged files:" >> {log}
+        for file in {input.vcfs}; do echo "$file" >> {log}; done
         """
 
 rule mod7_output:

@@ -102,7 +102,8 @@ rule mod6_merge_chrs:
         """
         bcftools concat {input.imputed_vcfs} -o {output.merged_vcf}
         echo "Date: $(date '+%Y-%m-%d %H:%M:%S')" > {log}
-        echo "Merged files: {input.imputed_vcfs}" >> {log}
+        echo "Merged files:" >> {log}
+        for file in {input.imputed_vcfs}; do echo "$file" >> {log}; done
         """
 rule mod6_sort_and_index:
     input:
