@@ -85,7 +85,7 @@ rule mod6_impute:
     
 rule mod6_index:
     input:
-        imputed_vcf = rules.mod6_output.output.imputed_vcf
+        imputed_vcf = rules.mod6_impute.output.imputed_vcf
     output:
         index = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_impute.chr{chr}.imputed.vcf.gz.tbi"),
         info = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_impute.chr{chr}.imputed.info")
