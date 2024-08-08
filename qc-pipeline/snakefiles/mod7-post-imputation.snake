@@ -1,5 +1,5 @@
 
-batches = batches_debug
+batches = batches_debug # remove in prod!
 
 def get_batch_vcf_files_to_merge(wildcards):
     tmpMod6str = str(tmpMod6)
