@@ -79,8 +79,6 @@ rule mod6_impute:
         output_full={output.imputed_vcf}
         outTrunk="${{output_full%.vcf.gz}}"
         java -Xmx{config[mem]} -jar {beagle} gt={input.sorted_vcf} ref=$reffile impute=true out=$outTrunk chrom={wildcards.chr} nthreads={config[beagle_threads]} map=$mapfile
-        # tabix -p vcf {output.imputed_vcf}
-        # bcftools query -f '%POS %REF %ALT %DR2 %AF\n' {output.imputed_vcf} -o ${{outTrunk}}.info
         """
     
 rule mod6_index:
