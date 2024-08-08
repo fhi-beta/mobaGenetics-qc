@@ -107,7 +107,7 @@ def get_index_files_for_batch(wildcards):
 
 rule mod6_merge_chrs:
     input:
-        imputed_vcfs = get_vcf_chr_files_for_batch
+        imputed_vcfs = get_vcf_chr_files_for_batch,
         index = get_index_files_for_batch
     output:
         merged_vcf = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_merge_chrs.vcf.gz")
