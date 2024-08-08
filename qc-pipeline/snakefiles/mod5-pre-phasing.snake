@@ -172,13 +172,12 @@ rule mod5_missingness_and_hwe:
             print(f"An exception occurred in rule {rule_stem}.")
             print(e)
 
-rule_stem = "mod5_compute_allele_frequencies"
 rule mod5_compute_allele_frequencies:
     input:
         bedset = rules.mod5_missingness_and_hwe.output.bedset
     output:
-        bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam"),
-        frq = tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".frq")
+        # bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam"),
+        frq = tmpMod5 / "{batch}" / "{number_of_samples}_samples" / ("mod5_compute_allele_frequencies.frq")
     run:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
@@ -188,7 +187,6 @@ rule mod5_compute_allele_frequencies:
                     plinklocal,
                     "--bfile", inTrunk,
                     "--freq",
-                    "--make-bed",
                     "--out", outTrunk
                 ]
             )
@@ -199,7 +197,7 @@ rule mod5_compute_allele_frequencies:
 # rule_stem must be same as for input bim file
 rule mod5_hrc1000:
     input:
-        bedset = rules.mod5_compute_allele_frequencies.output.bedset,
+        bedset = rules.mod5_missingness_and_hwe.output.bedset,
         frq = rules.mod5_compute_allele_frequencies.output.frq
     output:
         exclude = tmpMod5 / "{batch}" / "{number_of_samples}_samples" / ("Exclude-" + rule_stem + "-HRC.txt"),
