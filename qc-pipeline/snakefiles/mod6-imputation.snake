@@ -73,11 +73,11 @@ rule mod6_impute:
     threads: config["mod6impute_threads"]
     shell:
         """
-        reffile=$(echo {hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes*.vcf.gz)
+        reffile={hrc_bref3}/HRC_GRCh37.chr{wildcards.chr}.bref3
         mapfile={mapfiles}/plink.chr{wildcards.chr}.GRCh37.map
         output_full={output.imputed_vcf}
         outTrunk="${{output_full%.vcf.gz}}"
-        java -Xmx{config[mem]} -jar {beagle} gt={input.conformed_vcf} ref=$reffile impute=true out=$outTrunk chrom={wildcards.chr} nthreads={config[beagle_threads]} map=$mapfile
+        java -Xmx{config[mem]} -jar {beagle} gt={input.conformed_vcf} ref=$reffile impute=true out=$outTrunk chrom={wildcards.chr} nthreads={config[beagle_threads]} seed=12345 map=$mapfile
         """
     
 rule mod6_index:
