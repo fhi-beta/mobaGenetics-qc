@@ -73,7 +73,7 @@ rule mod6_impute:
     threads: config["mod6impute_threads"]
     shell:
         """
-        reffile={hrc_bref3}/HRC_GRCh37.chr{wildcards.chr}.bref3
+        reffile={hrc_bref}/HRC_GRCh37.chr{wildcards.chr}.bref3
         mapfile={mapfiles}/plink.chr{wildcards.chr}.GRCh37.map
         output_full={output.imputed_vcf}
         outTrunk="${{output_full%.vcf.gz}}"
