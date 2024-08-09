@@ -28,6 +28,7 @@ tmp_path = Path(config['output_base']) / config['release'] / 'tmp'
 runlog = Path(config['output_base']) / config['release'] / 'runlog.txt'
 base = Path(config['output_base']) / config['release']
 hrc_ega = Path(config['hrc_ega'])
+hrc_bref = Path(config['hrc_bref'])
 github_docs = Path(os.path.dirname(workflow.basedir)) / 'docs' / config['release']
 tmpMod1 = base/'mod1-data-preparation'
 tmpMod2 = base/'mod2-genetic-relationship'
