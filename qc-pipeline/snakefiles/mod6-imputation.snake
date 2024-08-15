@@ -71,6 +71,8 @@ rule mod6_impute:
     output:
         imputed_vcf = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_impute.chr{chr}.imputed.vcf.gz")
     threads: config["mod6impute_threads"]
+    log:
+        str(tmpMod6/"{batch}" / "{number_of_samples}_samples"/ "mod6_impute_log_chr{chr}.log")
     shell:
         """
         reffile={hrc_bref}/HRC_GRCh37.chr{wildcards.chr}.bref3
