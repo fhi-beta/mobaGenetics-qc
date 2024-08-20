@@ -38,7 +38,7 @@ tmpMod4 = base/'mod4-good_markers'
 tmpMod5 = base/'mod5-pre-phasing'
 tmpMod6 = base/'mod6-imputation'
 # use archive for these for now, since /work is full:
-tmpMod6Archvie = archive_base/'mod6-imputation'
+tmpMod6Archive = archive_base/'mod6-imputation'
 tmpMod7 = archive_base/'mod7-post-imputation'
 
 n_samples = config['n_samples']
