@@ -83,7 +83,8 @@ rule all:
         # str(tmpMod7 / "all_samples" / "mod7_output.pgen")
         # expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_sorted.vcf.gz"), batch = batches_debug)
         # expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_output.vcf.gz"), batch = batches_debug)
-        expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_merge_chrs.vcf.gz"), batch = batches_debug)
+        # expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_merge_chrs.vcf.gz"), batch = batches_debug)
+        expand(str(tmpMod6Archive / "{batch}" / f"{n_samples}_samples" / "mod6_merge_chrs.vcf.gz"), batch = batches_debug)
         # expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_impute.chr{chr}.imputed.vcf.gz"), batch = batches_debug, chr = chrs_debug)
         # expand(tmpMod5/ "{batch}" / "all_samples" /"mod5_output.imiss", batch = batches_debug)
 

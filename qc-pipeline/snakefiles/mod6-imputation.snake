@@ -109,29 +109,29 @@ rule mod6_merge_chrs:
         imputed_vcfs = get_vcf_chr_files_for_batch,
         index = get_index_files_for_batch
     output:
-        merged_vcf = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_merge_chrs.vcf.gz")
+        merged_vcf = str(tmpMod6Archive / "{batch}" / "{number_of_samples}_samples" / "mod6_merge_chrs.vcf.gz")
     log:
-        str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_merge.log")
+        str(tmpMod6Archive / "{batch}" / "{number_of_samples}_samples" / "mod6_merge.log")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        bcftools concat {input.imputed_vcfs} -o {output.merged_vcf}
+        bcftools concat {input.imputed_vcfs} -o {output.merged_vcf} --write-index
         echo "Date: $(date '+%Y-%m-%d %H:%M:%S')" > {log}
         echo "Merged files:" >> {log}
         for file in {input.imputed_vcfs}; do echo "$file" >> {log}; done
         """
-rule mod6_output:
-    input:
-        merged_vcf = rules.mod6_merge_chrs.output.merged_vcf
-    output:
-        sorted_vcf = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_output.vcf.gz")
-    conda:
-        "envs/bcf_tabix.yaml"
-    shell:
-        """
-        bcftools sort {input.merged_vcf} -o {output.sorted_vcf} --write-index
-        """
+# rule mod6_output:
+#     input:
+#         merged_vcf = rules.mod6_merge_chrs.output.merged_vcf
+#     output:
+#         sorted_vcf = str(tmpMod6Archive / "{batch}" / "{number_of_samples}_samples" / "mod6_output.vcf.gz")
+#     conda:
+#         "envs/bcf_tabix.yaml"
+#     shell:
+#         """
+#         bcftools sort {input.merged_vcf} -o {output.sorted_vcf} --write-index
+#         """
 
 
 

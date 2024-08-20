@@ -27,6 +27,7 @@ exclude_variants = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir
 tmp_path = Path(config['output_base']) / config['release'] / 'tmp'
 runlog = Path(config['output_base']) / config['release'] / 'runlog.txt'
 base = Path(config['output_base']) / config['release']
+archive_base = Path(config['archive_output_base']) / config['release']
 hrc_ega = Path(config['hrc_ega'])
 hrc_bref = Path(config['hrc_bref'])
 github_docs = Path(os.path.dirname(workflow.basedir)) / 'docs' / config['release']
@@ -36,7 +37,10 @@ tmpMod3 = base/'mod3-population-clustering'
 tmpMod4 = base/'mod4-good_markers'
 tmpMod5 = base/'mod5-pre-phasing'
 tmpMod6 = base/'mod6-imputation'
-tmpMod7 = base/'mod7-post-imputation'
+# use archive for these for now, since /work is full:
+tmpMod6Archvie = archive_base/'mod6-imputation'
+tmpMod7 = archive_base/'mod7-post-imputation'
+
 n_samples = config['n_samples']
 # tmpMod5 = base/'mod5-samples_unrelated'
 # tmpMod6 = base/'mod6-phasing-preparation'
