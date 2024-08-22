@@ -121,17 +121,17 @@ rule mod6_merge_chrs:
         echo "Merged files:" >> {log}
         for file in {input.imputed_vcfs}; do echo "$file" >> {log}; done
         """
-# rule mod6_output:
-#     input:
-#         merged_vcf = rules.mod6_merge_chrs.output.merged_vcf
-#     output:
-#         sorted_vcf = str(tmpMod6Archive / "{batch}" / "{number_of_samples}_samples" / "mod6_output.vcf.gz")
-#     conda:
-#         "envs/bcf_tabix.yaml"
-#     shell:
-#         """
-#         bcftools sort {input.merged_vcf} -o {output.sorted_vcf} --write-index
-#         """
+rule mod6_output:
+    input:
+        merged_vcf = rules.mod6_merge_chrs.output.merged_vcf
+    output:
+        sorted_vcf = str(tmpMod6Archive / "{batch}" / "{number_of_samples}_samples" / "mod6_output.vcf.gz")
+    conda:
+        "envs/bcf_tabix.yaml"
+    shell:
+        """
+        bcftools sort {input.merged_vcf} -o {output.sorted_vcf} --write-index
+        """
 
 
 
