@@ -3,8 +3,8 @@ batches = batches_debug # remove in prod!
 
 def get_batch_vcf_files_to_merge(wildcards):
     tmpMod6str = str(tmpMod6Archive)
-    return [f"{tmpMod6str}/{batch}/{wildcards.number_of_samples}_samples/mod6_output.vcf.gz" for batch in batches]
-    #return [f"{tmpMod6str}/{batch}/{wildcards.number_of_samples}_samples/mod6_merge_chrs.vcf.gz" for batch in batches]
+    #return [f"{tmpMod6str}/{batch}/{wildcards.number_of_samples}_samples/mod6_output.vcf.gz" for batch in batches]
+    return [f"{tmpMod6str}/{batch}/{wildcards.number_of_samples}_samples/mod6_merge_chrs.vcf.gz" for batch in batches]
 
 rule mod7_merge_batches:
     input:
