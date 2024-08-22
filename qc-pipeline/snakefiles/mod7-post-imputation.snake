@@ -2,8 +2,9 @@
 batches = batches_debug # remove in prod!
 
 def get_batch_vcf_files_to_merge(wildcards):
-    tmpMod6str = str(tmpMod6)
-    return [f"{tmpMod6str}/{batch}/{wildcards.number_of_samples}_samples/mod6_output.vcf.gz" for batch in batches]
+    tmpMod6str = str(tmpMod6Archive)
+    # return [f"{tmpMod6str}/{batch}/{wildcards.number_of_samples}_samples/mod6_output.vcf.gz" for batch in batches]
+    return [f"{tmpMod6str}/{batch}/{wildcards.number_of_samples}_samples/mod6_merge_chrs.vcf.gz" for batch in batches]
 
 rule mod7_merge_batches:
     input:
@@ -16,8 +17,10 @@ rule mod7_merge_batches:
         "envs/bcf_tabix.yaml"
     shell:
         """
+        echo "Output file: {output.merged_vcf}" > {log}
+        echo "Merge started $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
         bcftools merge {input.vcfs} -o {output.merged_vcf}
-        echo "Date: $(date '+%Y-%m-%d %H:%M:%S')" > {log}
+        echo "Merge finished $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
         echo "Merged files:" >> {log}
         for file in {input.vcfs}; do echo "$file" >> {log}; done
         """
