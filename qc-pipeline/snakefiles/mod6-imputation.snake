@@ -93,7 +93,7 @@ rule mod6_index:
     shell:
         """
         tabix -p vcf {input.imputed_vcf}
-        bcftools query -f '%POS %REF %ALT %DR2 %AF\n' {input.imputed_vcf} -o {output.info}
+        bcftools query -f '%POS %ID %IMP %REF %ALT %DR2 %AF\n' {input.imputed_vcf} -o {output.info}
         """
 
 
