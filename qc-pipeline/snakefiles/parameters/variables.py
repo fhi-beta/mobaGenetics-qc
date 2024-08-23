@@ -40,7 +40,7 @@ tmpMod6 = base/'mod6-imputation'
 tmpMergeTest = base/'merge_test'
 # use archive for these for now, since /work is full:
 tmpMod6Archive = archive_base/'mod6-imputation'
-tmpMod7 = archive_base/'mod7-post-imputation'
+tmpMod7 = base/'mod7-post-imputation'
 
 n_samples = config['n_samples']
 # tmpMod5 = base/'mod5-samples_unrelated'
