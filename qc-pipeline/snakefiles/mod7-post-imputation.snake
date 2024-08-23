@@ -8,7 +8,7 @@ def get_index_files_for_chr(wildcards):
 
 rule mod7_merge_chrs:
     input:
-        vcfs = get_vcf_chr_files_to_merge
+        vcfs = get_vcf_chr_files_to_merge,
         index = get_index_files_for_chr
     output:
         merged_vcf = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches_chr{chr}.vcf.gz")
