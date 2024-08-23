@@ -1,14 +1,14 @@
 batches = batches_debug # remove in prod!
 tmpMod6str = str(tmpMod6)
-def get_vcf_chr_files_to_merge(wildcards):
+def get_vcf_batch_files_to_merge(wildcards):
     return [f"{tmpMod6str}/{batch}/{wildcards.number_of_samples}_samples/mod6_impute.chr{wildcards.chr}.imputed.vcf.gz" for batch in batches]
 
 def get_index_files_for_chr(wildcards):
     return [f"{tmpMod6str}/{batch}/{wildcards.number_of_samples}_samples/mod6_impute.chr{wildcards.chr}.imputed.vcf.gz.tbi" for batch in batches]
 
-rule mod7_merge_chrs:
+rule mod7_merge_batches:
     input:
-        vcfs = get_vcf_chr_files_to_merge,
+        vcfs = get_vcf_batch_files_to_merge,
         index = get_index_files_for_chr
     output:
         merged_vcf = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches_chr{chr}.vcf.gz")
@@ -27,11 +27,60 @@ rule mod7_merge_chrs:
         for file in {input.vcfs}; do echo "$file" >> {log}; done
         """
 
+rule mod7_index_batch_merge:
+    input:
+        merged_vcf = rules.mod7_merge_batches.output.merged_vcf
+    output:
+        index = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches_chr{chr}.vcf.gz.tbi"),
+    conda:
+        "envs/bcf_tabix.yaml"
+    shell:
+        """
+        tabix -p vcf {input.imputed_vcf}
+        """
+
+tmpMod7str = str(tmpMod7)
+def get_chr_vcf_files_to_merge(wildcards):
+    return [f"{tmpMod7str}/{wildcards.number_of_samples}_samples/mod7_merge_batches_chr{chr}.vcf.gz"]
+
+def get_chr_index_files:
+    return [f"{tmpMod7str}/{wildcards.number_of_samples}_samples/mod7_merge_batches_chr{chr}.vcf.gz.tbi"]
+    
+rule mod7_merge_chrs:
+    input:
+        chr_vcfs = get_chr_vcf_files_to_merge,
+        index = get_chr_index_files
+    log:
+        str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_chrs.log")
+    output:
+        merged_vcf = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_chrs.vcf.gz")
+    conda:
+        "envs/bcf_tabix.yaml"
+    shell:
+        """
+        echo "Output file: {output.merged_vcf}" > {log}
+        echo "Merge started $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
+        bcftools concat {input.chr_vcfs} -o {output.merged_vcf}
+        echo "Merge finished $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
+        echo "Merged files:" >> {log}
+        for file in {input.chr_vcfs}; do echo "$file" >> {log}; done
+        """
+
+rule mod7_output:
+    input:
+        merged_vcf = rules.mod7_merge_chrs.output.merged_vcf
+    output:
+        pgenset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
+        #pgenset = multiext(str(tmpMergeTest / "{number_of_samples}_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
+    shell:
+        """
+        output_full={output.pgenset[0]}
+        outTrunk="${{output_full%.pgen}}"
+        {plink2local} --vcf {input.merged_vcf} --make-pgen --out $outTrunk
+        """
 
 
 
-
-batches = batches_debug # remove in prod!
 
 # def get_batch_vcf_files_to_merge(wildcards):
 #     # tmpMod6str = str(tmpMod6Archive)
@@ -57,8 +106,8 @@ batches = batches_debug # remove in prod!
 #         bcftools merge {input.vcfs} -o {output.merged_vcf}
 #         echo "Merge finished $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
 #         echo "Merged files:" >> {log}
-# #         for file in {input.vcfs}; do echo "$file" >> {log}; done
-# #         """
+#         for file in {input.vcfs}; do echo "$file" >> {log}; done
+#         """
 
 # rule mod7_output:
 #     input:
