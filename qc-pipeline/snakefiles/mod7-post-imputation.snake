@@ -57,21 +57,21 @@ batches = batches_debug # remove in prod!
 #         bcftools merge {input.vcfs} -o {output.merged_vcf}
 #         echo "Merge finished $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
 #         echo "Merged files:" >> {log}
-#         for file in {input.vcfs}; do echo "$file" >> {log}; done
-#         """
+# #         for file in {input.vcfs}; do echo "$file" >> {log}; done
+# #         """
 
-rule mod7_output:
-    input:
-        merged_vcf = rules.mod7_merge_batches.output.merged_vcf
-    output:
-        # pgenset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
-        pgenset = multiext(str(tmpMergeTest / "{number_of_samples}_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
-    shell:
-        """
-        output_full={output.pgenset[0]}
-        outTrunk="${{output_full%.pgen}}"
-        {plink2local} --vcf {input.merged_vcf} --make-pgen --out $outTrunk
-        """
+# rule mod7_output:
+#     input:
+#         merged_vcf = rules.mod7_merge_batches.output.merged_vcf
+#     output:
+#         # pgenset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
+#         pgenset = multiext(str(tmpMergeTest / "{number_of_samples}_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
+#     shell:
+#         """
+#         output_full={output.pgenset[0]}
+#         outTrunk="${{output_full%.pgen}}"
+#         {plink2local} --vcf {input.merged_vcf} --make-pgen --out $outTrunk
+#         """
 
 
 
