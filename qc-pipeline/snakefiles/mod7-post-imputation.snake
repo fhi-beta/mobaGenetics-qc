@@ -39,12 +39,13 @@ rule mod7_index_batch_merge:
         tabix -p vcf {input.imputed_vcf}
         """
 
+chrs = chrs_debug # remove in prod!
 tmpMod7str = str(tmpMod7)
 def get_chr_vcf_files_to_merge(wildcards):
-    return [f"{tmpMod7str}/{wildcards.number_of_samples}_samples/mod7_merge_batches_chr{chr}.vcf.gz"]
+    return [f"{tmpMod7str}/{wildcards.number_of_samples}_samples/mod7_merge_batches_chr{chr}.vcf.gz" for chr in chrs]
 
 def get_chr_index_files(wildcards):
-    return [f"{tmpMod7str}/{wildcards.number_of_samples}_samples/mod7_merge_batches_chr{chr}.vcf.gz.tbi"]
+    return [f"{tmpMod7str}/{wildcards.number_of_samples}_samples/mod7_merge_batches_chr{chr}.vcf.gz.tbi" for chr in chrs]
     
 rule mod7_merge_chrs:
     input:
