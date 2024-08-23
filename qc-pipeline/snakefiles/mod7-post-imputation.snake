@@ -36,7 +36,7 @@ rule mod7_index_batch_merge:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        tabix -p vcf {input.imputed_vcf}
+        tabix -p vcf {input.merged_vcf}
         """
 
 chrs = chrs_debug # remove in prod!
