@@ -31,7 +31,7 @@ rule mod7_index_batch_merge:
     input:
         merged_vcf = rules.mod7_merge_batches.output.merged_vcf
     output:
-        index = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches_chr{chr}.bcf.tbi"),
+        index = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches_chr{chr}.bcf.csi"),
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -45,7 +45,7 @@ def get_chr_vcf_files_to_merge(wildcards):
     return [f"{tmpMod7str}/{wildcards.number_of_samples}_samples/mod7_merge_batches_chr{chr}.bcf" for chr in chrs]
 
 def get_chr_index_files(wildcards):
-    return [f"{tmpMod7str}/{wildcards.number_of_samples}_samples/mod7_merge_batches_chr{chr}.bcf.tbi" for chr in chrs]
+    return [f"{tmpMod7str}/{wildcards.number_of_samples}_samples/mod7_merge_batches_chr{chr}.bcf.csi" for chr in chrs]
     
 rule mod7_merge_chrs:
     input:
