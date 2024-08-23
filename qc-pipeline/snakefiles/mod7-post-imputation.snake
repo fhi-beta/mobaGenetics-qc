@@ -43,7 +43,7 @@ tmpMod7str = str(tmpMod7)
 def get_chr_vcf_files_to_merge(wildcards):
     return [f"{tmpMod7str}/{wildcards.number_of_samples}_samples/mod7_merge_batches_chr{chr}.vcf.gz"]
 
-def get_chr_index_files:
+def get_chr_index_files(wildcards):
     return [f"{tmpMod7str}/{wildcards.number_of_samples}_samples/mod7_merge_batches_chr{chr}.vcf.gz.tbi"]
     
 rule mod7_merge_chrs:
