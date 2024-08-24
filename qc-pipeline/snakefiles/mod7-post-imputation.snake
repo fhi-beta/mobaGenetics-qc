@@ -73,7 +73,7 @@ def get_pre_imputation_fam_files(wildcards):
 
 rule mod7_output:
     input:
-        merged_vcf = rules.mod7_merge_chrs.output.merged_vcf
+        merged_vcf = rules.mod7_merge_chrs.output.merged_vcf,
         fam_files = get_pre_imputation_fam_files
     output:
         pgenset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
