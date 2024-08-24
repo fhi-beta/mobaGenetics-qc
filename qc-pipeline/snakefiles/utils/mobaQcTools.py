@@ -1514,24 +1514,29 @@ def create_fam_map(fam_file, map_in_file,  map_out_file):
     )
     # end create_fam_map
 
-# def find_duplicate_samples(fam_files, batches):
-#     dfs = []
-#     for i in range(len(fam_files)):
-#         fam_file = fam_files[i]
-#         df = pd.read_csv(fam_file, delim_whitespace=True, header=None, names=['FID', 'IID', 'PID', 'MID', 'Sex', 'Phenotype'])
-#         df["Batch"] = batches[i]
-#         dfs.append(df)
-#     combined_df = pd.concat(dfs, ignore_index=False)
-#     duplicates = combined_df[combined_df.duplicated('IID', keep=False)]
-#     return duplicates
 
-# def restore_family_information(original_fam_files, batches, post_imputation_psam_file):
-#     dfs = []
-#     for i in range(len(original_fam_files)):
-#         fam_file = original_fam_files[i]
-#         df = pd.read_csv(fam_file, delim_whitespace=True, header=None, names=['FID', 'IID', 'PID', 'MID', 'Sex', 'Phenotype'])
-#         df["Batch"] = batches[i]
-#         dfs.append(df)
+
+def restore_family_information(fam_files, batches, post_imputation_psam_file, new_psam_file):
+    fam_dfs = []
+    for i in range(len(fam_files)):
+        fam_file = fam_files[i]
+        df = pd.read_csv(fam_file, delim_whitespace=True, header=None, names=['FID', 'IID', 'PID', 'MID', 'Sex', 'Phenotype'])
+        df["SID"] = batches[i]
+        fam_dfs.append(df)
+    fam_df = pd.concat(fam_dfs, ignore_index=True)
+    psam_df = pd.read_csv(post_imputation_psam_file, delim_whitespace=True)
+    new_psam_df = pd.DataFrame(columns=["#FID", "IID", "SID", "PAT", "MAT", "SEX"])
+    for index, psam_row in psam_df.iterrows():
+        IID = psam_row["IID"]
+        IID_row = fam_df[fam_df["IID"] == IID]
+        SID = IID_row["SID"].iloc[0]
+        FID = IID_row["FID"].iloc[0]
+        PAT = IID_row["PID"].iloc[0]
+        MAT = IID_row["MID"].iloc[0]
+        SEX = IID_row["Sex"].iloc[0]
+        new_psam_df.iloc[index] = [FID, IID, SID, PAT, MAT, SEX]
+    new_psam_df.to_csv(new_psam_file, sep="\t", index=False)
+
 
 # merge is not implemented in plink 2 yet
 # def merge_pgensets(pgens, out_trunk, plink2local):
