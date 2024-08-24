@@ -1535,7 +1535,7 @@ def restore_family_information(fam_files, batches, post_imputation_psam_file, ne
         PAT = IID_row["PID"].iloc[0]
         MAT = IID_row["MID"].iloc[0]
         SEX = IID_row["Sex"].iloc[0]
-        new_psam_df.iloc[index] = [FID, IID, SID, PAT, MAT, SEX]
+        new_psam_df.loc[index] = [FID, IID, SID, PAT, MAT, SEX]
     new_psam_df.to_csv(new_psam_file, sep="\t", index=False)
 
 
