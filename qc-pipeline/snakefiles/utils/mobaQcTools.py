@@ -1525,6 +1525,7 @@ def restore_family_information(fam_files, batches, post_imputation_psam_file, ne
         fam_dfs.append(df)
     fam_df = pd.concat(fam_dfs, ignore_index=True)
     psam_df = pd.read_csv(post_imputation_psam_file, delim_whitespace=True)
+    psam_df = psam_df.reset_index()
     new_psam_df = pd.DataFrame(columns=["#FID", "IID", "SID", "PAT", "MAT", "SEX"])
     for index, psam_row in psam_df.iterrows():
         IID = psam_row["#IID"]
