@@ -42,8 +42,8 @@ rule mod7_index_batch_merge:
 
 rule mod7_convert_chrs_to_pgen:
     input:
-        merged_vcf = rules.mod7_merge_batches.output.merged_vcf
-        indexes = rules.mod7_index_batch_merge.output.index
+        merged_vcf = rules.mod7_merge_batches.output.merged_vcf,
+        index = rules.mod7_index_batch_merge.output.index
     output:
         pgensets = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_convert_chrs_to_pgen.chr{chr}"), ".pgen", ".pvar", ".psam"
     run:
