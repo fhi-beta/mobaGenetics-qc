@@ -39,49 +39,15 @@ rule mod7_index_batch_merge:
         tabix -p vcf {input.merged_vcf}
         """
 
-chrs = chrs_debug # remove in prod!
-tmpMod7str = str(tmpMod7)
-def get_chr_vcf_files_to_merge(wildcards):
-    return [f"{tmpMod7str}/{wildcards.number_of_samples}_samples/mod7_merge_batches_chr{chr}.vcf.gz" for chr in chrs]
 
-def get_chr_index_files(wildcards):
-    return [f"{tmpMod7str}/{wildcards.number_of_samples}_samples/mod7_merge_batches_chr{chr}.vcf.gz.tbi" for chr in chrs]
-    
-rule mod7_merge_chrs:
+rule mod7_convert_chrs_to_pgen:
     input:
-        chr_vcfs = get_chr_vcf_files_to_merge,
-        index = get_chr_index_files
-    log:
-        str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_chrs.log")
+        merged_vcf = rules.mod7_merge_batches.output.merged_vcf
+        indexes = rules.mod7_index_batch_merge.output.index
     output:
-        merged_vcf = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_chrs.vcf.gz")
-    conda:
-        "envs/bcf_tabix.yaml"
-    shell:
-        """
-        echo "Output file: {output.merged_vcf}" > {log}
-        echo "Merge started $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
-        bcftools concat {input.chr_vcfs} -o {output.merged_vcf}
-        echo "Merge finished $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
-        echo "Merged files:" >> {log}
-        for file in {input.chr_vcfs}; do echo "$file" >> {log}; done
-        """
-batches = batches_debug # remove in prod!
-def get_pre_imputation_fam_files(wildcards):
-    tmpMod5str = str(tmpMod5)
-    return [f"{tmpMod5str}/{batch}/{wildcards.number_of_samples}_samples/mod5_output.fam" for batch in batches]
-
-rule mod7_output:
-    input:
-        merged_vcf = rules.mod7_merge_chrs.output.merged_vcf,
-        fam_files = get_pre_imputation_fam_files
-    output:
-        pgenset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
-        #pgenset = multiext(str(tmpMergeTest / "{number_of_samples}_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
+        pgensets = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_convert_chrs_to_pgen.chr{chr}"), ".pgen", ".pvar", ".psam"
     run:
         outTrunk = mqc.plinkBase(output.pgenset[0])
-        new_psam = output.pgenset[2]
-        original_psam = outTrunk + ".original.psam"
         subprocess.run(
             [
                 plink2local,
@@ -90,8 +56,85 @@ rule mod7_output:
                 "--out", outTrunk
             ]
         )
+
+chrs = chrs_debug # remove in prod!
+def chr_pgens_to_merge(wildcards):
+    tmpMod7str = str(tmpMod7)
+    return [f"{tmpMod7str}/{wildcards.number_of_samples}_samples/mod7_convert_chrs_to_pgen.chr{chr}.pgen" for chr in chrs]
+
+batches = batches_debug # remove in prod!
+def get_pre_imputation_fam_files(wildcards):
+    tmpMod5str = str(tmpMod5)
+    return [f"{tmpMod5str}/{batch}/{wildcards.number_of_samples}_samples/mod5_output.fam" for batch in batches]
+
+rule mod7_merge:
+    input:
+        pgens = chr_pgens_to_merge
+    output:
+        pgenset = multiext(str(tmpMod7 / "all_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
+    run:
+        out_trunk = mqc.plinkBase(output.pgenset[0])
+        mqc.merge_pgensets(input.pgens, out_trunk, plink2local)
+        new_psam = output.pgenset[2]
+        original_psam = outTrunk + ".original.psam"
         os.rename(new_psam, original_psam)
         mqc.restore_family_information(input.fam_files, batches, original_psam, new_psam)
+
+
+
+# chrs = chrs_debug # remove in prod!
+# tmpMod7str = str(tmpMod7)
+# def get_chr_vcf_files_to_merge(wildcards):
+#     return [f"{tmpMod7str}/{wildcards.number_of_samples}_samples/mod7_merge_batches_chr{chr}.vcf.gz" for chr in chrs]
+
+# def get_chr_index_files(wildcards):
+#     return [f"{tmpMod7str}/{wildcards.number_of_samples}_samples/mod7_merge_batches_chr{chr}.vcf.gz.tbi" for chr in chrs]
+    
+# rule mod7_merge_chrs:
+#     input:
+#         chr_vcfs = get_chr_vcf_files_to_merge,
+#         index = get_chr_index_files
+#     log:
+#         str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_chrs.log")
+#     output:
+#         merged_vcf = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_chrs.vcf.gz")
+#     conda:
+#         "envs/bcf_tabix.yaml"
+#     shell:
+#         """
+#         echo "Output file: {output.merged_vcf}" > {log}
+#         echo "Merge started $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
+#         bcftools concat {input.chr_vcfs} -o {output.merged_vcf}
+#         echo "Merge finished $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
+#         echo "Merged files:" >> {log}
+#         for file in {input.chr_vcfs}; do echo "$file" >> {log}; done
+#         """
+# batches = batches_debug # remove in prod!
+# def get_pre_imputation_fam_files(wildcards):
+#     tmpMod5str = str(tmpMod5)
+#     return [f"{tmpMod5str}/{batch}/{wildcards.number_of_samples}_samples/mod5_output.fam" for batch in batches]
+
+# rule mod7_output:
+#     input:
+#         merged_vcf = rules.mod7_merge_chrs.output.merged_vcf,
+#         fam_files = get_pre_imputation_fam_files
+#     output:
+#         pgenset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
+#         #pgenset = multiext(str(tmpMergeTest / "{number_of_samples}_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
+#     run:
+#         outTrunk = mqc.plinkBase(output.pgenset[0])
+#         new_psam = output.pgenset[2]
+#         original_psam = outTrunk + ".original.psam"
+#         subprocess.run(
+#             [
+#                 plink2local,
+#                 "--vcf", input.merged_vcf,
+#                 "--make-pgen",
+#                 "--out", outTrunk
+#             ]
+#         )
+#         os.rename(new_psam, original_psam)
+#         mqc.restore_family_information(input.fam_files, batches, original_psam, new_psam)
     # shell:
     #     """
     #     output_full={output.pgenset[0]}

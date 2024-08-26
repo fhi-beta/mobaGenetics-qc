@@ -1538,20 +1538,18 @@ def restore_family_information(fam_files, batches, post_imputation_psam_file, ne
         new_psam_df.loc[index] = [FID, IID, SID, PAT, MAT, SEX]
     new_psam_df.to_csv(new_psam_file, sep="\t", index=False)
 
-
-# merge is not implemented in plink 2 yet
-# def merge_pgensets(pgens, out_trunk, plink2local):
-#     """
-#     pgen: list of .pgen-files
-#     merges the pgen-sets associated with the .pgen-files in pgens into a single pgen-set with filebase out_trunk
-#     """
-#     cmd = f"""
-#     # Generate list of files to merge
-#     pgenset_dir=$(dirname "{out_trunk}")
-#     echo {pgens} | tr ' ' '\\n' | sed 's/.pgen//' > $pgenset_dir/pgen_list.txt
-#     {plink2local} --pmerge-list $pgenset_dir/pgen_list.txt --out {out_trunk}
-#     """
-#     subprocess.run(cmd, shell=True, check=True)
+def merge_pgensets(pgens, out_trunk, plink2local):
+    """
+    pgen: list of .pgen-files
+    merges the pgen-sets associated with the .pgen-files in pgens into a single pgen-set with filebase out_trunk (only works for concatetation-jobs)
+    """
+    cmd = f"""
+    # Generate list of files to merge
+    pgenset_dir=$(dirname "{out_trunk}")
+    echo {pgens} | tr ' ' '\\n' | sed 's/.pgen//' > $pgenset_dir/pgen_list.txt
+    {plink2local} --pmerge-list $pgenset_dir/pgen_list.txt --out {out_trunk}
+    """
+    subprocess.run(cmd, shell=True, check=True)
 
 
 def main():
