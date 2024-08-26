@@ -47,7 +47,7 @@ rule mod7_convert_chrs_to_pgen:
     output:
         pgensets = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_convert_chrs_to_pgen.chr{chr}"), ".pgen", ".pvar", ".psam")
     run:
-        outTrunk = mqc.plinkBase(output.pgenset[0])
+        outTrunk = mqc.plinkBase(output.pgensets[0])
         subprocess.run(
             [
                 plink2local,
