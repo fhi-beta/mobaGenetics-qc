@@ -39,10 +39,23 @@ rule mod7_index_batch_merge:
         tabix -p vcf {input.merged_vcf}
         """
 
+rule mod7_norm:
+    input:
+        merged_vcf = rules.mod7_merge_batches.output.merged_vcf,
+        index = rules.mod7_index_batch_merge.output.index
+    output:
+        norm_vcf = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_norm.chr{chr}.vcf.gz")
+    conda:
+        "envs/bcf_tabix.yaml"
+    shell:
+        """
+        bcftools norm -m + {input.imputed_vcf} -o {output.norm_vcf}
+        """
+
 
 rule mod7_convert_chrs_to_pgen:
     input:
-        merged_vcf = rules.mod7_merge_batches.output.merged_vcf,
+        norm_vcf = rules.mod7_norm.output.norm_vcf,
         index = rules.mod7_index_batch_merge.output.index
     output:
         pgensets = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_convert_chrs_to_pgen.chr{chr}"), ".pgen", ".pvar", ".psam")
@@ -52,7 +65,7 @@ rule mod7_convert_chrs_to_pgen:
         subprocess.run(
             [
                 plink2local,
-                "--vcf", input.merged_vcf,
+                "--vcf", input.norm_vcf,
                 "--memory", config['mod7_convert_chrs_to_pgen_mem'],
                 "--out", outTrunk
             ]
