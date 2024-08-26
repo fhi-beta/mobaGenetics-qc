@@ -71,7 +71,7 @@ rule mod7_merge:
     input:
         pgens = chr_pgens_to_merge
     output:
-        pgenset = multiext(str(tmpMod7 / "all_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
+        pgenset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
     run:
         out_trunk = mqc.plinkBase(output.pgenset[0])
         mqc.merge_pgensets(input.pgens, out_trunk, plink2local)
