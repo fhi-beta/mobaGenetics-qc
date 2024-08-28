@@ -88,10 +88,10 @@ batches = batches_debug # remove in prod!
 def get_pre_imputation_fam_files(wildcards):
     tmpMod5str = str(tmpMod5)
     return [f"{tmpMod5str}/{batch}/{wildcards.number_of_samples}_samples/mod5_output.fam" for batch in batches]
-    
+
 rule mod7_restore_family_information:
     input:
-        pgenset = rules.mod7_merge.output.pgenset
+        pgenset = rules.mod7_merge.output.pgenset,
         fam_files = get_pre_imputation_fam_files
     output:
         str(tmpMod7 / "{number_of_samples}_samples" / "mod7_output.original.psam")
