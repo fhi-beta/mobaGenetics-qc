@@ -75,11 +75,6 @@ def chr_pgens_to_merge(wildcards):
     tmpMod7str = str(tmpMod7)
     return [f"{tmpMod7str}/{wildcards.number_of_samples}_samples/mod7_convert_chrs_to_pgen.chr{chr}.pgen" for chr in chrs]
 
-batches = batches_debug # remove in prod!
-def get_pre_imputation_fam_files(wildcards):
-    tmpMod5str = str(tmpMod5)
-    return [f"{tmpMod5str}/{batch}/{wildcards.number_of_samples}_samples/mod5_output.fam" for batch in batches]
-
 rule mod7_merge:
     input:
         pgens = chr_pgens_to_merge
@@ -88,8 +83,22 @@ rule mod7_merge:
     run:
         out_trunk = mqc.plinkBase(output.pgenset[0])
         mqc.merge_pgensets(input.pgens, out_trunk, plink2local)
-        new_psam = output.pgenset[2]
-        original_psam = out_trunk + ".original.psam"
+
+batches = batches_debug # remove in prod!
+def get_pre_imputation_fam_files(wildcards):
+    tmpMod5str = str(tmpMod5)
+    return [f"{tmpMod5str}/{batch}/{wildcards.number_of_samples}_samples/mod5_output.fam" for batch in batches]
+    
+rule mod7_restore_family_information:
+    input:
+        pgenset = rules.mod7_merge.output.pgenset
+        fam_files = get_pre_imputation_fam_files
+    output:
+        str(tmpMod7 / "{number_of_samples}_samples" / "mod7_output.original.psam")
+    run:
+        in_trunk = mqc.plinkBase(input.pgenset[0])
+        new_psam = input.pgenset[2]
+        original_psam = in_trunk + ".original.psam"
         os.rename(new_psam, original_psam)
         mqc.restore_family_information(input.fam_files, batches, original_psam, new_psam)
 
