@@ -55,8 +55,7 @@ rule mod7_norm:
 
 rule mod7_convert_chrs_to_pgen:
     input:
-        norm_vcf = rules.mod7_norm.output.norm_vcf,
-        index = rules.mod7_index_batch_merge.output.index
+        norm_vcf = rules.mod7_norm.output.norm_vcf
     output:
         pgensets = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_convert_chrs_to_pgen.chr{chr}"), ".pgen", ".pvar", ".psam")
     threads: config['mod7_convert_chrs_to_pgen_threads']
@@ -90,7 +89,7 @@ rule mod7_merge:
         out_trunk = mqc.plinkBase(output.pgenset[0])
         mqc.merge_pgensets(input.pgens, out_trunk, plink2local)
         new_psam = output.pgenset[2]
-        original_psam = outTrunk + ".original.psam"
+        original_psam = out_trunk + ".original.psam"
         os.rename(new_psam, original_psam)
         mqc.restore_family_information(input.fam_files, batches, original_psam, new_psam)
 
