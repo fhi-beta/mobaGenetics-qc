@@ -1,6 +1,7 @@
 rule mod7_filter:
     input:
-        imputed_vcf = rules.mod6_impute.output.imputed_vcf
+        imputed_vcf = rules.mod6_impute.output.imputed_vcf,
+        index = rules.mod6_index.output.index
     output:
         filtered_bcf = str(tmpMod7 / "{batch}" / "{number_of_samples}_samples" / "mod7_filter.chr{chr}.bcf")
     conda:
@@ -8,15 +9,32 @@ rule mod7_filter:
     shell:
         "bcftools view -i 'INFO/DR2>=0.3' {input.imputed_vcf} -o {output.filtered_bcf}"
 
+rule mod7_index_filter:
+    input:
+        filtered_bcf = rules.mod7_filter.output.filtered_bcf
+    output:
+        index = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches_chr{chr}.bcf.csi"),
+    conda:
+        "envs/bcf_tabix.yaml"
+    shell:
+        """
+        tabix -p bcf {input.merged_vcf}
+        """
+
 batches = batches_debug # remove in prod!
 
 tmpMod7str = str(tmpMod7)
 def get_bcf_batch_files_to_merge(wildcards):
     return [f"{tmpMod7str}/{batch}/{wildcards.number_of_samples}_samples/mod7_filter.chr{wildcards.chr}.bcf" for batch in batches]
 
+tmpMod7str = str(tmpMod7)
+def get_index_batch_files_to_merge(wildcards):
+    return [f"{tmpMod7str}/{batch}/{wildcards.number_of_samples}_samples/mod7_filter.chr{wildcards.chr}.bcfcsi" for batch in batches]
+
 rule mod7_merge_batches:
     input:
-        bcfs = get_bcf_batch_files_to_merge
+        bcfs = get_bcf_batch_files_to_merge,
+        index = get_index_batch_files_to_merge
     output:
         merged_bcf = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches_chr{chr}.bcf")
     log:
@@ -33,18 +51,6 @@ rule mod7_merge_batches:
         echo "Merged files:" >> {log}
         for file in {input.bcfs}; do echo "$file" >> {log}; done
         """
-
-# rule mod7_index_batch_merge:
-#     input:
-#         merged_vcf = rules.mod7_merge_batches.output.merged_vcf
-#     output:
-#         index = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches_chr{chr}.vcf.gz.tbi"),
-#     conda:
-#         "envs/bcf_tabix.yaml"
-#     shell:
-#         """
-#         tabix -p vcf {input.merged_vcf}
-#         """
 
 rule mod7_norm:
     input:
