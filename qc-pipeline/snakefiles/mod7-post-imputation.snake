@@ -17,7 +17,7 @@ rule mod7_index_filter:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        tabix -p bcf {input.merged_vcf}
+        tabix -p bcf {input.filtered_bcf}
         """
 
 batches = batches_debug # remove in prod!
