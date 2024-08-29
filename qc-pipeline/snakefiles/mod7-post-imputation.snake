@@ -29,7 +29,7 @@ def get_bcf_batch_files_to_merge(wildcards):
 
 tmpMod7str = str(tmpMod7)
 def get_index_batch_files_to_merge(wildcards):
-    return [f"{tmpMod7str}/{batch}/{wildcards.number_of_samples}_samples/mod7_filter.chr{wildcards.chr}.bcfcsi" for batch in batches]
+    return [f"{tmpMod7str}/{batch}/{wildcards.number_of_samples}_samples/mod7_filter.chr{wildcards.chr}.bcf.csi" for batch in batches]
 
 rule mod7_merge_batches:
     input:
