@@ -1,17 +1,24 @@
-batches = batches_debug # remove in prod!
-tmpMod6str = str(tmpMod6)
-def get_vcf_batch_files_to_merge(wildcards):
-    return [f"{tmpMod6str}/{batch}/{wildcards.number_of_samples}_samples/mod6_impute.chr{wildcards.chr}.imputed.vcf.gz" for batch in batches]
+rule mod7_filter:
+    input:
+        imputed_vcfs = rules.mod6_impute.output.imputed_vcfs
+    output:
+        filtered_bcfs = str(tmpMod7 / "{batch}" / "{number_of_samples}_samples" / "mod7_filter.chr{chr}.bcf")
+    conda:
+        "envs/bcf_tabix.yaml"
+    shell:
+        "bcftools view -i 'INFO/DR2>=0.3' {input.imputed_vcfs} -o {output.filtered_bcfs}"
 
-def get_index_files_for_chr(wildcards):
-    return [f"{tmpMod6str}/{batch}/{wildcards.number_of_samples}_samples/mod6_impute.chr{wildcards.chr}.imputed.vcf.gz.tbi" for batch in batches]
+batches = batches_debug # remove in prod!
+
+tmpMod7str = str(tmpMod7)
+def get_bcf_batch_files_to_merge(wildcards):
+    return [f"{tmpMod7str}/{batch}/{wildcards.number_of_samples}_samples/mod7_filter.chr{wildcards.chr}.bcf" for batch in batches]
 
 rule mod7_merge_batches:
     input:
-        vcfs = get_vcf_batch_files_to_merge,
-        index = get_index_files_for_chr
+        bcfs = get_bcf_batch_files_to_merge
     output:
-        merged_vcf = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches_chr{chr}.vcf.gz")
+        merged_bcf = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches_chr{chr}.bcf")
     log:
         # str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches.log")
         str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches_chr{chr}.log")
@@ -19,43 +26,43 @@ rule mod7_merge_batches:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        echo "Output file: {output.merged_vcf}" > {log}
+        echo "Output file: {output.merged_bcf}" > {log}
         echo "Merge started $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
-        bcftools merge {input.vcfs} -o {output.merged_vcf}
+        bcftools merge {input.bcfs} -o {output.merged_bcf}
         echo "Merge finished $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
         echo "Merged files:" >> {log}
-        for file in {input.vcfs}; do echo "$file" >> {log}; done
+        for file in {input.bcfs}; do echo "$file" >> {log}; done
         """
 
-rule mod7_index_batch_merge:
-    input:
-        merged_vcf = rules.mod7_merge_batches.output.merged_vcf
-    output:
-        index = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches_chr{chr}.vcf.gz.tbi"),
-    conda:
-        "envs/bcf_tabix.yaml"
-    shell:
-        """
-        tabix -p vcf {input.merged_vcf}
-        """
+# rule mod7_index_batch_merge:
+#     input:
+#         merged_vcf = rules.mod7_merge_batches.output.merged_vcf
+#     output:
+#         index = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches_chr{chr}.vcf.gz.tbi"),
+#     conda:
+#         "envs/bcf_tabix.yaml"
+#     shell:
+#         """
+#         tabix -p vcf {input.merged_vcf}
+#         """
 
 rule mod7_norm:
     input:
-        merged_vcf = rules.mod7_merge_batches.output.merged_vcf,
-        index = rules.mod7_index_batch_merge.output.index
+        merged_bcf = rules.mod7_merge_batches.output.merged_bcf
+        # index = rules.mod7_index_batch_merge.output.index
     output:
-        norm_vcf = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_norm.chr{chr}.vcf.gz")
+        norm_bcf = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_norm.chr{chr}.bcf")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        bcftools norm -m + {input.merged_vcf} -o {output.norm_vcf}
+        bcftools norm -m + {input.merged_bcf} -o {output.norm_bcf}
         """
 
 
 rule mod7_convert_chrs_to_pgen:
     input:
-        norm_vcf = rules.mod7_norm.output.norm_vcf
+        norm_bcf = rules.mod7_norm.output.norm_bcf
     output:
         pgensets = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_convert_chrs_to_pgen.chr{chr}"), ".pgen", ".pvar", ".psam")
     threads: config['mod7_convert_chrs_to_pgen_threads']
@@ -64,7 +71,7 @@ rule mod7_convert_chrs_to_pgen:
         subprocess.run(
             [
                 plink2local,
-                "--vcf", input.norm_vcf,
+                "--bcf", input.norm_bcf,
                 "--memory", config['mod7_convert_chrs_to_pgen_mem'],
                 "--out", outTrunk
             ]
