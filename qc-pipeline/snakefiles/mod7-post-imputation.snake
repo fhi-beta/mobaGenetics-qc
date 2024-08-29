@@ -13,7 +13,7 @@ rule mod7_index_filter:
     input:
         filtered_bcf = rules.mod7_filter.output.filtered_bcf
     output:
-        index = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches_chr{chr}.bcf.csi"),
+        index = str(tmpMod7 / "{batch}" / "{number_of_samples}_samples" / "mod7_filter.chr{chr}.bcf.csi"),
     conda:
         "envs/bcf_tabix.yaml"
     shell:
