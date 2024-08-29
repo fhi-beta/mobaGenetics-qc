@@ -1,12 +1,12 @@
 rule mod7_filter:
     input:
-        imputed_vcfs = rules.mod6_impute.output.imputed_vcfs
+        imputed_vcf = rules.mod6_impute.output.imputed_vcf
     output:
-        filtered_bcfs = str(tmpMod7 / "{batch}" / "{number_of_samples}_samples" / "mod7_filter.chr{chr}.bcf")
+        filtered_bcf = str(tmpMod7 / "{batch}" / "{number_of_samples}_samples" / "mod7_filter.chr{chr}.bcf")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
-        "bcftools view -i 'INFO/DR2>=0.3' {input.imputed_vcfs} -o {output.filtered_bcfs}"
+        "bcftools view -i 'INFO/DR2>=0.3' {input.imputed_vcf} -o {output.filtered_bcf}"
 
 batches = batches_debug # remove in prod!
 
