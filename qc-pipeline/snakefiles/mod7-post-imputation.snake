@@ -114,6 +114,13 @@ rule summarize_dr2:
         input_base = str(tmpMod6)
         mqc.summarize_dr2(input_base, output.dr2, output.top_snps, batches, chrs, n_samples = wildcards.number_of_samples)
 
+# rule mod7_rename_missing_ids:
+#     input:
+#         pgenset = rules.mod7_merge.output.pgenset
+#     output:
+#         pgenset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_rename_missing_ids"), ".pgen", ".pvar", ".psam")
+    
+
 
 
 # def get_pre_imputation_fam_files(wildcards):

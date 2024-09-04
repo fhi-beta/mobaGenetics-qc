@@ -15,6 +15,7 @@ import inspect    # to find stack-info, such as the functions name
 import matplotlib
 import gzip
 import shutil
+import multiprocessing as mp
 matplotlib.use('Agg')
 
 
@@ -1424,11 +1425,14 @@ def summarize_dr2(base, dr2_df_file, top_snp_file, batches, chrs, n_samples = "a
     sample_sizes = []
     dr2_df = None
     for batch in batches:
+        info_files = [rf'{base}/{batch}/{n_samples}_samples/mod6_impute.chr{chr}.imputed.vcf.gz.info' for chr in chrs]
         batch_dfs = []
-        for chr in chrs:
-            info_file = rf'{base}/{batch}/{n_samples}_samples/mod6_impute.chr{chr}.imputed.vcf.gz.info'
-            df = fetch_info_data(info_file)
-            batch_dfs.append(df)
+        # for chr in chrs:
+        #     info_file = rf'{base}/{batch}/{n_samples}_samples/mod6_impute.chr{chr}.imputed.vcf.gz.info'
+        #     df = fetch_info_data(info_file)
+        #     batch_dfs.append(df)
+        with mp.Pool(mp.cpu_count()) as pool:
+            batch_dfs = pool.map(fetch_info_data, info_files)
         df_batch = pd.concat(batch_dfs, ignore_index=True)
         if dr2_df is None:
             dr2_df = df_batch[["CHROM", "POS", "ID", "IMP", "REF", "ALT"]]
@@ -1440,7 +1444,7 @@ def summarize_dr2(base, dr2_df_file, top_snp_file, batches, chrs, n_samples = "a
     dr2_df["COMBINED"] = (((np.sqrt(dr2_df[[b for b in batches]])*sample_sizes).sum(axis=1))/N)**2
     dr2_df.to_csv(dr2_df_file, sep="\t", index=False)
     best_snp_df = dr2_df.nlargest(snp_cutoff, "COMBINED")["ID"]
-    best_snp_df.to_csv(top_snp_file, sep="\t", index=False)
+    best_snp_df.to_csv(top_snp_file, sep="\t", index=False, header=False)
     
     
 

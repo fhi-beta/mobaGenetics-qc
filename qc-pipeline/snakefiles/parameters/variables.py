@@ -41,7 +41,7 @@ tmpMergeTest = base/'merge_test'
 # use archive for these for now, since /work is full:
 tmpMod6Archive = archive_base/'mod6-imputation'
 #tmpMod7 = base/'mod7-post-imputation'
-tmpMod7 = Path(config['output_base']) / '2024.08.29' / 'mod7-post-imputation'
+tmpMod7 = Path(config['output_base']) / '2024.04.09' / 'mod7-post-imputation'
 
 
 n_samples = config['n_samples']
