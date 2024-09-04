@@ -80,7 +80,7 @@ rule all:
         #expand(tmpMod5/"{batch}"/"all_samples"/ "report" /"pre_imputation_report.md", batch = batches_debug).
        # expand(str(tmpMod7 / f"{n_samples}_samples" / "mod7_merge_batches_chr{chr}.vcf.gz"), chr = chrs_debug)
         # str(tmpMod7 / "all_samples" / "mod7_duplicate_samples.txt")
-        str(tmpMod7 / "all_samples" / "mod7_output.pgen")
+        str(tmpMod7 / "all_samples" / "mod7_rename_missing_ids.pgen")
         # str(tmpMergeTest / "all_samples" / "mod7_output.pgen")
         # expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_sorted.vcf.gz"), batch = batches_debug)
         # expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_output.vcf.gz"), batch = batches_debug)

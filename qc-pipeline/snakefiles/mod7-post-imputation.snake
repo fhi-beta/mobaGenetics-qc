@@ -1,12 +1,12 @@
 rule mod7_filter:
     input:
-        norm_vcf = rules.mod6_norm_and_rename.output.norm_vcf
+        imputed_vcf = rules.mod6_imputed.output.imputed_vcf
     output:
         filtered_vcf = str(tmpMod7 / "{batch}" / "{number_of_samples}_samples" / "mod7_filter.chr{chr}.vcf.gz")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
-        "bcftools view -i 'INFO/DR2>=0.3' {input.norm_vcf} -o {output.filtered_vcf}"
+        "bcftools view -i 'INFO/DR2>=0.3' {input.imputed_vcf} -o {output.filtered_vcf}"
 
 rule mod7_index_filter:
     input:
@@ -51,23 +51,23 @@ rule mod7_merge_batches:
         for file in {input.vcfs}; do echo "$file" >> {log}; done
         """
 
-# rule mod7_norm:
-#     input:
-#         merged_bcf = rules.mod7_merge_batches.output.merged_bcf
-#         # index = rules.mod7_index_batch_merge.output.index
-#     output:
-#         norm_bcf = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_norm.chr{chr}.bcf")
-#     conda:
-#         "envs/bcf_tabix.yaml"
-#     shell:
-#         """
-#         bcftools norm -m + {input.merged_bcf} -o {output.norm_bcf}
-#         """
+rule mod7_norm:
+    input:
+        merged_vcf = rules.mod7_merge_batches.output.merged_vcf
+        # index = rules.mod7_index_batch_merge.output.index
+    output:
+        norm_vcf = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_norm.chr{chr}.vcf")
+    conda:
+        "envs/bcf_tabix.yaml"
+    shell:
+        """
+        bcftools norm -m + {input.merged_bcf} -o {output.norm_bcf}
+        """
 
 
 rule mod7_convert_chrs_to_pgen:
     input:
-        merged_vcf = rules.mod7_merge_batches.output.merged_vcf
+        norm_vcf = rules.mod7_norm.output.norm_vcf
     output:
         pgensets = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_convert_chrs_to_pgen.chr{chr}"), ".pgen", ".pvar", ".psam")
     threads: config['mod7_convert_chrs_to_pgen_threads']
@@ -114,11 +114,20 @@ rule summarize_dr2:
         input_base = str(tmpMod6)
         mqc.summarize_dr2(input_base, output.dr2, output.top_snps, batches, chrs, n_samples = wildcards.number_of_samples)
 
-# rule mod7_rename_missing_ids:
-#     input:
-#         pgenset = rules.mod7_merge.output.pgenset
-#     output:
-#         pgenset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_rename_missing_ids"), ".pgen", ".pvar", ".psam")
+rule mod7_rename_missing_ids:
+    input:
+        # pgenset = rules.mod7_merge.output.pgenset
+        pgenset = multiext("/mnt/work/qc_genotypes/pipeOut_dev/2024.04.09/mod7-post-imputation/all_samples/mod7_output", ".pgen", ".pvar", ".psam")
+    output:
+        pgenset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_rename_missing_ids"), ".pgen", ".pvar", ".psam")
+    shell:
+        """
+        input_full={input.pgenset[0]}
+        inTrunk="${{input_full%.pgen}}"
+        output_full={output.pgenset[0]}
+        outTrunk="${{output_full%.pgen}}"
+        {plink2local} --pfile $inTrunk --set-missing-var-ids @_#\$1:\$2 --make-pgen --out $outTrunk
+        """
     
 
 
