@@ -1420,6 +1420,42 @@ def count_families(famfile, regex):
             counts["nomatch"] = counts.get("nomatch", 0) + 1
     return(counts)
 
+def summarize_dr2(base, dr2_df_file, top_snp_file, batches, chrs, n_samples = "all", snp_cutoff = 500000):
+    sample_sizes = []
+    dr2_df = None
+    for batch in batches:
+        batch_dfs = []
+        for chr in chrs:
+            vcf_file = rf'{base}/{batch}/{n_samples}_samples/mod6_impute.chr{chr}.imputed.vgc.gz'
+            info_file = rf'{base}/{batch}/{n_samples}_samples/mod6_impute.chr{chr}.imputed.vgc.gz.info'
+            df = fetch_info_data(vcf_file, info_file, batch)
+            batch_dfs.append(df)
+        df_batch = pd.concat(batch_dfs, ignore_index=True)
+        if dr2_df is None:
+            dr2_df = df_batch[["CHROM", "POS", "ID", "IMP", "REF", "ALT"]]
+        dr2_df[batch] = df_batch["DR2"]
+        sample_sizes.append(get_n_samples(vcf_file))
+    sample_sizes = np.array(sample_sizes)
+    N = sum(sample_sizes)
+    dr2_df["COMBINED"] = (((np.sqrt(dr2_df[[b for b in batches]])*sample_sizes).sum(axis=1))/N)**2
+    dr2_df.to_csv(dr2_df_file, sep="\t", index=False)
+    best_snp_df = dr2_df.nlargest(snp_cutoff, "COMBINED")["ID"]
+    best_snp_df.to_csv(top_snp_file, sep="\t", index=False)
+    
+    
+
+def fetch_info_data(info_file):
+    info_data = pd.read_csv(info_file, delim_whitespace=True, names =["CHROM", "POS", "ID", "IMP", "REF", "ALT", "DR2", "AF"])
+    info_data['ID'] = info_data.apply(lambda row: f"{row['CHROM']}_{row['POS']}_{row['REF']}:{row['ALT']}" if row['ID'] == '.' else row['ID'], axis=1)
+    return info_data
+
+def get_n_samples(vcf_file):
+    with gzip.open(vcf_file, 'rt') if vcf_file.endswith('.gz') else open(vcf_file, 'r') as f:
+        for line in f:
+            if line.startswith('#CHROM'):
+                columns = line.strip().split('\t')
+                return len(columns) - 9  # Subtract the 9 fixed VCF columns
+    return 0
 #
 # def find_moba_pca_outlier(df):
 #     """NOT IN USE/WORKING!

@@ -96,24 +96,42 @@ rule mod7_merge:
         out_trunk = mqc.plinkBase(output.pgenset[0])
         mqc.merge_pgensets(input.pgens, out_trunk, plink2local)
 
-batches = batches_debug # remove in prod!
-def get_pre_imputation_fam_files(wildcards):
-    tmpMod5str = str(tmpMod5)
-    return [f"{tmpMod5str}/{batch}/{wildcards.number_of_samples}_samples/mod5_output.fam" for batch in batches]
 
-rule mod7_restore_family_information:
+rule summarize_dr2:
     input:
-        pgenset = rules.mod7_merge.output.pgenset,
-        fam_files = get_pre_imputation_fam_files
+        info = rules.mod6_query.output.info
     output:
-        str(tmpMod7 / "{number_of_samples}_samples" / "mod7_output.original.psam")
+        dr2 = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_dr2.txt")
+        top_snps = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_best_snps.txt")
     run:
-        in_trunk = mqc.plinkBase(input.pgenset[0])
-        new_psam = input.pgenset[2]
-        original_psam = in_trunk + ".original.psam"
-        os.rename(new_psam, original_psam)
-        mqc.restore_family_information(input.fam_files, batches, original_psam, new_psam)
+        batches = batches_debug #remove in prod!
+        chrs = chrs_debug #remove in prod!
+        input_base = str(tmpMod6)
+        mqc.summarize_dr2(input_base, output.dr2, output.top_snps, batches, chrs, n_samples = wildcards.number_of_samples)
 
+
+
+# def get_pre_imputation_fam_files(wildcards):
+#     tmpMod5str = str(tmpMod5)
+#     return [f"{tmpMod5str}/{batch}/{wildcards.number_of_samples}_samples/mod5_output.fam" for batch in batches]
+
+# rule mod7_restore_family_information:
+#     input:
+#         pgenset = rules.mod7_merge.output.pgenset,
+#         fam_files = get_pre_imputation_fam_files
+#     output:
+#         str(tmpMod7 / "{number_of_samples}_samples" / "mod7_output.original.psam")
+#     run:
+#         in_trunk = mqc.plinkBase(input.pgenset[0])
+#         new_psam = input.pgenset[2]
+#         original_psam = in_trunk + ".original.psam"
+#         os.rename(new_psam, original_psam)
+#         mqc.restore_family_information(input.fam_files, batches, original_psam, new_psam)
+
+
+
+
+ #bcftools query -f '%CHROM %POS %ID %IMP %REF %ALT %DR2 %AF\n' mod6_impute.chr21.imputed.vcf.gz -o mod6_impute.chr21.imputed.info2 
 
 
 # chrs = chrs_debug # remove in prod!
