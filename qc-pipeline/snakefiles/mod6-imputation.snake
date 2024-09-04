@@ -97,7 +97,7 @@ rule mod6_norm_and_rename:
     
 rule mod6_index:
     input:
-        norm_vcf = rules.mod6_norm.output.norm_vcf
+        norm_vcf = rules.mod6_norm_and_rename.output.norm_vcf
     output:
         index = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_norm.chr{chr}.vcf.gz.tbi")
     conda:
