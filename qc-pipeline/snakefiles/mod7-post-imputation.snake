@@ -1,6 +1,6 @@
 rule mod7_filter:
     input:
-        imputed_vcf = rules.mod6_imputed.output.imputed_vcf
+        imputed_vcf = rules.mod6_impute.output.imputed_vcf
     output:
         filtered_vcf = str(tmpMod7 / "{batch}" / "{number_of_samples}_samples" / "mod7_filter.chr{chr}.vcf.gz")
     conda:
