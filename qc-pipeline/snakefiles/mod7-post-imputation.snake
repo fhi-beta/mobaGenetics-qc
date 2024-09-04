@@ -101,7 +101,7 @@ rule summarize_dr2:
     input:
         info = rules.mod6_query.output.info
     output:
-        dr2 = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_dr2.txt")
+        dr2 = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_dr2.txt"),
         top_snps = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_best_snps.txt")
     run:
         batches = batches_debug #remove in prod!
