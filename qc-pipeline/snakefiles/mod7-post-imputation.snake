@@ -96,10 +96,15 @@ rule mod7_merge:
         out_trunk = mqc.plinkBase(output.pgenset[0])
         mqc.merge_pgensets(input.pgens, out_trunk, plink2local)
 
+batch = batches_debug
+chrs = chrs_debug
+def get_info_files(wildcards):
+    tmpMod6str = str(tmpMod6)
+    return [rf"{tmpMod6str}/{batch}/{wildcards.number_of_samples}_samples/mod6_impute.chr{chr}.imputed.vcf.gz.info" for batch in batches for chr in chrs]
 
 rule summarize_dr2:
     input:
-        info = rules.mod6_query.output.info
+        info = get_info_files
     output:
         dr2 = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_dr2.txt"),
         top_snps = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_best_snps.txt")
