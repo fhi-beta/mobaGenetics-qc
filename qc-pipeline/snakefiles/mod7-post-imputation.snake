@@ -117,7 +117,7 @@ rule summarize_dr2:
 rule mod7_rename_missing_ids:
     input:
         # pgenset = rules.mod7_merge.output.pgenset
-        pgenset = multiext("/mnt/work/qc_genotypes/pipeOut_dev/2024.04.09/mod7-post-imputation/all_samples/mod7_output", ".pgen", ".pvar", ".psam")
+        pgenset = multiext("/mnt/work/qc_genotypes/pipeOut_dev/2024.08.29/mod7-post-imputation/all_samples/mod7_output", ".pgen", ".pvar", ".psam")
     output:
         pgenset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_rename_missing_ids"), ".pgen", ".pvar", ".psam")
     shell:
