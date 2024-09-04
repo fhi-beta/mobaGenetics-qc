@@ -1426,7 +1426,6 @@ def summarize_dr2(base, dr2_df_file, top_snp_file, batches, chrs, n_samples = "a
     for batch in batches:
         batch_dfs = []
         for chr in chrs:
-            vcf_file = rf'{base}/{batch}/{n_samples}_samples/mod6_impute.chr{chr}.imputed.vcf.gz'
             info_file = rf'{base}/{batch}/{n_samples}_samples/mod6_impute.chr{chr}.imputed.vcf.gz.info'
             df = fetch_info_data(info_file)
             batch_dfs.append(df)
@@ -1434,6 +1433,7 @@ def summarize_dr2(base, dr2_df_file, top_snp_file, batches, chrs, n_samples = "a
         if dr2_df is None:
             dr2_df = df_batch[["CHROM", "POS", "ID", "IMP", "REF", "ALT"]]
         dr2_df[batch] = df_batch["DR2"]
+        vcf_file = rf'{base}/{batch}/{n_samples}_samples/mod6_impute.chr{chrs[-1]}.imputed.vcf.gz'
         sample_sizes.append(get_n_samples(vcf_file))
     sample_sizes = np.array(sample_sizes)
     N = sum(sample_sizes)
