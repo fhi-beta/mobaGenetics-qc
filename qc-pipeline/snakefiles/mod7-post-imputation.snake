@@ -1,6 +1,6 @@
 rule mod7_filter:
     input:
-        norm_vcf = rules.mod6_norm.output.norm_vcf
+        norm_vcf = rules.mod6_norm_and_rename.output.norm_vcf
     output:
         filtered_vcf = str(tmpMod7 / "{batch}" / "{number_of_samples}_samples" / "mod7_filter.chr{chr}.vcf.gz")
     conda:
