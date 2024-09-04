@@ -1426,8 +1426,8 @@ def summarize_dr2(base, dr2_df_file, top_snp_file, batches, chrs, n_samples = "a
     for batch in batches:
         batch_dfs = []
         for chr in chrs:
-            vcf_file = rf'{base}/{batch}/{n_samples}_samples/mod6_impute.chr{chr}.imputed.vgc.gz'
-            info_file = rf'{base}/{batch}/{n_samples}_samples/mod6_impute.chr{chr}.imputed.vgc.gz.info'
+            vcf_file = rf'{base}/{batch}/{n_samples}_samples/mod6_impute.chr{chr}.imputed.vcf.gz'
+            info_file = rf'{base}/{batch}/{n_samples}_samples/mod6_impute.chr{chr}.imputed.vcf.gz.info'
             df = fetch_info_data(vcf_file)
             batch_dfs.append(df)
         df_batch = pd.concat(batch_dfs, ignore_index=True)
