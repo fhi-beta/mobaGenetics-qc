@@ -1421,17 +1421,16 @@ def count_families(famfile, regex):
             counts["nomatch"] = counts.get("nomatch", 0) + 1
     return(counts)
 
-def summarize_dr2(base, dr2_df_file, top_snp_file, batches, chrs, n_samples = "all", snp_cutoff = 500000):
+def summarize_dr2(base, dr2_df_file, top_snp_file, batches, chrs, threads, n_samples = "all", snp_cutoff = 500000):
+    """
+    A method for writing one file with the dr2 values after imputation, and one file with the best {snp_cutoff} snps according to combined dr2 
+    """
     sample_sizes = []
     dr2_df = None
     for batch in batches:
         info_files = [rf'{base}/{batch}/{n_samples}_samples/mod6_impute.chr{chr}.imputed.vcf.gz.info' for chr in chrs]
         batch_dfs = []
-        # for chr in chrs:
-        #     info_file = rf'{base}/{batch}/{n_samples}_samples/mod6_impute.chr{chr}.imputed.vcf.gz.info'
-        #     df = fetch_info_data(info_file)
-        #     batch_dfs.append(df)
-        with mp.Pool(mp.cpu_count()) as pool:
+        with mp.Pool(threads) as pool:
             batch_dfs = pool.map(fetch_info_data, info_files)
         df_batch = pd.concat(batch_dfs, ignore_index=True)
         if dr2_df is None:
