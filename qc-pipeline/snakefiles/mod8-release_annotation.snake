@@ -1,20 +1,19 @@
 ##
 #
-# This module conducts a preliminary QC and evaluates the genetic relationship between samples for each batch separately.
+# This module generates documentation on qualtity, familial relatedness, sex assignment, and PCA analysis on the merged set of genotypes.
 #
 ##
 
-# Generate statistics on raw dataset before anything happens to the data
-rule_stem = 'mod2_generate_start_stats'
-rule mod2_generate_start_stats:
+rule_stem = 'mod7_restore_family_information'
+rule mod8_generate_start_stats:
     input:
-        bedset = rules.m1_output.output.bedset
+        bedset = rules.mod7_restore_family_information.output.bedset
     output:
-        het = tmpMod2/"{batch}"/'mod2_start_het.het',
-        hwe = tmpMod2/"{batch}"/'mod2_start_hwe.hwe',
-        freq = tmpMod2/"{batch}"/'mod2_start_freq.frq',
-        lmiss = tmpMod2/"{batch}"/'mod2_start_missing.lmiss',
-        imiss = tmpMod2/"{batch}"/'mod2_start_missing.imiss',
+        het = tmpMod8/'mod8_all.het',
+        hwe = tmpMod8/'mod8_all.hwe',
+        freq = tmpMod8/'mod8_all.frq',
+        lmiss = tmpMod8/'mod8_all.lmiss',
+        imiss = tmpMod8/'mod8_all.imiss',
     threads: 1
     run:
         try:
@@ -28,8 +27,8 @@ rule mod2_generate_start_stats:
             # Heterozygocity rate
             subprocess.run(
                 [
-                    plinklocal,
-                    "--bfile", plink_input,
+                    plink2local,
+                    "--pfile", plink_input,
                     "--het",
                     "--out", plink_het_output
                 ],
@@ -39,8 +38,8 @@ rule mod2_generate_start_stats:
             # HWE
             subprocess.run(
                 [
-                    plinklocal,
-                    "--bfile", plink_input,
+                    plink2local,
+                    "--pfile", plink_input,
                     "--hardy",
                     "--out", plink_hwe_output
                 ],
@@ -50,8 +49,8 @@ rule mod2_generate_start_stats:
             # Frequencies
             subprocess.run(
                 [
-                    plinklocal,
-                    "--bfile", plink_input,
+                    plink2local,
+                    "--pfile", plink_input,
                     "--freq",
                     "--out", plink_freq_output
                 ],
@@ -61,8 +60,8 @@ rule mod2_generate_start_stats:
             # Missingness
             subprocess.run(
                 [
-                    plinklocal,
-                    "--bfile", plink_input,
+                    plink2local,
+                    "--pfile", plink_input,
                     "--missing",
                     "--out", plink_miss_output
                 ],
