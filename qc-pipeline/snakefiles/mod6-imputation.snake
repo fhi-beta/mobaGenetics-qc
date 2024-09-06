@@ -81,20 +81,44 @@ rule mod6_impute:
         outTrunk="${{output_full%.vcf.gz}}"
         java -Xmx{config[mem]} -jar {beagle} gt={input.conformed_vcf} ref=$reffile impute=true out=$outTrunk chrom={wildcards.chr} nthreads={config[beagle_threads]} seed=12345 map=$mapfile 2> {log}
         """
+
+# rule mod6_norm_and_rename:
+#     input:
+#         imputed_vcf = rules.mod6_impute.output.imputed_vcf
+#         # index = rules.mod7_index_batch_merge.output.index
+#     output:
+#         norm_vcf = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_norm.chr{chr}.vcf.gz")
+#     conda:
+#         "envs/bcf_tabix.yaml"
+#     shell:
+#         """
+#         bcftools norm -m + {input.imputed_vcf} | bcftools annotate --set-id +'%CHROM\_%POS\_%REF:%ALT' -o {output.norm_vcf}
+#         """
     
 rule mod6_index:
     input:
         imputed_vcf = rules.mod6_impute.output.imputed_vcf
     output:
-        index = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_impute.chr{chr}.imputed.vcf.gz.tbi"),
-        info = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_impute.chr{chr}.imputed.info")
+        index = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_impute.chr{chr}.imputed.vcf.gz.tbi")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
         """
         tabix -p vcf {input.imputed_vcf}
-        bcftools query -f '%POS %ID %IMP %REF %ALT %DR2 %AF\n' {input.imputed_vcf} -o {output.info}
         """
+
+rule mod6_query:
+    input:
+        imputed_vcf = rules.mod6_impute.output.imputed_vcf
+    output:
+        info = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_impute.chr{chr}.imputed.vcf.gz.info")
+    conda:
+        "envs/bcf_tabix.yaml"
+    shell:
+        "bcftools query -f '%CHROM %POS %ID %IMP %REF %ALT %DR2 %AF\n' {input.imputed_vcf} -o {output.info}"
+
+
+
 
 
 

@@ -15,6 +15,7 @@ import inspect    # to find stack-info, such as the functions name
 import matplotlib
 import gzip
 import shutil
+import multiprocessing as mp
 matplotlib.use('Agg')
 
 
@@ -1420,6 +1421,44 @@ def count_families(famfile, regex):
             counts["nomatch"] = counts.get("nomatch", 0) + 1
     return(counts)
 
+def summarize_dr2(base, dr2_df_file, top_snp_file, batches, chrs, threads, n_samples = "all", snp_cutoff = 500000):
+    """
+    A method for writing one file with the dr2 values after imputation, and one file with the best {snp_cutoff} snps according to combined dr2 
+    """
+    sample_sizes = []
+    dr2_df = None
+    for batch in batches:
+        info_files = [rf'{base}/{batch}/{n_samples}_samples/mod6_impute.chr{chr}.imputed.vcf.gz.info' for chr in chrs]
+        batch_dfs = []
+        with mp.Pool(threads) as pool:
+            batch_dfs = pool.map(fetch_info_data, info_files)
+        df_batch = pd.concat(batch_dfs, ignore_index=True)
+        if dr2_df is None:
+            dr2_df = df_batch[["CHROM", "POS", "ID", "IMP", "REF", "ALT"]]
+        dr2_df[batch] = df_batch["DR2"]
+        vcf_file = rf'{base}/{batch}/{n_samples}_samples/mod6_impute.chr{chrs[-1]}.imputed.vcf.gz'
+        sample_sizes.append(get_n_samples(vcf_file))
+    sample_sizes = np.array(sample_sizes)
+    N = sum(sample_sizes)
+    dr2_df["COMBINED"] = (((np.sqrt(dr2_df[[b for b in batches]])*sample_sizes).sum(axis=1))/N)**2
+    dr2_df.to_csv(dr2_df_file, sep="\t", index=False)
+    best_snp_df = dr2_df.nlargest(snp_cutoff, "COMBINED")["ID"]
+    best_snp_df.to_csv(top_snp_file, sep="\t", index=False, header=False)
+    
+    
+
+def fetch_info_data(info_file):
+    info_data = pd.read_csv(info_file, delim_whitespace=True, names =["CHROM", "POS", "ID", "IMP", "REF", "ALT", "DR2", "AF"])
+    info_data['ID'] = info_data.apply(lambda row: f"{row['CHROM']}_{row['POS']}_{row['REF']}:{row['ALT']}" if row['ID'] == '.' else row['ID'], axis=1)
+    return info_data
+
+def get_n_samples(vcf_file):
+    with gzip.open(vcf_file, 'rt') if vcf_file.endswith('.gz') else open(vcf_file, 'r') as f:
+        for line in f:
+            if line.startswith('#CHROM'):
+                columns = line.strip().split('\t')
+                return len(columns) - 9  # Subtract the 9 fixed VCF columns
+    return 0
 #
 # def find_moba_pca_outlier(df):
 #     """NOT IN USE/WORKING!
