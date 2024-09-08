@@ -1,0 +1,5 @@
+name: plink_2
+channels:
+  - bioconda
+dependencies:
+  - plink2

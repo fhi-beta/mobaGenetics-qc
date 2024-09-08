@@ -1,0 +1,5 @@
+name: gcta_1.93.2beta
+channels:
+ - bioconda
+dependencies:
+ - gcta=1.93.2beta
