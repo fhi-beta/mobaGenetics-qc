@@ -64,7 +64,7 @@ if (!file.exists(psam_file)) {
 
 mother_father_child_ids_file <- args[5] # "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz"
 
-if (!file.exists(psam_fmother_father_child_ids_fileile)) {
+if (!file.exists(mother_father_child_ids_file)) {
   
   stop(paste0("Fam file ", mother_father_child_ids_file, " not found."))
   
