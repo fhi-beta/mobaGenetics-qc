@@ -156,17 +156,6 @@ def get_pheno_file(population):
     else:
         raise Exception(f"No pheno file implemented for population: '{population}'.")
 
-# Function to get the sample id file corresponding to the given population
-def get_sample_id_file(population):
-    if population == "children" :
-        return os.path.join(id_folder, "children_id_plink")
-    elif population == "mothers":
-        return os.path.join(id_folder, "mothers_id_plink")
-    elif population == "fathers":
-        return os.path.join(id_folder, "fathers_id_plink")
-    else:
-        raise Exception(f"No id file implemented for population: '{population}'.")
-
 # Function to get an unrelated sample id file corresponding to the given population in the plink format
 def get_unrelated_sample_id_file(population):
     if population == "children":
@@ -299,7 +288,6 @@ rule regenie_step1:
     input:
         plink_bed = plink_stem + '.pgen',
         pheno_file = lambda wildcards: get_pheno_file(wildcards.population),
-        samples_list = lambda wildcards: get_sample_id_file(wildcards.population),
         variant_list = os.path.join(temp_files_folder, "best_snps_mac500.snplist")
     output:
         output_file = os.path.join(regenie_step1_folder, '{analysis}', 'step1_pop_{population}_pheno_{phenotype}_pred.list')
@@ -325,7 +313,6 @@ rule regenie_step1:
         --covarFile {input.pheno_file} \
         --strict \
         {params.pheno_covariates} \
-        --keep {input.samples_list} \
         --extract {input.variant_list} \
         --bsize 5000 \
         {params.pheno_binary} \
@@ -338,8 +325,7 @@ rule REGENIE_step2:
     input:
         plink_bed = plink_stem + '.pgen',
         pheno_file = lambda wildcards: get_pheno_file(wildcards.population),
-        step1_file = os.path.join(regenie_step1_folder, '{analysis}', 'step1_pop_{population}_pheno_{phenotype}_pred.list'),
-        samples_list = lambda wildcards: get_sample_id_file(wildcards.population)
+        step1_file = os.path.join(regenie_step1_folder, '{analysis}', 'step1_pop_{population}_pheno_{phenotype}_pred.list')
     output:
         output_file = os.path.join(results_folder, '{analysis}', 'step2_pop_{population}_pheno_{phenotype}.regenie.gz'),
     params:
@@ -358,7 +344,6 @@ rule REGENIE_step2:
         --step 2 \
         --threads {threads} \
         --bed {params.plink_stem} \
-        --sample {input.samples_list} \
         --phenoFile {input.pheno_file} \
         --phenoCol {params.pheno_column} \
         --covarFile {input.pheno_file} \
