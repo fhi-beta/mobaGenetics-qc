@@ -241,7 +241,7 @@ rule all:
         mother_pheno_file = get_pheno_file("mothers"),
         father_pheno_file = get_pheno_file("fathers"),
         # The association results
-        # association_results = get_regenie_output(),
+        association_results = get_regenie_output(),
         # cojo_results = get_cojo_output(),
         # The documentation
         # documentation_no_cojo = get_md_no_cojo(),
@@ -312,7 +312,7 @@ rule regenie_step1:
         parameters_output = os.path.join(regenie_step1_folder, '{analysis}', 'step1_pop_{population}_pheno_{phenotype}')
     conda:
         "envs/regenie_3.2.yaml"
-    threads: 6
+    threads: 12
     shell:
         """
         regenie \
@@ -350,7 +350,7 @@ rule REGENIE_step2:
         output_stem = os.path.join(results_folder, '{analysis}', 'step2_pop_{population}_pheno')
     conda:
         "envs/regenie_3.2.yaml"
-    threads: 6
+    threads: 12
     shell:
         """
 
@@ -389,12 +389,6 @@ rule REGENIE_step2:
         fi
         
         """
-
-        # From older versions of the snake file:
-
-        # Include to have verbose output in step 2:
-        # --verbose
-
 
 
 rule regenie_to_cojo:
