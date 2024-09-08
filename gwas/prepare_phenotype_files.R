@@ -109,6 +109,9 @@ mother_father_child_ids <- read.table(
 # merge sentrix ids
 
 phenotypes <- raw_phenotypes %>% 
+  rename(
+    weight_birth = vekt
+  ) %>% 
   mutate(
     child_id = paste(preg_id_hdgb, barn_nr, sep = "_")
   ) %>% 
