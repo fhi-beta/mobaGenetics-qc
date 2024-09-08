@@ -276,7 +276,7 @@ rule filter_mac:
     shell:
         """
         plink2 \
-        --bfile {params.plink_stem} \
+        --pfile {params.plink_stem} \
         --extract {params.best_snps} \
         --mac 500 \
         --write-snplist \
@@ -307,7 +307,7 @@ rule regenie_step1:
         --step 1 \
         --threads {threads} \
         --gz \
-        --bed {params.plink_stem} \
+        --pgen {params.plink_stem} \
         --phenoFile {input.pheno_file} \
         --phenoCol {params.pheno_column} \
         --covarFile {input.pheno_file} \
@@ -343,7 +343,7 @@ rule REGENIE_step2:
         regenie \
         --step 2 \
         --threads {threads} \
-        --bed {params.plink_stem} \
+        --pgen {params.plink_stem} \
         --phenoFile {input.pheno_file} \
         --phenoCol {params.pheno_column} \
         --covarFile {input.pheno_file} \
