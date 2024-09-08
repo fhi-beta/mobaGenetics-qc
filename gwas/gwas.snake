@@ -274,7 +274,7 @@ rule pheno_file:
 rule filter_mac:
     'Filter mac for Step 1 of Regenie'
     input:
-        plink_bed = plink_stem + '.bed'
+        plink_bed = plink_stem + '.pgen'
     params:
         plink_stem = plink_stem,
         best_snps = best_snps,
@@ -297,7 +297,7 @@ rule filter_mac:
 rule regenie_step1:
     'Step 1 of Regenie'
     input:
-        plink_bed = plink_stem + '.bed',
+        plink_bed = plink_stem + '.pgen',
         pheno_file = lambda wildcards: get_pheno_file(wildcards.population),
         samples_list = lambda wildcards: get_sample_id_file(wildcards.population),
         variant_list = os.path.join(temp_files_folder, "best_snps_mac500.snplist")
@@ -336,7 +336,7 @@ rule regenie_step1:
 rule REGENIE_step2:
     'Step 2 of Regenie'
     input:
-        plink_bed = plink_stem + '.bed',
+        plink_bed = plink_stem + '.pgen',
         pheno_file = lambda wildcards: get_pheno_file(wildcards.population),
         step1_file = os.path.join(regenie_step1_folder, '{analysis}', 'step1_pop_{population}_pheno_{phenotype}_pred.list'),
         samples_list = lambda wildcards: get_sample_id_file(wildcards.population)
