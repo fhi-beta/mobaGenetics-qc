@@ -24,7 +24,7 @@ conflicts_prefer(dplyr::select)
 
 args <- commandArgs(TRUE)
 
-if (length(args) != 3) {
+if (length(args) != 5) {
   
   stop(paste0("Three command line arguments expected. ", length(args), " found."))
   
