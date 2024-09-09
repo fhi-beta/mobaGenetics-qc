@@ -4,10 +4,11 @@
 #
 ##
 
-rule_stem = 'mod7_restore_family_information'
+rule_stem = 'mod8_generate_start_stats'
 rule mod8_generate_start_stats:
+    'Generate statistics on the data prior to further processing'
     input:
-        bedset = rules.mod7_restore_family_information.output.bedset
+        pgenset = rules.mod7_rename_missing_ids.output.pgenset
     output:
         het = tmpMod8/'mod8_all.het',
         hwe = tmpMod8/'mod8_all.hwe',
@@ -18,7 +19,7 @@ rule mod8_generate_start_stats:
     run:
         try:
             # Plink base paths
-            plink_input = mqc.plinkBase(input.bedset[0])
+            plink_input = mqc.plinkBase(input.pgenset[0])
             plink_het_output = mqc.plinkBase(output.het)
             plink_hwe_output = mqc.plinkBase(output.hwe)
             plink_freq_output = mqc.plinkBase(output.freq)
@@ -73,345 +74,168 @@ rule mod8_generate_start_stats:
             print(e)
 
 
-rule_stem = 'maf_removal_markers'
-rule maf_removal_markers:
+rule_stem = 'mod8_best_markers'
+rule mod8_maf_filter:
+    'Select common markers genotyped or with best imputation scores'
     input:
-        bedset = rules.m1_output.output.bedset,
+        pgenset = rules.mod7_rename_missing_ids.output.pgenset,
+        top_snps = rules.summarize_dr2.output.top_snps
     output:
-        bedset = multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed','.bim','.fam'),
-        callrate_sample = tmpMod2/"{batch}"/(rule_stem + '.imiss'),
-        callrate_marker = tmpMod2/"{batch}"/(rule_stem + '.lmiss'),
-        results = report(
-            resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
-        ),
-        plot = report(
-            resultPath/"{batch}"/(rule_stem + ".png"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
-        )
+        pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam")
     params:
-        threshold = config['pedigree_maf_thr']
+        mac_threshold = config['merged_set_mac_thr'],
+        geno_threshold = config['merged_set_geno_thr']
     run:
         try:
-            item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog, f"Initial cleaning: Low minor allele frequencies removal (--maf {params.threshold})\n")
             inTrunk =  mqc.plinkBase(input.bedset[0])
             outTrunk =  mqc.plinkBase(output.bedset[0])
 
             subprocess.run(
                 [
-                    plinklocal,
-                    "--bfile", inTrunk,
-                    "--maf", str(params.threshold),
+                    plink2local,
+                    "--pfile", inTrunk,
+                    "--extract", input.top_snps,
+                    "--mac", str(params.mac_threshold),
+                    "--geno", str(params.geno_threshold),
                     "--out", outTrunk,
-                    "--make-bed"
+                    "--make-pgen"
                 ],
                 check=True
             )
-            dropouts = mqc.checkUpdates(
-                inTrunk+".bim",
-                outTrunk+".bim",
-                cols = [0, 1, 3, 4, 5],
-                sanityCheck = "removal",
-                fullList = True,
-                allele_flip=True
-            )
-            dropouts.update(rule_info[rule])
-            dropouts["Threshold"] = params.threshold
-            dropouts["Rule"] = rule
-            mqc.saveYamlResults(output.results, dropouts)
 
-            # call rates for maf will be maf_removal_markers.output.bedset imiss and lmiss
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+
+rule_stem = 'mod8_generate_best_snps_stats'
+rule mod8_generate_best_snps_stats:
+    'Generate statistics on the filtered snps'
+    input:
+        pgenset = rules.mod8_maf_filter.output.pgenset
+    output:
+        het = tmpMod8/'mod8_best_snps.het',
+        hwe = tmpMod8/'mod8_best_snps.hwe',
+        freq = tmpMod8/'mod8_best_snps.frq',
+        lmiss = tmpMod8/'mod8_best_snps.lmiss',
+        imiss = tmpMod8/'mod8_best_snps.imiss',
+    threads: 1
+    run:
+        try:
+            # Plink base paths
+            plink_input = mqc.plinkBase(input.pgenset[0])
+            plink_het_output = mqc.plinkBase(output.het)
+            plink_hwe_output = mqc.plinkBase(output.hwe)
+            plink_freq_output = mqc.plinkBase(output.freq)
+            plink_miss_output = mqc.plinkBase(output.lmiss)
+
+            # Heterozygocity rate
             subprocess.run(
                 [
-                    plinklocal,
-                    "--bfile", outTrunk,
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--het",
+                    "--out", plink_het_output
+                ],
+                check=True
+            )
+
+            # HWE
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--hardy",
+                    "--out", plink_hwe_output
+                ],
+                check=True
+            )
+
+            # Frequencies
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--freq",
+                    "--out", plink_freq_output
+                ],
+                check=True
+            )
+
+            # Missingness
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
                     "--missing",
-                    "--out", outTrunk
+                    "--out", plink_miss_output
                 ],
                 check=True
             )
 
-            mqc.plot_point_and_line(
-                dropouts,
-                output.callrate_marker,
-                output.plot,
-                column = "F_MISS",
-                ylabel = "1 - missingness"
-            )
-
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
-
-rule_stem = 'missing_genotype_samples'
-rule missing_genotype_samples:
+rule_stem = 'check_sex'
+rule check_sex:
+    'Sex imputation. Currently not supported in plink2, running in plink1.'
     input:
-        bedset = rules.maf_removal_markers.output.bedset
+        pgenset = rules.mod8_maf_filter.output.pgenset
     output:
-        bedset = multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
-        results = report(
-            resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/(rule_stem + ".rst")
-        )
-    params:
-        threshold = config['pedigree_mind_thr']
+        sex_check = tmpMod8/(rule_stem + ".sexcheck")
     run:
         try:
-            item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog, f"Missing genotype {item_type} (--mind {params.threshold})\n")
-            inTrunk =  mqc.plinkBase(input.bedset[0])
-            outTrunk =  mqc.plinkBase(output.bedset[0])
+            plink_input = mqc.plinkBase(input.in_geno[0])
+            plink1_input = plink_input + "_1"
+            ouput_file = mqc.plinkBase(output.sex_check)
 
-            # First extract temporary samples based on earlier filtered markers (maf_removal_markers)
-            # Next these will be used to extract samples permanently (rule clean_samples:)
-            mqc.missing_genotype_rate(
-                rule,
-                inTrunk,
-                outTrunk,
-                sample = True,
-                threshold = params.threshold,
-                result_file = output.results,
-                plinklocal = plinklocal,
-                rule_info = rule_info
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--make-bed",
+                    "--out", plink1_input
+                ],
             )
-
-        except Exception as e:
-            print(f"An exception occurred in rule {rule}.")
-            print(e)
-
-
-rule_stem = "callrate_permanent_removal"
-rule callrate_permanent_removal:
-    input:
-        mod1_bedset = rules.m1_output.output.bedset,
-        bedset = rules.missing_genotype_samples.output.bedset,
-        callrate_sample = rules.maf_removal_markers.output.callrate_sample
-    output:
-        bedset = multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
-        results = report(
-            resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
-        ),
-        plot = report(
-            resultPath/"{batch}"/(rule_stem + ".png"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
-        )
-    run:
-        try:
-            oldPermTrunk =  mqc.plinkBase(input.mod1_bedset[0])
-            inTrunk =  mqc.plinkBase(input.bedset[0])
-            permTrunk =  mqc.plinkBase(output.bedset[0])
 
             subprocess.run(
                 [
                     plinklocal,
-                    "--bfile", oldPermTrunk,
-                    "--keep", inTrunk + ".fam",
-                    "--out", permTrunk,
-                    "--make-bed"
+                    "--bfile", plink1_input,
+                    "--check-sex", "ycount",
+                    "--out", ouput_file
                 ],
                 check = True
             )
 
-            dropouts = mqc.checkUpdates(
-                oldPermTrunk + ".fam",
-                permTrunk + ".fam",
-                cols = [0, 1],
-                sanityCheck = "removal",
-                fullList = True
-            )
-
-            dropouts.update(rule_info[rule])
-            dropouts["Rule"] = rule
-            mqc.saveYamlResults(output.results, dropouts)
-
-            # call rates for samples were previously computed,
-            # we now know how many actually got cut
-            mqc.plot_point_and_line(
-                dropouts,
-                input.callrate_sample,
-                output.plot,
-                column = "F_MISS",
-                ylabel = "1 - missingness"
-            )
-
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
 
-rule_stem = 'missing_genotype_markers'
-rule missing_genotype_markers:
+rule_stem = 'mod8_autosomal'
+rule mod8_autosomal:
+    'Keep only autosomal markers'
     input:
-        bedset = rules.missing_genotype_samples.output.bedset
+        pgenset = rules.mod8_maf_filter.output.pgenset
     output:
-        bedset = multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
-        results = report(
-            resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
-        ),
-        plot = report(
-            resultPath/"{batch}"/(rule_stem + ".png"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
-        )
-    params:
-        threshold = config['geno_thr']
+        pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam")
     run:
         try:
-            item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog, f"Missing genotype {item_type} (--geno {params.threshold})\n")
             inTrunk =  mqc.plinkBase(input.bedset[0])
             outTrunk =  mqc.plinkBase(output.bedset[0])
 
-            dropouts = mqc.missing_genotype_rate(
-                rule,
-                inTrunk,
-                outTrunk,
-                sample = False,
-                threshold = params.threshold,
-                result_file = output.results,
-                plot_file = output.plot,
-                plinklocal = plinklocal,
-                rule_info = rule_info
-            )
-
-        except Exception as e:
-            print(f"An exception occurred in rule {rule}.")
-            print(e)
-
-
-rule_stem = 'exclude_unplaced_and_non_autosomal_markers'
-rule exclude_unplaced_and_non_autosomal_markers:
-    input:
-        bedset = rules.missing_genotype_markers.output.bedset
-    output:
-        bedset = multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
-        results = report(
-            resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
-        )
-    run:
-        try:
-            item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog, f"Excluded unplaced and non-autosomal {item_type} (--autosome)\n")
-            inTrunk =  mqc.plinkBase(input.bedset[0])
-            outTrunk =  mqc.plinkBase(output.bedset[0])
             subprocess.run(
                 [
-                    plinklocal,
-                    "--bfile", inTrunk,
+                    plink2local,
+                    "--pfile", inTrunk,
                     "--autosome",
                     "--out", outTrunk,
-                    "--make-bed"
+                    "--make-pgen"
                 ],
-                check = True
+                check=True
             )
-
-            dropouts = mqc.checkUpdates(
-                inTrunk + ".bim",
-                outTrunk + ".bim",
-                cols = [0, 1, 3, 4, 5],
-                sanityCheck = "removal",
-                fullList = True,
-                allele_flip = True
-            )
-            dropouts.update(rule_info[rule])
-            dropouts["Rule"] = rule
-
-            mqc.saveYamlResults(output.results, dropouts)
-
-        except Exception as e:
-            print(f"An exception occurred in rule {rule}.")
-            print(e)
-
-
-rule_stem = 'hardy_weinberg_filtered_markers'
-rule hardy_weinberg_filtered_markers:
-    input:
-        bedset = rules.exclude_unplaced_and_non_autosomal_markers.output.bedset
-    output:
-        bedset = multiext(str(tmpMod2/"{batch}"/rule_stem) ,'.bed','.bim','.fam'),
-        results = report(
-            resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
-        ),
-        plot = report(
-            resultPath/"{batch}"/(rule_stem + ".png"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
-        )
-    params:
-        threshold = config['pedigree_hwe_thr']
-    run:
-        try:
-            item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog, "Missing Hardy-Weinberg filtering {item_type} (--hwe {params.threshold})\n")
-            inTrunk =  mqc.plinkBase(input.bedset[0])
-            outTrunk = mqc.plinkBase(output.bedset[0])
-
-            mqc.filter_hwe(
-                rule,
-                inTrunk,
-                outTrunk,
-                threshold = params.threshold,
-                hwe_switches = ["--hardy"],
-                result_file = output.results,
-                plot_file = output.plot,
-                plinklocal = plinklocal,
-                rule_info = rule_info
-            )
-
-        except Exception as e:
-            print(f"An exception occurred in rule {rule}.")
-            print(e)
-
-
-rule_stem = 'exclude_strand_ambigious_markers'
-rule exclude_strand_ambigious_markers:
-    input:
-        bedset = rules.hardy_weinberg_filtered_markers.output.bedset
-    output:
-        bedset = multiext(str(tmpMod2/"{batch}"/rule_stem) , '.bed', '.bim', '.fam'),
-        results = report(
-            resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
-        )
-    run:
-        try:
-            item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog, "Excluding ambigious {item_type} (GC/CG/AT/TA)\n")
-            inTrunk = mqc.plinkBase(input.bedset[0])
-            outTrunk = mqc.plinkBase(output.bedset[0])
-
-            mqc.exclude_strand_ambigious_markers(
-                inTrunk,
-                outTrunk,
-                plinklocal = plinklocal
-            )
-            dropouts = mqc.checkUpdates(
-                inTrunk + ".bim",
-                outTrunk + ".bim",
-                cols = [0, 1, 3, 4, 5],
-                sanityCheck = "removal",
-                fullList = True,
-                allele_flip = True
-            )
-
-            dropouts.update(rule_info[rule])
-            dropouts["Rule"] = rule
-            mqc.saveYamlResults(output.results, dropouts)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -420,46 +244,27 @@ rule exclude_strand_ambigious_markers:
 
 rule_stem = 'exclude_high_ld_markers'
 rule exclude_high_ld_markers:
+    'Exclude regions with high LD'
     input:
-        bedset = rules.exclude_strand_ambigious_markers.output.bedset,
+        pgenset = rules.mod8_autosomal.output.pgenset,
         high_ld_regions_hg19 = high_ld_regions_hg19
     output:
-        bedset = multiext(str(tmpMod2/"{batch}"/rule_stem) ,'.bed' ,'.bim' ,'.fam'),
-        results = report(
-            resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
-        )
+        pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam")
     run:
         try:
-            item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog, rule_info[rule]["QC test"])
             inTrunk =  mqc.plinkBase(input.bedset[0])
             outTrunk =  mqc.plinkBase(output.bedset[0])
 
             subprocess.run(
                 [
-                    plinklocal,
-                    "--bfile", inTrunk,
+                    plink2local,
+                    "--pfile", inTrunk,
                     "--exclude", "range", input.high_ld_regions_hg19,
                     "--out", outTrunk,
-                    "--make-bed"
+                    "--make-pgen"
                 ],
                 check = True
             )
-
-            dropouts = mqc.checkUpdates(
-                inTrunk + ".bim",
-                outTrunk + ".bim",
-                cols = [0, 1, 3, 4, 5],
-                sanityCheck = "removal",
-                fullList = True,
-                allele_flip = True
-            )
-
-            dropouts.update(rule_info[rule])
-            dropouts["Rule"] = rule
-            mqc.saveYamlResults(output.results, dropouts)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -468,135 +273,40 @@ rule exclude_high_ld_markers:
 
 rule_stem = 'mod2_prune_markers'
 rule mod2_prune_markers:
+    'Prune markers for LD'
     input:
-        bedset = rules.exclude_high_ld_markers.output.bedset,
+        pgenset = rules.exclude_high_ld_markers.output.pgenset,
     output:
-        bedset = multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
-        pruned_list = tmpMod2/"{batch}"/(rule_stem + ".prune.in"),
-        results = report(
-            resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
-        )
+        pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
+        pruned_list = tmpMod8/(rule_stem + ".prune.in")
     params:
         prune_cmd = config["prune_cmd"]
     run:
         try:
-
-            item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog, rule_info[rule]["QC test"])
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
 
             subprocess.run(
                 [
-                    plinklocal,
-                    "--bfile", inTrunk,
+                    plink2local,
+                    "--pfile", inTrunk,
                     "--make-founders"
                 ] + params.prune_cmd.split() + [
-                        "--out", outTrunk
+                    "--out", outTrunk
                 ],
                 check = True
             )
 
             subprocess.run(
                 [
-                    plinklocal,
-                            "--bfile", inTrunk,
-                            "--extract", output.pruned_list,
-                            "--out", outTrunk,
-                            "--make-bed"
-                ],
-                check = True
-            )
-
-            dropouts = mqc.checkUpdates(
-                inTrunk + ".bim",
-                outTrunk + ".bim",
-                cols = [0, 1, 3, 4, 5],
-                sanityCheck = "removal",
-                fullList = True,
-                allele_flip = True
-            )
-            dropouts.update(rule_info[rule])
-            dropouts["Rule"] = rule
-            mqc.saveYamlResults(output.results, dropouts)
-
-        except Exception as e:
-            print(f"An exception occurred in rule {rule}.")
-            print(e)
-
-
-rule_stem = 'check_sex'
-rule check_sex:
-    input:
-        in_geno = rules.missing_genotype_markers.output.bedset
-    output:
-        sex_check = tmpMod2/"{batch}"/(rule_stem + ".sexcheck")
-    run:
-        try:
-            item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog, rule_info[rule]["QC test"])
-            inGenoTrunk = mqc.plinkBase(input.in_geno[0])
-            ouput_file = mqc.plinkBase(output.sex_check)
-
-            subprocess.run(
-                [
-                    plinklocal,
-                            "--bfile", inGenoTrunk,
-                            "--check-sex", "ycount",
-                            "--out", ouput_file
-                ],
-                check = True
-            )
-
-        except Exception as e:
-            print(f"An exception occurred in rule {rule}.")
-            print(e)
-
-
-rule_stem = 'ibd_prune'
-rule ibd_prune:
-    input:
-        in_geno = rules.missing_genotype_markers.output.bedset,
-        sex_check = rules.check_sex.output.sex_check,
-        clean_snps = rules.mod2_prune_markers.output.pruned_list
-    output:
-        bedset = multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
-        results = report(
-            resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
-        )
-    run:
-        try:
-            item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog, rule_info[rule]["QC test"])
-            inGenoTrunk = mqc.plinkBase(input.in_geno[0])
-            outTrunk = mqc.plinkBase(output.bedset[0])
-
-            subprocess.run(
-                [
-                    plinklocal,
-                    "--bfile", inGenoTrunk,
-                    "--extract", input.clean_snps,
+                    plink2local,
+                    "--pfile", inTrunk,
+                    "--extract", output.pruned_list,
                     "--out", outTrunk,
-                    "--make-bed"
+                    "--make-pgen"
                 ],
                 check = True
             )
-
-            dropouts = mqc.checkUpdates(
-                inGenoTrunk + ".bim",
-                outTrunk + ".bim",
-                cols = [0, 1, 3, 4, 5],
-                sanityCheck = "remove",
-                fullList = True,
-                allele_flip = True
-            )
-            dropouts.update(rule_info[rule])
-            dropouts["Rule"] = rule
-            mqc.saveYamlResults(output.results, dropouts)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -605,6 +315,7 @@ rule ibd_prune:
 
 rule_stem = 'pedigree_ibd_estimate'
 rule pedigree_ibd_estimate:
+    'IBD estimation. Requires conversion to plink1.'
     input:
         in_geno = rules.ibd_prune.output.bedset,
     output:
@@ -612,14 +323,23 @@ rule pedigree_ibd_estimate:
     threads: 8
     run:
         try:
-            item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog, rule_info[rule]["QC test"])
-            outTrunk = mqc.plinkBase(output.king_relatedness)
+            plink_input = mqc.plinkBase(input.in_geno[0])
+            plink1_input = plink_input + "_1"
+            ouput_file = mqc.plinkBase(output.sex_check)
+
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--make-bed",
+                    "--out", plink1_input
+                ],
+            )
 
             subprocess.run(
                 [
                     kinglocal,
-                    "-b", input.in_geno[0],
+                    "-b", plink1_input,
                     "--related",
                     "--cpus", str(threads),
                     "--prefix", outTrunk
@@ -666,43 +386,6 @@ rule fam_reconstruction:
             {output.md_file} \
             {params.title}
         """
-
-
-rule_stem = 'consolidate_mismatches'
-rule consolidate_mismatches:
-    input:
-        mismatch_information = expand(tmpMod2/"{batch}"/"mismatch_information.gz", batch = batches),
-        mismatch_relationship = expand(tmpMod2/"{batch}"/"mismatch_relationship.gz", batch = batches)
-    output:
-        mismatch_information = tmpMod2/"mismatch_information.gz",
-        mismatch_relationship = tmpMod2/"mismatch_relationship.gz"
-    threads: 1
-    run:
-        try:
-
-            mismatch_information_list = []
-            mismatch_relationship_list = []
-
-            for batch in batches:
-                mismatch_information_path = tmpMod2/batch/"mismatch_information.gz"
-                mismatch_information_table = pd.read_csv(mismatch_information_path, delimiter = '\t')
-                mismatch_information_table["batch"] = batch
-                mismatch_information_list.append(mismatch_information_table)
-
-                mismatch_relationship_path = tmpMod2/batch/"mismatch_relationship.gz"
-                mismatch_relationship_table = pd.read_csv(mismatch_relationship_path, delimiter = '\t')
-                mismatch_relationship_table["batch"] = batch
-                mismatch_relationship_list.append(mismatch_relationship_table)
-
-            mismatch_information_table = pd.concat(mismatch_information_list, ignore_index = True)
-            mismatch_relationship_table = pd.concat(mismatch_relationship_list, ignore_index = True)
-
-            mismatch_information_table.to_csv(output.mismatch_information, sep = '\t', index = False, compression = 'gzip')
-            mismatch_relationship_table.to_csv(output.mismatch_relationship, sep = '\t', index = False, compression = 'gzip')
-
-        except Exception as e:
-            print(f"An exception occurred in rule {rule}.")
-            print(e)
 
 
 rule_stem = 'fam_update'
