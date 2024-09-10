@@ -498,11 +498,11 @@ rule mod8_exclude_conflictual_relationships:
 rule_stem = 'mod8_output'
 rule mod8_output:
     input:
-        pgenset_all_markers = rules.exclude_conflictual_relationships.output.bedset_all_markers,
-        bedset_pruned_markers = rules.exclude_conflictual_relationships.output.bedset_pruned_markers,
-        pruned_snps = rules.mod2_prune_markers.output.pruned_list,
-        sex_check = rules.check_sex.output.sex_check,
-        king_relatedness = rules.pedigree_ibd_estimate.output.king_relatedness
+        pgenset_all_markers = rules.mod8_exclude_conflictual_relationships.output.bedset_all_markers,
+        bedset_pruned_markers = rules.mod8_exclude_conflictual_relationships.output.bedset_pruned_markers,
+        pruned_snps = rules.mod8_prune_markers.output.pruned_list,
+        sex_check = rules.mod8_check_sex.output.sex_check,
+        king_relatedness = rules.mod8_pedigree_ibd_estimate.output.king_relatedness
     output:
         pgenset_all_markers =  multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
         bedset_pruned_markers = multiext(str(tmpMod8/(rule_stem + "_pruned")), ".pgen", ".pvar", ".psam"),
