@@ -99,6 +99,7 @@ rule mod8_marker_filter:
                     plink2local,
                     "--pfile", inTrunk,
                     "--extract", input.top_snps,
+                    "--min-alleles", "2",
                     "--max-alleles", "2",
                     "--mac", str(params.mac_threshold),
                     "--geno", str(params.geno_threshold),
