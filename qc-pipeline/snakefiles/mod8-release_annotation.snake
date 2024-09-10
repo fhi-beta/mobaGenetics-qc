@@ -15,10 +15,10 @@ rule mod8_generate_start_stats:
         pgenset = [mod7_output + ".pgen"] #rules.mod7_rename_missing_ids.output.pgenset
     output:
         het = tmpMod8/'mod8_all.het',
-        hwe = tmpMod8/'mod8_all.hwe',
-        freq = tmpMod8/'mod8_all.frq',
-        lmiss = tmpMod8/'mod8_all.lmiss',
-        imiss = tmpMod8/'mod8_all.imiss',
+        hardy = tmpMod8/'mod8_all.hardy',
+        afreq = tmpMod8/'mod8_all.afreq',
+        smiss = tmpMod8/'mod8_all.smiss',
+        vmiss = tmpMod8/'mod8_all.vmiss',
     threads: 1
     run:
         try:
@@ -119,10 +119,10 @@ rule mod8_generate_best_snps_stats:
         pgenset = rules.mod8_marker_filter.output.pgenset
     output:
         het = tmpMod8/'mod8_best_snps.het',
-        hwe = tmpMod8/'mod8_best_snps.hwe',
-        freq = tmpMod8/'mod8_best_snps.frq',
-        lmiss = tmpMod8/'mod8_best_snps.lmiss',
-        imiss = tmpMod8/'mod8_best_snps.imiss',
+        hardy = tmpMod8/'mod8_best_snps.hardy',
+        afreq = tmpMod8/'mod8_best_snps.afreq',
+        smiss = tmpMod8/'mod8_best_snps.smiss',
+        vmiss = tmpMod8/'mod8_best_snps.vmiss',
     threads: 1
     run:
         try:
