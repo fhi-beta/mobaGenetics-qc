@@ -25,9 +25,9 @@ rule mod8_generate_start_stats:
             # Plink base paths
             plink_input = mqc.plinkBase(input.pgenset[0])
             plink_het_output = mqc.plinkBase(output.het)
-            plink_hwe_output = mqc.plinkBase(output.hwe)
-            plink_freq_output = mqc.plinkBase(output.freq)
-            plink_miss_output = mqc.plinkBase(output.lmiss)
+            plink_hwe_output = mqc.plinkBase(output.hardy)
+            plink_freq_output = mqc.plinkBase(output.afreq)
+            plink_miss_output = mqc.plinkBase(output.smiss)
 
             # Heterozygocity rate
             subprocess.run(
@@ -129,9 +129,9 @@ rule mod8_generate_best_snps_stats:
             # Plink base paths
             plink_input = mqc.plinkBase(input.pgenset[0])
             plink_het_output = mqc.plinkBase(output.het)
-            plink_hwe_output = mqc.plinkBase(output.hwe)
-            plink_freq_output = mqc.plinkBase(output.freq)
-            plink_miss_output = mqc.plinkBase(output.lmiss)
+            plink_hwe_output = mqc.plinkBase(output.hardy)
+            plink_freq_output = mqc.plinkBase(output.afreq)
+            plink_miss_output = mqc.plinkBase(output.smiss)
 
             # Heterozygocity rate
             subprocess.run(
