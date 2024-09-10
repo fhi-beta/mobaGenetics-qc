@@ -242,8 +242,8 @@ rule mod8_autosomal:
             print(e)
 
 
-rule_stem = 'exclude_high_ld_markers'
-rule exclude_high_ld_markers:
+rule_stem = 'mod8_exclude_high_ld_markers'
+rule mod8_exclude_high_ld_markers:
     'Exclude regions with high LD'
     input:
         pgenset = rules.mod8_autosomal.output.pgenset,
@@ -271,8 +271,8 @@ rule exclude_high_ld_markers:
             print(e)
 
 
-rule_stem = 'mod2_prune_markers'
-rule mod2_prune_markers:
+rule_stem = 'mod8_prune_markers'
+rule mod8_prune_markers:
     'Prune markers for LD'
     input:
         pgenset = rules.exclude_high_ld_markers.output.pgenset,
@@ -313,8 +313,8 @@ rule mod2_prune_markers:
             print(e)
 
 
-rule_stem = 'pedigree_ibd_estimate'
-rule pedigree_ibd_estimate:
+rule_stem = 'mod8_pedigree_ibd_estimate'
+rule mod8_pedigree_ibd_estimate:
     'IBD estimation. Requires conversion to plink1.'
     input:
         in_geno = rules.ibd_prune.output.bedset,
@@ -352,8 +352,8 @@ rule pedigree_ibd_estimate:
             print(e)
 
 
-rule_stem = 'fam_reconstruction'
-rule fam_reconstruction:
+rule_stem = 'mod8_fam_reconstruction'
+rule mod8_fam_reconstruction:
     input:
         king_relatedness = rules.pedigree_ibd_estimate.output.king_relatedness,
         sex_check = rules.check_sex.output.sex_check,
@@ -388,8 +388,8 @@ rule fam_reconstruction:
         """
 
 
-rule_stem = 'fam_update'
-rule fam_update:
+rule_stem = 'mod8_psam_update'
+rule mod8_psam_update:
     input:
         bedset_all_markers = rules.callrate_permanent_removal.output.bedset,
         bedset_pruned_markers = rules.ibd_prune.output.bedset,
@@ -439,8 +439,8 @@ rule fam_update:
                     print(e)
 
 
-rule_stem = 'exclude_conflictual_relationships'
-rule exclude_conflictual_relationships:
+rule_stem = 'mod8_exclude_conflictual_relationships'
+rule mod8_exclude_conflictual_relationships:
     input:
         bedset_all_markers = rules.fam_update.output.bedset_all_markers,
         bedset_pruned_markers = rules.fam_update.output.bedset_pruned_markers,
@@ -502,8 +502,8 @@ rule exclude_conflictual_relationships:
                     print(e)
 
 
-rule_stem = 'm2_output'
-rule m2_output:
+rule_stem = 'mod8_output'
+rule mod8_output:
     input:
         bedset_m1 = rules.m1_output.output.bedset,
         bedset_all_markers = rules.exclude_conflictual_relationships.output.bedset_all_markers,
