@@ -177,8 +177,8 @@ rule mod8_generate_best_snps_stats:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
-rule_stem = 'check_sex'
-rule check_sex:
+rule_stem = 'mod8_check_sex'
+rule mod8_check_sex:
     'Sex imputation. Currently not supported in plink2, running in plink1.'
     input:
         pgenset = rules.mod8_maf_filter.output.pgenset
