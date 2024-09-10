@@ -5,7 +5,8 @@
 ##
 
 
-mod7_output = "/work/qc_genotypes/pipeOut_dev/2024.09.04/mod7-post-imputation/all_samples/mod7_rename_missing_ids"
+mod7_output = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod7-post-imputation/all_samples/mod7_rename_missing_ids"
+r2_table = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod7-post-imputation/all_samples/mod7_best_snps.txt"
 
 rule_stem = 'mod8_generate_start_stats'
 rule mod8_generate_start_stats:
@@ -82,7 +83,7 @@ rule mod8_maf_filter:
     'Select common markers genotyped or with best imputation scores'
     input:
         pgenset = mod7_output, # rules.mod7_rename_missing_ids.output.pgenset,
-        top_snps = rules.summarize_dr2.output.top_snps
+        top_snps = r2_table # rules.summarize_dr2.output.top_snps
     output:
         pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam")
     params:
