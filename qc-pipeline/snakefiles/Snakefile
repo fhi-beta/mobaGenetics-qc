@@ -110,6 +110,9 @@ rule all:
         mod3_md_file_1kg = expand(github_docs / "{batch}" / "pca_1kg_moba.md", batch = batches),
 
         # Module 4:
-        m4_output_good_markers = expand(tmpMod4/ "{batch}" / ("m4_output_good_markers.bed"), batch = batches)
+        m4_output_good_markers = expand(tmpMod4/ "{batch}" / "m4_output_good_markers.bed", batch = batches),
+
+        # Module 8:
+        m8_sex_check = tmpMod8/"check_sex.sexcheck"
 
 
