@@ -55,13 +55,13 @@ for batch in batches:
 report: "report/qc.rst"
 
 # The different modules
-include: "mod1-data-conversion.snake"
-include: "mod2-genetic-relationship.snake"
-include: "mod3-population-clustering.snake"
-include: "mod4-good-markers.snake"
-include: "mod5-pre-phasing.snake"
-include: "mod6-imputation.snake"
-include: "mod7-post-imputation.snake"
+# include: "mod1-data-conversion.snake"
+# include: "mod2-genetic-relationship.snake"
+# include: "mod3-population-clustering.snake"
+# include: "mod4-good-markers.snake"
+# include: "mod5-pre-phasing.snake"
+# include: "mod6-imputation.snake"
+# include: "mod7-post-imputation.snake"
 include: "mod8-release_annotation.snake"
 
 
