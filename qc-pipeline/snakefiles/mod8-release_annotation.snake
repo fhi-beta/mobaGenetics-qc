@@ -502,9 +502,9 @@ rule mod8_output:
     output:
         pgenset_all_markers =  multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
         bedset_pruned_markers = multiext(str(tmpMod8/(rule_stem + "_pruned")), ".pgen", ".pvar", ".psam"),
-        pruned_snps = tmpMod2/"{batch}"/(rule_stem + ".prune.in"),
-        sex_check = tmpMod2/"{batch}"/(rule_stem + ".sexcheck"),
-        king_relatedness = tmpMod2/"{batch}"/(rule_stem + ".kin0")
+        pruned_snps = tmpMod8/(rule_stem + ".prune.in"),
+        sex_check = tmpMod8/(rule_stem + ".sexcheck"),
+        king_relatedness = tmpMod8/(rule_stem + ".kin0")
     run:
         try:
             item_type = rule_info[rule]["rule type"]
