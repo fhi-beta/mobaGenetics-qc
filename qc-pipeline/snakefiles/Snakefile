@@ -116,6 +116,6 @@ rule all:
         m4_output_good_markers = expand(tmpMod4/ "{batch}" / "m4_output_good_markers.bed", batch = batches),
 
         # Module 8:
-        m8_sex_check = tmpMod8/"check_sex.sexcheck"
+        m8_sex_check = tmpMod8/"mod8_check_sex.sexcheck"
 
 
