@@ -42,6 +42,7 @@ tmpMergeTest = base/'merge_test'
 tmpMod6Archive = archive_base/'mod6-imputation'
 #tmpMod7 = base/'mod7-post-imputation'
 tmpMod7 = Path(config['output_base']) / '2024.09.04' / 'mod7-post-imputation'
+tmpMod8 = Path(config['output_base']) / '2024.09.04' / 'mod8-release_annotation'
 
 
 n_samples = config['n_samples']
