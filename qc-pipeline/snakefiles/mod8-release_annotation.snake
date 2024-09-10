@@ -91,8 +91,8 @@ rule mod8_maf_filter:
         geno_threshold = config['merged_set_geno_thr']
     run:
         try:
-            inTrunk =  mqc.plinkBase(input.bedset[0])
-            outTrunk =  mqc.plinkBase(output.bedset[0])
+            inTrunk =  mqc.plinkBase(input.pgenset[0])
+            outTrunk =  mqc.plinkBase(output.pgenset[0])
 
             subprocess.run(
                 [
@@ -227,8 +227,8 @@ rule mod8_autosomal:
         pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam")
     run:
         try:
-            inTrunk =  mqc.plinkBase(input.bedset[0])
-            outTrunk =  mqc.plinkBase(output.bedset[0])
+            inTrunk =  mqc.plinkBase(input.pgenset[0])
+            outTrunk =  mqc.plinkBase(output.pgenset[0])
 
             subprocess.run(
                 [
@@ -256,8 +256,8 @@ rule mod8_exclude_high_ld_markers:
         pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam")
     run:
         try:
-            inTrunk =  mqc.plinkBase(input.bedset[0])
-            outTrunk =  mqc.plinkBase(output.bedset[0])
+            inTrunk =  mqc.plinkBase(input.pgenset[0])
+            outTrunk =  mqc.plinkBase(output.pgenset[0])
 
             subprocess.run(
                 [
@@ -287,8 +287,8 @@ rule mod8_prune_markers:
         prune_cmd = config["prune_cmd"]
     run:
         try:
-            inTrunk = mqc.plinkBase(input.bedset[0])
-            outTrunk = mqc.plinkBase(output.bedset[0])
+            inTrunk = mqc.plinkBase(input.pgenset[0])
+            outTrunk = mqc.plinkBase(output.pgenset[0])
 
             subprocess.run(
                 [
@@ -381,8 +381,8 @@ rule mod8_psam_reconstruction:
             {input.sex_check} \
             {input.expected_relationships} \
             {input.birth_year} \
-            {input.bedset_all_markers[2]} \
-            {output.updated_fam} \
+            {input.pgenset_all_markers[2]} \
+            {output.updated_psam} \
             {output.pedigree_sample_exclusion} \
             {output.mismatch_information} \
             {output.mismatch_relationship} \
@@ -395,22 +395,22 @@ rule_stem = 'mod8_psam_update'
 rule mod8_psam_update:
     input:
         pgenset_all_markers = [mod7_output + ".pgen"], #rules.mod7_rename_missing_ids.output.pgenset,
-        bedset_pruned_markers = rules.mod8_prune_markers.output.pgenset,
+        pgenset_pruned_markers = rules.mod8_prune_markers.output.pgenset,
         updated_psam = rules.mod8_psam_reconstruction.output.updated_psam,
     output:
         pgenset_all_markers =  multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
-        bedset_pruned_markers = multiext(str(tmpMod8/(rule_stem + "_pruned")), ".pgen", ".pvar", ".psam")
+        pgenset_pruned_markers = multiext(str(tmpMod8/(rule_stem + "_pruned")), ".pgen", ".pvar", ".psam")
     threads: 1
     run:
         try:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, rule_info[rule]["QC test"])
-            inTrunk_all_markers = mqc.plinkBase(input.bedset_all_markers[0])
-            outTrunk_all_markers = mqc.plinkBase(output.bedset_all_markers[0])
-            inTrunk_pruned_markers = mqc.plinkBase(input.bedset_pruned_markers[0])
-            outTrunk_pruned_markers = mqc.plinkBase(output.bedset_pruned_markers[0])
+            inTrunk_all_markers = mqc.plinkBase(input.pgenset_all_markers[0])
+            outTrunk_all_markers = mqc.plinkBase(output.pgenset_all_markers[0])
+            inTrunk_pruned_markers = mqc.plinkBase(input.pgenset_pruned_markers[0])
+            outTrunk_pruned_markers = mqc.plinkBase(output.pgenset_pruned_markers[0])
 
-            # copy bedsets
+            # copy pgensets
             for extension in ['.bed', '.bim']:
                 copyfile(inTrunk_all_markers + extension, outTrunk_all_markers + extension)
                 copyfile(inTrunk_pruned_markers + extension, outTrunk_pruned_markers + extension)
@@ -441,19 +441,19 @@ rule_stem = 'mod8_exclude_conflictual_relationships'
 rule mod8_exclude_conflictual_relationships:
     input:
         pgenset_all_markers = rules.mod8_psam_update.output.pgenset_all_markers,
-        bedset_pruned_markers = rules.mod8_psam_update.output.bedset_pruned_markers,
+        pgenset_pruned_markers = rules.mod8_psam_update.output.pgenset_pruned_markers,
         pedigree_sample_exclusion = rules.mod8_psam_reconstruction.output.pedigree_sample_exclusion
     output:
         pgenset_all_markers =  multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
-        bedset_pruned_markers = multiext(str(tmpMod8/(rule_stem + "_pruned")), ".pgen", ".pvar", ".psam")
+        pgenset_pruned_markers = multiext(str(tmpMod8/(rule_stem + "_pruned")), ".pgen", ".pvar", ".psam")
     run:
         try:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, rule_info[rule]["QC test"])
-            inTrunk_all_markers = mqc.plinkBase(input.bedset_all_markers[0])
-            outTrunk_all_markers = mqc.plinkBase(output.bedset_all_markers[0])
-            inTrunk_pruned_markers = mqc.plinkBase(input.bedset_pruned_markers[0])
-            outTrunk_pruned_markers = mqc.plinkBase(output.bedset_pruned_markers[0])
+            inTrunk_all_markers = mqc.plinkBase(input.pgenset_all_markers[0])
+            outTrunk_all_markers = mqc.plinkBase(output.pgenset_all_markers[0])
+            inTrunk_pruned_markers = mqc.plinkBase(input.pgenset_pruned_markers[0])
+            outTrunk_pruned_markers = mqc.plinkBase(output.pgenset_pruned_markers[0])
 
             subprocess.run(
                 [
@@ -498,14 +498,15 @@ rule mod8_exclude_conflictual_relationships:
 rule_stem = 'mod8_output'
 rule mod8_output:
     input:
-        pgenset_all_markers = rules.mod8_exclude_conflictual_relationships.output.bedset_all_markers,
-        bedset_pruned_markers = rules.mod8_exclude_conflictual_relationships.output.bedset_pruned_markers,
+        mod7_pgenset = mod7_output,
+        pgenset_all_markers = rules.mod8_exclude_conflictual_relationships.output.pgenset_all_markers,
+        pgenset_pruned_markers = rules.mod8_exclude_conflictual_relationships.output.pgenset_pruned_markers,
         pruned_snps = rules.mod8_prune_markers.output.pruned_list,
         sex_check = rules.mod8_check_sex.output.sex_check,
         king_relatedness = rules.mod8_pedigree_ibd_estimate.output.king_relatedness
     output:
         pgenset_all_markers =  multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
-        bedset_pruned_markers = multiext(str(tmpMod8/(rule_stem + "_pruned")), ".pgen", ".pvar", ".psam"),
+        pgenset_pruned_markers = multiext(str(tmpMod8/(rule_stem + "_pruned")), ".pgen", ".pvar", ".psam"),
         pruned_snps = tmpMod8/(rule_stem + ".prune.in"),
         sex_check = tmpMod8/(rule_stem + ".sexcheck"),
         king_relatedness = tmpMod8/(rule_stem + ".kin0")
@@ -513,14 +514,14 @@ rule mod8_output:
         try:
             item_type = rule_info[rule]["rule type"]
             mqc.log(runlog, rule_info[rule]["QC test"])
-            m1Trunk = mqc.plinkBase(input.bedset_m1[0])
-            inTrunk_all_markers = mqc.plinkBase(input.bedset_all_markers[0])
-            outTrunk_all_markers =  mqc.plinkBase(output.bedset[0])
-            inTrunk_pruned_markers = mqc.plinkBase(input.bedset_pruned_markers[0])
-            outTrunk_pruned_markers =  mqc.plinkBase(output.pruned_bedset[0])
+            m7Trunk = mqc.plinkBase(input.mod7_pgenset[0])
+            inTrunk_all_markers = mqc.plinkBase(input.pgenset_all_markers[0])
+            outTrunk_all_markers =  mqc.plinkBase(output.pgenset_all_markers[0])
+            inTrunk_pruned_markers = mqc.plinkBase(input.pgenset_pruned_markers[0])
+            outTrunk_pruned_markers =  mqc.plinkBase(output.pgenset_pruned_markers[0])
             docs = "For more documentation see https://github.com/folkehelseinstituttet/mobaGenetics-qc/wiki/Module2 . In the html file see info on individual module steps through the section for results of Module 2"
 
-            # copy bedsets
+            # copy plink sets
             for extension in ['.bed', '.bim', '.fam']:
                 copyfile(inTrunk_all_markers + extension, outTrunk_all_markers + extension)
                 copyfile(inTrunk_pruned_markers + extension, outTrunk_pruned_markers + extension)
