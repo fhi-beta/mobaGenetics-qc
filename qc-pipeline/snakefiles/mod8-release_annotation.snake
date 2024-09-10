@@ -74,7 +74,7 @@ rule mod8_generate_start_stats:
             print(e)
 
 
-rule_stem = 'mod8_best_markers'
+rule_stem = 'mod8_maf_filter'
 rule mod8_maf_filter:
     'Select common markers genotyped or with best imputation scores'
     input:
@@ -275,7 +275,7 @@ rule_stem = 'mod8_prune_markers'
 rule mod8_prune_markers:
     'Prune markers for LD'
     input:
-        pgenset = rules.exclude_high_ld_markers.output.pgenset,
+        pgenset = rules.mod8_exclude_high_ld_markers.output.pgenset,
     output:
         pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
         pruned_list = tmpMod8/(rule_stem + ".prune.in")
@@ -317,14 +317,13 @@ rule_stem = 'mod8_pedigree_ibd_estimate'
 rule mod8_pedigree_ibd_estimate:
     'IBD estimation. Requires conversion to plink1.'
     input:
-        in_geno = rules.ibd_prune.output.bedset,
+        pgenset = rules.mod8_prune_markers.output.pgenset,
     output:
-        king_relatedness = tmpMod2/"{batch}"/(rule_stem + ".kin0")
+        king_relatedness = tmpMod8/(rule_stem + ".kin0")
     threads: 8
     run:
         try:
             plink_input = mqc.plinkBase(input.in_geno[0])
-            plink1_input = plink_input + "_1"
             ouput_file = mqc.plinkBase(output.sex_check)
 
             subprocess.run(
@@ -332,14 +331,14 @@ rule mod8_pedigree_ibd_estimate:
                     plink2local,
                     "--pfile", plink_input,
                     "--make-bed",
-                    "--out", plink1_input
+                    "--out", plink_input
                 ],
             )
 
             subprocess.run(
                 [
                     kinglocal,
-                    "-b", plink1_input,
+                    "-b", plink_input,
                     "--related",
                     "--cpus", str(threads),
                     "--prefix", outTrunk
@@ -352,22 +351,22 @@ rule mod8_pedigree_ibd_estimate:
             print(e)
 
 
-rule_stem = 'mod8_fam_reconstruction'
-rule mod8_fam_reconstruction:
+rule_stem = 'mod8_psam_reconstruction'
+rule mod8_psam_reconstruction:
     input:
-        king_relatedness = rules.pedigree_ibd_estimate.output.king_relatedness,
-        sex_check = rules.check_sex.output.sex_check,
-        bedset_all_markers = rules.callrate_permanent_removal.output.bedset,
+        pgenset_all_markers = rules.mod7_rename_missing_ids.output.pgenset,
+        king_relatedness = rules.mod8_pedigree_ibd_estimate.output.king_relatedness,
+        sex_check = rules.mod8_check_sex.output.sex_check,
         expected_relationships = config['expected_relationships'],
         birth_year = config['birth_year']
     params:
-        title = "\"Fam file reconstruction in {batch}\""
+        title = "\"Psam file reconstruction\""
     output:
-        updated_fam = tmpMod2/"{batch}"/(rule_stem + ".fam"),
-        pedigree_sample_exclusion = tmpMod2/"{batch}"/(rule_stem + "_pedigree_sample_exclusion"),
-        mismatch_information = tmpMod2/"{batch}"/"mismatch_information.gz",
-        mismatch_relationship = tmpMod2/"{batch}"/"mismatch_relationship.gz",
-        md_file = github_docs/"{batch}"/(rule_stem + ".md")
+        updated_psam = tmpMod8/(rule_stem + ".psam"),
+        pedigree_sample_exclusion = tmpMod8/(rule_stem + "_pedigree_sample_exclusion"),
+        mismatch_information = tmpMod8/"mismatch_information.gz",
+        mismatch_relationship = tmpMod8/"mismatch_relationship.gz",
+        md_file = github_docs/(rule_stem + ".md")
     conda:
         "envs/r_4.2.yaml"
     threads: 1
@@ -391,17 +390,12 @@ rule mod8_fam_reconstruction:
 rule_stem = 'mod8_psam_update'
 rule mod8_psam_update:
     input:
-        bedset_all_markers = rules.callrate_permanent_removal.output.bedset,
-        bedset_pruned_markers = rules.ibd_prune.output.bedset,
-        updated_fam = rules.fam_reconstruction.output.updated_fam,
+        pgenset_all_markers = rules.mod7_rename_missing_ids.output.pgenset,
+        bedset_pruned_markers = rules.mod8_prune_markers.output.pgenset,
+        updated_psam = rules.mod8_psam_reconstruction.output.updated_psam,
     output:
-        bedset_all_markers =  multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
-        bedset_pruned_markers = multiext(str(tmpMod2/"{batch}"/(rule_stem + "_pruned")), '.bed', '.bim', '.fam'),
-        results = report(
-            resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
-        )
+        pgenset_all_markers =  multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
+        bedset_pruned_markers = multiext(str(tmpMod8/(rule_stem + "_pruned")), ".pgen", ".pvar", ".psam")
     threads: 1
     run:
         try:
@@ -418,8 +412,8 @@ rule mod8_psam_update:
                 copyfile(inTrunk_pruned_markers + extension, outTrunk_pruned_markers + extension)
 
             # Copy new fam files
-            copyfile(input.updated_fam, outTrunk_all_markers + ".fam")
-            copyfile(input.updated_fam, outTrunk_pruned_markers + ".fam")
+            copyfile(input.updated_psam, outTrunk_all_markers + ".fam")
+            copyfile(input.updated_psam, outTrunk_pruned_markers + ".fam")
 
             dropouts = mqc.checkUpdates(
                 inTrunk_all_markers + ".bim",
@@ -442,17 +436,12 @@ rule mod8_psam_update:
 rule_stem = 'mod8_exclude_conflictual_relationships'
 rule mod8_exclude_conflictual_relationships:
     input:
-        bedset_all_markers = rules.fam_update.output.bedset_all_markers,
-        bedset_pruned_markers = rules.fam_update.output.bedset_pruned_markers,
-        pedigree_sample_exclusion = rules.fam_reconstruction.output.pedigree_sample_exclusion
+        pgenset_all_markers = rules.mod8_psam_update.output.pgenset_all_markers,
+        bedset_pruned_markers = rules.mod8_psam_update.output.bedset_pruned_markers,
+        pedigree_sample_exclusion = rules.mod8_psam_reconstruction.output.pedigree_sample_exclusion
     output:
-        bedset_all_markers =  multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
-        bedset_pruned_markers = multiext(str(tmpMod2/"{batch}"/(rule_stem + "_pruned")), '.bed', '.bim', '.fam'),
-        results = report(
-            resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
-        )
+        pgenset_all_markers =  multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
+        bedset_pruned_markers = multiext(str(tmpMod8/(rule_stem + "_pruned")), ".pgen", ".pvar", ".psam")
     run:
         try:
             item_type = rule_info[rule]["rule type"]
@@ -505,28 +494,17 @@ rule mod8_exclude_conflictual_relationships:
 rule_stem = 'mod8_output'
 rule mod8_output:
     input:
-        bedset_m1 = rules.m1_output.output.bedset,
-        bedset_all_markers = rules.exclude_conflictual_relationships.output.bedset_all_markers,
+        pgenset_all_markers = rules.exclude_conflictual_relationships.output.bedset_all_markers,
         bedset_pruned_markers = rules.exclude_conflictual_relationships.output.bedset_pruned_markers,
         pruned_snps = rules.mod2_prune_markers.output.pruned_list,
         sex_check = rules.check_sex.output.sex_check,
         king_relatedness = rules.pedigree_ibd_estimate.output.king_relatedness
     output:
-        bedset =  multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
-        pruned_bedset = multiext(str(tmpMod2/"{batch}"/(rule_stem + "_pruned")), '.bed', '.bim', '.fam'),
+        pgenset_all_markers =  multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
+        bedset_pruned_markers = multiext(str(tmpMod8/(rule_stem + "_pruned")), ".pgen", ".pvar", ".psam"),
         pruned_snps = tmpMod2/"{batch}"/(rule_stem + ".prune.in"),
         sex_check = tmpMod2/"{batch}"/(rule_stem + ".sexcheck"),
-        king_relatedness = tmpMod2/"{batch}"/(rule_stem + ".kin0"),
-        report_markers = report(
-            resultPath/"{batch}"/(rule_stem + ".markers.yaml"),
-            category = "- Module 2 Pedigree fix recap",
-            caption = resultPath/"{batch}"/(rule_stem + ".markers.rst")
-        ),
-        report_samples = report(
-            resultPath/"{batch}"/(rule_stem + ".samples.yaml"),
-            category = "- Module 2 Pedigree fix recap",
-            caption = resultPath/"{batch}"/(rule_stem + ".samples.rst")
-        )
+        king_relatedness = tmpMod2/"{batch}"/(rule_stem + ".kin0")
     run:
         try:
             item_type = rule_info[rule]["rule type"]
