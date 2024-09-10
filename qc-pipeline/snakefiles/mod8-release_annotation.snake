@@ -190,7 +190,7 @@ rule mod8_check_sex:
         sex_check = tmpMod8/(rule_stem + ".sexcheck")
     run:
         try:
-            plink_input = mqc.plinkBase(input.in_geno[0])
+            plink_input = mqc.plinkBase(input.pgenset[0])
             plink1_input = plink_input + "_1"
             ouput_file = mqc.plinkBase(output.sex_check)
 
