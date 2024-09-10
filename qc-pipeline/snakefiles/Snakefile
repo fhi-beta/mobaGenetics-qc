@@ -78,7 +78,7 @@ rule all:
         freq_best_snps = tmpMod8/'mod8_best_snps.frq',
         lmiss_best_snps = tmpMod8/'mod8_best_snps.lmiss',
         imiss_best_snps = tmpMod8/'mod8_best_snps.imiss',
-        m8_sex_check = tmpMod8/"mod8_check_sex.sexcheck"
+        # m8_sex_check = tmpMod8/"mod8_check_sex.sexcheck"
         # # Module 1:
         # mod1_start_het = expand(tmpMod1/"{batch}"/'mod1_start_het.het', batch = batches),
         # mod1_start_hwe = expand(tmpMod1/"{batch}"/'mod1_start_hwe.hwe', batch = batches),
