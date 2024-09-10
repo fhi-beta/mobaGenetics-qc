@@ -4,11 +4,14 @@
 #
 ##
 
+
+mod7_output = "/work/qc_genotypes/pipeOut_dev/2024.09.04/mod7-post-imputation/all_samples/mod7_rename_missing_ids"
+
 rule_stem = 'mod8_generate_start_stats'
 rule mod8_generate_start_stats:
     'Generate statistics on the data prior to further processing'
     input:
-        pgenset = rules.mod7_rename_missing_ids.output.pgenset
+        pgenset = mod7_output #rules.mod7_rename_missing_ids.output.pgenset
     output:
         het = tmpMod8/'mod8_all.het',
         hwe = tmpMod8/'mod8_all.hwe',
@@ -78,7 +81,7 @@ rule_stem = 'mod8_maf_filter'
 rule mod8_maf_filter:
     'Select common markers genotyped or with best imputation scores'
     input:
-        pgenset = rules.mod7_rename_missing_ids.output.pgenset,
+        pgenset = mod7_output, # rules.mod7_rename_missing_ids.output.pgenset,
         top_snps = rules.summarize_dr2.output.top_snps
     output:
         pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam")
@@ -354,7 +357,7 @@ rule mod8_pedigree_ibd_estimate:
 rule_stem = 'mod8_psam_reconstruction'
 rule mod8_psam_reconstruction:
     input:
-        pgenset_all_markers = rules.mod7_rename_missing_ids.output.pgenset,
+        pgenset_all_markers = mod7_output, #rules.mod7_rename_missing_ids.output.pgenset,
         king_relatedness = rules.mod8_pedigree_ibd_estimate.output.king_relatedness,
         sex_check = rules.mod8_check_sex.output.sex_check,
         expected_relationships = config['expected_relationships'],
@@ -390,7 +393,7 @@ rule mod8_psam_reconstruction:
 rule_stem = 'mod8_psam_update'
 rule mod8_psam_update:
     input:
-        pgenset_all_markers = rules.mod7_rename_missing_ids.output.pgenset,
+        pgenset_all_markers = mod7_output, #rules.mod7_rename_missing_ids.output.pgenset,
         bedset_pruned_markers = rules.mod8_prune_markers.output.pgenset,
         updated_psam = rules.mod8_psam_reconstruction.output.updated_psam,
     output:
