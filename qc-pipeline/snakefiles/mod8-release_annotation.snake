@@ -92,7 +92,6 @@ rule mod8_marker_filter:
     run:
         try:
             inTrunk =  mqc.plinkBase(input.pgenset[0])
-            tmpTrunk = mqc.plinkBase(input.pgenset[0]) + "_tmp"
             outTrunk =  mqc.plinkBase(output.pgenset[0])
 
             subprocess.run(
@@ -100,16 +99,6 @@ rule mod8_marker_filter:
                     plink2local,
                     "--pfile", inTrunk,
                     "--extract", input.top_snps,
-                    "--out", tmpTrunk,
-                    "--make-pgen"
-                ],
-                check=True
-            )
-
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", tmpTrunk,
                     "--mac", str(params.mac_threshold),
                     "--geno", str(params.geno_threshold),
                     "--out", outTrunk,
