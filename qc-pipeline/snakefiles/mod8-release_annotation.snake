@@ -116,7 +116,7 @@ rule_stem = 'mod8_generate_best_snps_stats'
 rule mod8_generate_best_snps_stats:
     'Generate statistics on the filtered snps'
     input:
-        pgenset = rules.mod8_maf_filter.output.pgenset
+        pgenset = rules.mod8_marker_filter.output.pgenset
     output:
         het = tmpMod8/'mod8_best_snps.het',
         hwe = tmpMod8/'mod8_best_snps.hwe',
@@ -185,7 +185,7 @@ rule_stem = 'mod8_check_sex'
 rule mod8_check_sex:
     'Sex imputation. Currently not supported in plink2, running in plink1.'
     input:
-        pgenset = rules.mod8_maf_filter.output.pgenset
+        pgenset = rules.mod8_marker_filter.output.pgenset
     output:
         sex_check = tmpMod8/(rule_stem + ".sexcheck")
     run:
@@ -222,7 +222,7 @@ rule_stem = 'mod8_autosomal'
 rule mod8_autosomal:
     'Keep only autosomal markers'
     input:
-        pgenset = rules.mod8_maf_filter.output.pgenset
+        pgenset = rules.mod8_marker_filter.output.pgenset
     output:
         pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam")
     run:
