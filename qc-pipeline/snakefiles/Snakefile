@@ -68,6 +68,16 @@ include: "mod8-release_annotation.snake"
 # rule all, lists the output of every module
 rule all:
     input:
+        het = tmpMod8/'mod8_all.het',
+        hwe = tmpMod8/'mod8_all.hwe',
+        freq = tmpMod8/'mod8_all.frq',
+        lmiss = tmpMod8/'mod8_all.lmiss',
+        imiss = tmpMod8/'mod8_all.imiss',
+        het_best_snps = tmpMod8/'mod8_best_snps.het',
+        hwe_best_snps = tmpMod8/'mod8_best_snps.hwe',
+        freq_best_snps = tmpMod8/'mod8_best_snps.frq',
+        lmiss_best_snps = tmpMod8/'mod8_best_snps.lmiss',
+        imiss_best_snps = tmpMod8/'mod8_best_snps.imiss',
         m8_sex_check = tmpMod8/"mod8_check_sex.sexcheck"
         # # Module 1:
         # mod1_start_het = expand(tmpMod1/"{batch}"/'mod1_start_het.het', batch = batches),

@@ -78,9 +78,9 @@ rule mod8_generate_start_stats:
             print(e)
 
 
-rule_stem = 'mod8_maf_filter'
-rule mod8_maf_filter:
-    'Select common markers genotyped or with best imputation scores'
+rule_stem = 'mod8_marker_filter'
+rule mod8_marker_filter:
+    'Select common markers genotyped or with best imputation scores, filter by mac and geno rate'
     input:
         pgenset = [mod7_output + ".pgen"], # rules.mod7_rename_missing_ids.output.pgenset,
         top_snps = r2_table # rules.summarize_dr2.output.top_snps
