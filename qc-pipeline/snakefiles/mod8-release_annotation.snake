@@ -1,0 +1,567 @@
+##
+#
+# This module generates documentation on qualtity, familial relatedness, sex assignment, and PCA analysis on the merged set of genotypes.
+#
+##
+
+
+mod7_output = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod7-post-imputation/all_samples/mod7_rename_missing_ids"
+r2_table = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod7-post-imputation/all_samples/mod7_dr2.txt"
+
+rule_stem = 'mod8_generate_start_stats'
+rule mod8_generate_start_stats:
+    'Generate statistics on the data prior to further processing'
+    input:
+        pgenset = [mod7_output + ".pgen"] #rules.mod7_rename_missing_ids.output.pgenset
+    output:
+        het = tmpMod8/'mod8_all.het',
+        hardy = tmpMod8/'mod8_all.hardy',
+        afreq = tmpMod8/'mod8_all.afreq',
+        smiss = tmpMod8/'mod8_all.smiss',
+        vmiss = tmpMod8/'mod8_all.vmiss',
+    threads: 1
+    run:
+        try:
+            # Plink base paths
+            plink_input = mqc.plinkBase(input.pgenset[0])
+            plink_het_output = mqc.plinkBase(output.het)
+            plink_hwe_output = mqc.plinkBase(output.hardy)
+            plink_freq_output = mqc.plinkBase(output.afreq)
+            plink_miss_output = mqc.plinkBase(output.smiss)
+
+            # Heterozygocity rate
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--het",
+                    "--out", plink_het_output
+                ],
+                check=True
+            )
+
+            # HWE
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--hardy",
+                    "--out", plink_hwe_output
+                ],
+                check=True
+            )
+
+            # Frequencies
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--freq",
+                    "--out", plink_freq_output
+                ],
+                check=True
+            )
+
+            # Missingness
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--missing",
+                    "--out", plink_miss_output
+                ],
+                check=True
+            )
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+
+rule_stem = 'mod8_marker_filter'
+rule mod8_marker_filter:
+    'Select common markers genotyped or with best imputation scores, filter by mac and geno rate'
+    input:
+        pgenset = [mod7_output + ".pgen"], # rules.mod7_rename_missing_ids.output.pgenset,
+        top_snps = r2_table # rules.summarize_dr2.output.top_snps
+    output:
+        pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam")
+    params:
+        mac_threshold = config['merged_set_mac_thr'],
+        geno_threshold = config['merged_set_geno_thr']
+    run:
+        try:
+            inTrunk =  mqc.plinkBase(input.pgenset[0])
+            outTrunk =  mqc.plinkBase(output.pgenset[0])
+
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", inTrunk,
+                    "--extract", input.top_snps,
+                    "--min-alleles", "2",
+                    "--max-alleles", "2",
+                    "--mac", str(params.mac_threshold),
+                    "--geno", str(params.geno_threshold),
+                    "--out", outTrunk,
+                    "--make-pgen"
+                ],
+                check=True
+            )
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+
+rule_stem = 'mod8_generate_best_snps_stats'
+rule mod8_generate_best_snps_stats:
+    'Generate statistics on the filtered snps'
+    input:
+        pgenset = rules.mod8_marker_filter.output.pgenset
+    output:
+        het = tmpMod8/'mod8_best_snps.het',
+        hardy = tmpMod8/'mod8_best_snps.hardy',
+        afreq = tmpMod8/'mod8_best_snps.afreq',
+        smiss = tmpMod8/'mod8_best_snps.smiss',
+        vmiss = tmpMod8/'mod8_best_snps.vmiss',
+    threads: 1
+    run:
+        try:
+            # Plink base paths
+            plink_input = mqc.plinkBase(input.pgenset[0])
+            plink_het_output = mqc.plinkBase(output.het)
+            plink_hwe_output = mqc.plinkBase(output.hardy)
+            plink_freq_output = mqc.plinkBase(output.afreq)
+            plink_miss_output = mqc.plinkBase(output.smiss)
+
+            # Heterozygocity rate
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--het",
+                    "--out", plink_het_output
+                ],
+                check=True
+            )
+
+            # HWE
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--hardy",
+                    "--out", plink_hwe_output
+                ],
+                check=True
+            )
+
+            # Frequencies
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--freq",
+                    "--out", plink_freq_output
+                ],
+                check=True
+            )
+
+            # Missingness
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--missing",
+                    "--out", plink_miss_output
+                ],
+                check=True
+            )
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+rule_stem = 'mod8_check_sex'
+rule mod8_check_sex:
+    'Sex imputation. Currently not supported in plink2, running in plink1.'
+    input:
+        pgenset = rules.mod8_marker_filter.output.pgenset
+    output:
+        sex_check = tmpMod8/(rule_stem + ".sexcheck")
+    run:
+        try:
+            plink_input = mqc.plinkBase(input.pgenset[0])
+            plink1_input = plink_input + "_1"
+            ouput_file = mqc.plinkBase(output.sex_check)
+
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--make-bed",
+                    "--out", plink1_input
+                ],
+            )
+
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", plink1_input,
+                    "--check-sex", "ycount",
+                    "--out", ouput_file
+                ],
+                check = True
+            )
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+
+rule_stem = 'mod8_autosomal'
+rule mod8_autosomal:
+    'Keep only autosomal markers'
+    input:
+        pgenset = rules.mod8_marker_filter.output.pgenset
+    output:
+        pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam")
+    run:
+        try:
+            inTrunk =  mqc.plinkBase(input.pgenset[0])
+            outTrunk =  mqc.plinkBase(output.pgenset[0])
+
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", inTrunk,
+                    "--autosome",
+                    "--out", outTrunk,
+                    "--make-pgen"
+                ],
+                check=True
+            )
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+
+rule_stem = 'mod8_exclude_high_ld_markers'
+rule mod8_exclude_high_ld_markers:
+    'Exclude regions with high LD'
+    input:
+        pgenset = rules.mod8_autosomal.output.pgenset,
+        high_ld_regions_hg19 = high_ld_regions_hg19
+    output:
+        pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam")
+    run:
+        try:
+            inTrunk =  mqc.plinkBase(input.pgenset[0])
+            outTrunk =  mqc.plinkBase(output.pgenset[0])
+
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", inTrunk,
+                    "--exclude", "range", input.high_ld_regions_hg19,
+                    "--out", outTrunk,
+                    "--make-pgen"
+                ],
+                check = True
+            )
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+
+rule_stem = 'mod8_prune_markers'
+rule mod8_prune_markers:
+    'Prune markers for LD'
+    input:
+        pgenset = rules.mod8_exclude_high_ld_markers.output.pgenset,
+    output:
+        pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
+        pruned_list = tmpMod8/(rule_stem + ".prune.in")
+    params:
+        prune_cmd = config["prune_cmd"]
+    run:
+        try:
+            inTrunk = mqc.plinkBase(input.pgenset[0])
+            outTrunk = mqc.plinkBase(output.pgenset[0])
+
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", inTrunk,
+                    "--make-founders"
+                ] + params.prune_cmd.split() + [
+                    "--out", outTrunk
+                ],
+                check = True
+            )
+
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", inTrunk,
+                    "--extract", output.pruned_list,
+                    "--out", outTrunk,
+                    "--make-pgen"
+                ],
+                check = True
+            )
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+
+rule_stem = 'mod8_pedigree_ibd_estimate'
+rule mod8_pedigree_ibd_estimate:
+    'IBD estimation. Requires conversion to plink1.'
+    input:
+        pgenset = rules.mod8_prune_markers.output.pgenset,
+    output:
+        king_relatedness = tmpMod8/(rule_stem + ".kin0")
+    threads: 8
+    run:
+        try:
+            plink_input = mqc.plinkBase(input.in_geno[0])
+            ouput_file = mqc.plinkBase(output.sex_check)
+
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--make-bed",
+                    "--out", plink_input
+                ],
+            )
+
+            subprocess.run(
+                [
+                    kinglocal,
+                    "-b", plink_input,
+                    "--related",
+                    "--cpus", str(threads),
+                    "--prefix", outTrunk
+                ],
+                check = True
+            )
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+
+rule_stem = 'mod8_psam_reconstruction'
+rule mod8_psam_reconstruction:
+    input:
+        pgenset_all_markers = [mod7_output + ".pgen"], #rules.mod7_rename_missing_ids.output.pgenset,
+        king_relatedness = rules.mod8_pedigree_ibd_estimate.output.king_relatedness,
+        sex_check = rules.mod8_check_sex.output.sex_check,
+        expected_relationships = config['expected_relationships'],
+        birth_year = config['birth_year']
+    params:
+        title = "\"Psam file reconstruction\""
+    output:
+        updated_psam = tmpMod8/(rule_stem + ".psam"),
+        pedigree_sample_exclusion = tmpMod8/(rule_stem + "_pedigree_sample_exclusion"),
+        mismatch_information = tmpMod8/"mismatch_information.gz",
+        mismatch_relationship = tmpMod8/"mismatch_relationship.gz",
+        md_file = github_docs/(rule_stem + ".md")
+    conda:
+        "envs/r_4.2.yaml"
+    threads: 1
+    shell:
+        """
+        Rscript utils/pedigree/simple_fam_reconstruction.R \
+            {input.king_relatedness} \
+            {input.sex_check} \
+            {input.expected_relationships} \
+            {input.birth_year} \
+            {input.pgenset_all_markers[2]} \
+            {output.updated_psam} \
+            {output.pedigree_sample_exclusion} \
+            {output.mismatch_information} \
+            {output.mismatch_relationship} \
+            {output.md_file} \
+            {params.title}
+        """
+
+
+rule_stem = 'mod8_psam_update'
+rule mod8_psam_update:
+    input:
+        pgenset_all_markers = [mod7_output + ".pgen"], #rules.mod7_rename_missing_ids.output.pgenset,
+        pgenset_pruned_markers = rules.mod8_prune_markers.output.pgenset,
+        updated_psam = rules.mod8_psam_reconstruction.output.updated_psam,
+    output:
+        pgenset_all_markers =  multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
+        pgenset_pruned_markers = multiext(str(tmpMod8/(rule_stem + "_pruned")), ".pgen", ".pvar", ".psam")
+    threads: 1
+    run:
+        try:
+            item_type = rule_info[rule]["rule type"]
+            mqc.log(runlog, rule_info[rule]["QC test"])
+            inTrunk_all_markers = mqc.plinkBase(input.pgenset_all_markers[0])
+            outTrunk_all_markers = mqc.plinkBase(output.pgenset_all_markers[0])
+            inTrunk_pruned_markers = mqc.plinkBase(input.pgenset_pruned_markers[0])
+            outTrunk_pruned_markers = mqc.plinkBase(output.pgenset_pruned_markers[0])
+
+            # copy pgensets
+            for extension in ['.bed', '.bim']:
+                copyfile(inTrunk_all_markers + extension, outTrunk_all_markers + extension)
+                copyfile(inTrunk_pruned_markers + extension, outTrunk_pruned_markers + extension)
+
+            # Copy new fam files
+            copyfile(input.updated_psam, outTrunk_all_markers + ".fam")
+            copyfile(input.updated_psam, outTrunk_pruned_markers + ".fam")
+
+            dropouts = mqc.checkUpdates(
+                inTrunk_all_markers + ".bim",
+                outTrunk_all_markers + ".bim",
+                cols = [0, 1, 3, 4, 5],
+                sanityCheck = "remove",
+                fullList = True,
+                allele_flip = True
+            )
+            dropouts.update(rule_info[rule])
+            dropouts["Rule"] = rule
+            mqc.saveYamlResults(output.results, dropouts)
+
+
+        except Exception as e:
+                    print(f"An exception occurred in rule {rule}.")
+                    print(e)
+
+
+rule_stem = 'mod8_exclude_conflictual_relationships'
+rule mod8_exclude_conflictual_relationships:
+    input:
+        pgenset_all_markers = rules.mod8_psam_update.output.pgenset_all_markers,
+        pgenset_pruned_markers = rules.mod8_psam_update.output.pgenset_pruned_markers,
+        pedigree_sample_exclusion = rules.mod8_psam_reconstruction.output.pedigree_sample_exclusion
+    output:
+        pgenset_all_markers =  multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
+        pgenset_pruned_markers = multiext(str(tmpMod8/(rule_stem + "_pruned")), ".pgen", ".pvar", ".psam")
+    run:
+        try:
+            item_type = rule_info[rule]["rule type"]
+            mqc.log(runlog, rule_info[rule]["QC test"])
+            inTrunk_all_markers = mqc.plinkBase(input.pgenset_all_markers[0])
+            outTrunk_all_markers = mqc.plinkBase(output.pgenset_all_markers[0])
+            inTrunk_pruned_markers = mqc.plinkBase(input.pgenset_pruned_markers[0])
+            outTrunk_pruned_markers = mqc.plinkBase(output.pgenset_pruned_markers[0])
+
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", inTrunk_all_markers,
+                    "--remove", input.pedigree_sample_exclusion,
+                    "--out", outTrunk_all_markers,
+                    "--make-bed"
+                ],
+                check = True
+            )
+
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", inTrunk_pruned_markers,
+                    "--remove", input.pedigree_sample_exclusion,
+                    "--out", outTrunk_pruned_markers,
+                    "--make-bed"
+                ],
+                check = True
+            )
+
+            dropouts = mqc.checkUpdates(
+                inTrunk_all_markers + ".bim",
+                outTrunk_all_markers + ".bim",
+                cols = [0, 1, 3, 4, 5],
+                sanityCheck = "remove",
+                fullList = True,
+                allele_flip = True
+            )
+            dropouts.update(rule_info[rule])
+            dropouts["Rule"] = rule
+            mqc.saveYamlResults(output.results, dropouts)
+
+
+        except Exception as e:
+                    print(f"An exception occurred in rule {rule}.")
+                    print(e)
+
+
+rule_stem = 'mod8_output'
+rule mod8_output:
+    input:
+        mod7_pgenset = mod7_output,
+        pgenset_all_markers = rules.mod8_exclude_conflictual_relationships.output.pgenset_all_markers,
+        pgenset_pruned_markers = rules.mod8_exclude_conflictual_relationships.output.pgenset_pruned_markers,
+        pruned_snps = rules.mod8_prune_markers.output.pruned_list,
+        sex_check = rules.mod8_check_sex.output.sex_check,
+        king_relatedness = rules.mod8_pedigree_ibd_estimate.output.king_relatedness
+    output:
+        pgenset_all_markers =  multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
+        pgenset_pruned_markers = multiext(str(tmpMod8/(rule_stem + "_pruned")), ".pgen", ".pvar", ".psam"),
+        pruned_snps = tmpMod8/(rule_stem + ".prune.in"),
+        sex_check = tmpMod8/(rule_stem + ".sexcheck"),
+        king_relatedness = tmpMod8/(rule_stem + ".kin0")
+    run:
+        try:
+            item_type = rule_info[rule]["rule type"]
+            mqc.log(runlog, rule_info[rule]["QC test"])
+            m7Trunk = mqc.plinkBase(input.mod7_pgenset[0])
+            inTrunk_all_markers = mqc.plinkBase(input.pgenset_all_markers[0])
+            outTrunk_all_markers =  mqc.plinkBase(output.pgenset_all_markers[0])
+            inTrunk_pruned_markers = mqc.plinkBase(input.pgenset_pruned_markers[0])
+            outTrunk_pruned_markers =  mqc.plinkBase(output.pgenset_pruned_markers[0])
+            docs = "For more documentation see https://github.com/folkehelseinstituttet/mobaGenetics-qc/wiki/Module2 . In the html file see info on individual module steps through the section for results of Module 2"
+
+            # copy plink sets
+            for extension in ['.bed', '.bim', '.fam']:
+                copyfile(inTrunk_all_markers + extension, outTrunk_all_markers + extension)
+                copyfile(inTrunk_pruned_markers + extension, outTrunk_pruned_markers + extension)
+
+            # Copy other outcomes of the module
+            copyfile(input.pruned_snps, output.pruned_snps)
+            copyfile(input.king_relatedness, output.king_relatedness)
+            copyfile(input.sex_check, output.sex_check)
+
+            # report markers (we only do this for mod5 output aka outTrunk_all_markers)
+            dropouts = mqc.checkUpdates(
+                m1Trunk + ".bim",
+                outTrunk_all_markers + ".bim",
+                cols = [0, 1, 3, 4, 5],
+                sanityCheck = "removal",
+                fullList = True,
+                allele_flip = True
+            )
+            dropouts.update(rule_info[rule])
+            dropouts["Rule"] = rule
+            dropouts["Documentation details"] = docs
+            mqc.saveYamlResults(output.report_markers, dropouts)
+
+            # report samples, same logic as markers
+            dropouts = mqc.checkUpdates(
+                m1Trunk + ".fam",
+                outTrunk_all_markers + ".fam",
+                cols = [0, 1],
+                sanityCheck = "update",
+                fullList = True
+            )
+            dropouts.update(rule_info[rule])
+            dropouts["Rule"] = rule
+            dropouts["Documentation details"] = docs
+
+            mqc.saveYamlResults(output.report_samples, dropouts)
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+

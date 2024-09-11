@@ -1,6 +1,6 @@
 ##
 #
-# This module conducts a preliminary QC and evaluates the genetic relationship between samples.
+# This module conducts a preliminary QC and evaluates the genetic relationship between samples for each batch separately.
 #
 ##
 
