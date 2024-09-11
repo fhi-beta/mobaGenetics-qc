@@ -22,7 +22,7 @@ rule mod8_marker_filter:
     run:
         try:
 
-            id_file = "tmpMod8"/"ids_08"
+            id_file = tmpMod8/"ids_08"
 
             r2_data = pd.read_csv(r2_table, sep = "\t")
             snp_08 = r2_data[r2_data['COMBINED'] == '0.8']
