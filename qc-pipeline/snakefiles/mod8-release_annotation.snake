@@ -18,14 +18,15 @@ rule mod8_marker_filter:
         pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam")
     params:
         mac_threshold = config['merged_set_mac_thr'],
-        geno_threshold = config['merged_set_geno_thr']
+        geno_threshold = config['merged_set_geno_thr'],
+        info_threshold = config['merged_set_info_thr']
     run:
         try:
 
             id_file = tmpMod8/"ids_08"
 
             r2_data = pd.read_csv(r2_table, sep = "\t")
-            snp_08 = r2_data[r2_data['COMBINED'] >= 0.8]
+            snp_08 = r2_data[r2_data['COMBINED'] >= params.info_threshold]
             snp_08['ID'].to_csv(id_file, index = False, header = False)
 
             inTrunk =  mqc.plinkBase(input.pgenset[0])

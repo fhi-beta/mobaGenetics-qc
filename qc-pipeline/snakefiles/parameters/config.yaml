@@ -77,6 +77,8 @@ prune_cmd: --indep-pairwise 200 100 0.1
 merged_set_mac_thr: 500
 # Missing genotype threshold (markers) for pedigree and PCA in the merged set
 merged_set_geno_thr: 0.05
+# Info score threshold for good markers
+merged_set_info_thr: 0.9
 
 # these two files have been produced by Jonas by hand and have better pedigree info than we had
 # We want to automate this - but for now (2019) we are just keeping it as it is
