@@ -1427,6 +1427,7 @@ def summarize_dr2(base, dr2_df_file, top_snp_file, batches, chrs, threads, n_sam
     sample_sizes = []
     dr2_df = None
     for batch in batches:
+        print(f"Reading data for batch {batch}...")
         info_files = [rf'{base}/{batch}/{n_samples}_samples/mod6_impute.chr{chr}.imputed.vcf.gz.info' for chr in chrs]
         batch_dfs = []
         with mp.Pool(threads) as pool:
@@ -1441,13 +1442,14 @@ def summarize_dr2(base, dr2_df_file, top_snp_file, batches, chrs, threads, n_sam
     N = sum(sample_sizes)
     dr2_df["COMBINED"] = (((np.sqrt(dr2_df[[b for b in batches]])*sample_sizes).sum(axis=1))/N)**2
     dr2_df.to_csv(dr2_df_file, sep="\t", index=False)
-    best_snp_df = dr2_df.nlargest(snp_cutoff, "COMBINED")["ID"]
+    dr2_df_remove_multiallelics = dr2_df.drop_duplicates(subset=['CHROM', 'POS'], keep=False)
+    best_snp_df = dr2_df_remove_multiallelics.nlargest(snp_cutoff, "COMBINED")["ID"]
     best_snp_df.to_csv(top_snp_file, sep="\t", index=False, header=False)
     
     
 
 def fetch_info_data(info_file):
-    info_data = pd.read_csv(info_file, delim_whitespace=True, names =["CHROM", "POS", "ID", "IMP", "REF", "ALT", "DR2", "AF"])
+    info_data = pd.read_csv(info_file, sep=r'\s+', names =["CHROM", "POS", "ID", "IMP", "REF", "ALT", "DR2", "AF"])
     info_data['ID'] = info_data.apply(lambda row: f"{row['CHROM']}_{row['POS']}_{row['REF']}:{row['ALT']}" if row['ID'] == '.' else row['ID'], axis=1)
     return info_data
 
