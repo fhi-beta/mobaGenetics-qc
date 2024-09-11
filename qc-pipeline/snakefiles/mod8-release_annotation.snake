@@ -8,82 +8,12 @@
 mod7_output = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod7-post-imputation/all_samples/mod7_rename_missing_ids"
 r2_table = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod7-post-imputation/all_samples/mod7_dr2.txt"
 
-rule_stem = 'mod8_generate_start_stats'
-rule mod8_generate_start_stats:
-    'Generate statistics on the data prior to further processing'
-    input:
-        pgenset = [mod7_output + ".pgen"] #rules.mod7_rename_missing_ids.output.pgenset
-    output:
-        het = tmpMod8/'mod8_all.het',
-        hardy = tmpMod8/'mod8_all.hardy',
-        afreq = tmpMod8/'mod8_all.afreq',
-        smiss = tmpMod8/'mod8_all.smiss',
-        vmiss = tmpMod8/'mod8_all.vmiss',
-    threads: 1
-    run:
-        try:
-            # Plink base paths
-            plink_input = mqc.plinkBase(input.pgenset[0])
-            plink_het_output = mqc.plinkBase(output.het)
-            plink_hwe_output = mqc.plinkBase(output.hardy)
-            plink_freq_output = mqc.plinkBase(output.afreq)
-            plink_miss_output = mqc.plinkBase(output.smiss)
-
-            # Heterozygocity rate
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", plink_input,
-                    "--het",
-                    "--out", plink_het_output
-                ],
-                check=True
-            )
-
-            # HWE
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", plink_input,
-                    "--hardy",
-                    "--out", plink_hwe_output
-                ],
-                check=True
-            )
-
-            # Frequencies
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", plink_input,
-                    "--freq",
-                    "--out", plink_freq_output
-                ],
-                check=True
-            )
-
-            # Missingness
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", plink_input,
-                    "--missing",
-                    "--out", plink_miss_output
-                ],
-                check=True
-            )
-
-        except Exception as e:
-            print(f"An exception occurred in rule {rule}.")
-            print(e)
-
-
 rule_stem = 'mod8_marker_filter'
 rule mod8_marker_filter:
     'Select common markers genotyped or with best imputation scores, filter by mac and geno rate'
     input:
         pgenset = [mod7_output + ".pgen"], # rules.mod7_rename_missing_ids.output.pgenset,
-        top_snps = r2_table # rules.summarize_dr2.output.top_snps
+        r2_table = r2_table # rules.summarize_dr2.output.top_snps
     output:
         pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam")
     params:
@@ -91,6 +21,13 @@ rule mod8_marker_filter:
         geno_threshold = config['merged_set_geno_thr']
     run:
         try:
+
+            id_file = "tmpMod8"/"ids_08"
+
+            r2_data = pd.read_csv(r2_table, sep = "\t")
+            snp_08 = r2_data[r2_data['COMBINED'] == '0.8']
+            snp_08['ID'].to_csv(id_file, index = False, header = False)
+
             inTrunk =  mqc.plinkBase(input.pgenset[0])
             outTrunk =  mqc.plinkBase(output.pgenset[0])
 
@@ -98,7 +35,7 @@ rule mod8_marker_filter:
                 [
                     plink2local,
                     "--pfile", inTrunk,
-                    "--extract", input.top_snps,
+                    "--extract", id_file,
                     "--min-alleles", "2",
                     "--max-alleles", "2",
                     "--mac", str(params.mac_threshold),

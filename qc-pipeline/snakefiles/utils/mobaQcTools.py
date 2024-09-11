@@ -623,7 +623,6 @@ def create_exclude_list(duplicates, callRates, resultfile, excludelist):
     drop.loc[:, ['chr', 'pos', 'alleles', 'SNP','F_MISS']].to_csv(resultfile, sep = " ", index = False)
     # snp idents plink laters can use
     drop.loc[:, ['SNP']].to_csv(excludelist, sep=" ", index = False, header = False)
-    print("**** .... and we should make a yaml file with summary in it")
 
 
 def missing_genotype_rate(
@@ -1394,32 +1393,32 @@ def egrep(pattern, in_file, out_file, switches=""):
                     shell=True)
     return
 
-
-def count_families(famfile, regex):
-    """Counts families with tuples in a fam-file (matching a certain pattern)
-
-    Returns a dictionaly with key "nomatch" for the number of families
-    in famfile with an id not matching regex.
-    The keys 1,2,3 represents the number of matching families with 1,2
-    or 3 members
-
-    Writes a warning to stdout if families contain more than 3 memebers
-
-    Use * as wildcard to check everything. This function is used to count
-    the number of remaining families after we have tried to fix the pedigree
-
-    """
-    good_family = re.compile(regex)
-    (all, n) = dict_count_items(famfile, cols=[0], warn=False)
-    if n > 3:
-        print("**** OUCH! We have families with up to {n} members!")
-    counts = dict()   # counting occurences of 1,2,3 and hopefully not more
-    for fam in all:
-        if re.search(good_family, fam):  # For these we count tuples
-            counts[all[fam]] = counts.get(all[fam], 0) + 1
-        else:  # these do not match, but we count them still
-            counts["nomatch"] = counts.get("nomatch", 0) + 1
-    return(counts)
+#
+# def count_families(famfile, regex):
+#     """Counts families with tuples in a fam-file (matching a certain pattern)
+#
+#     Returns a dictionaly with key "nomatch" for the number of families
+#     in famfile with an id not matching regex.
+#     The keys 1,2,3 represents the number of matching families with 1,2
+#     or 3 members
+#
+#     Writes a warning to stdout if families contain more than 3 memebers
+#
+#     Use * as wildcard to check everything. This function is used to count
+#     the number of remaining families after we have tried to fix the pedigree
+#
+#     """
+#     good_family = re.compile(regex)
+#     (all, n) = dict_count_items(famfile, cols=[0], warn=False)
+#     if n > 3:
+#         print("**** OUCH! We have families with up to {n} members!")
+#     counts = dict()   # counting occurences of 1,2,3 and hopefully not more
+#     for fam in all:
+#         if re.search(good_family, fam):  # For these we count tuples
+#             counts[all[fam]] = counts.get(all[fam], 0) + 1
+#         else:  # these do not match, but we count them still
+#             counts["nomatch"] = counts.get("nomatch", 0) + 1
+#     return(counts)
 
 def summarize_dr2(base, dr2_df_file, top_snp_file, batches, chrs, threads, n_samples = "all", snp_cutoff = 500000):
     """
