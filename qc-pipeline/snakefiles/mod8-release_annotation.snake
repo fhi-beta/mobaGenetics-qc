@@ -25,7 +25,7 @@ rule mod8_marker_filter:
             id_file = tmpMod8/"ids_08"
 
             r2_data = pd.read_csv(r2_table, sep = "\t")
-            snp_08 = r2_data[r2_data['COMBINED'] == '0.8']
+            snp_08 = r2_data[r2_data['COMBINED'] >= 0.8]
             snp_08['ID'].to_csv(id_file, index = False, header = False)
 
             inTrunk =  mqc.plinkBase(input.pgenset[0])
