@@ -45,7 +45,7 @@ rule mod8_marker_filter:
                     "--max-alleles", "2",
                     "--mac", str(params.mac_threshold),
                     "--geno", str(params.geno_threshold),
-                    "--out", outTrunk,
+                    "--out", outTrunk_r2,
                     "--make-pgen"
                 ],
                 check=True
@@ -59,7 +59,7 @@ rule mod8_marker_filter:
                     "--max-alleles", "2",
                     "--mac", str(params.mac_threshold),
                     "--geno", str(params.geno_threshold),
-                    "--out", outTrunk,
+                    "--out", outTrunk_best_snps,
                     "--make-pgen"
                 ],
                 check=True
