@@ -438,6 +438,24 @@ rule mod5_output:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
+rule mod5_split_par:
+    input:
+        bedset = rules.mod5_output.output.bedset
+    output:
+        bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / "mod5_split_par"), ".bed", ".bim", ".fam")
+    run:
+        inTrunk = mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
+        subprocess.run(
+            [
+                plink2local,
+                "--bfile", inTrunk,
+                "--split-par", "b37",
+                "--make-bed",
+                "--out", outTrunk
+            ]
+        )
+
 
 
 
