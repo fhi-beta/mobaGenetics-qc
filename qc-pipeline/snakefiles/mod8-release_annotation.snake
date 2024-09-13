@@ -180,7 +180,8 @@ rule_stem = 'mod8_prune_markers'
 rule mod8_prune_markers:
     'Prune markers for LD'
     input:
-        pgenset = rules.mod8_marker_filter.output.pgenset_r2
+        pgenset = rules.mod8_marker_filter.output.pgenset_r2,
+        high_ld_regions_hg19 = high_ld_regions_hg19
     output:
         pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
         pruned_list = tmpMod8/(rule_stem + ".prune.in")
