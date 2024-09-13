@@ -180,7 +180,7 @@ rule_stem = 'mod8_autosomal'
 rule mod8_autosomal:
     'Keep only autosomal markers'
     input:
-        pgenset = rules.mod8_marker_filter.output.pgenset_best_snps
+        pgenset = rules.mod8_marker_filter.output.pgenset_r2
     output:
         pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam")
     run:
