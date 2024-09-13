@@ -227,7 +227,7 @@ rule mod8_pedigree_ibd_estimate:
         pgenset = rules.mod8_prune_markers.output.pgenset,
     output:
         king_relatedness = tmpMod8/(rule_stem + ".kin0")
-    threads: 8
+    threads: 24
     run:
         try:
             plink_input = mqc.plinkBase(input.pgenset[0])
