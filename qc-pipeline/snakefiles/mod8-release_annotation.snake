@@ -287,7 +287,7 @@ rule mod8_pedigree_ibd_estimate:
         try:
             plink_input = mqc.plinkBase(input.pgenset[0])
             plink_input_1 = mqc.plinkBase(input.pgenset[0]) + "_plink1"
-            ouput_file = mqc.plinkBase(output.sex_check)
+            outTrunk = mqc.plinkBase(output.king_relatedness)
 
             subprocess.run(
                 [
