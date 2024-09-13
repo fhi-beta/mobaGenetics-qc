@@ -197,8 +197,7 @@ rule mod8_prune_markers:
                     plink2local,
                     "--pfile", inTrunk,
                     "--autosome",
-                    "--exclude", "range", input.high_ld_regions_hg19,
-                    "--make-founders"
+                    "--exclude", "range", input.high_ld_regions_hg19
                 ] + params.prune_cmd.split() + [
                     "--out", outTrunk
                 ],
@@ -235,6 +234,7 @@ rule mod8_pedigree_ibd_estimate:
             plink_input_1 = mqc.plinkBase(input.pgenset[0]) + "_plink1"
             outTrunk = mqc.plinkBase(output.king_relatedness)
 
+            # Convert to plink1
             subprocess.run(
                 [
                     plink2local,
@@ -244,6 +244,13 @@ rule mod8_pedigree_ibd_estimate:
                 ],
             )
 
+            # Make FIDs unique to skip within-family computation
+            fam_file = plink_input_1 + ".fam"
+            fam_data = pd.read_csv(fam_file, sep = "\t", names =["fid", "iid", "mid", "pid", "sex", "pheno"])
+            fam_data['fid'] = fam_data['iid']
+            fam_data.to_csv(fam_file, index = False, header = False, sep = "\t")
+
+            # King relatedness analysis
             subprocess.run(
                 [
                     kinglocal,
