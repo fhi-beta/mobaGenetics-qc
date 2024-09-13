@@ -143,13 +143,13 @@ rule_stem = 'mod8_check_sex'
 rule mod8_check_sex:
     'Sex imputation. Currently not supported in plink2, running in plink1.'
     input:
-        pgenset = rules.mod8_marker_filter.output.pgenset_r2
+        pgenset_r2 = multiext(str(tmpMod8/"mod8_marker_filter") + "_r2", ".pgen", ".pvar", ".psam")
     output:
         sex_check = tmpMod8/(rule_stem + ".sexcheck")
     run:
         try:
             plink_input = mqc.plinkBase(input.pgenset[0])
-            plink1_input = plink_input + "_1"
+            plink1_input = plink_input + "_plink1"
             ouput_file = mqc.plinkBase(output.sex_check)
 
             subprocess.run(
@@ -285,7 +285,8 @@ rule mod8_pedigree_ibd_estimate:
     threads: 8
     run:
         try:
-            plink_input = mqc.plinkBase(input.in_geno[0])
+            plink_input = mqc.plinkBase(input.pgenset[0])
+            plink_input_1 = mqc.plinkBase(input.pgenset[0]) + "_plink1"
             ouput_file = mqc.plinkBase(output.sex_check)
 
             subprocess.run(
@@ -293,14 +294,14 @@ rule mod8_pedigree_ibd_estimate:
                     plink2local,
                     "--pfile", plink_input,
                     "--make-bed",
-                    "--out", plink_input
+                    "--out", plink_input_1
                 ],
             )
 
             subprocess.run(
                 [
                     kinglocal,
-                    "-b", plink_input,
+                    "-b", plink_input_1,
                     "--related",
                     "--cpus", str(threads),
                     "--prefix", outTrunk
