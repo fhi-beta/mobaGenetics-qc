@@ -148,28 +148,47 @@ rule mod8_check_sex:
         sex_check = tmpMod8/(rule_stem + ".sexcheck")
     run:
         try:
-            plink_input = mqc.plinkBase(input.pgenset[0])
-            plink1_input = plink_input + "_plink1"
-            ouput_file = mqc.plinkBase(output.sex_check)
 
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", plink_input,
-                    "--make-bed",
-                    "--out", plink1_input
-                ],
-            )
+            x_fixed = False # Currently the sex chromosomes are not available, so we take the sex check results prior to imputation
 
-            subprocess.run(
-                [
-                    plinklocal,
-                    "--bfile", plink1_input,
-                    "--check-sex", "ycount",
-                    "--out", ouput_file
-                ],
-                check = True
-            )
+            if x_fixed:
+
+                plink_input = mqc.plinkBase(input.pgenset[0])
+                plink1_input = plink_input + "_plink1"
+                ouput_file = mqc.plinkBase(output.sex_check)
+
+                subprocess.run(
+                    [
+                        plink2local,
+                        "--pfile", plink_input,
+                        "--make-bed",
+                        "--out", plink1_input
+                    ],
+                )
+
+                subprocess.run(
+                    [
+                        plinklocal,
+                        "--bfile", plink1_input,
+                        "--check-sex", "ycount",
+                        "--out", ouput_file
+                    ],
+                    check = True
+                )
+
+            else:
+
+                sex_checks = []
+
+                for batch in batches:
+                    print(f"Importing sex_check for batch {batch}.")
+                    file = f"/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod2-genetic-relationship/{batch}/m2_output.sexcheck"
+                    sex_check = pd.read_table(file, delim_whitespace=True)
+                    sex_checks.append(sex_check)
+
+                merged_df = pd.concat(sex_checks, ignore_index = True)
+
+                merged_df.to_csv(output.sex_check ,index = False)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
