@@ -301,7 +301,7 @@ rule mod8_pedigree_ibd_estimate:
             subprocess.run(
                 [
                     kinglocal,
-                    "-b", plink_input_1,
+                    "-b", plink_input_1 + ".bed",
                     "--related",
                     "--cpus", str(threads),
                     "--prefix", outTrunk
