@@ -176,68 +176,11 @@ rule mod8_check_sex:
             print(e)
 
 
-rule_stem = 'mod8_autosomal'
-rule mod8_autosomal:
-    'Keep only autosomal markers'
-    input:
-        pgenset = rules.mod8_marker_filter.output.pgenset_r2
-    output:
-        pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam")
-    run:
-        try:
-            inTrunk =  mqc.plinkBase(input.pgenset[0])
-            outTrunk =  mqc.plinkBase(output.pgenset[0])
-
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", inTrunk,
-                    "--autosome",
-                    "--out", outTrunk,
-                    "--make-pgen"
-                ],
-                check=True
-            )
-
-        except Exception as e:
-            print(f"An exception occurred in rule {rule}.")
-            print(e)
-
-
-rule_stem = 'mod8_exclude_high_ld_markers'
-rule mod8_exclude_high_ld_markers:
-    'Exclude regions with high LD'
-    input:
-        pgenset = rules.mod8_autosomal.output.pgenset,
-        high_ld_regions_hg19 = high_ld_regions_hg19
-    output:
-        pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam")
-    run:
-        try:
-            inTrunk =  mqc.plinkBase(input.pgenset[0])
-            outTrunk =  mqc.plinkBase(output.pgenset[0])
-
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", inTrunk,
-                    "--exclude", "range", input.high_ld_regions_hg19,
-                    "--out", outTrunk,
-                    "--make-pgen"
-                ],
-                check = True
-            )
-
-        except Exception as e:
-            print(f"An exception occurred in rule {rule}.")
-            print(e)
-
-
 rule_stem = 'mod8_prune_markers'
 rule mod8_prune_markers:
     'Prune markers for LD'
     input:
-        pgenset = rules.mod8_exclude_high_ld_markers.output.pgenset,
+        pgenset = rules.mod8_marker_filter.output.pgenset_r2
     output:
         pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
         pruned_list = tmpMod8/(rule_stem + ".prune.in")
@@ -252,6 +195,8 @@ rule mod8_prune_markers:
                 [
                     plink2local,
                     "--pfile", inTrunk,
+                    "--autosome",
+                    "--exclude", "range", input.high_ld_regions_hg19,
                     "--make-founders"
                 ] + params.prune_cmd.split() + [
                     "--out", outTrunk
