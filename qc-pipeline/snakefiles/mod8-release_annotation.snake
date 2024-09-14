@@ -143,90 +143,52 @@ rule_stem = 'mod8_check_sex'
 rule mod8_check_sex:
     'Sex imputation. Currently not supported in plink2, running in plink1.'
     input:
-        pgenset = rules.mod8_marker_filter.output.pgenset_r2
+        pgenset_r2 = multiext(str(tmpMod8/"mod8_marker_filter") + "_r2", ".pgen", ".pvar", ".psam")
     output:
         sex_check = tmpMod8/(rule_stem + ".sexcheck")
     run:
         try:
-            plink_input = mqc.plinkBase(input.pgenset[0])
-            plink1_input = plink_input + "_1"
-            ouput_file = mqc.plinkBase(output.sex_check)
 
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", plink_input,
-                    "--make-bed",
-                    "--out", plink1_input
-                ],
-            )
+            x_fixed = False # Currently the sex chromosomes are not available, so we take the sex check results prior to imputation
 
-            subprocess.run(
-                [
-                    plinklocal,
-                    "--bfile", plink1_input,
-                    "--check-sex", "ycount",
-                    "--out", ouput_file
-                ],
-                check = True
-            )
+            if x_fixed:
 
-        except Exception as e:
-            print(f"An exception occurred in rule {rule}.")
-            print(e)
+                plink_input = mqc.plinkBase(input.pgenset[0])
+                plink1_input = plink_input + "_plink1"
+                ouput_file = mqc.plinkBase(output.sex_check)
 
+                subprocess.run(
+                    [
+                        plink2local,
+                        "--pfile", plink_input,
+                        "--make-bed",
+                        "--out", plink1_input
+                    ],
+                )
 
-rule_stem = 'mod8_autosomal'
-rule mod8_autosomal:
-    'Keep only autosomal markers'
-    input:
-        pgenset = rules.mod8_marker_filter.output.pgenset_best_snps
-    output:
-        pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam")
-    run:
-        try:
-            inTrunk =  mqc.plinkBase(input.pgenset[0])
-            outTrunk =  mqc.plinkBase(output.pgenset[0])
+                subprocess.run(
+                    [
+                        plinklocal,
+                        "--bfile", plink1_input,
+                        "--check-sex", "ycount",
+                        "--out", ouput_file
+                    ],
+                    check = True
+                )
 
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", inTrunk,
-                    "--autosome",
-                    "--out", outTrunk,
-                    "--make-pgen"
-                ],
-                check=True
-            )
+            else:
 
-        except Exception as e:
-            print(f"An exception occurred in rule {rule}.")
-            print(e)
+                sex_checks = []
 
+                for batch in batches:
+                    print(f"Importing sex_check for batch {batch}.")
+                    file = f"/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod2-genetic-relationship/{batch}/m2_output.sexcheck"
+                    sex_check = pd.read_table(file, delim_whitespace=True)
+                    sex_checks.append(sex_check)
 
-rule_stem = 'mod8_exclude_high_ld_markers'
-rule mod8_exclude_high_ld_markers:
-    'Exclude regions with high LD'
-    input:
-        pgenset = rules.mod8_autosomal.output.pgenset,
-        high_ld_regions_hg19 = high_ld_regions_hg19
-    output:
-        pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam")
-    run:
-        try:
-            inTrunk =  mqc.plinkBase(input.pgenset[0])
-            outTrunk =  mqc.plinkBase(output.pgenset[0])
+                merged_df = pd.concat(sex_checks, ignore_index = True)
 
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", inTrunk,
-                    "--exclude", "range", input.high_ld_regions_hg19,
-                    "--out", outTrunk,
-                    "--make-pgen"
-                ],
-                check = True
-            )
+                merged_df.to_csv(output.sex_check ,index = False)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -237,7 +199,8 @@ rule_stem = 'mod8_prune_markers'
 rule mod8_prune_markers:
     'Prune markers for LD'
     input:
-        pgenset = rules.mod8_exclude_high_ld_markers.output.pgenset,
+        pgenset = rules.mod8_marker_filter.output.pgenset_r2,
+        high_ld_regions_hg19 = high_ld_regions_hg19
     output:
         pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
         pruned_list = tmpMod8/(rule_stem + ".prune.in")
@@ -252,7 +215,8 @@ rule mod8_prune_markers:
                 [
                     plink2local,
                     "--pfile", inTrunk,
-                    "--make-founders"
+                    "--autosome",
+                    "--exclude", "range", input.high_ld_regions_hg19
                 ] + params.prune_cmd.split() + [
                     "--out", outTrunk
                 ],
@@ -282,25 +246,34 @@ rule mod8_pedigree_ibd_estimate:
         pgenset = rules.mod8_prune_markers.output.pgenset,
     output:
         king_relatedness = tmpMod8/(rule_stem + ".kin0")
-    threads: 8
+    threads: 24
     run:
         try:
-            plink_input = mqc.plinkBase(input.in_geno[0])
-            ouput_file = mqc.plinkBase(output.sex_check)
+            plink_input = mqc.plinkBase(input.pgenset[0])
+            plink_input_1 = mqc.plinkBase(input.pgenset[0]) + "_plink1"
+            outTrunk = mqc.plinkBase(output.king_relatedness)
 
+            # Convert to plink1
             subprocess.run(
                 [
                     plink2local,
                     "--pfile", plink_input,
                     "--make-bed",
-                    "--out", plink_input
+                    "--out", plink_input_1
                 ],
             )
 
+            # Make FIDs unique to skip within-family computation
+            fam_file = plink_input_1 + ".fam"
+            fam_data = pd.read_csv(fam_file, sep = "\t", names =["fid", "iid", "mid", "pid", "sex", "pheno"])
+            fam_data['fid'] = fam_data['iid']
+            fam_data.to_csv(fam_file, index = False, header = False, sep = "\t")
+
+            # King relatedness analysis
             subprocess.run(
                 [
                     kinglocal,
-                    "-b", plink_input,
+                    "-b", plink_input_1 + ".bed",
                     "--related",
                     "--cpus", str(threads),
                     "--prefix", outTrunk
