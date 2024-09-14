@@ -136,8 +136,8 @@ rule mod7_extract_ld:
         dr2 = rules.summarize_dr2.output.dr2,
         pgenset = rules.mod7_rename_missing_ids.output.pgenset
     output:
-        variants = str(tmpMod7 / "{number_of_samples}" / "mod7_high_dr2_variants.txt"),
-        prune_in = str(tmpMod7 / "{number_of_samples}" / "mod7_extract_ld.prune.in")
+        variants = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_high_dr2_variants.txt"),
+        prune_in = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_extract_ld.prune.in")
     run:
         mqc.find_high_dr2_variants(input.dr2, output.variants, config['dr2_threshold'])
         in_trunk = mqc.plinkBase(input.pgenset[0])
