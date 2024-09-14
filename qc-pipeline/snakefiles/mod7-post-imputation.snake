@@ -61,7 +61,7 @@ rule mod7_norm:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        bcftools norm -m + {input.merged_bcf} -o {output.norm_bcf}
+        bcftools norm -m + {input.merged_vcf} -o {output.norm_vcf}
         """
 
 
