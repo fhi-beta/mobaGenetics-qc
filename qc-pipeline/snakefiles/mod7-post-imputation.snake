@@ -131,7 +131,7 @@ rule mod7_rename_missing_ids:
         {plink2local} --pfile $inTrunk --set-missing-var-ids @_#\$1:\$2 --make-pgen --out $outTrunk
         """
 
-mod7_extract_ld:
+rule mod7_extract_ld:
     input:
         dr2 = rules.summarize_dr2.output.dr2,
         pgenset = rules.mod7_rename_missing_ids.output.pgenset
