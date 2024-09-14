@@ -147,7 +147,7 @@ rule mod7_extract_ld:
                 plink2local,
                 "--pfile", in_trunk
                 "--extract", output.variants,
-                "--indep-pairphase 500kb 0.2",
+                "--indep-pairphase", "500kb", "0.2",
                 "--out", out_trunk
             ]
         )
