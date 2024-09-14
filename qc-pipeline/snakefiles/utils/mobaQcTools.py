@@ -1445,7 +1445,7 @@ def summarize_dr2(base, dr2_df_file, top_snp_file, batches, chrs, threads, n_sam
     dr2_df_remove_multiallelics = dr2_df.drop_duplicates(subset=['CHROM', 'POS'], keep=False)
     best_snp_df = dr2_df_remove_multiallelics.nlargest(snp_cutoff, "COMBINED")["ID"]
     best_snp_df.to_csv(top_snp_file, sep="\t", index=False, header=False)
-    
+
     
 
 def fetch_info_data(info_file):
@@ -1460,6 +1460,11 @@ def get_n_samples(vcf_file):
                 columns = line.strip().split('\t')
                 return len(columns) - 9  # Subtract the 9 fixed VCF columns
     return 0
+
+def find_high_dr2_variants(dr2_file, out, threshold):
+    df = pd.read_csv(dr2_file, sep=r'\s+')
+    df_high = df[df["COMBINED"]>threshold]["ID"]
+    df_high.to_csv(out, sep="\t", index=False, header=False)
 #
 # def find_moba_pca_outlier(df):
 #     """NOT IN USE/WORKING!
