@@ -1446,7 +1446,13 @@ def summarize_dr2(base, dr2_df_file, top_snp_file, batches, chrs, threads, n_sam
     best_snp_df = dr2_df_remove_multiallelics.nlargest(snp_cutoff, "COMBINED")["ID"]
     best_snp_df.to_csv(top_snp_file, sep="\t", index=False, header=False)
 
-    
+def best_snps_of_subset(dr2_file, out, snp_cutoff, subset):
+    dr2_df = pd.read_csv(dr2_file, sep=r'\s+')
+    sub_df = pd.read_csv(subset, sep=r'\s+', header=None, names=["ID"])
+    dr2_sub_df = dr2_df[dr2_df["ID"].isin(sub_df["ID"])]
+    dr2_sub_df = dr2_sub_df.drop_duplicates(subset=['CHROM', 'POS'], keep=False)
+    best_snps_df = dr2_sub_df.nlargest(snp_cutoff, "COMBINED")["ID"]
+    best_snps_df.to_csv(out, sep="\t", index=False, header=False)
 
 def fetch_info_data(info_file):
     info_data = pd.read_csv(info_file, sep=r'\s+', names =["CHROM", "POS", "ID", "IMP", "REF", "ALT", "DR2", "AF"])
@@ -1461,8 +1467,11 @@ def get_n_samples(vcf_file):
                 return len(columns) - 9  # Subtract the 9 fixed VCF columns
     return 0
 
-def find_high_dr2_variants(dr2_file, out, threshold):
+def find_high_dr2_variants(dr2_file, out, threshold, subset=None):
     df = pd.read_csv(dr2_file, sep=r'\s+')
+    if subset is not None:
+        subdf = pd.read_csv(subset, sep=r'\s+', header=None, names=["ID"])
+        df = df[df["ID"].isin(subdf["ID"])]
     df_high = df[df["COMBINED"]>threshold]["ID"]
     df_high.to_csv(out, sep="\t", index=False, header=False)
 #
