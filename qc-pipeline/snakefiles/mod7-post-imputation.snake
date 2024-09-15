@@ -142,7 +142,7 @@ rule mod7_extract_high_dr2_variants:
         mqc.find_high_dr2_variants(input.dr2, output.variants, config['dr2_threshold'])
         in_trunk = mqc.plinkBase(input.pgenset[0])
         out_trunk = mqc.plinkBase(output.pgenset[0])
-         subprocess.run(
+        subprocess.run(
             [
                 plink2local,
                 "--pfile", in_trunk,
