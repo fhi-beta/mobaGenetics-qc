@@ -131,31 +131,32 @@ rule mod7_rename_missing_ids:
         {plink2local} --pfile $inTrunk --set-missing-var-ids @_#\$1:\$2 --make-pgen --out $outTrunk
         """
 
-rule mod7_extract_high_dr2_variants:
-    input:
-        dr2 = rules.summarize_dr2.output.dr2,
-        pgenset = rules.mod7_rename_missing_ids.output.pgenset
-    output:
-        variants = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_high_dr2_variants.txt"),
-        pgenset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_extract_high_dr2_variants"), ".pgen", ".pvar", ".psam")
-    run:
-        mqc.find_high_dr2_variants(input.dr2, output.variants, config['dr2_threshold'])
-        in_trunk = mqc.plinkBase(input.pgenset[0])
-        out_trunk = mqc.plinkBase(output.pgenset[0])
-        subprocess.run(
-            [
-                plink2local,
-                "--pfile", in_trunk,
-                "--extract", output.variants,
-                "--make-pgen",
-                "--out", out_trunk
-            ]
-        )
+# rule mod7_extract_high_dr2_variants:
+#     input:
+#         dr2 = rules.summarize_dr2.output.dr2,
+#         pgenset = rules.mod7_rename_missing_ids.output.pgenset
+#     output:
+#         variants = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_high_dr2_variants.txt"),
+#         pgenset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_extract_high_dr2_variants"), ".pgen", ".pvar", ".psam")
+#     run:
+#         mqc.find_high_dr2_variants(input.dr2, output.variants, config['dr2_threshold'])
+#         in_trunk = mqc.plinkBase(input.pgenset[0])
+#         out_trunk = mqc.plinkBase(output.pgenset[0])
+#         subprocess.run(
+#             [
+#                 plink2local,
+#                 "--pfile", in_trunk,
+#                 "--extract", output.variants,
+#                 "--make-pgen",
+#                 "--out", out_trunk
+#             ]
+#         )
 
 
 rule mod7_ld:
     input:
-        pgenset = rules.mod7_extract_high_dr2_variants.output.pgenset
+        # pgenset = rules.mod7_extract_high_dr2_variants.output.pgenset
+        pgenset = rules.mod7_rename_missing_ids.output.pgenset
     output:
         prune_in = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_ld.prune.in")
     run:
