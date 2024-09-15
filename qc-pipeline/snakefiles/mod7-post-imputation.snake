@@ -158,6 +158,7 @@ rule mod7_ld:
         pgenset = rules.mod7_extract_high_dr2_variants.output.pgenset
     output:
         prune_in = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_ld.prune.in")
+    threads: workflow.cores
     run:
         in_trunk = mqc.plinkBase(input.pgenset[0])
         out_trunk = mqc.plinkBase(mqc.plinkBase(output.prune_in))
