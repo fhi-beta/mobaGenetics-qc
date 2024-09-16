@@ -55,7 +55,7 @@ rule mod6_conform:
     output:
         conformed_vcf = str(tmpMod6 / "{batch}" /  "{number_of_samples}_samples" / "mod6_conform.chr{chr}.conformed.vcf.gz")
     params:
-        ref_chr=lambda wildcards: "X_nonPAR" if wildcards.chr == "23" else wildcards.chr
+        ref_chr=lambda wildcards: "X_nonPAR" if wildcards.chr == "23" else wildcards.chr,
         conform_chr=lambda wildcards: "X" if wildcards.chr == "23" else wildcards.chr
     threads: config["mod6conform_threads"]
     shell:
