@@ -85,7 +85,7 @@ rule all:
         # str(tmpMod7 / f"{n_samples}_samples" / "mod7_dr2.txt.gz")
         #str(tmpMod7 / f"{n_samples}_samples" / "mod7_ld.prune.in")
         #str(tmpMod7 / f"{n_samples}_samples" / "mod7_best_snps_le.txt")
-        str(tmpMod7 / f"{n_samples}_samples" / "mod7_convert_chrs_to_pgen.chrX.pgen")
+        str(tmpMod7 / f"{n_samples}_samples" / "mod7_convert_chrs_to_pgen.chr23.pgen")
         #expand(str(tmpMod5 / "{batch}" / f"{n_samples}_samples" / "mod5_split_par.bed"), batch=batches_debug)
         # str(tmpMergeTest / "all_samples" / "mod7_output.pgen")
         # expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_sorted.vcf.gz"), batch = batches_debug)
