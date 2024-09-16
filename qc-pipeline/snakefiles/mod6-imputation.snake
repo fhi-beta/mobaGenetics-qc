@@ -55,6 +55,8 @@ rule mod6_conform:
     output:
         conformed_vcf = str(tmpMod6 / "{batch}" /  "{number_of_samples}_samples" / "mod6_conform.chr{chr}.conformed.vcf.gz")
     threads: config["mod6conform_threads"]
+    conda:
+        "envs/bcf_tabix.yaml"
     shell:
          """
         echo running mod6_conform for chr {wildcards.chr}
