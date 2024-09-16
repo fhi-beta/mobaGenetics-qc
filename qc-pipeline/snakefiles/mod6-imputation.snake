@@ -54,11 +54,13 @@ rule mod6_conform:
         sorted_vcf = rules.mod6_sort.output.sorted_vcf
     output:
         conformed_vcf = str(tmpMod6 / "{batch}" /  "{number_of_samples}_samples" / "mod6_conform.chr{chr}.conformed.vcf.gz")
+    params:
+        ref_chr=lambda wildcards: "X_nonPAR" if wildcards.chr == "23" else wildcards.chr
     threads: config["mod6conform_threads"]
     shell:
         """
         echo running mod6_conform for chr {wildcards.chr}
-        reffile=$(echo {hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes*.vcf.gz)
+        reffile=$(echo {hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{params.ref_chr}.haplotypes*.vcf.gz)
         output_full={output.conformed_vcf}
         outTrunk="${{output_full%.vcf.gz}}"
         java -Xmx{config[mod6conform_mem]} -jar {conform_gt} gt={input.sorted_vcf} ref=$reffile out=$outTrunk chrom={wildcards.chr} match=POS
@@ -70,13 +72,15 @@ rule mod6_impute:
         conformed_vcf = rules.mod6_conform.output.conformed_vcf
     output:
         imputed_vcf = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_impute.chr{chr}.imputed.vcf.gz")
+    params:
+        map_chr=lambda wildcards: "X" if wildcards.chr == "23" else wildcards.chr
     threads: config["mod6impute_threads"]
     log:
         str(tmpMod6/"{batch}" / "{number_of_samples}_samples"/ "mod6_impute_log_chr{chr}.log")
     shell:
         """
         reffile={hrc_bref}/HRC_GRCh37.chr{wildcards.chr}.bref3
-        mapfile={mapfiles}/plink.chr{wildcards.chr}.GRCh37.map
+        mapfile={mapfiles}/plink.chr{params.map_chr}.GRCh37.map
         output_full={output.imputed_vcf}
         outTrunk="${{output_full%.vcf.gz}}"
         java -Xmx{config[mem]} -jar {beagle} gt={input.conformed_vcf} ref=$reffile impute=true out=$outTrunk chrom={wildcards.chr} nthreads={config[beagle_threads]} seed=12345 map=$mapfile 2> {log}

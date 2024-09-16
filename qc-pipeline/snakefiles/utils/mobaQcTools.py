@@ -1467,11 +1467,8 @@ def get_n_samples(vcf_file):
                 return len(columns) - 9  # Subtract the 9 fixed VCF columns
     return 0
 
-def find_high_dr2_variants(dr2_file, out, threshold, subset=None):
+def find_high_dr2_variants(dr2_file, out, threshold):
     df = pd.read_csv(dr2_file, sep=r'\s+')
-    if subset is not None:
-        subdf = pd.read_csv(subset, sep=r'\s+', header=None, names=["ID"])
-        df = df[df["ID"].isin(subdf["ID"])]
     df_high = df[df["COMBINED"]>threshold]["ID"]
     df_high.to_csv(out, sep="\t", index=False, header=False)
 #
