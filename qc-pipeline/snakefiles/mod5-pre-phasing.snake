@@ -468,7 +468,7 @@ rule mod5_sort_vars:
     input:
         bedset = rules.mod5_set_hh_missing.output.bedset
     output:
-        pgenset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / "mod5_sort_vars"), ".pgen", ".pvar", ".sam")
+        pgenset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / "mod5_sort_vars"), ".pgen", ".pvar", ".psam")
     run:
         inTrunk = mqc.plinkBase(input.bedset[0])
         outTrunk = mqc.plinkBase(output.pgenset[0])
