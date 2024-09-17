@@ -471,7 +471,7 @@ rule mod5_sort_vars:
         pgenset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / "mod5_sort_vars"), ".pgen", ".pvar", ".sam")
     run:
         inTrunk = mqc.plinkBase(input.bedset[0])
-        outTrunk = mqc.plinkBase(output.bedset[0])
+        outTrunk = mqc.plinkBase(output.pgenset[0])
         subprocess.run(
             [
                 plink2local,
