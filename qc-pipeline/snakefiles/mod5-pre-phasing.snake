@@ -446,12 +446,30 @@ rule mod5_split_par:
             ]
         )
 
+rule mod5_set_hh_missing:
+        input:
+        bedset = rules.mod5_split_par.output.bedset
+    output:
+        bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / "mod5_set_hh_missing"), ".bed", ".bim", ".fam")
+    run:
+        inTrunk = mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
+        subprocess.run(
+            [
+                plink2local,
+                "--bfile", inTrunk,
+                "--set-hh-missing",
+                "--make-bed",
+                "--out", outTrunk
+            ]
+        )
+
 rule_stem = "mod5_output"
 rule mod5_output:
     input:
         # bedset = rules.mod5_remove_variants_with_missing_IDs.output.bedset,
         # bedset = rules.mod5_rename_missing_ids.output.bedset,
-        bedset = rules.mod5_split_par.output.bedset,
+        bedset = rules.mod5_set_hh_missing.output.bedset,
         sexcheck = rules.m4_output_good_markers.output.sexcheck
     output:
         bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam"),
