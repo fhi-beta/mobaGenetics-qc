@@ -39,6 +39,23 @@ rule mod5_cull_samples:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
+rule_stem = 'mod5_merge_x'
+rule mod5_merge_x:
+    input:
+        bedset=rules.mod5_cull_samples.output.bedset
+    output:
+        bedset=multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam")
+    shell:
+        outTrunk = mqc.plinkBase(output.bedset[0])
+        subprocess.run(
+            [
+                plinklocal,
+                "--bed", input.bedset[0],
+                "--merge-x",
+                "--make-bed",
+                "--out", outTrunk
+            ]
+        )
 
 
 rule_stem = 'mod5_exclude_duplicates'
@@ -48,7 +65,7 @@ rule mod5_exclude_duplicates:
         # bedset=rules.mod4point5_cull_samples.output.bedset # culled bedset for faster debug
         bedset=rules.mod5_cull_samples.output.bedset # culled bedset for faster debug
     output:
-        bedset=multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam"),
+        bedset=multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam")
     run:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
