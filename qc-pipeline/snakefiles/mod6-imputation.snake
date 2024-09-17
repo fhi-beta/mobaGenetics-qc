@@ -10,7 +10,7 @@ rule mod6_split_into_chromosomes:
             outTrunk = mqc.plinkBase(output.bedset[0])
             subprocess.run(
                 [
-                    plinklocal,
+                    plink2local,
                     "--bfile", inTrunk,
                     "--chr", wildcards.chr,
                     "--make-bed",
