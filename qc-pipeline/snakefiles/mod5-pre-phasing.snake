@@ -434,7 +434,7 @@ rule_stem = "mod5_output"
 rule mod5_output:
     input:
         # bedset = rules.mod5_remove_variants_with_missing_IDs.output.bedset,
-        bedset = rules.mod5_rename_missing_ids,
+        bedset = rules.mod5_rename_missing_ids.output.bedset,
         sexcheck = rules.m4_output_good_markers.output.sexcheck
     output:
         bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam"),
