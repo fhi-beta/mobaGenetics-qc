@@ -81,6 +81,19 @@ rule mod6_conform:
     #     java -Xmx{config[mod6conform_mem]} -jar {conform_gt} gt={input.sorted_vcf} ref=$reffile out=$outTrunk chrom={wildcards.chr} match=POS
     #     """
 
+def get_map_chr(wildcards):
+    if wildcards.chr == "PAR1":
+        return "X_par1"
+    elif wildcards.chr == "PAR2":
+        return "X_par2"
+    else:
+        return wildcards.chr
+
+def get_beagle_chr(wildcards):
+    if wildcards.chr == "PAR1" or wildcards.chr == "PAR2":
+        return "X"
+    else:
+        return wildcards.chr
 
 rule_stem = "mod6_impute"
 rule mod6_impute:
@@ -89,7 +102,8 @@ rule mod6_impute:
     output:
         imputed_vcf = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_impute.chr{chr}.imputed.vcf.gz")
     params:
-        map_chr=lambda wildcards: "X" if wildcards.chr == "23" else wildcards.chr
+        map_chr=get_map_chr,
+        beagle_chr=get_beagle_chr
     threads: config["mod6impute_threads"]
     log:
         str(tmpMod6/"{batch}" / "{number_of_samples}_samples"/ "mod6_impute_log_chr{chr}.log")
@@ -99,7 +113,7 @@ rule mod6_impute:
         mapfile={mapfiles}/plink.chr{params.map_chr}.GRCh37.map
         output_full={output.imputed_vcf}
         outTrunk="${{output_full%.vcf.gz}}"
-        java -Xmx{config[mem]} -jar {beagle} gt={input.conformed_vcf} ref=$reffile impute=true out=$outTrunk chrom={wildcards.chr} nthreads={config[beagle_threads]} seed=12345 map=$mapfile
+        java -Xmx{config[mem]} -jar {beagle} gt={input.conformed_vcf} ref=$reffile impute=true out=$outTrunk chrom={params.beagle_chr} nthreads={config[beagle_threads]} seed=12345 map=$mapfile
         """
 
 # rule mod6_norm_and_rename:
