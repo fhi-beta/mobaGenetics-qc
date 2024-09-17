@@ -395,7 +395,7 @@ rule mod5_rename_missing_ids:
     input:
         bedset = rules.mod5_remove_blacklisted_variants.output.bedset
     output:
-        bedset = multiext(str(tmpMod5 / "{number_of_samples}_samples" / "mod5_rename_missing_ids"), ".pgen", ".pvar", ".psam")
+        bedset = multiext(str(tmpMod5 / "{number_of_samples}_samples" / "mod5_rename_missing_ids"), ".bed", ".bim", ".fam")
     shell:
         """
         input_full={input.bedset[0]}
