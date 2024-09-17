@@ -400,7 +400,7 @@ rule mod5_rename_missing_ids:
         """
         input_full={input.bedset[0]}
         inTrunk="${{input_full%.bed}}"
-        output_full={output.bed[0]}
+        output_full={output.bedset[0]}
         outTrunk="${{output_full%.bed}}"
         {plink2local} --bfile $inTrunk --set-missing-var-ids @_#\$1:\$2 --make-bed --out $outTrunk
         """
