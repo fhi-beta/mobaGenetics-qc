@@ -53,7 +53,6 @@ rule mod5_merge_x:
                 plinklocal,
                 "--bfile", inTrunk,
                 "--merge-x",
-                "--set-hh-missing",
                 "--make-bed",
                 "--out", outTrunk
             ]
@@ -78,6 +77,7 @@ rule mod5_exclude_duplicates:
                 [
                     plinklocal,
                     "--bfile", inTrunk,
+                    "--set-hh-missing",
                     "--list-duplicate-vars", "ids-only", "suppress-first",
                     "--out", outTrunk,
                 ]
@@ -441,7 +441,6 @@ rule mod5_split_par:
                 plink2local,
                 "--bfile", inTrunk,
                 "--split-par", "b37",
-                "--set-hh-missing",
                 "--make-bed",
                 "--out", outTrunk
             ]
@@ -470,6 +469,7 @@ rule mod5_output:
                 [
                     plink2local,
                     "--bfile", inTrunk,
+                    "--set-hh-missing",
                     "--rm-dup", "force-first",
                     "--make-bed",
                     "--output-chr", "26",
