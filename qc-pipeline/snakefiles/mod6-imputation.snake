@@ -61,24 +61,25 @@ rule mod6_conform:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        reffile=$(echo {hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{params.ref_chr}.haplotypes*.vcf.gz)
-        output_full={output.conformed_vcf}
-        outTrunk="${{output_full%.vcf.gz}}"
-        java -Xmx{config[mod6conform_mem]} -jar {conform_gt} gt={input.sorted_vcf} ref=$reffile out=$outTrunk chrom={wildcards.chr} match=POS
+        echo running mod6_conform for chr {wildcards.chr}
+        if [[ {wildcards.chr} == "X" ]]; then
+            echo "Bypassing conform for non-PAR X chromosome"
+            bgzip -c {input.sorted_vcf} > {output.conformed_vcf}
+        else
+            reffile=$(echo {hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes*.vcf.gz)
+            output_full={output.conformed_vcf}
+            outTrunk="${{output_full%.vcf.gz}}"
+            java -Xmx{config[mod6conform_mem]} -jar {conform_gt} gt={input.sorted_vcf} ref=$reffile out=$outTrunk chrom={wildcards.chr} match=POS
+        fi
         """
-    #shell:
-        # """
-        # echo running mod6_conform for chr {wildcards.chr}
-        # if [[ {wildcards.chr} == "23" ]]; then
-        #     echo "Bypassing conform for non-PAR X chromosome"
-        #     bgzip -c {input.sorted_vcf} > {output.conformed_vcf}
-        # else
-        #     reffile=$(echo {hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes*.vcf.gz)
-        #     output_full={output.conformed_vcf}
-        #     outTrunk="${{output_full%.vcf.gz}}"
-        #     java -Xmx{config[mod6conform_mem]} -jar {conform_gt} gt={input.sorted_vcf} ref=$reffile out=$outTrunk chrom={wildcards.chr} match=POS
-        # fi
-        # """
+
+        # shell:
+    #     """
+    #     reffile=$(echo {hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{params.ref_chr}.haplotypes*.vcf.gz)
+    #     output_full={output.conformed_vcf}
+    #     outTrunk="${{output_full%.vcf.gz}}"
+    #     java -Xmx{config[mod6conform_mem]} -jar {conform_gt} gt={input.sorted_vcf} ref=$reffile out=$outTrunk chrom={wildcards.chr} match=POS
+    #     """
 
 
 rule_stem = "mod6_impute"
