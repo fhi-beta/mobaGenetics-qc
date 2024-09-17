@@ -46,11 +46,12 @@ rule mod5_merge_x:
     output:
         bedset=multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam")
     run:
+        inTrunk = mqc.plinkBase(input.bedset[0])
         outTrunk = mqc.plinkBase(output.bedset[0])
         subprocess.run(
             [
                 plinklocal,
-                "--bed", input.bedset[0],
+                "--bfile", inTrunk,
                 "--merge-x",
                 "--make-bed",
                 "--out", outTrunk
