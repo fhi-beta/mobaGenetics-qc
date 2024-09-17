@@ -391,7 +391,7 @@ rule mod5_update_name:
 rule mod5_rename_missing_ids:
     input:
         # bedset = rules.mod5_remove_blacklisted_variants.output.bedset
-         bedset = rules.mod5_update_name.output.bedset
+        bedset = rules.mod5_update_name.output.bedset
     output:
         bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / "mod5_rename_missing_ids"), ".bed", ".bim", ".fam")
     shell:
@@ -447,7 +447,7 @@ rule mod5_split_par:
         )
 
 rule mod5_set_hh_missing:
-        input:
+    input:
         bedset = rules.mod5_split_par.output.bedset
     output:
         bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / "mod5_set_hh_missing"), ".bed", ".bim", ".fam")
