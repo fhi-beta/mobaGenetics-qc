@@ -487,7 +487,6 @@ rule mod5_output:
                 [
                     plink2local,
                     "--bfile", inTrunk,
-                    "--set-hh-missing",
                     "--rm-dup", "force-first",
                     "--make-bed",
                     "--output-chr", "26",
@@ -502,7 +501,7 @@ rule mod5_output:
                 "--out", outTrunk
             ])
             subprocess.run([
-                plinklocal,
+                plink2local,
                 "--bfile", outTrunk,
                 "--missing",
                 "--het",
