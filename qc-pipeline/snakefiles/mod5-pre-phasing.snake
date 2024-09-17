@@ -45,7 +45,7 @@ rule mod5_merge_x:
         bedset=rules.mod5_cull_samples.output.bedset
     output:
         bedset=multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam")
-    shell:
+    run:
         outTrunk = mqc.plinkBase(output.bedset[0])
         subprocess.run(
             [
