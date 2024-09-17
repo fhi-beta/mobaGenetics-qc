@@ -27,8 +27,8 @@ def write_report(output_filename, batch, module, file_trunk, sexcheck_path):
     md_file.write(f"\n<br>{n_missing_fathers} fathers missing from batch")
 
     md_file.write(f"\n## Call rates")
-    imiss_df = pd.read_csv(file_trunk + ".imiss", delim_whitespace=True)
-    lmiss_df = pd.read_csv(file_trunk + ".lmiss", delim_whitespace=True)
+    imiss_df = pd.read_csv(file_trunk + ".smiss", delim_whitespace=True)
+    lmiss_df = pd.read_csv(file_trunk + ".vmiss", delim_whitespace=True)
     write_stats_and_histogram(md_file, "Sample call rates", 1-imiss_df["F_MISS"], output_filename, x_label="Call rate")
     write_stats_and_histogram(md_file, "SNP call rates", 1-lmiss_df["F_MISS"], output_filename, x_label="Call rate")
 
