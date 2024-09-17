@@ -467,7 +467,7 @@ rule mod5_set_hh_missing:
 rule mod5_sort_vars:
     input:
         bedset = rules.mod5_set_hh_missing.output.bedset
-     output:
+    output:
         bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / "mod5_sort_vars"), ".bed", ".bim", ".fam")
     run:
         inTrunk = mqc.plinkBase(input.bedset[0])
