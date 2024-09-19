@@ -26,11 +26,11 @@ rule mod8_marker_filter:
     run:
         try:
 
-            id_file = tmpMod8/"ids_08"
 
             prune = False
 
             if prune:
+                id_file = tmpMod8/"ids_08"
                 print(f"Extracting markers with overall r2 >= {params.info_threshold}.")
                 r2_data = pd.read_csv(r2_table, sep = "\t")
                 snp_08 = r2_data[r2_data['COMBINED'] >= params.info_threshold]
