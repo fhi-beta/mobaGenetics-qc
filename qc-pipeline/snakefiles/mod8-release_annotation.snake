@@ -25,13 +25,19 @@ rule mod8_marker_filter:
         info_threshold = config['merged_set_info_thr']
     run:
         try:
-            print(f"Extracting markers with overall r2 >= {params.info_threshold}.")
 
             id_file = tmpMod8/"ids_08"
 
-            r2_data = pd.read_csv(r2_table, sep = "\t")
-            snp_08 = r2_data[r2_data['COMBINED'] >= params.info_threshold]
-            snp_08['ID'].to_csv(id_file, index = False, header = False)
+            prune = False
+
+            if prune:
+                print(f"Extracting markers with overall r2 >= {params.info_threshold}.")
+                r2_data = pd.read_csv(r2_table, sep = "\t")
+                snp_08 = r2_data[r2_data['COMBINED'] >= params.info_threshold]
+                snp_08['ID'].to_csv(id_file, index = False, header = False)
+
+            else:
+                if_file = input.best_snps
 
             inTrunk =  mqc.plinkBase(input.pgenset[0])
             outTrunk_r2 =  mqc.plinkBase(output.pgenset_r2[0])
