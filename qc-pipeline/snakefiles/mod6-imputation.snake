@@ -10,7 +10,7 @@ rule mod6_split_into_chromosomes:
             outTrunk = mqc.plinkBase(output.bedset[0])
             subprocess.run(
                 [
-                    plinklocal,
+                    plink2local,
                     "--bfile", inTrunk,
                     "--chr", wildcards.chr,
                     "--make-bed",
@@ -55,14 +55,45 @@ rule mod6_conform:
     output:
         conformed_vcf = str(tmpMod6 / "{batch}" /  "{number_of_samples}_samples" / "mod6_conform.chr{chr}.conformed.vcf.gz")
     threads: config["mod6conform_threads"]
+    params:
+        ref_chr=lambda wildcards: "X_nonPAR" if wildcards.chr == "X" else wildcards.chr
+    conda:
+        "envs/bcf_tabix.yaml"
     shell:
         """
         echo running mod6_conform for chr {wildcards.chr}
-        reffile=$(echo {hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes*.vcf.gz)
-        output_full={output.conformed_vcf}
-        outTrunk="${{output_full%.vcf.gz}}"
-        java -Xmx{config[mod6conform_mem]} -jar {conform_gt} gt={input.sorted_vcf} ref=$reffile out=$outTrunk chrom={wildcards.chr} match=POS
+        if [[ {wildcards.chr} == "X" ]]; then
+            echo "Bypassing conform for non-PAR X chromosome"
+            bgzip -c {input.sorted_vcf} > {output.conformed_vcf}
+        else
+            reffile=$(echo {hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes*.vcf.gz)
+            output_full={output.conformed_vcf}
+            outTrunk="${{output_full%.vcf.gz}}"
+            java -Xmx{config[mod6conform_mem]} -jar {conform_gt} gt={input.sorted_vcf} ref=$reffile out=$outTrunk chrom={wildcards.chr} match=POS
+        fi
         """
+
+        # shell:
+    #     """
+    #     reffile=$(echo {hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{params.ref_chr}.haplotypes*.vcf.gz)
+    #     output_full={output.conformed_vcf}
+    #     outTrunk="${{output_full%.vcf.gz}}"
+    #     java -Xmx{config[mod6conform_mem]} -jar {conform_gt} gt={input.sorted_vcf} ref=$reffile out=$outTrunk chrom={wildcards.chr} match=POS
+    #     """
+
+def get_map_chr(wildcards):
+    if wildcards.chr == "PAR1":
+        return "X_par1"
+    elif wildcards.chr == "PAR2":
+        return "X_par2"
+    else:
+        return wildcards.chr
+
+def get_beagle_chr(wildcards):
+    if wildcards.chr == "PAR1" or wildcards.chr == "PAR2":
+        return "X"
+    else:
+        return wildcards.chr
 
 rule_stem = "mod6_impute"
 rule mod6_impute:
@@ -70,16 +101,19 @@ rule mod6_impute:
         conformed_vcf = rules.mod6_conform.output.conformed_vcf
     output:
         imputed_vcf = str(tmpMod6 / "{batch}" / "{number_of_samples}_samples" / "mod6_impute.chr{chr}.imputed.vcf.gz")
+    params:
+        map_chr=get_map_chr,
+        beagle_chr=get_beagle_chr
     threads: config["mod6impute_threads"]
     log:
         str(tmpMod6/"{batch}" / "{number_of_samples}_samples"/ "mod6_impute_log_chr{chr}.log")
     shell:
         """
         reffile={hrc_bref}/HRC_GRCh37.chr{wildcards.chr}.bref3
-        mapfile={mapfiles}/plink.chr{wildcards.chr}.GRCh37.map
+        mapfile={mapfiles}/plink.chr{params.map_chr}.GRCh37.map
         output_full={output.imputed_vcf}
         outTrunk="${{output_full%.vcf.gz}}"
-        java -Xmx{config[mem]} -jar {beagle} gt={input.conformed_vcf} ref=$reffile impute=true out=$outTrunk chrom={wildcards.chr} nthreads={config[beagle_threads]} seed=12345 map=$mapfile 2> {log}
+        java -Xmx{config[mem]} -jar {beagle} gt={input.conformed_vcf} ref=$reffile impute=true out=$outTrunk chrom={params.beagle_chr} nthreads={config[beagle_threads]} seed=12345 map=$mapfile
         """
 
 # rule mod6_norm_and_rename:

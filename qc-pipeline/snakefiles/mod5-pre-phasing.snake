@@ -39,6 +39,24 @@ rule mod5_cull_samples:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
+rule_stem = 'mod5_merge_x'
+rule mod5_merge_x:
+    input:
+        bedset=rules.mod5_cull_samples.output.bedset
+    output:
+        bedset=multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam")
+    run:
+        inTrunk = mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
+        subprocess.run(
+            [
+                plinklocal,
+                "--bfile", inTrunk,
+                "--merge-x",
+                "--make-bed",
+                "--out", outTrunk
+            ]
+        )
 
 
 rule_stem = 'mod5_exclude_duplicates'
@@ -46,9 +64,10 @@ rule mod5_exclude_duplicates:
     input:
         # bedset=multiext("/mnt/work/marc/qc/test_mod5_24.05.02/{batch}/m4_output_good_markers", ".bed", ".bim", ".fam")
         # bedset=rules.mod4point5_cull_samples.output.bedset # culled bedset for faster debug
-        bedset=rules.mod5_cull_samples.output.bedset # culled bedset for faster debug
+        #bedset=rules.mod5_cull_samples.output.bedset # culled bedset for faster debug
+        bedset=rules.mod5_merge_x.output.bedset
     output:
-        bedset=multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam"),
+        bedset=multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam")
     run:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
@@ -58,6 +77,7 @@ rule mod5_exclude_duplicates:
                 [
                     plinklocal,
                     "--bfile", inTrunk,
+                    "--set-hh-missing",
                     "--list-duplicate-vars", "ids-only", "suppress-first",
                     "--out", outTrunk,
                 ]
@@ -368,79 +388,49 @@ rule mod5_update_name:
             print(f"An exception occurred in rule {rule_stem}.")
             print(e)
 
-rule_stem = "mod5_remove_variants_with_missing_IDs"
-rule mod5_remove_variants_with_missing_IDs:
+rule mod5_rename_missing_ids:
     input:
+        # bedset = rules.mod5_remove_blacklisted_variants.output.bedset
         bedset = rules.mod5_update_name.output.bedset
     output:
-        bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam")
-    run:
-        try:
-            inTrunk = mqc.plinkBase(input.bedset[0])
-            outTrunk = mqc.plinkBase(output.bedset[0])
-            subprocess.run(
-                [
-                    plinklocal,
-                    "--bfile", inTrunk,
-                    "--exclude", exclude_variants,
-                    "--make-bed",
-                    "--out", outTrunk
-                ]
-            )
-        except Exception as e:
-            print(f"An exception occurred in rule {rule_stem}.")
-            print(e)
+        bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / "mod5_rename_missing_ids"), ".bed", ".bim", ".fam")
+    shell:
+        """
+        input_full={input.bedset[0]}
+        inTrunk="${{input_full%.bed}}"
+        output_full={output.bedset[0]}
+        outTrunk="${{output_full%.bed}}"
+        {plink2local} --bfile $inTrunk --set-missing-var-ids @_#\$1:\$2 --make-bed --out $outTrunk
+        """
 
-rule_stem = "mod5_output"
-rule mod5_output:
-    input:
-        bedset = rules.mod5_remove_variants_with_missing_IDs.output.bedset,
-        sexcheck = rules.m4_output_good_markers.output.sexcheck
-    output:
-        bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam"),
-        psam = str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".psam")),
-        missing = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".imiss", ".lmiss"),
-        het=str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".het")),
-        hwe=str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".hwe")),
-        md=str(github_docs / "{batch}"/"{number_of_samples}_samples"/ "pre_imputation_report" / "pre_imputation_report.md")
-    run:
-        try:
-            # Exclude duplicates again
-            inTrunk = mqc.plinkBase(input.bedset[0])
-            outTrunk = mqc.plinkBase(output.bedset[0])
-            subprocess.run(
-                [
-                    plink2local,
-                    "--bfile", inTrunk,
-                    "--rm-dup", "force-first",
-                    "--make-bed",
-                    "--output-chr", "26",
-                    "--out", outTrunk
-                ]
-            )
-            # keep full original .psam file for later
-            subprocess.run([
-                plink2local,
-                "--bfile", outTrunk,
-                "--make-just-psam",
-                "--out", outTrunk
-            ])
-            subprocess.run([
-                plinklocal,
-                "--bfile", outTrunk,
-                "--missing",
-                "--het",
-                "--hardy",
-                "--out", outTrunk
-            ])
-            batch_report.write_report(output.md, wildcards.batch, "mod5-pre-phasing", outTrunk, input.sexcheck)
-        except Exception as e:
-            print(f"An exception occurred in rule {rule}.")
-            print(e)
+
+
+# rule_stem = "mod5_remove_variants_with_missing_IDs"
+# rule mod5_remove_variants_with_missing_IDs:
+#     input:
+#         bedset = rules.mod5_update_name.output.bedset
+#     output:
+#         bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam")
+#     run:
+#         try:
+#             inTrunk = mqc.plinkBase(input.bedset[0])
+#             outTrunk = mqc.plinkBase(output.bedset[0])
+#             subprocess.run(
+#                 [
+#                     plinklocal,
+#                     "--bfile", inTrunk,
+#                     "--exclude", exclude_variants,
+#                     "--make-bed",
+#                     "--out", outTrunk
+#                 ]
+#             )
+#         except Exception as e:
+#             print(f"An exception occurred in rule {rule_stem}.")
+#             print(e)
 
 rule mod5_split_par:
     input:
-        bedset = rules.mod5_output.output.bedset
+        bedset = rules.mod5_rename_missing_ids.output.bedset
     output:
         bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / "mod5_split_par"), ".bed", ".bim", ".fam")
     run:
@@ -455,6 +445,92 @@ rule mod5_split_par:
                 "--out", outTrunk
             ]
         )
+
+rule mod5_set_hh_missing:
+    input:
+        bedset = rules.mod5_split_par.output.bedset
+    output:
+        bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / "mod5_set_hh_missing"), ".bed", ".bim", ".fam")
+    run:
+        inTrunk = mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
+        subprocess.run(
+            [
+                plink2local,
+                "--bfile", inTrunk,
+                "--set-hh-missing",
+                "--make-bed",
+                "--out", outTrunk
+            ]
+        )
+
+rule mod5_sort_vars:
+    input:
+        bedset = rules.mod5_set_hh_missing.output.bedset
+    output:
+        pgenset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / "mod5_sort_vars"), ".pgen", ".pvar", ".psam")
+    run:
+        inTrunk = mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.pgenset[0])
+        subprocess.run(
+            [
+                plink2local,
+                "--bfile", inTrunk,
+                "--make-pgen",
+                "--sort-vars",
+                "--out", outTrunk
+            ]
+        )
+
+rule_stem = "mod5_output"
+rule mod5_output:
+    input:
+        # bedset = rules.mod5_remove_variants_with_missing_IDs.output.bedset,
+        # bedset = rules.mod5_rename_missing_ids.output.bedset,
+        #bedset = rules.mod5_set_hh_missing.output.bedset,
+        pgenset = rules.mod5_sort_vars.output.pgenset,
+        sexcheck = rules.m4_output_good_markers.output.sexcheck
+    output:
+        bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam"),
+        # psam = str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".psam")),
+        missing = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".smiss", ".vmiss"),
+        het=str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".het")),
+        hwe=str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / (rule_stem + ".hardy")),
+        md=str(github_docs / "{batch}"/"{number_of_samples}_samples"/ "pre_imputation_report" / "pre_imputation_report.md")
+    run:
+        try:
+            # Exclude duplicates again
+            inTrunk = mqc.plinkBase(input.pgenset[0])
+            outTrunk = mqc.plinkBase(output.bedset[0])
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", inTrunk,
+                    "--rm-dup", "force-first",
+                    "--make-bed",
+                    "--out", outTrunk
+                ]
+            )
+            # # keep full original .psam file for later
+            # subprocess.run([
+            #     plink2local,
+            #     "--bfile", outTrunk,
+            #     "--make-just-psam",
+            #     "--out", outTrunk
+            # ])
+            subprocess.run([
+                plink2local,
+                "--bfile", outTrunk,
+                "--missing",
+                "--het",
+                "--hardy",
+                "--out", outTrunk
+            ])
+            batch_report.write_report(output.md, wildcards.batch, "mod5-pre-phasing", outTrunk, input.sexcheck)
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
 
 
 
