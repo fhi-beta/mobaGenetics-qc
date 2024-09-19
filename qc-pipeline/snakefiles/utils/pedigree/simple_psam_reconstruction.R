@@ -13,15 +13,15 @@ debug <- F
 if (debug) {
   
   args <- c(
-    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp008/pedigree_ibd_estimate.kin0", 
-    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp008/check_sex.sexcheck",
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod8-release_annotation/mod8_pedigree_ibd_estimate.kin0", 
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod8-release_annotation/mod8_check_sex.sexcheck",
     "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz",
     "/mnt/archive/snpQc/phenotypes/birth_year_24.04.12.gz",
-    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp008/callrate_permanent_removal.fam",
-    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp008/fam_reconstruction.fam",
-    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp008/exclusion",
-    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp008/mismatch_information.gz",
-    "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod2-genetic-relationship/snp008/mismatch_relationship.gz",
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod7-post-imputation/all_samples/mod7_rename_missing_ids.psam",
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod8-release_annotation/mod8_psam_reconstruction.psam",
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod8-release_annotation/exclusion",
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod8-release_annotation/mismatch_information.gz",
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod8-release_annotation/mismatch_relationship.gz",
     "/mnt/work/marc/tmp/fam_reconstruction_debug.md",
     "debug"
   )
@@ -32,7 +32,7 @@ args <- commandArgs(TRUE)
 
 if (length(args) != 11) {
   
-  stop(paste0("Nine arguments expected: genome file, sex check file, expected relationships file, birth year file, current fam file, destination file, exclusion file, mismatch_information, mismatch_relationship, md file, title. ", length(args), " found: ", paste(args, collapse = ", ")))
+  stop(paste0("Nine arguments expected: genome file, sex check file, expected relationships file, birth year file, current psam file, destination file, exclusion file, mismatch_information, mismatch_relationship, md file, title. ", length(args), " found: ", paste(args, collapse = ", ")))
   
 }
 }
@@ -69,11 +69,11 @@ if (!file.exists(birth_year_file)) {
   
 }
 
-fam_file <- args[5]
+psam_file <- args[5]
 
-if (!file.exists(fam_file)) {
+if (!file.exists(psam_file)) {
   
-  stop("Fam file not found")
+  stop("Psam file not found")
   
 }
 
@@ -110,6 +110,7 @@ genomic_relatedness_table <- read.table(
 sex_check_data <- read.table(
   file = sex_check_file,
   header = T,
+  sep = ",",
   stringsAsFactors = F
 )
 expected_relationships_data  <- read.table(
@@ -124,14 +125,14 @@ birth_year_data  <- read.table(
   sep = "\t",
   stringsAsFactors = F
 )
-fam_data  <- read.table(
-  file = fam_file,
+psam_data  <- read.table(
+  file = psam_file,
   header = F,
-  sep = " ",
+  sep = "\t",
   stringsAsFactors = F
 )
 
-sample_ids <- fam_data[, 2]
+sample_ids <- psam_data[, 1]
 
 genomic_relatedness_table$relationship <- factor(genomic_relatedness_table$InfType, levels = c("Dup/MZ", "PO", "FS", "2nd", "3rd", "4th", "UN"))
 levels(genomic_relatedness_table$relationship) <- c("Duplicates or monozygotic twins", "Parent-offspring", "Full siblings", "2nd degree", "3rd degree", "4th degree", "Unrelated")
@@ -265,7 +266,7 @@ write(
 )
 
 
-# Sex assignment parents
+# Sex inference parents
 
 mother_sex <- sex_check_data %>% 
   filter(
@@ -474,6 +475,88 @@ write(
 )
 
 
+# Sex inference children
+
+children_sex <- sex_check_data %>% 
+  filter(
+    ! IID %in% expected_relationships_data$mother_sentrix_id & ! IID %in% expected_relationships_data$father_sentrix_id
+  ) %>% 
+  mutate(
+    inferred_sex = factor(SNPSEX, levels = 0:2)
+  )
+
+levels(children_sex$inferred_sex) <- c("Unknown", "Male", "Female")
+
+write(
+  x = "## Children sex check",
+  file = md_file,
+  append = T
+)
+
+write(
+  x = "| Inferred sex |   |",
+  file = md_file,
+  append = T
+)
+write(
+  x = "| ------------ | - |",
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| Unknown | ", sum(children_sex$SNPSEX == 0), " |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| Male | ", sum(children_sex$SNPSEX == 1), " |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| Female | ", sum(children_sex$SNPSEX == 2), " |\n"),
+  file = md_file,
+  append = T
+)
+
+children_sex_plot <- ggplot() +
+  geom_point(
+    data = children_sex,
+    mapping = aes(
+      x = F,
+      y = YCOUNT,
+      col = inferred_sex
+    ),
+    alpha = 0.8
+  ) +
+  scale_x_continuous(
+    name = "F"
+  ) +
+  scale_y_continuous(
+    name = "YCOUNT"
+  ) +
+  theme(
+    legend.title = element_blank(),
+    legend.position = "top"
+  )
+
+plot_name <- "children_sex_plot.png"
+
+png(
+  filename = file.path(docs_dir, plot_name),
+  width = 800,
+  height = 600
+)
+grid.draw(children_sex_plot)
+device <- dev.off()
+
+write(
+  x = paste0("![](", docs_dir_name, "/", plot_name, ")"),
+  file = md_file,
+  append = T
+)
+
+
 # Make families
 
 related_table <- genomic_relatedness_table %>% 
@@ -518,6 +601,10 @@ id_to_family_sex <- id_to_family %>%
         sex = SNPSEX
       ),
     by = "id"
+  ) %>% 
+  mutate(
+    sex = ifelse(id %in% expected_relationships_data$father_sentrix_id & sex == 0, 1, sex),
+    sex = ifelse(id %in% expected_relationships_data$mother_sentrix_id & sex == 0, 2, sex)
   )
 
 if (sum(is.na(id_to_family_sex$sex)) > 0) {
@@ -910,13 +997,13 @@ id_to_family_sex_mother_father <- id_to_family_sex_mother %>%
 
 if (length(unique(id_to_family_sex_mother_father$id)) != nrow(id_to_family_sex_mother_father)) {
   
-  stop("Duplicate ids in reconstructed fam file")
+  stop("Duplicate ids in reconstructed psam file")
   
 }
 
 if (length(sample_ids) != nrow(id_to_family_sex_mother_father)) {
   
-  stop(paste0(nrow(id_to_family_sex_mother_father), " ids in reconstructed fam file where " , length(sample_ids), " expected."))
+  stop(paste0(nrow(id_to_family_sex_mother_father), " ids in reconstructed psam file where " , length(sample_ids), " expected."))
   
 }
 
@@ -924,14 +1011,14 @@ n_missing <- sum(!sample_ids %in% id_to_family_sex_mother_father$id)
 
 if (n_missing > 0) {
   
-  stop(paste0(n_missing, " ids missing in reconstructed fam file."))
+  stop(paste0(n_missing, " ids missing in reconstructed psam file."))
   
 }
 
 
-# build fam file
+# build psam file
 
-updated_fam_data <- id_to_family_sex_mother_father %>% 
+updated_psam_data <- id_to_family_sex_mother_father %>% 
   select(
     family,
     id,
@@ -940,7 +1027,6 @@ updated_fam_data <- id_to_family_sex_mother_father %>%
     sex
   ) %>% 
   mutate(
-    pheno = -9,
     order = factor(id, sample_ids)
   ) %>% 
   arrange(
@@ -950,9 +1036,11 @@ updated_fam_data <- id_to_family_sex_mother_father %>%
     -order
   )
 
-if (length(unique(updated_fam_data$id)) != nrow(updated_fam_data)) {
+names(updated_psam_data) <- c("# FID", "IID", "PAT", "MAT", "SEX")
+
+if (length(unique(updated_psam_data$id)) != nrow(updated_psam_data)) {
   
-  stop("Non-unique identifier introduced in fam file.")
+  stop("Non-unique identifier introduced in psam file.")
   
 }
 
@@ -960,11 +1048,11 @@ if (length(unique(updated_fam_data$id)) != nrow(updated_fam_data)) {
 # Save
 
 write.table(
-  x = updated_fam_data,
+  x = updated_psam_data,
   file = destination_file,
-  col.names = F,
+  col.names = T,
   row.names = F,
-  sep = " ",
+  sep = "\t",
   quote = F
 )
 
@@ -1005,10 +1093,10 @@ to_remove_ids <- c(
   relationships_to_exclude1$child_sentrix_id, relationships_to_exclude1$parent_sentrix_id,
   relationships_to_exclude2$child_sentrix_id, relationships_to_exclude2$parent_sentrix_id
   )
-to_remove_fam <- updated_fam_data[updated_fam_data$id %in% to_remove_ids, c("family", "id")]
+to_remove_psam <- updated_fam_data[updated_fam_data$id %in% to_remove_ids, c("family", "id")]
 
 write.table(
-  x = to_remove_fam,
+  x = to_remove_psam,
   file = exclusion_file,
   append = F,
   col.names = F,
@@ -1024,7 +1112,7 @@ write(
 )
 
 write(
-  x = paste0("- Number of samples excluded: ", nrow(to_remove_fam)),
+  x = paste0("- Number of samples excluded: ", nrow(to_remove_psam)),
   file = md_file,
   append = T
 )

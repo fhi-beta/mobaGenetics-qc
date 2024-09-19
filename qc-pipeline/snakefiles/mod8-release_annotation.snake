@@ -307,7 +307,7 @@ rule mod8_psam_reconstruction:
     threads: 1
     shell:
         """
-        Rscript utils/pedigree/simple_fam_reconstruction.R \
+        Rscript utils/pedigree/simple_psam_reconstruction.R \
             {input.king_relatedness} \
             {input.sex_check} \
             {input.expected_relationships} \

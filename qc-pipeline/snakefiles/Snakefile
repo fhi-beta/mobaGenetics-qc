@@ -74,7 +74,11 @@ rule all:
         mod8_best_markers_smiss = tmpMod8/'mod8_best_snps.smiss',
         mod8_best_markers_vmiss = tmpMod8/'mod8_best_snps.vmiss',
         mod8_sex_check = tmpMod8/"mod8_check_sex.sexcheck",
-        mod8_king_relatedness= tmpMod8 / "mod8_pedigree_ibd_estimate.kin0"
+        mod8_king_relatedness= tmpMod8 / "mod8_pedigree_ibd_estimate.kin0",
+        updated_psam = tmpMod8 / "mod8_psam_reconstruction.psam",
+        pedigree_sample_exclusion = tmpMod8 / "mod8_psam_reconstruction_pedigree_sample_exclusion",
+        mismatch_information = tmpMod8 / "mismatch_information.gz",
+        mismatch_relationship = tmpMod8 / "mismatch_relationship.gz"
 
         # # Module 1:
         # mod1_start_het = expand(tmpMod1/"{batch}"/'mod1_start_het.het', batch = batches),
