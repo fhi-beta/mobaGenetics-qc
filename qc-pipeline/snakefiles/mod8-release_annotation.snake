@@ -521,7 +521,7 @@ rule mod8_plot_pca_both:
         pcs = rules.mod8_pca_both.output.pcs,
         pop_map = config["1000_genomes_pop"],
     params:
-        title = "\"Principal Component Analysys (PCA) in {batch} vs. 1 KG\""
+        title = "\"Principal Component Analysys (PCA) vs. 1 KG\""
     output:
         md_file = github_docs/"pca_1kg_moba.md",
         cluster_file = tmpMod8/"clusters",
