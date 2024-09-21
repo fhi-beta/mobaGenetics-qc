@@ -1038,7 +1038,7 @@ updated_psam_data <- id_to_family_sex_mother_father %>%
 
 names(updated_psam_data) <- c("# FID", "IID", "PAT", "MAT", "SEX")
 
-if (length(unique(updated_psam_data$id)) != nrow(updated_psam_data)) {
+if (length(unique(updated_psam_data$IID)) != nrow(updated_psam_data)) {
   
   stop("Non-unique identifier introduced in psam file.")
   
