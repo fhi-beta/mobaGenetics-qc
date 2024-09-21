@@ -1093,7 +1093,7 @@ to_remove_ids <- c(
   relationships_to_exclude1$child_sentrix_id, relationships_to_exclude1$parent_sentrix_id,
   relationships_to_exclude2$child_sentrix_id, relationships_to_exclude2$parent_sentrix_id
   )
-to_remove_psam <- updated_psam_data[updated_psam_data$id %in% to_remove_ids, c("family", "id")]
+to_remove_psam <- updated_psam_data[updated_psam_data$id %in% to_remove_ids, 1:2]
 
 write.table(
   x = to_remove_psam,
