@@ -288,7 +288,7 @@ rule mod8_pedigree_ibd_estimate:
 rule_stem = 'mod8_psam_reconstruction'
 rule mod8_psam_reconstruction:
     input:
-        pgenset_all_markers = [mod7_output + ".pgen"], #rules.mod7_rename_missing_ids.output.pgenset,
+        pgenset_all_markers = ["", mod7_output + ".psam"], #rules.mod7_rename_missing_ids.output.pgenset,
         king_relatedness = rules.mod8_pedigree_ibd_estimate.output.king_relatedness,
         sex_check = rules.mod8_check_sex.output.sex_check,
         expected_relationships = config['expected_relationships'],
