@@ -77,7 +77,7 @@ rule all:
         mod8_king_relatedness= tmpMod8 / "mod8_pedigree_ibd_estimate.kin0",
         mod8_mismatch_information = tmpMod8 / "mismatch_information.gz",
         mod8_mismatch_relationship = tmpMod8 / "mismatch_relationship.gz",
-        mod8_pcs= tmpMod8 / (rule_stem + ".pcs"),
+        mod8_pcs= tmpMod8 / "mod8_pca_both.pcs",
         mod8_cluster_file = tmpMod8/"clusters",
         mod8_ceu_id_file = tmpMod8/"ceu_core_ids"
 
