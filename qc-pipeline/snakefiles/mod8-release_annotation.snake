@@ -333,8 +333,6 @@ rule mod8_exclude_conflictual_relationships:
         pgenset_pruned_markers = multiext(str(tmpMod8/(rule_stem + "_pruned")), ".pgen", ".pvar", ".psam")
     run:
         try:
-            item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog, rule_info[rule]["QC test"])
             inTrunk_all_markers = mqc.plinkBase(input.pgenset_all_markers[0])
             outTrunk_all_markers = mqc.plinkBase(output.pgenset_all_markers[0])
             inTrunk_pruned_markers = mqc.plinkBase(input.pgenset_pruned_markers[0])
