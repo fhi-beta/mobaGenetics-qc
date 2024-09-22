@@ -340,22 +340,22 @@ rule mod8_exclude_conflictual_relationships:
 
             subprocess.run(
                 [
-                    plinklocal,
-                    "--bfile", inTrunk_all_markers,
+                    plink2local,
+                    "--pfile", inTrunk_all_markers,
                     "--remove", input.pedigree_sample_exclusion,
                     "--out", outTrunk_all_markers,
-                    "--make-bed"
+                    "--make-pgen"
                 ],
                 check = True
             )
 
             subprocess.run(
                 [
-                    plinklocal,
-                    "--bfile", inTrunk_pruned_markers,
+                    plink2local,
+                    "--pfile", inTrunk_pruned_markers,
                     "--remove", input.pedigree_sample_exclusion,
                     "--out", outTrunk_pruned_markers,
-                    "--make-bed"
+                    "--make-pgen"
                 ],
                 check = True
             )
