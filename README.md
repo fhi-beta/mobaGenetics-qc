@@ -29,9 +29,12 @@ If despite our efforts at enforcing good practices in our work, you encounter is
 
 ### Credits
 This repository is maintained by the [Genetics and Bioinformatics department of the Norwegian Insitute of Public Health](https://www.fhi.no/om/organisasjon/genetikk-og-bioinformatikk/), and notably Øystein Kapperud, Dana Kristjansson, Even Birkeland, and Marc Vaudel. The department is deeply grateful for the contribution of its former members Gutorm Thomas Høgåsen and Ronny Myhre.   
+
 The pipeline is built on work for the [MoBaGenetics v.1.0](https://github.com/folkehelseinstituttet/mobagen/wiki/MoBaGenetics1.0) release, led by Øyvind Helgeland, Julius Juodakis, Jonas Bacelis, and Ronny Myhre.
+
 It was extended thanks to help from the [PsychGen team](https://www.fhi.no/en/me/the-psychgen-centre-for-genetic-epidemiology-and-mental-health), especially Elizabeth Claire Corfield.
-The pre-phasing and imputation modules have been implemented following the implementation of the [NORMENT team](https://www.med.uio.no/norment/english/), especially Oleksandr Frei and Tahir Tekin Filiz.
+
+The pre-phasing and imputation modules have been built following the implementation of the [NORMENT team](https://www.med.uio.no/norment/english/), especially Oleksandr Frei and Tahir Tekin Filiz.
 
 We are grateful for the contribution of the community who helped, shared code, and provided support and feedback. We are especially grateful to the [PsychGen team](https://www.fhi.no/en/me/the-psychgen-centre-for-genetic-epidemiology-and-mental-health), the [NORMENT team](https://www.med.uio.no/norment/english/), the [Centre for Fertility and Health](https://www.fhi.no/en/ch/Centre-for-fertility-and-health/), the [Department of Obstetrics and Gynecology at the University of Gothenburg](https://www.gu.se/en/about/find-organisation/department-of-obstetrics-and-gynecology), and the [Mohn Center for Diabetes Precision Medicine](https://www.uib.no/en/diabetes).
 
