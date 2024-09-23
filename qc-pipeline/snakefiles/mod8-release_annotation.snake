@@ -484,8 +484,6 @@ rule mod8_pca_both:
     benchmark:
         tmpMod8/(rule_stem + ".benchmark")
     run:
-        item_type = rule_info[rule]["rule type"]
-        mqc.log(runlog, rule_info[rule]["QC test"])
         inTrunk_ref = mqc.plinkBase(input.bedset_ref[0])
         inTrunk_moba = mqc.plinkBase(input.bedset_moba[0])
         outTrunk = mqc.plinkBase(output.bedset[0])
