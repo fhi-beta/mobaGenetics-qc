@@ -379,7 +379,7 @@ rule mod8_common_markers_moba_ref:
     output:
         bedset_ref = multiext(str(tmpMod8/"pca_ref") ,'.bed','.bim','.fam'),
         bedset_moba = multiext(str(tmpMod8/"pca_moba") ,'.bed','.bim','.fam'),
-        tri_alleles = tmpMod8/(rule_stem + "_tri_alleles"),
+        tri_alleles = tmpMod8/(rule_stem + "_tri_alleles.missnp"),
         marker_list = tmpMod8/(rule_stem + ".txt")
     benchmark:
         tmpMod8/(rule_stem + ".benchmark")

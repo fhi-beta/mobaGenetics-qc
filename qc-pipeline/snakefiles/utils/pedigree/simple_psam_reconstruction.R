@@ -1036,7 +1036,7 @@ updated_psam_data <- id_to_family_sex_mother_father %>%
     -order
   )
 
-names(updated_psam_data) <- c("# FID", "IID", "PAT", "MAT", "SEX")
+names(updated_psam_data) <- c("#FID", "IID", "PAT", "MAT", "SEX")
 
 if (length(unique(updated_psam_data$IID)) != nrow(updated_psam_data)) {
   
