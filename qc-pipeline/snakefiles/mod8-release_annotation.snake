@@ -398,7 +398,7 @@ rule mod8_common_markers_moba_ref:
         subprocess.run(
             [
                 plink2local,
-                "--pfile", plink_input,
+                "--pfile", inTrunk_moba,
                 "--make-bed",
                 "--out", inTrunk_moba_1
             ],
