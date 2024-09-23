@@ -64,6 +64,19 @@ rule mod7_norm:
         bcftools norm -m + {input.merged_vcf} -o {output.norm_vcf}
         """
 
+def get_pre_imputation_fam_files(wildcards):
+    tmpMod5str = str(tmpMod5)
+    return [f"{tmpMod5str}/{batch}/{wildcards.number_of_samples}_samples/mod5_output.fam" for batch in batches]
+
+rule mod7_update_sex_file:
+    input:
+        fams = get_pre_imputation_fam_files
+    output:
+        sex_file = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_update_sex_file.txt")
+    threads: 24
+    run:
+        mqc.create_update_sex_file(input.fams, output.sex_file, threads)
+
 
 rule mod7_convert_chrs_to_pgen:
     input:

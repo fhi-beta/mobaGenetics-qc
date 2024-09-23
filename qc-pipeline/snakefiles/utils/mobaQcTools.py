@@ -1420,6 +1420,18 @@ def egrep(pattern, in_file, out_file, switches=""):
 #             counts["nomatch"] = counts.get("nomatch", 0) + 1
 #     return(counts)
 
+def create_update_sex_file(fam_files, update_sex_file, threads):
+    with mp.Pool(threads) as pool:
+        batch_dfs = pool.map(load_fam_file, fam_files)
+    df_full = pd.concat(batch_dfs, ignore_index=True)
+    df_iid_sex = df_full[["#IID", "SEX"]]
+    df_iid_sex.to_csv(update_sex_file, sep="\t", index=False)
+
+
+def load_fam_file(fam_file):
+    df = pd.read_csv(fam_file, delim_whitespace=True, header=None, names=['FID', '#IID', 'PID', 'MID', 'SEX', 'Phenotype'])
+    return df
+
 def summarize_dr2(base, dr2_df_file, top_snp_file, batches, chrs, threads, n_samples = "all", snp_cutoff = 500000):
     """
     A method for writing one file with the dr2 values after imputation, and one file with the best {snp_cutoff} snps according to combined dr2 
@@ -1588,6 +1600,7 @@ def restore_family_information(fam_files, batches, post_imputation_psam_file, ne
         SEX = IID_row["Sex"].iloc[0]
         new_psam_df.loc[index] = [FID, IID, SID, PAT, MAT, SEX]
     new_psam_df.to_csv(new_psam_file, sep="\t", index=False)
+
 
 def merge_pgensets(pgens, out_trunk, plink2local):
     """
