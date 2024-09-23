@@ -25,10 +25,9 @@ rule mod8_marker_filter:
         info_threshold = config['merged_set_info_thr']
     run:
         try:
-            print(f"Extracting markers with overall r2 >= {params.info_threshold}.")
 
             id_file = tmpMod8/"ids_08"
-
+            print(f"Extracting markers with overall r2 >= {params.info_threshold}.")
             r2_data = pd.read_csv(r2_table, sep = "\t")
             snp_08 = r2_data[r2_data['COMBINED'] >= params.info_threshold]
             snp_08['ID'].to_csv(id_file, index = False, header = False)
@@ -289,7 +288,7 @@ rule mod8_pedigree_ibd_estimate:
 rule_stem = 'mod8_psam_reconstruction'
 rule mod8_psam_reconstruction:
     input:
-        pgenset_all_markers = [mod7_output + ".pgen"], #rules.mod7_rename_missing_ids.output.pgenset,
+        psam_all_markers = mod7_output + ".psam", #rules.mod7_rename_missing_ids.output.pgenset[2],
         king_relatedness = rules.mod8_pedigree_ibd_estimate.output.king_relatedness,
         sex_check = rules.mod8_check_sex.output.sex_check,
         expected_relationships = config['expected_relationships'],
@@ -307,12 +306,12 @@ rule mod8_psam_reconstruction:
     threads: 1
     shell:
         """
-        Rscript utils/pedigree/simple_fam_reconstruction.R \
+        Rscript utils/pedigree/simple_psam_reconstruction.R \
             {input.king_relatedness} \
             {input.sex_check} \
             {input.expected_relationships} \
             {input.birth_year} \
-            {input.pgenset_all_markers[2]} \
+            {input.psam_all_markers} \
             {output.updated_psam} \
             {output.pedigree_sample_exclusion} \
             {output.mismatch_information} \
@@ -322,65 +321,18 @@ rule mod8_psam_reconstruction:
         """
 
 
-rule_stem = 'mod8_psam_update'
-rule mod8_psam_update:
-    input:
-        pgenset_all_markers = [mod7_output + ".pgen"], #rules.mod7_rename_missing_ids.output.pgenset,
-        pgenset_pruned_markers = rules.mod8_prune_markers.output.pgenset,
-        updated_psam = rules.mod8_psam_reconstruction.output.updated_psam,
-    output:
-        pgenset_all_markers =  multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
-        pgenset_pruned_markers = multiext(str(tmpMod8/(rule_stem + "_pruned")), ".pgen", ".pvar", ".psam")
-    threads: 1
-    run:
-        try:
-            item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog, rule_info[rule]["QC test"])
-            inTrunk_all_markers = mqc.plinkBase(input.pgenset_all_markers[0])
-            outTrunk_all_markers = mqc.plinkBase(output.pgenset_all_markers[0])
-            inTrunk_pruned_markers = mqc.plinkBase(input.pgenset_pruned_markers[0])
-            outTrunk_pruned_markers = mqc.plinkBase(output.pgenset_pruned_markers[0])
-
-            # copy pgensets
-            for extension in ['.bed', '.bim']:
-                copyfile(inTrunk_all_markers + extension, outTrunk_all_markers + extension)
-                copyfile(inTrunk_pruned_markers + extension, outTrunk_pruned_markers + extension)
-
-            # Copy new fam files
-            copyfile(input.updated_psam, outTrunk_all_markers + ".fam")
-            copyfile(input.updated_psam, outTrunk_pruned_markers + ".fam")
-
-            dropouts = mqc.checkUpdates(
-                inTrunk_all_markers + ".bim",
-                outTrunk_all_markers + ".bim",
-                cols = [0, 1, 3, 4, 5],
-                sanityCheck = "remove",
-                fullList = True,
-                allele_flip = True
-            )
-            dropouts.update(rule_info[rule])
-            dropouts["Rule"] = rule
-            mqc.saveYamlResults(output.results, dropouts)
-
-
-        except Exception as e:
-                    print(f"An exception occurred in rule {rule}.")
-                    print(e)
-
-
 rule_stem = 'mod8_exclude_conflictual_relationships'
 rule mod8_exclude_conflictual_relationships:
     input:
-        pgenset_all_markers = rules.mod8_psam_update.output.pgenset_all_markers,
-        pgenset_pruned_markers = rules.mod8_psam_update.output.pgenset_pruned_markers,
-        pedigree_sample_exclusion = rules.mod8_psam_reconstruction.output.pedigree_sample_exclusion
+        pgenset_all_markers = [mod7_output + ".pgen"], #rules.mod7_rename_missing_ids.output.pgenset,
+        pgenset_pruned_markers = rules.mod8_prune_markers.output.pgenset,
+        pedigree_sample_exclusion = rules.mod8_psam_reconstruction.output.pedigree_sample_exclusion,
+        updated_psam = rules.mod8_psam_reconstruction.output.updated_psam
     output:
         pgenset_all_markers =  multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
         pgenset_pruned_markers = multiext(str(tmpMod8/(rule_stem + "_pruned")), ".pgen", ".pvar", ".psam")
     run:
         try:
-            item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog, rule_info[rule]["QC test"])
             inTrunk_all_markers = mqc.plinkBase(input.pgenset_all_markers[0])
             outTrunk_all_markers = mqc.plinkBase(output.pgenset_all_markers[0])
             inTrunk_pruned_markers = mqc.plinkBase(input.pgenset_pruned_markers[0])
@@ -388,43 +340,202 @@ rule mod8_exclude_conflictual_relationships:
 
             subprocess.run(
                 [
-                    plinklocal,
-                    "--bfile", inTrunk_all_markers,
+                    plink2local,
+                    "--pfile", inTrunk_all_markers,
                     "--remove", input.pedigree_sample_exclusion,
                     "--out", outTrunk_all_markers,
-                    "--make-bed"
+                    "--make-pgen"
                 ],
                 check = True
             )
 
             subprocess.run(
                 [
-                    plinklocal,
-                    "--bfile", inTrunk_pruned_markers,
+                    plink2local,
+                    "--pfile", inTrunk_pruned_markers,
                     "--remove", input.pedigree_sample_exclusion,
                     "--out", outTrunk_pruned_markers,
-                    "--make-bed"
+                    "--make-pgen"
                 ],
                 check = True
             )
 
-            dropouts = mqc.checkUpdates(
-                inTrunk_all_markers + ".bim",
-                outTrunk_all_markers + ".bim",
-                cols = [0, 1, 3, 4, 5],
-                sanityCheck = "remove",
-                fullList = True,
-                allele_flip = True
-            )
-            dropouts.update(rule_info[rule])
-            dropouts["Rule"] = rule
-            mqc.saveYamlResults(output.results, dropouts)
+            # Update psam
+            copyfile(input.updated_psam, outTrunk_all_markers + ".psam")
+            copyfile(input.updated_psam, outTrunk_pruned_markers + ".psam")
 
 
         except Exception as e:
                     print(f"An exception occurred in rule {rule}.")
                     print(e)
 
+
+# Reduce 1000 genome markers to the intersection with pruned markers
+rule_stem = 'mod8_common_markers_moba_ref'
+rule mod8_common_markers_moba_ref:
+    input:
+        bedset_ref = multiext(config["1000_genomes_stem"] ,'.bed','.bim','.fam'),
+        pgenset_moba = rules.mod8_exclude_conflictual_relationships.output.pgenset_pruned_markers
+    output:
+        bedset_ref = multiext(str(tmpMod8/"pca_ref") ,'.bed','.bim','.fam'),
+        bedset_moba = multiext(str(tmpMod8/"pca_moba") ,'.bed','.bim','.fam'),
+        tri_alleles = tmpMod8/(rule_stem + "_tri_alleles.missnp"),
+        marker_list = tmpMod8/(rule_stem + ".txt")
+    benchmark:
+        tmpMod8/(rule_stem + ".benchmark")
+
+    run:
+        inTrunk_ref =  mqc.plinkBase(input.bedset_ref[0])
+        inTrunk_moba =  mqc.plinkBase(input.pgenset_moba[0])
+        outTrunk_ref =  mqc.plinkBase(output.bedset_ref[0])
+        outTrunk_moba =  mqc.plinkBase(output.bedset_moba[0])
+        inTrunk_moba_1 = mqc.plinkBase(input.pgenset_moba[0]) + "_plink1"
+        outTrunk_ref_temp = outTrunk_ref + "_temp"
+        outTrunk_moba_temp = outTrunk_moba + "_temp"
+        triallelesTrunk =  mqc.plinkBase(output.tri_alleles)
+
+        # At this stage, 1KG is in plink1 format, MoBa plink2, we convert everything to plink1 for PCA
+        subprocess.run(
+            [
+                plink2local,
+                "--pfile", inTrunk_moba,
+                "--make-bed",
+                "--out", inTrunk_moba_1
+            ],
+        )
+
+
+        # Common markers found in marker_list
+        mqc.intersect_rsid(inTrunk_moba_1 + ".bim", inTrunk_ref + ".bim",  output.marker_list)
+
+        # Reduce both sets to the common markers
+        subprocess.run(
+            [
+                plinklocal,
+                "--bfile", inTrunk_ref,
+                "--extract", output.marker_list,
+                "--out", outTrunk_ref_temp,
+                "--allow-extra-chr",
+                "--make-bed"
+            ],
+            check = True
+        )
+
+        subprocess.run(
+            [
+                plinklocal,
+                "--bfile", inTrunk_moba_1,
+                "--extract", output.marker_list,
+                "--out", outTrunk_moba_temp,
+                "--make-bed"
+            ],
+            check = True
+        )
+
+        # alas these two are not identical enough -
+        # discover tri-allele problems by dummy-merging
+        # Note that we don't want to abort on plink-failure (as this will be)
+        subprocess.run(
+            [
+                plinklocal,
+                "--bfile", outTrunk_ref_temp,
+                "--bmerge", outTrunk_moba_temp,
+                "--out", triallelesTrunk
+            ],
+            check = False
+        )
+
+        # ... And then remove these markers from both sets
+        subprocess.run(
+            [
+                plinklocal,
+                "--bfile", outTrunk_ref_temp,
+                "--exclude", output.tri_alleles,
+                "--out", outTrunk_ref,
+                "--make-bed"
+            ],
+            check = True
+        )
+
+        subprocess.run(
+            [
+                plinklocal,
+                "--bfile", outTrunk_moba_temp,
+                "--exclude", output.tri_alleles,
+                "--out", outTrunk_moba,
+                "--make-bed"
+            ],
+            check = True
+        )
+
+# We would prefer to run the PCA on 1kg and project MoBa on the eigenvectors but merging is more robust and works just fine.
+rule_stem = "mod8_pca_both"
+rule mod8_pca_both:
+    input:
+        bedset_ref = rules.mod8_common_markers_moba_ref.output.bedset_ref,
+        bedset_moba = rules.mod8_common_markers_moba_ref.output.bedset_moba,
+    output:
+        bedset = multiext(str(tmpMod8/rule_stem), '.bed', '.bim', '.fam'),
+        pcs = tmpMod8/(rule_stem + ".pcs"),
+        eigenvector = tmpMod8/(rule_stem + ".vec"),
+        snp_loadings = tmpMod8/(rule_stem + ".load"),
+        eigenvalues = tmpMod8/(rule_stem + ".val"),
+        variance_explained = tmpMod8/(rule_stem + ".pve"),
+    benchmark:
+        tmpMod8/(rule_stem + ".benchmark")
+    run:
+        inTrunk_ref = mqc.plinkBase(input.bedset_ref[0])
+        inTrunk_moba = mqc.plinkBase(input.bedset_moba[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
+
+        subprocess.run(
+            [
+                plinklocal,
+                "--bfile", inTrunk_ref,
+                "--bmerge", inTrunk_moba,
+                "--out", outTrunk,
+                "--make-bed"
+            ],
+            check = True
+        )
+
+        subprocess.run(
+            [
+                flashpca,
+                "--bfile", outTrunk,
+                "--outpc", output.pcs,
+                "--outvec", output.eigenvector,
+                "--outload", output.snp_loadings,
+                "--outval", output.eigenvalues,
+                "--outpve", output.variance_explained,
+            ],
+            check = True
+        )
+
+rule_stem = "mod8_plot_pca_both"
+rule mod8_plot_pca_both:
+    input:
+        pcs = rules.mod8_pca_both.output.pcs,
+        pop_map = config["1000_genomes_pop"],
+    params:
+        title = "\"Principal Component Analysys (PCA) vs. 1 KG\""
+    output:
+        md_file = github_docs/"pca_1kg_moba.md",
+        cluster_file = tmpMod8/"clusters",
+        ceu_id_file = tmpMod8/"ceu_core_ids"
+    conda:
+        "envs/plot_pca_both.yaml"
+    threads: 1
+    shell:
+        """
+        Rscript utils/pca/plot_pca_population_cluster_1kg.R \
+            {input.pcs} \
+            {input.pop_map} \
+            {output.md_file} \
+            {params.title} \
+            {output.cluster_file} \
+            {output.ceu_id_file}
+        """
 
 rule_stem = 'mod8_output'
 rule mod8_output:

@@ -74,7 +74,12 @@ rule all:
         mod8_best_markers_smiss = tmpMod8/'mod8_best_snps.smiss',
         mod8_best_markers_vmiss = tmpMod8/'mod8_best_snps.vmiss',
         mod8_sex_check = tmpMod8/"mod8_check_sex.sexcheck",
-        mod8_king_relatedness= tmpMod8 / "mod8_pedigree_ibd_estimate.kin0"
+        mod8_king_relatedness= tmpMod8 / "mod8_pedigree_ibd_estimate.kin0",
+        mod8_mismatch_information = tmpMod8 / "mismatch_information.gz",
+        mod8_mismatch_relationship = tmpMod8 / "mismatch_relationship.gz",
+        mod8_pcs= tmpMod8 / "mod8_pca_both.pcs",
+        mod8_cluster_file = tmpMod8/"clusters",
+        mod8_ceu_id_file = tmpMod8/"ceu_core_ids"
 
         # # Module 1:
         # mod1_start_het = expand(tmpMod1/"{batch}"/'mod1_start_het.het', batch = batches),

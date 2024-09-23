@@ -183,7 +183,7 @@ write(
   append = T
 )
 write(
-  x = paste0(length(sentrix_not_in_mbr), " samples with missing birth year, will be assumed to be parent."),
+  x = paste0(length(sentrix_not_in_mbr), " samples with missing birth year, assumed to be parent in the following."),
   file = md_file,
   append = T
 )
