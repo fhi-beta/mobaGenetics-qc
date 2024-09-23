@@ -93,6 +93,7 @@ rule mod7_convert_chrs_to_pgen:
                 "--vcf", input.norm_vcf,
                 "--update-sex", input.sex_file,
                 "--memory", config['mod7_convert_chrs_to_pgen_mem'],
+                "--make-pgen",
                 "--out", outTrunk
             ]
         )
