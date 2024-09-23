@@ -6,7 +6,7 @@ This reposirtory contains code and resources used for the quality control of gen
 ### Current release
 The current release is available for alpha testing for expert users. We expect a new release to be publicly available for beta testing in the first semester of 2025. For more information on the release process, please contact [Marc Vaudel](https://www.fhi.no/en/ab/departments-and-centres/genetics-and-bioinformatics/marc-vaudel/).
 
-Documentation on the current release v. 2024.07.01:
+#### Documentation on the current release v. 2024.07.01:
 - [QC Documentation](qc-pipeline/docs/2024.07.01/readme.md): Documentation on the quality control of the genotypes
 - [Test GWAS](gwas/readme.md): Test genome-wide association study
 
@@ -19,6 +19,7 @@ The current pipeline and its associated releases have been built on previous eff
 When using code or data produced using this pipeline, please refer to this repository and cite the reference work by the PsychGen team [doi: 10.1101/2022.06.23.496289](https://doi.org/10.1101/2022.06.23.496289).
 
 ### Content
+- [GWAS](gwas/readme.md): this folder contains code and resources used to run a test GWAS.
 - [Phenotypes](phenotypes/readme.md): this folder contains code and resources for the handling of phenotypes used in the pipeline.
 - [QC Pipeline](qc-pipeline/readme.md): this folder contains code, resources, and documentation for the QC pipeline
 - [Qaranteen](quarantine/readme.md): this folder contains general executables and resources.
@@ -27,7 +28,7 @@ When using code or data produced using this pipeline, please refer to this repos
 If despite our efforts at enforcing good practices in our work, you encounter issues or have suggestions of improvement, please use our [issue tracker](https://github.com/fhi-beta/mobaGenetics-qc/issues).
 
 ### Credits
-This repository is maintained by the [Genetics and Bioinformatics department of the Norwegian Insitute of Public Health](https://www.fhi.no/om/organisasjon/genetikk-og-bioinformatikk/). 
+This repository is maintained by the [Genetics and Bioinformatics department of the Norwegian Insitute of Public Health](https://www.fhi.no/om/organisasjon/genetikk-og-bioinformatikk/), and notably Øystein Kapperud, Dana Kristjansson, Even Birkeland, and Marc Vaudel. The department is deeply grateful for the contribution of its former members Gutorm Thomas Høgåsen and Ronny Myhre.   
 The pipeline is built on work for the [MoBaGenetics v.1.0](https://github.com/folkehelseinstituttet/mobagen/wiki/MoBaGenetics1.0) release, led by Øyvind Helgeland, Julius Juodakis, Jonas Bacelis, and Ronny Myhre.
 It was extended thanks to help from the [PsychGen team](https://www.fhi.no/en/me/the-psychgen-centre-for-genetic-epidemiology-and-mental-health), especially Elizabeth Claire Corfield.
 The pre-phasing and imputation modules have been implemented following the implementation of the [NORMENT team](https://www.med.uio.no/norment/english/), especially Oleksandr Frei and Tahir Tekin Filiz.
