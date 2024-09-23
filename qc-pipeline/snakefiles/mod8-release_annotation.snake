@@ -375,7 +375,7 @@ rule_stem = 'mod8_common_markers_moba_ref'
 rule mod8_common_markers_moba_ref:
     input:
         bedset_ref = multiext(config["1000_genomes_stem"] ,'.bed','.bim','.fam'),
-        bedset_moba = rules.mod8_exclude_conflictual_relationships.output.pgenset_pruned_markers
+        pgenset_moba = rules.mod8_exclude_conflictual_relationships.output.pgenset_pruned_markers
     output:
         bedset_ref = multiext(str(tmpMod8/"pca_ref") ,'.bed','.bim','.fam'),
         bedset_moba = multiext(str(tmpMod8/"pca_moba") ,'.bed','.bim','.fam'),
@@ -385,10 +385,10 @@ rule mod8_common_markers_moba_ref:
 
     run:
         inTrunk_ref =  mqc.plinkBase(input.bedset_ref[0])
-        inTrunk_moba =  mqc.plinkBase(input.bedset_moba[0])
+        inTrunk_moba =  mqc.plinkBase(input.pgenset_moba[0])
         outTrunk_ref =  mqc.plinkBase(output.bedset_ref[0])
         outTrunk_moba =  mqc.plinkBase(output.bedset_moba[0])
-        inTrunk_moba_1 = mqc.plinkBase(input.pgenset[0]) + "_plink1"
+        inTrunk_moba_1 = mqc.plinkBase(input.pgenset_moba[0]) + "_plink1"
         outTrunk_ref_temp = outTrunk_ref + "_temp"
         outTrunk_moba_temp = outTrunk_moba + "_temp"
         triallelesTrunk =  mqc.plinkBase(output.tri_alleles)
