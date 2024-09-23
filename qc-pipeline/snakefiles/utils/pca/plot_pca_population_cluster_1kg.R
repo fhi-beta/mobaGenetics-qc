@@ -398,6 +398,12 @@ write(
   append = T
 )
 
+write(
+  x = paste0("Clustering of the 1KG after an 80-20 split using svm in the top 10 PCs."),
+  file = md_file,
+  append = T
+)
+
 pop_table <- as.data.frame(table(kg_2$pop_kg, kg_2$pop_inference))
 pop_table$Var1 <- as.character(pop_table$Var1)
 pop_table$Var2 <- as.character(pop_table$Var2)
@@ -556,6 +562,12 @@ write(
   append = T
 )
 
+write(
+  x = paste0("Clustering of MoBa participants with svm using the top 10 PCs and 1KG as training."),
+  file = md_file,
+  append = T
+)
+
 pop_table <- as.data.frame(table(moba_df$pop_inference))
 pop_table$Var1 <- as.character(pop_table$Var1)
 populations <- sort(pop_table$Var1)
@@ -655,13 +667,7 @@ write(
 # Plot the PCs of the clusters
 
 write(
-  x = paste0("### Population clustering in MoBa"),
-  file = md_file,
-  append = T
-)
-
-write(
-  x = paste0("Clustering using svm in the top 10 PCs."),
+  x = paste0("### Principal components with color of the top cluster"),
   file = md_file,
   append = T
 )
