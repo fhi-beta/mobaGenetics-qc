@@ -606,7 +606,7 @@ rule release_folder:
                 os.makedirs(release_folder/"sex_check")
 
             # Readme
-            with open(file_path,'w') as file:
+            with open(output.readme, 'w') as file:
                 file.write("## MoBa Genotypes")
                 file.write(f"This folder contains genotype files from the [Norwegian Mother, Father and Child Cohort Study (MoBa)](https://www.fhi.no/en/studies/moba/), release version {params.version}")
                 file.write(f"The genotypes have been quality controlled, imputed, and formatted prior to release. Associated code and documentation can be found at our [repository](https://github.com/fhi-beta/mobaGenetics-qc).")
