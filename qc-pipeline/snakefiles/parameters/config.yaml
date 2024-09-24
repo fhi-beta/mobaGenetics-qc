@@ -10,6 +10,7 @@ documentationQC: "https://github.com/fhi-beta/mobaDocsBackoffice/wiki/pipeline"
 githubSource: "https://github.com/fhi-beta/mobaGenetics-qc"
 output_base: "/mnt/work/qc_genotypes/pipeOut_dev"
 archive_output_base: "/mnt/archive/snpQc/pipeOut_dev"
+release_base: "/mnt/archive/moba_genotypes_releases"
 
 # Phenotypes
 expected_relationships: "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz"

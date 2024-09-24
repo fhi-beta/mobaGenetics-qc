@@ -11,7 +11,7 @@ The current release is available for alpha testing for expert users. We expect a
 ### Other pipelines and releases
 The current pipeline and its associated releases have been built on previous efforts:
 - [MoBa PsychGen](github.com/psychgen/MoBaPsychGen-QC-pipeline): A quality-controlled set of genotypes created by the [PsychGen Centre for Genetic Epidemiology and Mental Health](https://www.fhi.no/en/me/the-psychgen-centre-for-genetic-epidemiology-and-mental-health).
-- [MoBaGenetics v.1.0](https://github.com/folkehelseinstituttet/mobagen/wiki/MoBaGenetics1.0): A quality-controlled set of genotypes obtained after a first round of genotyping created by the [Genetics and Bioinformatics department of the Norwegian Insitute of Public Health](https://www.fhi.no/om/organisasjon/genetikk-og-bioinformatikk/).
+- [MoBaGenetics v.1.0](https://github.com/folkehelseinstituttet/mobagen/wiki/MoBaGenetics1.0): A quality-controlled set of genotypes obtained after a first round of genotyping created by the [Genetics and Bioinformatics department of the Norwegian Institute of Public Health](https://www.fhi.no/om/organisasjon/genetikk-og-bioinformatikk/).
 
 ### Citation
 When using code or data produced using this pipeline, please refer to this repository and cite the reference work by the PsychGen team [doi: 10.1101/2022.06.23.496289](https://doi.org/10.1101/2022.06.23.496289).
@@ -24,9 +24,10 @@ When using code or data produced using this pipeline, please refer to this repos
 
 ### Issues and suggestions
 If despite our efforts at enforcing good practices in our work, you encounter issues or have suggestions of improvement, please use our [issue tracker](https://github.com/fhi-beta/mobaGenetics-qc/issues).
+For questions, feedback, and assistance please contact the [Genetics and Bioinformatics department of the Norwegian Institute of Public Health](https://www.fhi.no/om/organisasjon/genetikk-og-bioinformatikk/). You can also reach out to us via [Slack](https://join.slack.com/t/mobagen/shared_invite/zt-2r90hzo82-HNllFHDugSxJeknpJ9jT0w).
 
 ### Credits
-This repository is maintained by the [Genetics and Bioinformatics department of the Norwegian Insitute of Public Health](https://www.fhi.no/om/organisasjon/genetikk-og-bioinformatikk/), and notably Øystein Kapperud, Dana Kristjansson, Even Birkeland, and Marc Vaudel. The department is deeply grateful for the contribution of its former members Gutorm Thomas Høgåsen and Ronny Myhre.   
+This repository is maintained by the [Genetics and Bioinformatics department of the Norwegian Institute of Public Health](https://www.fhi.no/om/organisasjon/genetikk-og-bioinformatikk/), and notably Øystein Kapperud, Dana Kristjansson, Even Birkeland, and Marc Vaudel. The department is deeply grateful for the contribution of its former members Gutorm Thomas Høgåsen and Ronny Myhre.   
 
 The pipeline is built on work for the [MoBaGenetics v.1.0](https://github.com/folkehelseinstituttet/mobagen/wiki/MoBaGenetics1.0) release, led by Øyvind Helgeland, Julius Juodakis, Jonas Bacelis, and Ronny Myhre.
 
