@@ -658,7 +658,7 @@ rule release_folder:
                 copyfile(input.pgenset_all_markers + extension,output.pgenset_all_markers + extension)
 
 
-except Exception as e:
+        except Exception as e:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
