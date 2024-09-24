@@ -592,6 +592,8 @@ rule release_folder:
     run:
         try:
 
+            print(f"Writing release basename {release_base_name} to {release_folder}.")
+
             inTrunk =  mqc.plinkBase(input.pgenset_all_markers[0])
             releaseTrunk =  mqc.plinkBase(output.pgenset_all_markers[0])
 
