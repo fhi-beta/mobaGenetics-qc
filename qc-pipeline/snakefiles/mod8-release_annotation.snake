@@ -537,6 +537,27 @@ rule mod8_plot_pca_both:
             {output.ceu_id_file}
         """
 
+rule_stem = "release_md"
+rule release_md:
+    input:
+        pca_md_file = github_docs/"pca_1kg_moba.md",
+        relatedness_md_file = github_docs/"mod8_psam_reconstruction.md"
+    params:
+        docs_folder = github_docs,
+        version = config['release']
+    output:
+        release_md_file = github_docs/"readme.md"
+    conda:
+        "envs/plot_pca_both.yaml"
+    threads: 1
+    shell:
+        """
+        Rscript utils/documentation/release_documentation.R \
+            {params.version} \
+            {params.docs_folder} \
+            "readme.md"
+        """
+
 rule_stem = 'mod8_output'
 rule mod8_output:
     input:

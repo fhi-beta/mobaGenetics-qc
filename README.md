@@ -6,9 +6,7 @@ This reposirtory contains code and resources used for the quality control of gen
 ### Current release
 The current release is available for alpha testing for expert users. We expect a new release to be publicly available for beta testing in the first semester of 2025. For more information on the release process, please contact [Marc Vaudel](https://www.fhi.no/en/ab/departments-and-centres/genetics-and-bioinformatics/marc-vaudel/).
 
-#### Documentation on the current release v. 2024.07.01:
-- [QC Documentation](qc-pipeline/docs/2024.07.01/readme.md): Documentation on the quality control of the genotypes
-- [Test GWAS](gwas/readme.md): Test genome-wide association study
+👉 [Release notes and documentation](qc-pipeline/docs/release_notes.md): Documentation on the current and previous releases.
 
 ### Other pipelines and releases
 The current pipeline and its associated releases have been built on previous efforts:
