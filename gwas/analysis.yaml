@@ -3,7 +3,7 @@
 id: moba_qc_gwas
 name: MoBa Quality Control GWAS
 description: Genome-wide analysis study of test phenotypes [Norwegian Mother, Father and Child Cohort Study (MoBa)](https://www.fhi.no/en/ch/studies/moba).
-suffix: 24-09-06
+suffix: 2024.07.01
 raw_pheno_table:
 work_folder: /mnt/work/qc_genotypes # Folder where the results should be stored
 scratch_folder: /mnt/scratch/qc_genotypes # Folder where intermediate files should be stored

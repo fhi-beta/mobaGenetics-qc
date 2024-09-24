@@ -166,6 +166,12 @@ write(
   append = F
 )
 
+write(
+  x = paste0("- Number of samples in the genotyping data: ", nrow(fam_data), "."),
+  file = md_file,
+  append = F
+)
+
 docs_dir <- dirname(md_file)
 file_name <- basename(md_file)
 docs_dir_name <- substr(file_name, 1, nchar(file_name) - 3)
