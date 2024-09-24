@@ -592,6 +592,9 @@ rule release_folder:
     run:
         try:
 
+            inTrunk =  mqc.plinkBase(input.pgenset_all_markers[0])
+            releaseTrunk =  mqc.plinkBase(output.pgenset_all_markers[0])
+
             # Housekeeping
             if not os.path.exists(release_folder/"snp"):
                 os.makedirs(release_folder/"snp")
@@ -614,7 +617,7 @@ rule release_folder:
                 file.write(f"For questions, feedback, and assistance please contact the [Genetics and Bioinformatics department of the Norwegian Institute of Public Health](https://www.fhi.no/om/organisasjon/genetikk-og-bioinformatikk/). You can also reach out to us via [Slack](https://join.slack.com/t/mobagen/shared_invite/zt-2r90hzo82-HNllFHDugSxJeknpJ9jT0w).")
 
                 file.write(f"### Expected content")
-                file.write(f"- {os.path.basename(output.pgenset_all_markers)}(.pgen, .pvar, .psam): Phased and imputed genotypes in plink2 format. For details on the format please refer to the [plink documentation](https://www.cog-genomics.org/plink/2.0/formats#pgen).")
+                file.write(f"- {os.path.basename(releaseTrunk)}(.pgen, .pvar, .psam): Phased and imputed genotypes in plink2 format. For details on the format please refer to the [plink documentation](https://www.cog-genomics.org/plink/2.0/formats#pgen).")
                 file.write(f"- snp/{os.path.basename(output.best_snps)}: List of 500k autosomal SNPs with high imputation r2 and pruned for LD.")
                 file.write(f"- snp/{os.path.basename(output.r2_table)}: Table of imputation r2.")
                 file.write(f"- pca/{os.path.basename(output.pcs)}: PCs as computed by flashPCA using high quality pruned autosomal markers.")
@@ -655,7 +658,7 @@ rule release_folder:
 
             # Genotypes
             for extension in ['.pgen', '.pvar', '.psam']:
-                copyfile(input.pgenset_all_markers + extension,output.pgenset_all_markers + extension)
+                copyfile(inTrunk + extension, releaseTrunk + extension)
 
 
         except Exception as e:
