@@ -3,6 +3,7 @@
 # This module generates documentation on qualtity, familial relatedness, sex assignment, and PCA analysis on the merged set of genotypes.
 #
 ##
+import os
 
 
 mod7_output = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod7-post-imputation/all_samples/mod7_rename_missing_ids"
@@ -17,7 +18,7 @@ rule mod8_marker_filter:
         r2_table = r2_table, # rules.summarize_dr2.output.r2,
         best_snps = best_hits_table # rules.summarize_dr2.output.top_snps
     output:
-        pgenset_r2 = multiext(str(tmpMod8/rule_stem) + "_r2", ".pgen", ".pvar", ".psam"),
+        pgenset_r2 = temp(multiext(str(tmpMod8/rule_stem) + "_r2", ".pgen", ".pvar", ".psam")),
         pgenset_best_snps = multiext(str(tmpMod8/rule_stem) + "_best_snps", ".pgen", ".pvar", ".psam")
     params:
         mac_threshold = config['merged_set_mac_thr'],
@@ -187,7 +188,38 @@ rule mod8_check_sex:
 
                 merged_df = pd.concat(sex_checks, ignore_index = True)
 
-                merged_df.to_csv(output.sex_check ,index = False)
+                merged_df.to_csv(output.sex_check, sep='\t', index = False)
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+def get_fam_per_batch():
+    return [f"{tmpMod2}/{batch}/m2_output.fam" for batch in batches]
+
+rule_stem = 'mod8_batch_table'
+rule mod8_batch_table:
+    'Create a table listing the batch for each sample.'
+    input:
+        batch_fam = get_fam_per_batch()
+    output:
+        batch_table = tmpMod8/(rule_stem + "_batch")
+    run:
+        try:
+
+            id_to_batch_dfs = []
+
+            for batch in batches:
+                print(f"Importing fam for batch {batch}.")
+                file = f"{tmpMod2}/{batch}/m2_output.fam"
+                fam = pd.read_table(file, sep = " ", names =["fid", "iid", "mid", "pid", "sex", "pheno"])
+                fam['batch'] = batch
+                id_to_batch = fam[['iid', 'batch']]
+                id_to_batch_dfs.append(id_to_batch)
+
+            merged_df = pd.concat(id_to_batch_dfs, ignore_index = True)
+
+            merged_df.to_csv(output.batch_table, sep='\t', index = False)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -266,7 +298,7 @@ rule mod8_pedigree_ibd_estimate:
             fam_file = plink_input_1 + ".fam"
             fam_data = pd.read_csv(fam_file, sep = "\t", names =["fid", "iid", "mid", "pid", "sex", "pheno"])
             fam_data['fid'] = fam_data['iid']
-            fam_data.to_csv(fam_file, index = False, header = False, sep = "\t")
+            fam_data.to_csv(fam_file, index = False, header = False, sep='\t')
 
             # King relatedness analysis
             subprocess.run(
@@ -468,6 +500,11 @@ rule mod8_common_markers_moba_ref:
             check = True
         )
 
+        for extension in ['.bed', '.bim', '.fam']:
+            os.remove(inTrunk_moba_1 + extension)
+            os.remove(outTrunk_moba_temp + extension)
+            os.remove(outTrunk_ref_temp + extension)
+
 # We would prefer to run the PCA on 1kg and project MoBa on the eigenvectors but merging is more robust and works just fine.
 rule_stem = "mod8_pca_both"
 rule mod8_pca_both:
@@ -537,69 +574,160 @@ rule mod8_plot_pca_both:
             {output.ceu_id_file}
         """
 
-rule_stem = 'mod8_output'
-rule mod8_output:
+rule_stem = "release_md"
+rule release_md:
     input:
-        mod7_pgenset = mod7_output,
-        pgenset_all_markers = rules.mod8_exclude_conflictual_relationships.output.pgenset_all_markers,
-        pgenset_pruned_markers = rules.mod8_exclude_conflictual_relationships.output.pgenset_pruned_markers,
-        pruned_snps = rules.mod8_prune_markers.output.pruned_list,
-        sex_check = rules.mod8_check_sex.output.sex_check,
-        king_relatedness = rules.mod8_pedigree_ibd_estimate.output.king_relatedness
+        pca_md_file = github_docs/"pca_1kg_moba.md",
+        relatedness_md_file = github_docs/"mod8_psam_reconstruction.md"
+    params:
+        docs_folder = github_docs,
+        version = config['release']
     output:
-        pgenset_all_markers =  multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
-        pgenset_pruned_markers = multiext(str(tmpMod8/(rule_stem + "_pruned")), ".pgen", ".pvar", ".psam"),
-        pruned_snps = tmpMod8/(rule_stem + ".prune.in"),
-        sex_check = tmpMod8/(rule_stem + ".sexcheck"),
-        king_relatedness = tmpMod8/(rule_stem + ".kin0")
+        release_md_file = github_docs/"readme.md"
+    conda:
+        "envs/plot_pca_both.yaml"
+    threads: 1
+    shell:
+        """
+        Rscript utils/documentation/release_documentation.R \
+            {params.version} \
+            {params.docs_folder} \
+            "readme.md"
+        """
+
+rule_stem = 'release_genotypes'
+rule release_genotypes:
+    'Copies the genotype files to the release folder.'
+    input:
+        pgenset_all_markers = rules.mod8_exclude_conflictual_relationships.output.pgenset_all_markers
+    params:
+        version = config['release']
+    output:
+        pgenset_all_markers =  multiext(str(release_folder / release_base_name), ".pgen", ".pvar", ".psam")
     run:
         try:
-            item_type = rule_info[rule]["rule type"]
-            mqc.log(runlog, rule_info[rule]["QC test"])
-            m7Trunk = mqc.plinkBase(input.mod7_pgenset[0])
-            inTrunk_all_markers = mqc.plinkBase(input.pgenset_all_markers[0])
-            outTrunk_all_markers =  mqc.plinkBase(output.pgenset_all_markers[0])
-            inTrunk_pruned_markers = mqc.plinkBase(input.pgenset_pruned_markers[0])
-            outTrunk_pruned_markers =  mqc.plinkBase(output.pgenset_pruned_markers[0])
-            docs = "For more documentation see https://github.com/folkehelseinstituttet/mobaGenetics-qc/wiki/Module2 . In the html file see info on individual module steps through the section for results of Module 2"
 
-            # copy plink sets
-            for extension in ['.bed', '.bim', '.fam']:
-                copyfile(inTrunk_all_markers + extension, outTrunk_all_markers + extension)
-                copyfile(inTrunk_pruned_markers + extension, outTrunk_pruned_markers + extension)
+            print(f"Writing release genotypes {release_base_name} to {release_folder}.")
 
-            # Copy other outcomes of the module
-            copyfile(input.pruned_snps, output.pruned_snps)
+            inTrunk =  mqc.plinkBase(input.pgenset_all_markers[0])
+            releaseTrunk =  mqc.plinkBase(output.pgenset_all_markers[0])
+
+            # Genotypes
+            for extension in ['.pgen', '.pvar', '.psam']:
+                print(f"Copying {inTrunk + extension} to {releaseTrunk + extension}")
+                copyfile(inTrunk + extension, releaseTrunk + extension)
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+
+rule_stem = 'release_additional_files'
+rule release_additional_files:
+    'Copies accompanying files to the release folder.'
+    input:
+        r2_table = r2_table, # rules.summarize_dr2.output.r2,
+        best_snps = best_hits_table, # rules.summarize_dr2.output.top_snps
+        pcs = rules.mod8_pca_both.output.pcs,
+        eigenvector = rules.mod8_pca_both.output.eigenvector,
+        snp_loadings = rules.mod8_pca_both.output.snp_loadings,
+        eigenvalues = rules.mod8_pca_both.output.eigenvalues,
+        variance_explained = rules.mod8_pca_both.output.variance_explained,
+        cluster_file = rules.mod8_plot_pca_both.output.cluster_file,
+        ceu_id_file = rules.mod8_plot_pca_both.output.ceu_id_file,
+        king_relatedness = rules.mod8_pedigree_ibd_estimate.output.king_relatedness,
+        sex_check = rules.mod8_check_sex.output.sex_check,
+        batch_table = rules.mod8_batch_table.output.batch_table
+    params:
+        version = config['release']
+    output:
+        r2_table = release_folder/"snp"/(release_base_name + "_snp_r2"),
+        best_snps = release_folder/"snp"/(release_base_name + "_reference_500k_snps"),
+        pcs = release_folder/"pca"/(release_base_name + ".pcs"),
+        eigenvector = release_folder/"pca"/(release_base_name + ".vec"),
+        snp_loadings = release_folder/"pca"/(release_base_name + ".load"),
+        eigenvalues = release_folder/"pca"/(release_base_name + ".val"),
+        variance_explained = release_folder/"pca"/(release_base_name + ".pve"),
+        cluster_file = release_folder/"pca"/(release_base_name + "_clusters"),
+        ceu_id_file = release_folder/"pca"/(release_base_name + "_ceu_core_ids"),
+        king_relatedness = release_folder/"kinship"/(release_base_name + ".kin0"),
+        sex_check = release_folder/"sex_check"/(release_base_name + ".sexcheck"),
+        batch_table = release_folder/"batch"/(release_base_name + "_batches"),
+        readme = release_folder/"readme.md"
+    run:
+        try:
+
+            print(f"Writing release additional files {release_base_name} to {release_folder}.")
+
+            inTrunk =  mqc.plinkBase(input.pgenset_all_markers[0])
+            releaseTrunk =  mqc.plinkBase(output.pgenset_all_markers[0])
+
+            # Housekeeping
+            if not os.path.exists(release_folder/"snp"):
+                os.makedirs(release_folder/"snp")
+
+            if not os.path.exists(release_folder/"pca"):
+                os.makedirs(release_folder/"pca")
+
+            if not os.path.exists(release_folder/"kinship"):
+                os.makedirs(release_folder/"kinship")
+
+            if not os.path.exists(release_folder/"sex_check"):
+                os.makedirs(release_folder/"sex_check")
+
+            if not os.path.exists(release_folder/"batch"):
+                os.makedirs(release_folder/"batch")
+
+            # Readme
+            with open(output.readme, 'w') as file:
+                file.write("## MoBa Genotypes\n")
+                file.write(f"This folder contains genotype files from the [Norwegian Mother, Father and Child Cohort Study (MoBa)](https://www.fhi.no/en/studies/moba/), release version {params.version}\n")
+                file.write(f"The genotypes have been quality controlled, imputed, and formatted prior to release. Associated code and documentation can be found at our [repository](https://github.com/fhi-beta/mobaGenetics-qc).\n")
+                file.write(f"Please note that filtering of variants and samples has been kept to a minimum. You will find tables next to the genotypes providing information on markers and samples to further filter the data set to your needs.\n")
+                file.write(f"For questions, feedback, and assistance please contact the [Genetics and Bioinformatics department of the Norwegian Institute of Public Health](https://www.fhi.no/om/organisasjon/genetikk-og-bioinformatikk/). You can also reach out to us via [Slack](https://join.slack.com/t/mobagen/shared_invite/zt-2r90hzo82-HNllFHDugSxJeknpJ9jT0w).\n\n")
+
+                file.write(f"### Expected content\n")
+                file.write(f"- {os.path.basename(releaseTrunk)}(.pgen, .pvar, .psam): Phased and imputed genotypes in plink2 format. For details on the format please refer to the [plink documentation](https://www.cog-genomics.org/plink/2.0/formats#pgen).\n")
+                file.write(f"- snp/{os.path.basename(output.best_snps)}: List of 500k autosomal SNPs with high imputation r2 and pruned for LD.\n")
+                file.write(f"- snp/{os.path.basename(output.r2_table)}: Table of imputation r2.\n")
+                file.write(f"- pca/{os.path.basename(output.pcs)}: PCs as computed by flashPCA using high quality pruned autosomal markers.\n")
+                file.write(f"- pca/{os.path.basename(output.eigenvector)}: Eigen vectoes as computed by flashPCA using high quality pruned autosomal markers.\n")
+                file.write(f"- pca/{os.path.basename(output.snp_loadings)}: SNP loadings as computed by flashPCA using high quality pruned autosomal markers.\n")
+                file.write(f"- pca/{os.path.basename(output.eigenvalues)}: Eigen values as computed by flashPCA using high quality pruned autosomal markers.\n")
+                file.write(f"- pca/{os.path.basename(output.variance_explained)}: Variance explained as computed by flashPCA using high quality pruned autosomal markers.\n")
+                file.write(f"- pca/{os.path.basename(output.cluster_file)}: Sample clustering in the PCA with superpopulations from the 1000 genomes project.\n")
+                file.write(f"- pca/{os.path.basename(output.ceu_id_file)}: Identifiers of samples of short distance in the PCA to the CEU cluster.\n")
+                file.write(f"- kinship/{os.path.basename(output.king_relatedness)}: Kinship analysis as computed by king using high quality pruned autosomal markers.\n")
+                file.write(f"- sex_check/{os.path.basename(output.sex_check)}: Sex check computed by plink on sex markers prior to imputation. Warning: the presence of variants on the sex chromosomes varies between genotyping batches.\n")
+                file.write(f"- {os.path.basename(output.readme)}: Description of the folder content.\n\n")
+
+                file.write(f"We hope that this release will be useful to you. All our wishes of success in your research.\n")
+                file.write(f"Made with love by the [Genetics and Bioinformatics department of the Norwegian Institute of Public Health](https://www.fhi.no/om/organisasjon/genetikk-og-bioinformatikk/).\n")
+
+            # r2 table
+            copyfile(input.r2_table, output.r2_table)
+
+            # List of top SNPs
+            copyfile(input.best_snps, output.best_snps)
+
+            # PCA files
+            copyfile(input.pcs, output.pcs)
+            copyfile(input.eigenvector, output.eigenvector)
+            copyfile(input.snp_loadings, output.snp_loadings)
+            copyfile(input.eigenvalues, output.eigenvalues)
+            copyfile(input.variance_explained, output.variance_explained)
+            copyfile(input.cluster_file, output.cluster_file)
+            copyfile(input.ceu_id_file, output.ceu_id_file)
+
+            # Kinship files
             copyfile(input.king_relatedness, output.king_relatedness)
+
+            # Sex check files
             copyfile(input.sex_check, output.sex_check)
 
-            # report markers (we only do this for mod5 output aka outTrunk_all_markers)
-            dropouts = mqc.checkUpdates(
-                m1Trunk + ".bim",
-                outTrunk_all_markers + ".bim",
-                cols = [0, 1, 3, 4, 5],
-                sanityCheck = "removal",
-                fullList = True,
-                allele_flip = True
-            )
-            dropouts.update(rule_info[rule])
-            dropouts["Rule"] = rule
-            dropouts["Documentation details"] = docs
-            mqc.saveYamlResults(output.report_markers, dropouts)
+            # Sex batch table
+            copyfile(input.batch_table, output.batch_table)
 
-            # report samples, same logic as markers
-            dropouts = mqc.checkUpdates(
-                m1Trunk + ".fam",
-                outTrunk_all_markers + ".fam",
-                cols = [0, 1],
-                sanityCheck = "update",
-                fullList = True
-            )
-            dropouts.update(rule_info[rule])
-            dropouts["Rule"] = rule
-            dropouts["Documentation details"] = docs
-
-            mqc.saveYamlResults(output.report_samples, dropouts)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")

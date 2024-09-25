@@ -11,15 +11,15 @@ import os
 
 config_file = 'gwas/analysis.yaml'
 configfile: config_file
+release = config['release']
 
 name = config["id"]
 analyses = config["analyses"]
 analyses_names = list(analyses.keys())
 
 # Analysis
-suffix = config["suffix"]
-work_folder = os.path.join(config["work_folder"], name, suffix)
-scratch_folder = os.path.join(config["scratch_folder"], name, suffix)
+work_folder = os.path.join(config["work_folder"], release, name)
+scratch_folder = os.path.join(config["scratch_folder"], release, name)
 
 cojo_threshold = 5e-8
 
@@ -31,9 +31,10 @@ relationship_table = "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.
 pheno_folder = os.path.join(work_folder, 'pheno')
 
 # Genotype files
-genotypes_folder = '/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod7-post-imputation/all_samples'
-plink_stem = os.path.join(genotypes_folder, 'mod7_rename_missing_ids')
-best_snps = os.path.join(genotypes_folder, 'mod7_best_snps.txt')
+moba_release_folder = os.path.join('/mnt/archive/moba_genotypes_releases', release)
+plink_stem = os.path.join(moba_release_folder, 'moba_genotypes_' + release)
+best_snps = os.path.join(moba_release_folder, 'snp', 'reference_500k_snps_' + release)
+batches_file = os.path.join(moba_release_folder, 'batch', 'moba_genotypes_' + release + '_batches')
 
 # id files
 id_folder = os.path.join(pheno_folder, 'id')
@@ -43,7 +44,7 @@ temp_files_folder = os.path.join(scratch_folder, 'temp')
 regenie_step1_folder = os.path.join(scratch_folder, 'regenie', 'step_1')
 cojo_temp_folder = os.path.join(scratch_folder, 'cojo_temp')
 results_folder = os.path.join(work_folder, 'results')
-docs_folder_relative = os.path.join('docs', suffix)
+docs_folder_relative = os.path.join('docs', release)
 docs_folder = os.path.join('gwas', docs_folder_relative)
 
 
