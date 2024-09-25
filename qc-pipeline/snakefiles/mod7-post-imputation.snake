@@ -129,7 +129,7 @@ rule summarize_dr2:
         batches = batches_debug #remove in prod!
         chrs = chrs_debug #remove in prod!
         input_base = str(tmpMod6)
-        mqc.summarize_dr2(input_base, output.dr2, output.top_snps, batches, chrs, threads, n_samples = wildcards.number_of_samples)
+        mqc.summarize_dr2(input_base, output.dr2, batches, chrs, threads, n_samples = wildcards.number_of_samples)
 
 
 rule mod7_rename_missing_ids:

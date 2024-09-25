@@ -1432,7 +1432,7 @@ def load_fam_file(fam_file):
     df = pd.read_csv(fam_file, delim_whitespace=True, header=None, names=['FID', '#IID', 'PID', 'MID', 'SEX', 'Phenotype'])
     return df
 
-def summarize_dr2(base, dr2_df_file, top_snp_file, batches, chrs, threads, n_samples = "all", snp_cutoff = 500000):
+def summarize_dr2(base, dr2_df_file, batches, chrs, threads, n_samples = "all", snp_cutoff = 500000):
     """
     A method for writing a file with the dr2 values after imputation
     """
