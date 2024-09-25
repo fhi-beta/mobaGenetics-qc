@@ -188,7 +188,7 @@ rule mod8_check_sex:
 
                 merged_df = pd.concat(sex_checks, ignore_index = True)
 
-                merged_df.to_csv(output.sex_check, index = False, delimiter = "\t")
+                merged_df.to_csv(output.sex_check, sep='\t', index = False)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -219,7 +219,7 @@ rule mod8_batch_table:
 
             merged_df = pd.concat(id_to_batch_dfs, ignore_index = True)
 
-            merged_df.to_csv(output.batch_table, index = False, delimiter = "\t")
+            merged_df.to_csv(output.batch_table, sep='\t', index = False)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -298,7 +298,7 @@ rule mod8_pedigree_ibd_estimate:
             fam_file = plink_input_1 + ".fam"
             fam_data = pd.read_csv(fam_file, sep = "\t", names =["fid", "iid", "mid", "pid", "sex", "pheno"])
             fam_data['fid'] = fam_data['iid']
-            fam_data.to_csv(fam_file, index = False, header = False, delimiter = "\t")
+            fam_data.to_csv(fam_file, index = False, header = False, sep='\t')
 
             # King relatedness analysis
             subprocess.run(
