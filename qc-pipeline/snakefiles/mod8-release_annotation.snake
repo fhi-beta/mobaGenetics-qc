@@ -614,7 +614,7 @@ rule release_folder:
     params:
         version = config['release']
     output:
-        # pgenset_all_markers =  multiext(str(release_folder / release_base_name), ".pgen", ".pvar", ".psam"),
+        pgenset_all_markers =  multiext(str(release_folder / release_base_name), ".pgen", ".pvar", ".psam"),
         r2_table = release_folder/"snp"/(release_base_name + "_snp_r2"),
         best_snps = release_folder/"snp"/(release_base_name + "_reference_500k_snps"),
         pcs = release_folder/"pca"/(release_base_name + ".pcs"),
@@ -704,8 +704,8 @@ rule release_folder:
 
             # Genotypes
             for extension in ['.pgen', '.pvar', '.psam']:
-                print(f"Copying {inTrunk + extension}")
-                #copyfile(inTrunk + extension, releaseTrunk + extension)
+                print(f"Copying {inTrunk + extension} to {releaseTrunk + extension}")
+                copyfile(inTrunk + extension, releaseTrunk + extension)
 
 
         except Exception as e:

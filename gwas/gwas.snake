@@ -31,9 +31,10 @@ relationship_table = "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.
 pheno_folder = os.path.join(work_folder, 'pheno')
 
 # Genotype files
-genotypes_folder = '/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod7-post-imputation/all_samples'
-plink_stem = os.path.join(genotypes_folder, 'mod7_rename_missing_ids')
-best_snps = os.path.join(genotypes_folder, 'mod7_best_snps.txt')
+moba_release_folder = os.path.join('/mnt/archive/moba_genotypes_releases/2024.07.01', config['release'])
+plink_stem = os.path.join(moba_release_folder, 'mod7_rename_missing_ids')
+best_snps = os.path.join(moba_release_folder, 'mod7_best_snps.txt')
+batches_file = os.path.join(moba_release_folder, )
 
 # id files
 id_folder = os.path.join(pheno_folder, 'id')
