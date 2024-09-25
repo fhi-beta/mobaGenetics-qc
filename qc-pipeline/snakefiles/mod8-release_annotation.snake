@@ -188,7 +188,7 @@ rule mod8_check_sex:
 
                 merged_df = pd.concat(sex_checks, ignore_index = True)
 
-                merged_df.to_csv(output.sex_check ,index = False)
+                merged_df.to_csv(output.sex_check, index = False, sep = "\t")
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
@@ -219,7 +219,7 @@ rule mod8_batch_table:
 
             merged_df = pd.concat(id_to_batch_dfs, ignore_index = True)
 
-            merged_df.to_csv(output.batch_table ,index = False)
+            merged_df.to_csv(output.batch_table, index = False, sep = "\t")
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
