@@ -95,6 +95,7 @@ rule all:
         release_ceu_id_file = release_folder/"pca"/(release_base_name + "_ceu_core_ids"),
         release_king_relatedness = release_folder/"kinship"/(release_base_name + ".kin0"),
         release_sex_check = release_folder/"sex_check"/(release_base_name + ".sex_check"),
+        release_batch_table = release_folder/"batch"/(release_base_name + "_batches"),
         release_readme = release_folder/"readme.md"
 
         # # Module 1:
