@@ -212,7 +212,6 @@ rule mod8_batch_table:
             for batch in batches:
                 print(f"Importing fam for batch {batch}.")
                 file = f"{tmpMod2}/{batch}/m2_output.fam"
-                file = "/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod2-genetic-relationship/batch011/m2_output.fam"
                 fam = pd.read_table(file, sep = " ", names =["fid", "iid", "mid", "pid", "sex", "pheno"])
                 fam['batch'] = batch
                 id_to_batch = fam[['iid', 'batch']]
