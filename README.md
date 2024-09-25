@@ -20,7 +20,7 @@ When using code or data produced using this pipeline, please refer to this repos
 - [GWAS](gwas/readme.md): this folder contains code and resources used to run a test GWAS.
 - [Phenotypes](phenotypes/readme.md): this folder contains code and resources for the handling of phenotypes used in the pipeline.
 - [QC Pipeline](qc-pipeline/readme.md): this folder contains code, resources, and documentation for the QC pipeline
-- [Qaranteen](quarantine/readme.md): this folder contains general executables and resources.
+- [Quarantine](quarantine/readme.md): this folder contains deprecated executables and resources.
 
 ### Issues and suggestions
 If despite our efforts at enforcing good practices in our work, you encounter issues or have suggestions of improvement, please use our [issue tracker](https://github.com/fhi-beta/mobaGenetics-qc/issues).
@@ -33,7 +33,7 @@ The pipeline is built on work for the [MoBaGenetics v.1.0](https://github.com/fo
 
 It was extended thanks to help from the [PsychGen team](https://www.fhi.no/en/me/the-psychgen-centre-for-genetic-epidemiology-and-mental-health), especially Elizabeth Claire Corfield.
 
-The pre-phasing and imputation modules have been built following the implementation of the [NORMENT team](https://www.med.uio.no/norment/english/), especially Oleksandr Frei and Tahir Tekin Filiz.
+The pre-phasing and imputation modules have been built following the implementation of the [NORMENT team](https://www.med.uio.no/norment/english/) and the [PsychGen team](https://www.fhi.no/en/me/the-psychgen-centre-for-genetic-epidemiology-and-mental-health), especially Oleksandr Frei and Tahir Tekin Filiz.
 
 We are grateful for the contribution of the community who helped, shared code, and provided support and feedback. We are especially grateful to the [PsychGen team](https://www.fhi.no/en/me/the-psychgen-centre-for-genetic-epidemiology-and-mental-health), the [NORMENT team](https://www.med.uio.no/norment/english/), the [Centre for Fertility and Health](https://www.fhi.no/en/ch/Centre-for-fertility-and-health/), the [Department of Obstetrics and Gynecology at the University of Gothenburg](https://www.gu.se/en/about/find-organisation/department-of-obstetrics-and-gynecology), and the [Mohn Center for Diabetes Precision Medicine](https://www.uib.no/en/diabetes).
 

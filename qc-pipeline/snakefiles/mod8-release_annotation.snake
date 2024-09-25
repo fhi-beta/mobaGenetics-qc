@@ -3,6 +3,7 @@
 # This module generates documentation on qualtity, familial relatedness, sex assignment, and PCA analysis on the merged set of genotypes.
 #
 ##
+import os
 
 
 mod7_output = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod7-post-imputation/all_samples/mod7_rename_missing_ids"
@@ -17,7 +18,7 @@ rule mod8_marker_filter:
         r2_table = r2_table, # rules.summarize_dr2.output.r2,
         best_snps = best_hits_table # rules.summarize_dr2.output.top_snps
     output:
-        pgenset_r2 = multiext(str(tmpMod8/rule_stem) + "_r2", ".pgen", ".pvar", ".psam"),
+        pgenset_r2 = temp(multiext(str(tmpMod8/rule_stem) + "_r2", ".pgen", ".pvar", ".psam")),
         pgenset_best_snps = multiext(str(tmpMod8/rule_stem) + "_best_snps", ".pgen", ".pvar", ".psam")
     params:
         mac_threshold = config['merged_set_mac_thr'],
@@ -467,6 +468,11 @@ rule mod8_common_markers_moba_ref:
             ],
             check = True
         )
+
+        for extension in ['.bed', '.bim', '.fam']:
+            os.remove(inTrunk_moba_1 + extension)
+            os.remove(outTrunk_moba_temp + extension)
+            os.remove(outTrunk_ref_temp + extension)
 
 # We would prefer to run the PCA on 1kg and project MoBa on the eigenvectors but merging is more robust and works just fine.
 rule_stem = "mod8_pca_both"
