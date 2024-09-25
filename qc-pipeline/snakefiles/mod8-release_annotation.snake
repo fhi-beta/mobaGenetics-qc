@@ -702,7 +702,8 @@ rule release_folder:
 
             # Genotypes
             for extension in ['.pgen', '.pvar', '.psam']:
-                # copyfile(inTrunk + extension, releaseTrunk + extension)
+                print(f"Copying {inTrunk + extension}")
+                #copyfile(inTrunk + extension, releaseTrunk + extension)
 
 
         except Exception as e:
