@@ -595,10 +595,37 @@ rule release_md:
             "readme.md"
         """
 
-rule_stem = 'release_folder'
-rule release_folder:
+rule_stem = 'release_genotypes'
+rule release_genotypes:
+    'Copies the genotype files to the release folder.'
     input:
-        pgenset_all_markers = rules.mod8_exclude_conflictual_relationships.output.pgenset_all_markers,
+        pgenset_all_markers = rules.mod8_exclude_conflictual_relationships.output.pgenset_all_markers
+    params:
+        version = config['release']
+    output:
+        pgenset_all_markers =  multiext(str(release_folder / release_base_name), ".pgen", ".pvar", ".psam")
+    run:
+        try:
+
+            print(f"Writing release genotypes {release_base_name} to {release_folder}.")
+
+            inTrunk =  mqc.plinkBase(input.pgenset_all_markers[0])
+            releaseTrunk =  mqc.plinkBase(output.pgenset_all_markers[0])
+
+            # Genotypes
+            for extension in ['.pgen', '.pvar', '.psam']:
+                print(f"Copying {inTrunk + extension} to {releaseTrunk + extension}")
+                copyfile(inTrunk + extension, releaseTrunk + extension)
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+
+rule_stem = 'release_additional_files'
+rule release_additional_files:
+    'Copies accompanying files to the release folder.'
+    input:
         r2_table = r2_table, # rules.summarize_dr2.output.r2,
         best_snps = best_hits_table, # rules.summarize_dr2.output.top_snps
         pcs = rules.mod8_pca_both.output.pcs,
@@ -614,7 +641,6 @@ rule release_folder:
     params:
         version = config['release']
     output:
-        pgenset_all_markers =  multiext(str(release_folder / release_base_name), ".pgen", ".pvar", ".psam"),
         r2_table = release_folder/"snp"/(release_base_name + "_snp_r2"),
         best_snps = release_folder/"snp"/(release_base_name + "_reference_500k_snps"),
         pcs = release_folder/"pca"/(release_base_name + ".pcs"),
@@ -631,7 +657,7 @@ rule release_folder:
     run:
         try:
 
-            print(f"Writing release basename {release_base_name} to {release_folder}.")
+            print(f"Writing release additional files {release_base_name} to {release_folder}.")
 
             inTrunk =  mqc.plinkBase(input.pgenset_all_markers[0])
             releaseTrunk =  mqc.plinkBase(output.pgenset_all_markers[0])
@@ -661,7 +687,7 @@ rule release_folder:
                 file.write(f"For questions, feedback, and assistance please contact the [Genetics and Bioinformatics department of the Norwegian Institute of Public Health](https://www.fhi.no/om/organisasjon/genetikk-og-bioinformatikk/). You can also reach out to us via [Slack](https://join.slack.com/t/mobagen/shared_invite/zt-2r90hzo82-HNllFHDugSxJeknpJ9jT0w).\n\n")
 
                 file.write(f"### Expected content\n")
-                # file.write(f"- {os.path.basename(releaseTrunk)}(.pgen, .pvar, .psam): Phased and imputed genotypes in plink2 format. For details on the format please refer to the [plink documentation](https://www.cog-genomics.org/plink/2.0/formats#pgen).\n")
+                file.write(f"- {os.path.basename(releaseTrunk)}(.pgen, .pvar, .psam): Phased and imputed genotypes in plink2 format. For details on the format please refer to the [plink documentation](https://www.cog-genomics.org/plink/2.0/formats#pgen).\n")
                 file.write(f"- snp/{os.path.basename(output.best_snps)}: List of 500k autosomal SNPs with high imputation r2 and pruned for LD.\n")
                 file.write(f"- snp/{os.path.basename(output.r2_table)}: Table of imputation r2.\n")
                 file.write(f"- pca/{os.path.basename(output.pcs)}: PCs as computed by flashPCA using high quality pruned autosomal markers.\n")
@@ -701,11 +727,6 @@ rule release_folder:
 
             # Sex batch table
             copyfile(input.batch_table, output.batch_table)
-
-            # Genotypes
-            for extension in ['.pgen', '.pvar', '.psam']:
-                print(f"Copying {inTrunk + extension} to {releaseTrunk + extension}")
-                copyfile(inTrunk + extension, releaseTrunk + extension)
 
 
         except Exception as e:
