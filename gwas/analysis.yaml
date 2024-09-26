@@ -16,6 +16,7 @@ analyses:
       phenotype_name: Weight at birth
       phenotype_type: quantitative
       covariates:
+        - sex
       populations:
         - children
         - mothers
