@@ -1479,11 +1479,16 @@ def get_n_samples(vcf_file):
                 return len(columns) - 9  # Subtract the 9 fixed VCF columns
     return 0
 
-def find_high_dr2_variants(dr2_file, out, batch_threshold, combined_threshold):
-    df = pd.read_csv(dr2_file, sep=r'\s+')
-    batch_cols = df.columns[df.columns.get_loc('ALT') + 1:-1]
-    df_high = df[(df[batch_cols] > batch_threshold).all(axis=1) & (df['COMBINED'] > combined_threshold)] #df[df["COMBINED"]>combined_threshold]["ID"]
-    df_high.to_csv(out, sep="\t", index=False, header=False)
+def find_high_dr2_variants(dr2_file, counts_file, out, batch_threshold, combined_threshold, counts_threshold):
+    dr2_df = pd.read_csv(dr2_file, sep=r'\s+')
+    counts_df = pd.read_csv(counts_file, sep=r'\s+')
+    counts_cleaned = counts_df[~counts_df['ALT_CTS'].str.contains(',')]
+    counts_cleaned['ALT_CTS'] = counts_cleaned['ALT_CTS'].astype(int)
+    counts_filtered = counts_cleaned[counts_cleaned['ALT_CTS'] > counts_threshold]
+    batch_cols = dr2_df.columns[dr2_df.columns.get_loc('ALT') + 1:-1]
+    dr2_df_high = dr2_df[(dr2_df[batch_cols] > batch_threshold).all(axis=1) & (dr2_df['COMBINED'] > combined_threshold)] #df[df["COMBINED"]>combined_threshold]["ID"]
+    dr2_df_high = dr2_df_high[dr2_df_high["ID"].isin(counts_filtered["ID"])]
+    dr2_df_high["ID"].to_csv(out, sep="\t", index=False, header=False)
 #
 # def find_moba_pca_outlier(df):
 #     """NOT IN USE/WORKING!
