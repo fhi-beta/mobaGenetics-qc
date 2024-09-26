@@ -258,40 +258,40 @@ rule pheno_file:
     threads: 1
     shell:
         """
-        echo Rscript gwas/prepare_phenotype_files.R {input.raw_pheno_table} {input.ids_mapping_file} {params.pheno_folder} {input.plink_psam} {input.relationship_table} {input.batch_table}
         Rscript gwas/prepare_phenotype_files.R {input.raw_pheno_table} {input.ids_mapping_file} {params.pheno_folder} {input.plink_psam} {input.relationship_table} {input.batch_table}
         """
 
-
-rule filter_mac:
-    'Filter mac for Step 1 of Regenie'
-    input:
-        plink_bed = plink_stem + '.pgen'
-    params:
-        plink_stem = plink_stem,
-        best_snps = best_snps,
-        variant_stem = os.path.join(temp_files_folder, "best_snps_mac500")
-    output:
-        variant_list = os.path.join(temp_files_folder, "best_snps_mac500.snplist")
-    conda:
-        "envs/plink_2.yaml"
-    threads: 1
-    shell:
-        """
-        plink2 \
-        --pfile {params.plink_stem} \
-        --extract {params.best_snps} \
-        --mac 500 \
-        --write-snplist \
-        --out {params.variant_stem}
-        """
+# Use this rule if Regenie asks for more stringent mac
+# rule filter_mac:
+#     'Filter mac for Step 1 of Regenie'
+#     input:
+#         plink_bed = plink_stem + '.pgen'
+#     params:
+#         plink_stem = plink_stem,
+#         best_snps = best_snps,
+#         variant_stem = os.path.join(temp_files_folder, "best_snps_mac500")
+#     output:
+#         variant_list = os.path.join(temp_files_folder, "best_snps_mac500.snplist")
+#     conda:
+#         "envs/plink_2.yaml"
+#     threads: 1
+#     shell:
+#         """
+#         plink2 \
+#         --pfile {params.plink_stem} \
+#         --extract {params.best_snps} \
+#         --mac 500 \
+#         --write-snplist \
+#         --nonfounders \
+#         --out {params.variant_stem}
+#         """
 
 rule regenie_step1:
     'Step 1 of Regenie'
     input:
         plink_bed = plink_stem + '.pgen',
         pheno_file = lambda wildcards: get_pheno_file(wildcards.population),
-        variant_list = os.path.join(temp_files_folder, "best_snps_mac500.snplist")
+        variant_list = best_snps # os.path.join(temp_files_folder, "best_snps_mac500.snplist")
     output:
         output_file = os.path.join(regenie_step1_folder, '{analysis}', 'step1_pop_{population}_pheno_{phenotype}_pred.list')
     params:
