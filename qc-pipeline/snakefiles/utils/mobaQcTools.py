@@ -1432,9 +1432,9 @@ def load_fam_file(fam_file):
     df = pd.read_csv(fam_file, delim_whitespace=True, header=None, names=['FID', '#IID', 'PID', 'MID', 'SEX', 'Phenotype'])
     return df
 
-def summarize_dr2(base, dr2_df_file, top_snp_file, batches, chrs, threads, n_samples = "all", snp_cutoff = 500000):
+def summarize_dr2(base, dr2_df_file, batches, chrs, threads, n_samples = "all", snp_cutoff = 500000):
     """
-    A method for writing one file with the dr2 values after imputation, and one file with the best {snp_cutoff} snps according to combined dr2 
+    A method for writing a file with the dr2 values after imputation
     """
     sample_sizes = []
     dr2_df = None
@@ -1454,9 +1454,9 @@ def summarize_dr2(base, dr2_df_file, top_snp_file, batches, chrs, threads, n_sam
     N = sum(sample_sizes)
     dr2_df["COMBINED"] = (((np.sqrt(dr2_df[[b for b in batches]])*sample_sizes).sum(axis=1))/N)**2
     dr2_df.to_csv(dr2_df_file, sep="\t", index=False)
-    dr2_df_remove_multiallelics = dr2_df.drop_duplicates(subset=['CHROM', 'POS'], keep=False)
-    best_snp_df = dr2_df_remove_multiallelics.nlargest(snp_cutoff, "COMBINED")["ID"]
-    best_snp_df.to_csv(top_snp_file, sep="\t", index=False, header=False)
+    # dr2_df_remove_multiallelics = dr2_df.drop_duplicates(subset=['CHROM', 'POS'], keep=False)
+    # best_snp_df = dr2_df_remove_multiallelics.nlargest(snp_cutoff, "COMBINED")["ID"]
+    # best_snp_df.to_csv(top_snp_file, sep="\t", index=False, header=False)
 
 def best_snps_of_subset(dr2_file, out, snp_cutoff, subset):
     dr2_df = pd.read_csv(dr2_file, sep=r'\s+')
@@ -1468,7 +1468,7 @@ def best_snps_of_subset(dr2_file, out, snp_cutoff, subset):
 
 def fetch_info_data(info_file):
     info_data = pd.read_csv(info_file, sep=r'\s+', names =["CHROM", "POS", "ID", "IMP", "REF", "ALT", "DR2", "AF"])
-    info_data['ID'] = info_data.apply(lambda row: f"{row['CHROM']}_{row['POS']}_{row['REF']}:{row['ALT']}" if row['ID'] == '.' else row['ID'], axis=1)
+    info_data['ID'] = info_data.apply(lambda row: f"{row['CHROM']}_{row['POS']}{row['REF']}:{row['ALT']}" if row['ID'] == '.' else row['ID'], axis=1)
     return info_data
 
 def get_n_samples(vcf_file):
@@ -1479,9 +1479,10 @@ def get_n_samples(vcf_file):
                 return len(columns) - 9  # Subtract the 9 fixed VCF columns
     return 0
 
-def find_high_dr2_variants(dr2_file, out, threshold):
+def find_high_dr2_variants(dr2_file, out, batch_threshold, combined_threshold):
     df = pd.read_csv(dr2_file, sep=r'\s+')
-    df_high = df[df["COMBINED"]>threshold]["ID"]
+    batch_cols = df.columns[df.columns.get_loc('ALT') + 1:-1]
+    df_high = df[(df[batch_cols] > batch_threshold).all(axis=1) & (df['COMBINED'] > combined_threshold)] #df[df["COMBINED"]>combined_threshold]["ID"]
     df_high.to_csv(out, sep="\t", index=False, header=False)
 #
 # def find_moba_pca_outlier(df):
