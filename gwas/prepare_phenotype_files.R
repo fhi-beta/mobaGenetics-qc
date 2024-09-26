@@ -24,7 +24,7 @@ conflicts_prefer(dplyr::select)
 
 debug <- F
 
-if (debug) {
+if (!debug) {
 
 args <- commandArgs(TRUE)
 

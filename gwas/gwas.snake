@@ -258,6 +258,7 @@ rule pheno_file:
     threads: 1
     shell:
         """
+        echo Rscript gwas/prepare_phenotype_files.R {input.raw_pheno_table} {input.ids_mapping_file} {params.pheno_folder} {input.plink_psam} {input.relationship_table} {input.batch_table}
         Rscript gwas/prepare_phenotype_files.R {input.raw_pheno_table} {input.ids_mapping_file} {params.pheno_folder} {input.plink_psam} {input.relationship_table} {input.batch_table}
         """
 
