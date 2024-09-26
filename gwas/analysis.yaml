@@ -12,7 +12,7 @@ analyses:
   weight_birth:
       name: Weight at birth
       description: GWAS of weight at birth.
-      phenotype: weight_birth
+      phenotype: birth_weight
       phenotype_name: Weight at birth
       phenotype_type: quantitative
       covariates:

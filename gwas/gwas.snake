@@ -389,7 +389,7 @@ rule regenie_to_cojo:
         pheno_column = lambda wildcards: get_pheno_column(wildcards.analysis),
         cojo_threshold = cojo_threshold
     output:
-        output_file = os.path.join(results_folder, '{analysis}','cojo','tmp','step2_pop_{population}_pheno_{phenotype}.regenie_toCoJo.done')
+        output_file = temp(os.path.join(results_folder, '{analysis}','cojo','tmp','step2_pop_{population}_pheno_{phenotype}.regenie_toCoJo.done'))
     conda:
         "envs/r_gwas.yaml"
     threads: 4
@@ -412,7 +412,7 @@ rule cojo:
         no_snp_file = os.path.join(cojo_temp_folder, '{analysis}','cojo','tmp','step2_pop_{population}_pheno_{phenotype}.regenie.chr{chr}.no_snp'),
         cojo_threshold = cojo_threshold
     output:
-        cojo_done_file = os.path.join(results_folder, '{analysis}','cojo','tmp','step2_pop_{population}_pheno_{phenotype}.regenie.chr{chr}.done')
+        cojo_done_file = temp(os.path.join(results_folder, '{analysis}','cojo','tmp','step2_pop_{population}_pheno_{phenotype}.regenie.chr{chr}.done'))
     conda:
         "envs/gcta_1.93.2beta.yaml"
     threads: 2
