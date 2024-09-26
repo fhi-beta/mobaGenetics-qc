@@ -684,7 +684,6 @@ rule release_additional_files:
                 file.write(f"This folder contains genotype files from the [Norwegian Mother, Father and Child Cohort Study (MoBa)](https://www.fhi.no/en/studies/moba/), release version {params.version}\n")
                 file.write(f"The genotypes have been quality controlled, imputed, and formatted prior to release. Associated code and documentation can be found at our [repository](https://github.com/fhi-beta/mobaGenetics-qc).\n")
                 file.write(f"Please note that filtering of variants and samples has been kept to a minimum. You will find tables next to the genotypes providing information on markers and samples to further filter the data set to your needs.\n")
-                file.write(f"For questions, feedback, and assistance please contact the [Genetics and Bioinformatics department of the Norwegian Institute of Public Health](https://www.fhi.no/om/organisasjon/genetikk-og-bioinformatikk/). You can also reach out to us via [Slack](https://join.slack.com/t/mobagen/shared_invite/zt-2r90hzo82-HNllFHDugSxJeknpJ9jT0w).\n\n")
 
                 file.write(f"### Expected content\n")
                 file.write(f"- {os.path.basename(releaseTrunk)}(.pgen, .pvar, .psam): Phased and imputed genotypes in plink2 format. For details on the format please refer to the [plink documentation](https://www.cog-genomics.org/plink/2.0/formats#pgen).\n")
@@ -701,6 +700,8 @@ rule release_additional_files:
                 file.write(f"- sex_check/{os.path.basename(output.sex_check)}: Sex check computed by plink on sex markers prior to imputation. Warning: the presence of variants on the sex chromosomes varies between genotyping batches.\n")
                 file.write(f"- {os.path.basename(output.readme)}: Description of the folder content.\n\n")
 
+                file.write(f"### Help and troubleshooting\n")
+                file.write(f"For more information, help, and troubleshooting, please consult our [repository](https://github.com/fhi-beta/mobaGenetics-qc).\n")
                 file.write(f"We hope that this release will be useful to you. All our wishes of success in your research.\n")
                 file.write(f"Made with love by the [Genetics and Bioinformatics department of the Norwegian Institute of Public Health](https://www.fhi.no/om/organisasjon/genetikk-og-bioinformatikk/).\n")
 
