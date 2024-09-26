@@ -245,7 +245,8 @@ rule pheno_file:
         ids_mapping_file = ids_table,
         plink_psam = plink_stem + '.psam',
         raw_pheno_table = raw_pheno_table,
-        relationship_table = relationship_table
+        relationship_table = relationship_table,
+        batch_table = batches_file
     params:
         pheno_folder = pheno_folder
     output:
@@ -257,7 +258,7 @@ rule pheno_file:
     threads: 1
     shell:
         """
-        Rscript gwas/prepare_phenotype_files.R {input.raw_pheno_table} {input.ids_mapping_file} {params.pheno_folder} {input.plink_psam} {input.relationship_table}
+        Rscript gwas/prepare_phenotype_files.R {input.raw_pheno_table} {input.ids_mapping_file} {params.pheno_folder} {input.plink_psam} {input.relationship_table} {input.batch_table}
         """
 
 
