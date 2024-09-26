@@ -22,9 +22,26 @@ conflicts_prefer(dplyr::select)
 
 # Command line input
 
+debug <- F
+
+if (debug) {
+
 args <- commandArgs(TRUE)
 
-if (length(args) != 5) {
+} else {
+
+   args <- c(
+   "/mnt/archive/snpQc/phenotypes/kvalitetssikring_vekt_hoyde_ny_24.09.06.csv",
+   "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
+   "/mnt/work/qc_genotypes/2024.07.01/moba_qc_gwas",
+   "/mnt/archive/moba_genotypes_releases/2024.07.01/moba_genotypes_2024.07.01.psam",
+   "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz",
+   "/mnt/archive/moba_genotypes_releases/2024.07.01/batch/moba_genotypes_2024.07.01_batches"
+   )
+
+}
+
+if (length(args) != 6) {
   
   stop(paste0("Three command line arguments expected. ", length(args), " found."))
   
@@ -54,7 +71,7 @@ if (!dir.exists(gwas_pheno_folder)) {
   
 }
 
-psam_file <- args[4] # "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod7-post-imputation/all_samples/mod7_rename_missing_ids.psam"
+psam_file <- args[4]
 
 if (!file.exists(psam_file)) {
   
@@ -62,12 +79,20 @@ if (!file.exists(psam_file)) {
   
 }
 
-mother_father_child_ids_file <- args[5] # "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz"
+mother_father_child_ids_file <- args[5]
 
 if (!file.exists(mother_father_child_ids_file)) {
   
   stop(paste0("Fam file ", mother_father_child_ids_file, " not found."))
   
+}
+
+batch_file <- args[6]
+
+if (!file.exists(batch_file)) {
+
+  stop(paste0("Batch file ", batch_file, " not found."))
+
 }
 
 
@@ -96,7 +121,7 @@ psam <- read.table(
 ) %>%
     clean_names()
 
-names(psam) <- c("sentrix_id", "sex")
+names(psam) <- c("family_id", "sentrix_id", "maternal_id", "paternal_id", "sex")
 
 mother_father_child_ids <- read.table(
   file = mother_father_child_ids_file,
@@ -105,13 +130,39 @@ mother_father_child_ids <- read.table(
 ) %>%
   clean_names()
 
+batch_table <- read.table(
+  file = batch_file,
+  header = T,
+  sep = "\t"
+) %>%
+  clean_names()
+
+
+# Exclusion criteria 
+# Note - in an actual GWAS pipeline we would have a standalone pipeline for phenotypes taking care of outliers and harmonization. Since this is just for QC we do handling of the phenotypes directly in here and keep things to a minimum.
+
+print(paste0(Sys.time(), " - Exclusion criteria"))
+
+raw_phenotypes <- raw_phenotypes %>% 
+  mutate(
+    birth_weight = ifelse(vekt < 1000 | vekt > 10000, NA, vekt), 
+    mother_height = ifelse(mor_hoyde < 100 | mor_hoyde > 250, NA, mor_hoyde), 
+    father_height = ifelse(far_hoyde < 100 | far_hoyde > 250, NA, far_hoyde), 
+    father_height_q1 = ifelse(far_hoyde_skjemafar < 100 | far_hoyde_skjemafar > 250, NA, far_hoyde_skjemafar), 
+    father_height_q2 = ifelse(far_hoyde_farskjema2 < 100 | far_hoyde_farskjema2 > 250, NA, far_hoyde_farskjema2),
+    father_height = ifelse(is.na(father_height) & !is.na(father_height_q1), father_height_q1, father_height), 
+    father_height = ifelse(is.na(father_height) & !is.na(father_height_q2), father_height_q1, father_height)
+  ) %>% 
+  select(
+    preg_id_hdgb, barn_nr, birth_weight, mother_height, father_height
+  )
+
 
 # merge sentrix ids
 
+print(paste0(Sys.time(), " - Setting up identifiers"))
+
 phenotypes <- raw_phenotypes %>% 
-  rename(
-    weight_birth = vekt
-  ) %>% 
   mutate(
     child_id = paste(preg_id_hdgb, barn_nr, sep = "_")
   ) %>% 
@@ -149,8 +200,17 @@ pheno_table_gwas_child <- phenotypes %>%
   filter(
     !is.na(child_sentrix_id)
   ) %>% 
+  left_join(
+    psam %>% 
+      select(
+        family_id,
+        child_sentrix_id = sentrix_id,
+        sex
+      ),
+    by = "child_sentrix_id"
+  ) %>% 
   select(
-    FID = child_sentrix_id,
+    FID = family_id,
     IID = child_sentrix_id,
     where(is.numeric)
   )
@@ -159,8 +219,20 @@ pheno_table_gwas_mother <- phenotypes %>%
   filter(
     !is.na(mother_sentrix_id)
   ) %>% 
+  left_join(
+    psam %>% 
+      select(
+        family_id,
+        mother_sentrix_id = sentrix_id,
+        sex
+      ),
+    by = "mother_sentrix_id"
+  ) %>% 
+  mutate(
+    sex = 2
+  ) %>% 
   select(
-    FID = mother_sentrix_id,
+    FID = family_id,
     IID = mother_sentrix_id,
     where(is.numeric)
   )
@@ -169,16 +241,64 @@ pheno_table_gwas_father <- phenotypes %>%
   filter(
     !is.na(father_sentrix_id)
   ) %>% 
+  left_join(
+    psam %>% 
+      select(
+        family_id,
+        father_sentrix_id = sentrix_id
+      ),
+    by = "father_sentrix_id"
+  ) %>% 
+  mutate(
+    sex = 1
+  ) %>% 
   select(
-    FID = father_sentrix_id,
+    FID = family_id,
     IID = father_sentrix_id,
     where(is.numeric)
   )
 
 
+# Add batch information as 1-hot encoding
+
+print(paste0(Sys.time(), " - Annotating batches"))
+
+batches <-  c("snp001", "snp002", "snp003", "snp007", "snp008", "snp009", "snp010", "snp011", "snp012", "snp014", "snp015a", "snp015b", "snp016a", "snp016b", "snp017a", "snp017b", "snp017c", "snp017d", "snp017e", "snp017f", "snp018a", "snp018b", "snp018c", "snp018de")
+
+add_batch_columns <- function(df){
+  
+  df <- df %>% 
+    left_join(
+      batch_table %>% 
+        rename(
+          IID = iid
+        ),
+      by = "IID"
+    )
+  
+  for (batch_name in batches) {
+    
+    df <- df %>% 
+      mutate(
+        !!sym(batch_name) := ifelse(batch == batch_name, 1, 0)
+      )
+    
+  }
+  
+  df <- df %>% select(-batch)
+  
+  return(df)
+  
+}
+
+pheno_table_gwas_child <- add_batch_columns(pheno_table_gwas_child)
+pheno_table_gwas_mother <- add_batch_columns(pheno_table_gwas_mother)
+pheno_table_gwas_father <- add_batch_columns(pheno_table_gwas_father)
+
+
 # Write tables
 
-print(paste0(Sys.time(), " - Export of tables to ", gwas_pheno_folder))
+print(paste0(Sys.time(), " - Exporting tables to ", gwas_pheno_folder))
 
 write.table(
   x = pheno_table_gwas_child,
