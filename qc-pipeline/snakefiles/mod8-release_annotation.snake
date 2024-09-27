@@ -142,15 +142,24 @@ rule_stem = 'mod8_check_sex'
 rule mod8_check_sex:
     'Sex imputation. Currently not supported in plink2, running in plink1.'
     input:
+        pgenset = [mod7_output + ".pgen"],
         pgenset_r2 = multiext(str(tmpMod8/"mod8_marker_filter") + "_best_snps", ".pgen", ".pvar", ".psam")
+    params:
+        info_threshold = config['merged_set_info_thr']
     output:
         sex_check = tmpMod8/(rule_stem + ".sexcheck")
     run:
         try:
 
-            x_fixed = True # Currently the sex chromosomes are not available, so we take the sex check results prior to imputation
+            x_fixed = False # Currently the sex chromosomes are not available, so we take the sex check results prior to imputation
 
             if x_fixed:
+
+                id_file = tmpMod8/"ids_08"
+                print(f"Extracting sex markers with overall r2 >= {params.info_threshold}.")
+                r2_data = pd.read_csv(r2_table, sep = "\t")
+                snp_08 = r2_data[r2_data['COMBINED'] >= params.info_threshold and r2_data['CHROM'] == 'X' or r2_data['CHROM'] == 'Y']
+                snp_08['ID'].to_csv(id_file, index = False, header = False)
 
                 plink_input = mqc.plinkBase(input.pgenset[0])
                 plink1_input = plink_input + "_plink1"
@@ -160,6 +169,7 @@ rule mod8_check_sex:
                     [
                         plink2local,
                         "--pfile", plink_input,
+                        "--extract", id_file,
                         "--make-bed",
                         "--out", plink1_input
                     ],
@@ -611,10 +621,41 @@ rule release_genotypes:
             inTrunk =  mqc.plinkBase(input.pgenset_all_markers[0])
             releaseTrunk =  mqc.plinkBase(output.pgenset_all_markers[0])
 
-            # Genotypes
+            # Genotypes in plink2 format
             for extension in ['.pgen', '.pvar', '.psam']:
                 print(f"Copying {inTrunk + extension} to {releaseTrunk + extension}")
                 copyfile(inTrunk + extension, releaseTrunk + extension)
+
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+rule_stem = 'release_genotypes_bgen'
+rule release_genotypes_bgen:
+    'Makes bgen files.'
+    input:
+        pgenset_all_markers = rules.release_genotypes.output.pgenset_all_markers
+    output:
+        bgen_all_markers =  release_folder / (release_base_name + ".bgen")
+    run:
+        try:
+
+            print(f"Making bgen files.")
+
+            inTrunk =  mqc.plinkBase(input.pgenset_all_markers[0])
+
+            # Genotypes in bgen format
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", releaseTrunk,
+                    "--out", releaseTrunk,
+                    "--export bgen-1.2 'bits=8'"
+                ],
+                check = True
+            )
+
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
