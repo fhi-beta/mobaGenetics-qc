@@ -142,7 +142,7 @@ rule_stem = 'mod8_check_sex'
 rule mod8_check_sex:
     'Sex imputation. Currently not supported in plink2, running in plink1.'
     input:
-        pgenset_r2 = multiext(str(tmpMod8/"mod8_marker_filter") + "_r2", ".pgen", ".pvar", ".psam")
+        pgenset_r2 = multiext(str(tmpMod8/"mod8_marker_filter") + "_best_snps", ".pgen", ".pvar", ".psam")
     output:
         sex_check = tmpMod8/(rule_stem + ".sexcheck")
     run:
@@ -227,9 +227,9 @@ rule mod8_batch_table:
 
 rule_stem = 'mod8_prune_markers'
 rule mod8_prune_markers:
-    'Prune markers for LD'
+    'Prune markers for LD' # Marc check, should not be needed anymore
     input:
-        pgenset = rules.mod8_marker_filter.output.pgenset_r2,
+        pgenset = rules.mod8_marker_filter.output.pgenset_best_snps,
         high_ld_regions_hg19 = high_ld_regions_hg19
     output:
         pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
