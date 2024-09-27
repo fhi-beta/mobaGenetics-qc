@@ -33,7 +33,7 @@ pheno_folder = os.path.join(work_folder, 'pheno')
 # Genotype files
 moba_release_folder = os.path.join('/mnt/archive/moba_genotypes_releases', release)
 plink_stem = os.path.join(moba_release_folder, 'moba_genotypes_' + release)
-best_snps = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.23/mod7-post-imputation/all_samples/mod7_best_snps_le.txt" #os.path.join(moba_release_folder, 'snp', 'reference_500k_snps_' + release)
+best_snps = os.path.join(moba_release_folder, 'snp', 'reference_500k_snps_' + release)
 batches_file = os.path.join(moba_release_folder, 'batch', 'moba_genotypes_' + release + '_batches')
 
 # id files
