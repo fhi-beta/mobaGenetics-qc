@@ -230,7 +230,7 @@ rule_stem = 'mod8_prune_markers'
 rule mod8_prune_markers:
     'Prune markers for LD' # Marc check, should not be needed anymore
     input:
-        pgenset = multiext(mod7_best_snps, ".pgen", ".pvar", ".psam") # rules.mod8_marker_filter.output.pgenset_best_snps,
+        pgenset = multiext(mod7_best_snps, ".pgen", ".pvar", ".psam"), # rules.mod8_marker_filter.output.pgenset_best_snps,
         high_ld_regions_hg19 = high_ld_regions_hg19
     output:
         pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
