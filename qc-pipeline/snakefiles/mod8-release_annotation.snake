@@ -148,7 +148,7 @@ rule mod8_check_sex:
     run:
         try:
 
-            x_fixed = False # Currently the sex chromosomes are not available, so we take the sex check results prior to imputation
+            x_fixed = True # Currently the sex chromosomes are not available, so we take the sex check results prior to imputation
 
             if x_fixed:
 
