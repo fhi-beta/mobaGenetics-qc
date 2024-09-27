@@ -5,10 +5,9 @@
 ##
 import os
 
-
-mod7_output = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod7-post-imputation/all_samples/mod7_rename_missing_ids"
-r2_table = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod7-post-imputation/all_samples/mod7_dr2.txt"
-best_hits_table = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod7-post-imputation/all_samples/mod7_best_snps.txt"
+mod7_output = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.23/mod7-post-imputation/all_samples"
+r2_table = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.23/mod7-post-imputation/all_samples/mod7_dr2.txt.gz"
+best_hits_table = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.23/mod7-post-imputation/all_samples/mod7_best_snps_le.txt"
 
 rule_stem = 'mod8_marker_filter'
 rule mod8_marker_filter:
@@ -18,7 +17,7 @@ rule mod8_marker_filter:
         r2_table = r2_table, # rules.summarize_dr2.output.r2,
         best_snps = best_hits_table # rules.summarize_dr2.output.top_snps
     output:
-        pgenset_r2 = temp(multiext(str(tmpMod8/rule_stem) + "_r2", ".pgen", ".pvar", ".psam")),
+        # pgenset_r2 = temp(multiext(str(tmpMod8/rule_stem) + "_r2", ".pgen", ".pvar", ".psam")),
         pgenset_best_snps = multiext(str(tmpMod8/rule_stem) + "_best_snps", ".pgen", ".pvar", ".psam")
     params:
         mac_threshold = config['merged_set_mac_thr'],
@@ -27,29 +26,29 @@ rule mod8_marker_filter:
     run:
         try:
 
-            id_file = tmpMod8/"ids_08"
-            print(f"Extracting markers with overall r2 >= {params.info_threshold}.")
-            r2_data = pd.read_csv(r2_table, sep = "\t")
-            snp_08 = r2_data[r2_data['COMBINED'] >= params.info_threshold]
-            snp_08['ID'].to_csv(id_file, index = False, header = False)
-
             inTrunk =  mqc.plinkBase(input.pgenset[0])
-            outTrunk_r2 =  mqc.plinkBase(output.pgenset_r2[0])
             outTrunk_best_snps =  mqc.plinkBase(output.pgenset_best_snps[0])
 
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", inTrunk,
-                    "--extract", id_file,
-                    "--max-alleles", "2",
-                    "--mac", str(params.mac_threshold),
-                    "--geno", str(params.geno_threshold),
-                    "--out", outTrunk_r2,
-                    "--make-pgen"
-                ],
-                check=True
-            )
+            # id_file = tmpMod8/"ids_08"
+            # print(f"Extracting markers with overall r2 >= {params.info_threshold}.")
+            # r2_data = pd.read_csv(r2_table, sep = "\t")
+            # snp_08 = r2_data[r2_data['COMBINED'] >= params.info_threshold]
+            # snp_08['ID'].to_csv(id_file, index = False, header = False)
+            # outTrunk_r2 =  mqc.plinkBase(output.pgenset_r2[0])
+            #
+            # subprocess.run(
+            #     [
+            #         plink2local,
+            #         "--pfile", inTrunk,
+            #         "--extract", id_file,
+            #         "--max-alleles", "2",
+            #         "--mac", str(params.mac_threshold),
+            #         "--geno", str(params.geno_threshold),
+            #         "--out", outTrunk_r2,
+            #         "--make-pgen"
+            #     ],
+            #     check=True
+            # )
 
             subprocess.run(
                 [
@@ -143,7 +142,7 @@ rule_stem = 'mod8_check_sex'
 rule mod8_check_sex:
     'Sex imputation. Currently not supported in plink2, running in plink1.'
     input:
-        pgenset_r2 = multiext(str(tmpMod8/"mod8_marker_filter") + "_r2", ".pgen", ".pvar", ".psam")
+        pgenset_r2 = multiext(str(tmpMod8/"mod8_marker_filter") + "_best_snps", ".pgen", ".pvar", ".psam")
     output:
         sex_check = tmpMod8/(rule_stem + ".sexcheck")
     run:
@@ -228,9 +227,9 @@ rule mod8_batch_table:
 
 rule_stem = 'mod8_prune_markers'
 rule mod8_prune_markers:
-    'Prune markers for LD'
+    'Prune markers for LD' # Marc check, should not be needed anymore
     input:
-        pgenset = rules.mod8_marker_filter.output.pgenset_r2,
+        pgenset = rules.mod8_marker_filter.output.pgenset_best_snps,
         high_ld_regions_hg19 = high_ld_regions_hg19
     output:
         pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),

@@ -4,7 +4,7 @@
 This reposirtory contains code and resources used for the quality control of genotyping data from the [Norwegian Mother, Father and Child Cohort Study (MoBa)](https://www.fhi.no/en/studies/moba/).
 
 ### Current release
-The current release is available for alpha testing for expert users. We expect a new release to be publicly available for beta testing in the first semester of 2025. For more information on the release process, please contact [Marc Vaudel](https://www.fhi.no/en/ab/departments-and-centres/genetics-and-bioinformatics/marc-vaudel/).
+The current release is available for alpha testing for expert users. We expect a new release to be publicly available for beta testing in the first semester of 2025. For more information on the release process, please contact the release coordinator [Dana Kristjansson](https://www.fhi.no/en/ab/departments-and-centres/genetics-and-bioinformatics/dana-hashim).
 
 👉 [Release notes and documentation](qc-pipeline/docs/release_notes.md): Documentation on the current and previous releases.
 
