@@ -651,7 +651,7 @@ rule convert_release_genotypes_bgen:
                     plink2local,
                     "--pfile", releaseTrunk,
                     "--out", releaseTrunk,
-                    "--export bgen-1.2 'bits=8'"
+                    "--export bgen-1.2"
                 ],
                 check = True
             )
