@@ -631,13 +631,13 @@ rule release_genotypes:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
-rule_stem = 'convert_release_genotypes_bgen'
+rule_stem = 'convert_release_genotypes_plink1'
 rule convert_release_genotypes_bgen:
-    'Makes a bgen version of the release genotypes.'
+    'Makes a plink1 version of the release genotypes.'
     input:
         pgenset_all_markers = rules.release_genotypes.output.pgenset_all_markers
     output:
-        bgen_all_markers =  release_folder / (release_base_name + ".bgen")
+        bedset_all_markers =  multiext(str(release_folder / release_base_name), '.bed', '.bim', '.fam')
     run:
         try:
 
@@ -650,7 +650,7 @@ rule convert_release_genotypes_bgen:
                 [
                     plink2local,
                     "--pfile", releaseTrunk,
-                    "--export", "bgen-1.2",
+                    "--make-bed",
                     "--out", releaseTrunk
                 ],
                 check = True
