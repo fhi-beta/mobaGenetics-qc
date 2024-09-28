@@ -666,6 +666,7 @@ rule_stem = 'release_additional_files'
 rule release_additional_files:
     'Copies accompanying files to the release folder.'
     input:
+        release_genotypes = rules.release_genotypes.output.pgenset_all_markers,
         r2_table = r2_table, # rules.summarize_dr2.output.r2,
         best_snps = best_hits_table, # rules.summarize_dr2.output.top_snps
         pcs = rules.mod8_pca_both.output.pcs,
@@ -699,8 +700,7 @@ rule release_additional_files:
 
             print(f"Writing release additional files {release_base_name} to {release_folder}.")
 
-            inTrunk =  mqc.plinkBase(input.pgenset_all_markers[0])
-            releaseTrunk =  mqc.plinkBase(output.pgenset_all_markers[0])
+            releaseTrunk =  mqc.plinkBase(input.release_genotypes[0])
 
             # Housekeeping
             if not os.path.exists(release_folder/"snp"):
