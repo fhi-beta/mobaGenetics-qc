@@ -643,7 +643,7 @@ rule convert_release_genotypes_bgen:
 
             print(f"Making bgen files.")
 
-            inTrunk =  mqc.plinkBase(input.pgenset_all_markers[0])
+            releaseTrunk =  mqc.plinkBase(input.pgenset_all_markers[0])
 
             # Genotypes in bgen format
             subprocess.run(
