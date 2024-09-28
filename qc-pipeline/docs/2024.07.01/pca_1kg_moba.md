@@ -38,10 +38,11 @@ Principal component analysis of the MoBa samples merged with the thousand genome
 ### pc10 vs. pc9
 ![](plot/pc9_pc10_1kg.png)
 ### Clustering in the 1KG
+Clustering of the 1KG after an 80-20 split using svm in the top 10 PCs.
 | Population | AFR | AMR | EAS | EUR | SAS |
 | - | -  |  -  |  -  |  -  |  -  |
 | AFR | 526 | 3 | 0 | 0 | 0 |
-| AMR | 1 | 269 | 0 | 8 | 0 |
+| AMR | 1 | 267 | 0 | 10 | 0 |
 | EAS | 0 | 0 | 403 | 0 | 0 |
 | EUR | 0 | 0 | 0 | 402 | 0 |
 | SAS | 0 | 0 | 0 | 0 | 391 |
@@ -49,14 +50,14 @@ Principal component analysis of the MoBa samples merged with the thousand genome
 
 ![](plot/kg_pop_plot.png)
 ### Clustering in MoBa
+Clustering of MoBa participants with svm using the top 10 PCs and 1KG as training.
 | Population | AFR | AMR | EAS | EUR | EUR_core | SAS |
 | - | -  |  -  |  -  |  -  |  -  |  -  |
-| MoBa | 1531 | 3871 | 1651 | 50448 | 170454 | 1663 |
+| MoBa | 513 | 1787 | 1606 | 23668 | 200954 | 1090 |
 
 
 ![](plot/moba_pop_plot.png)
-### Population clustering in MoBa
-Clustering using svm in the top 10 PCs.
+### Principal components with color of the top cluster
 ### pc2 vs. pc1
 ![](plot/pc1_pc2_1kg_inferred.png)
 ### pc3 vs. pc2
