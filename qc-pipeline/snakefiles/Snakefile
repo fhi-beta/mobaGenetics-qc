@@ -84,7 +84,6 @@ rule all:
 
         # Release files
         release_genotypes_pgenset =  multiext(str(release_folder / release_base_name), ".pgen", ".pvar", ".psam"),
-        gen_all_markers=  multiext(str(release_folder / release_base_name),'.gen','.sample'),
         release_r2_table = release_folder/"snp"/("snp_r2_" + config['release']),
         release_best_snps = release_folder/"snp"/("reference_500k_snps_" + config['release']),
         release_pcs = release_folder/"pca"/(release_base_name + ".pcs"),
