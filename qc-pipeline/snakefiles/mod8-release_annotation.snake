@@ -631,9 +631,9 @@ rule release_genotypes:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
-rule_stem = 'release_genotypes_bgen'
-rule release_genotypes_bgen:
-    'Makes bgen files.'
+rule_stem = 'convert_release_genotypes_bgen'
+rule convert_release_genotypes_bgen:
+    'Makes a bgen version of the release genotypes.'
     input:
         pgenset_all_markers = rules.release_genotypes.output.pgenset_all_markers
     output:
