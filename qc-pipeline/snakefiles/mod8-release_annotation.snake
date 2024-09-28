@@ -631,36 +631,6 @@ rule release_genotypes:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
-rule_stem = 'convert_release_genotypes_plink1'
-rule convert_release_genotypes_bgen:
-    'Makes a plink1 version of the release genotypes.'
-    input:
-        pgenset_all_markers = rules.release_genotypes.output.pgenset_all_markers
-    output:
-        bedset_all_markers =  multiext(str(release_folder / release_base_name), '.bed', '.bim', '.fam')
-    run:
-        try:
-
-            print(f"Making bgen files.")
-
-            releaseTrunk =  mqc.plinkBase(input.pgenset_all_markers[0])
-
-            # Genotypes in bgen format
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", releaseTrunk,
-                    "--make-bed",
-                    "--out", releaseTrunk
-                ],
-                check = True
-            )
-
-
-        except Exception as e:
-            print(f"An exception occurred in rule {rule}.")
-            print(e)
-
 
 rule_stem = 'release_additional_files'
 rule release_additional_files:
