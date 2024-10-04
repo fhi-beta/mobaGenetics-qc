@@ -33,7 +33,7 @@ pheno_folder = os.path.join(work_folder, 'pheno')
 # Genotype files
 moba_release_folder = os.path.join('/mnt/archive/moba_genotypes_releases', release)
 plink_release_stem = os.path.join(moba_release_folder, 'moba_genotypes_' + release)
-plink_regenie_stem = plink_stem + "_regenie"
+plink_regenie_stem = plink_release_stem + "_regenie"
 best_snps = os.path.join(moba_release_folder, 'snp', 'reference_500k_snps_' + release)
 batches_file = os.path.join(moba_release_folder, 'batch', 'moba_genotypes_' + release + '_batches')
 
@@ -243,7 +243,7 @@ rule pheno_file:
     'Prepares a phenotype file for regenie.'
     input:
         ids_mapping_file = ids_table,
-        plink_psam = plink_stem + '.psam',
+        plink_psam = plink_release_stem + '.psam',
         raw_pheno_table = raw_pheno_table,
         relationship_table = relationship_table,
         batch_table = batches_file
@@ -284,13 +284,13 @@ rule filter_multiallelic_variants:
 rule regenie_step1:
     'Step 1 of Regenie'
     input:
-        plink_stem = rules.filter_multiallelic_variants.output.plink_regenie,
+        plink_regenie_stem = rules.filter_multiallelic_variants.output.plink_regenie,
         pheno_file = lambda wildcards: get_pheno_file(wildcards.population),
         variant_list = best_snps
     output:
         output_file = os.path.join(regenie_step1_folder, '{analysis}', 'step1_pop_{population}_pheno_{phenotype}_pred.list')
     params:
-        plink_stem = plink_regenie_stem,
+        plink_regenie_stem = plink_regenie_stem,
         temp_output_file = temp(os.path.join(regenie_step1_folder, '{analysis}', 'step1_{population}_{phenotype}_temp')),
         pheno_column = lambda wildcards: get_pheno_column(wildcards.analysis),
         pheno_binary = lambda wildcards: get_binary_option_step1(wildcards.analysis),
@@ -305,7 +305,7 @@ rule regenie_step1:
         --step 1 \
         --threads {threads} \
         --gz \
-        --pgen {params.plink_stem} \
+        --pgen {params.plink_regenie_stem} \
         --phenoFile {input.pheno_file} \
         --phenoCol {params.pheno_column} \
         --covarFile {input.pheno_file} \
@@ -321,13 +321,13 @@ rule regenie_step1:
 rule REGENIE_step2:
     'Step 2 of Regenie'
     input:
-        plink_stem = rules.filter_multiallelic_variants.output.plink_regenie,
+        plink_regenie_stem = rules.filter_multiallelic_variants.output.plink_regenie,
         pheno_file = lambda wildcards: get_pheno_file(wildcards.population),
         step1_file = os.path.join(regenie_step1_folder, '{analysis}', 'step1_pop_{population}_pheno_{phenotype}_pred.list')
     output:
         output_file = os.path.join(results_folder, '{analysis}', 'step2_pop_{population}_pheno_{phenotype}.regenie.gz'),
     params:
-        plink_stem = plink_regenie_stem,
+        plink_regenie_stem = plink_regenie_stem,
         pheno_column = lambda wildcards: get_pheno_column(wildcards.analysis),
         pheno_binary = lambda wildcards: get_binary_option_step2(wildcards.analysis),
         pheno_covariates = lambda wildcards: get_covariates(wildcards.analysis, wildcards.population),
@@ -341,7 +341,7 @@ rule REGENIE_step2:
         regenie \
         --step 2 \
         --threads {threads} \
-        --pgen {params.plink_stem} \
+        --pgen {params.plink_regenie_stem} \
         --phenoFile {input.pheno_file} \
         --phenoCol {params.pheno_column} \
         --covarFile {input.pheno_file} \
@@ -401,7 +401,7 @@ rule cojo:
     params:
         input_file = os.path.join(cojo_temp_folder, '{analysis}','cojo','tmp','step2_pop_{population}_pheno_{phenotype}.regenie.chr{chr}.ma'),
         snp_list_file = os.path.join(cojo_temp_folder, '{analysis}','cojo','tmp','step2_pop_{population}_pheno_{phenotype}.regenie.chr{chr}.snpList'),
-        plink_stem = plink_stem,
+        plink_regenie_stem = plink_regenie_stem,
         regenie_file = os.path.join(results_folder, '{analysis}', 'step2_pop_{population}_pheno_{phenotype}.regenie.gz'),
         samples_list = lambda wildcards: get_unrelated_sample_id_file(wildcards.population),
         cojo_output_file = os.path.join(cojo_temp_folder, '{analysis}','cojo','tmp','step2_pop_{population}_pheno_{phenotype}.regenie.chr{chr}'),
@@ -421,7 +421,7 @@ rule cojo:
         else
             echo "run COJO: $NO_SNP_FILE"
             gcta64 \
-                --bfile {params.plink_stem} \
+                --bfile {params.plink_regenie_stem} \
                 --cojo-file {params.input_file} \
                 --keep {params.samples_list} \
                 --chr {wildcards.chr} \
