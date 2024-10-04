@@ -269,7 +269,7 @@ rule filter_multiallelic_variants:
         plink_release_stem = plink_release_stem,
         plink_regenie_stem = plink_regenie_stem,
     output:
-        plink_regenie = multiext(plink_regenie_stem + "_regenie", ".pgen", ".pvar", ".psam")
+        plink_regenie = multiext(plink_regenie_stem, ".pgen", ".pvar", ".psam")
     conda:
         "envs/plink_2.yaml"
     threads: 1
