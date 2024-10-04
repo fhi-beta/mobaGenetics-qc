@@ -299,7 +299,7 @@ rule regenie_step1:
         parameters_output = os.path.join(regenie_step1_folder, '{analysis}', 'step1_pop_{population}_pheno_{phenotype}')
     conda:
         "envs/regenie_3.2.yaml"
-    threads: 12
+    threads: 24
     shell:
         """
         regenie \
@@ -335,7 +335,7 @@ rule REGENIE_step2:
         output_stem = os.path.join(results_folder, '{analysis}', 'step2_pop_{population}_pheno')
     conda:
         "envs/regenie_3.2.yaml"
-    threads: 12
+    threads: 24
     shell:
         """
 
