@@ -278,6 +278,7 @@ rule filter_multiallelic_variants:
         plink2 \
         --pfile {params.plink_release_stem} \
         --max-alleles 2 \
+        --make-pgen \
         --out {params.plink_regenie_stem}
         """
 
