@@ -313,7 +313,7 @@ rule regenie_step1:
         --strict \
         {params.pheno_covariates} \
         --extract {input.variant_list} \
-        --bsize 5000 \
+        --bsize 10000 \
         {params.pheno_binary} \
         --loocv \
         --out {params.parameters_output}
