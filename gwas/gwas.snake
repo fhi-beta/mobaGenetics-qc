@@ -81,8 +81,7 @@ default_covariates_mother = ['snp001', 'snp002', 'snp003', 'snp007', 'snp008', '
 default_covariates_father = ['snp001', 'snp002', 'snp003', 'snp007', 'snp008', 'snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018c', 'snp018de']
 
 
-# Specifies what analyses to run
-
+# List of chromosomes for chromosome-specific rules
 chromosomes = list(range(1,23))
 
 # Create an output folder for every analysis
@@ -441,12 +440,12 @@ rule cojo:
 rule cojo_merge:
     'Merge the results from COJO'
     input:
-        input_file = lambda wildcards: get_cojo_chr_files(os.path.join(results_folder, '{analysis}','cojo','tmp','step2_pop_{population}_pheno_{phenotype}.regenie.chr{chr}.done'))
+        input_file = lambda wildcards: get_cojo_chr_files(os.path.join(results_folder, '{analysis}', 'cojo', 'tmp', 'step2_pop_{population}_pheno_{phenotype}.regenie.chr{chr}.done'))
     params:
-        input_stem = os.path.join(cojo_temp_folder, '{analysis}','cojo','tmp','step2_pop_{population}_pheno_{phenotype}.regenie.chr_wildcard_chr'),
-        output_stem = os.path.join(results_folder, '{analysis}','cojo','step2_pop_{population}_pheno_{phenotype}')
+        input_stem = os.path.join(cojo_temp_folder, '{analysis}', 'cojo', 'tmp', 'step2_pop_{population}_pheno_{phenotype}.regenie.chr_wildcard_chr'),
+        output_stem = os.path.join(results_folder, '{analysis}', 'cojo', 'step2_pop_{population}_pheno_{phenotype}')
     output:
-        output_file = os.path.join(results_folder, '{analysis}','cojo','step2_pop_{population}_pheno_{phenotype}.jma.cojo')
+        output_file = os.path.join(results_folder, '{analysis}', 'cojo', 'step2_pop_{population}_pheno_{phenotype}.jma.cojo')
     conda:
         "envs/r_gwas.yaml"
     threads: 1
