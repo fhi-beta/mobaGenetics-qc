@@ -29,32 +29,35 @@ rule mod8_marker_filter:
             inTrunk =  mqc.plinkBase(input.pgenset[0])
             outTrunk_best_snps =  mqc.plinkBase(output.pgenset_best_snps[0])
 
-            # id_file = tmpMod8/"ids_08"
-            # print(f"Extracting markers with overall r2 >= {params.info_threshold}.")
-            # r2_data = pd.read_csv(r2_table, sep = "\t")
-            # snp_08 = r2_data[r2_data['COMBINED'] >= params.info_threshold]
-            # snp_08['ID'].to_csv(id_file, index = False, header = False)
-            # outTrunk_r2 =  mqc.plinkBase(output.pgenset_r2[0])
-            #
-            # subprocess.run(
-            #     [
-            #         plink2local,
-            #         "--pfile", inTrunk,
-            #         "--extract", id_file,
-            #         "--max-alleles", "2",
-            #         "--mac", str(params.mac_threshold),
-            #         "--geno", str(params.geno_threshold),
-            #         "--out", outTrunk_r2,
-            #         "--make-pgen"
-            #     ],
-            #     check=True
-            # )
+            id_file = tmpMod8/"ids_08"
+            print(f"Extracting markers with overall r2 >= {params.info_threshold}.")
+            r2_data = pd.read_csv(r2_table, sep = "\t")
+            snp_08 = r2_data[r2_data['COMBINED'] >= params.info_threshold]
+            snp_08['ID'].to_csv(id_file, index = False, header = False)
+            outTrunk_r2 =  mqc.plinkBase(output.pgenset_r2[0])
 
             subprocess.run(
                 [
                     plink2local,
                     "--pfile", inTrunk,
-                    "--extract", input.best_snps,
+                    "--extract", id_file,
+                    "--max-alleles", "2",
+                    "--mac", str(params.mac_threshold),
+                    "--geno", str(params.geno_threshold),
+                    "--out", outTrunk_r2,
+                    "--make-pgen"
+                ],
+                check=True
+            )
+
+            # Change to best snps when chrom fixed
+                    # "--pfile", inTrunk,
+                    # "--extract", input.best_snps,
+
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pflie", outTrunk_r2,
                     "--max-alleles", "2",
                     "--mac", str(params.mac_threshold),
                     "--geno", str(params.geno_threshold),

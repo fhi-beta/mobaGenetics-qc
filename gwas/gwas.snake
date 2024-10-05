@@ -349,7 +349,6 @@ rule REGENIE_step2:
         {params.pheno_covariates} \
         --bsize 400 \
         {params.pheno_binary} \
-        --minINFO 0.6 \
         --strict \
         --gz \
         --pred {input.step1_file} \
