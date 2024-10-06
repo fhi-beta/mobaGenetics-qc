@@ -196,18 +196,19 @@ phenotypes <- raw_phenotypes %>%
 
 print(paste0(Sys.time(), " - Setting up for gwas"))
 
-pheno_table_gwas_child <- phenotypes %>% 
-  filter(
-    !is.na(child_sentrix_id)
-  ) %>% 
-  left_join(
-    psam %>% 
+pheno_table_gwas_child <- psam %>% 
       select(
         family_id,
         child_sentrix_id = sentrix_id,
         sex
+      ) %>% 
+  inner_join(
+    phenotypes %>% 
+      filter(
+        !is.na(child_sentrix_id)
       ),
-    by = "child_sentrix_id"
+    by = "child_sentrix_id",
+    multiple = "any"
   ) %>% 
   select(
     FID = family_id,
@@ -215,18 +216,19 @@ pheno_table_gwas_child <- phenotypes %>%
     where(is.numeric)
   )
 
-pheno_table_gwas_mother <- phenotypes %>% 
-  filter(
-    !is.na(mother_sentrix_id)
-  ) %>% 
-  left_join(
-    psam %>% 
+pheno_table_gwas_mother <- psam %>% 
       select(
         family_id,
         mother_sentrix_id = sentrix_id,
         sex
+      ) %>% 
+  inner_join(
+    phenotypes %>% 
+      filter(
+        !is.na(mother_sentrix_id)
       ),
-    by = "mother_sentrix_id"
+    by = "mother_sentrix_id",
+    multiple = "any"
   ) %>% 
   mutate(
     sex = 2
@@ -237,17 +239,19 @@ pheno_table_gwas_mother <- phenotypes %>%
     where(is.numeric)
   )
 
-pheno_table_gwas_father <- phenotypes %>% 
-  filter(
-    !is.na(father_sentrix_id)
+pheno_table_gwas_mother <- psam %>% 
+  select(
+    family_id,
+    father_sentrix_id = sentrix_id,
+    sex
   ) %>% 
-  left_join(
-    psam %>% 
-      select(
-        family_id,
-        father_sentrix_id = sentrix_id
+  inner_join(
+    phenotypes %>% 
+      filter(
+        !is.na(father_sentrix_id)
       ),
-    by = "father_sentrix_id"
+    by = "father_sentrix_id",
+    multiple = "any"
   ) %>% 
   mutate(
     sex = 1
@@ -300,6 +304,12 @@ pheno_table_gwas_father <- add_batch_columns(pheno_table_gwas_father)
 
 print(paste0(Sys.time(), " - Exporting tables to ", gwas_pheno_folder))
 
+if (length(unique(pheno_table_gwas_child$IID)) != nrow(pheno_table_gwas_child)) {
+  
+  stop("Non-unique sentrix id for children.")
+  
+}
+
 write.table(
   x = pheno_table_gwas_child,
   file = file.path(gwas_pheno_folder, "pheno_child"),
@@ -307,6 +317,12 @@ write.table(
   col.names = T,
   quote = F
 )
+
+if (length(unique(pheno_table_gwas_mother$IID)) != nrow(pheno_table_gwas_mother)) {
+  
+  stop("Non-unique sentrix id for mothers")
+  
+}
 
 write.table(
   x = pheno_table_gwas_mother,
@@ -316,9 +332,31 @@ write.table(
   quote = F
 )
 
+if (length(unique(pheno_table_gwas_father$IID)) != nrow(pheno_table_gwas_father)) {
+  
+  stop("Non-unique sentrix id for fathers")
+  
+}
+
 write.table(
   x = pheno_table_gwas_father,
   file = file.path(gwas_pheno_folder, "pheno_father"),
+  row.names = F,
+  col.names = T,
+  quote = F
+)
+
+pheno_table_gwas_parents <- rbind(pheno_table_gwas_mother, pheno_table_gwas_father)
+
+if (length(unique(pheno_table_gwas_parents$IID)) != nrow(pheno_table_gwas_parents)) {
+  
+  stop("Non-unique sentrix id for parents")
+  
+}
+
+write.table(
+  x = pheno_table_gwas_parents,
+  file = file.path(gwas_pheno_folder, "pheno_parents"),
   row.names = F,
   col.names = T,
   quote = F
