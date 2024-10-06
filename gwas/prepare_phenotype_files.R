@@ -239,7 +239,7 @@ pheno_table_gwas_mother <- psam %>%
     where(is.numeric)
   )
 
-pheno_table_gwas_mother <- psam %>% 
+pheno_table_gwas_father <- psam %>% 
   select(
     family_id,
     father_sentrix_id = sentrix_id,
