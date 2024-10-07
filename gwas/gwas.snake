@@ -63,6 +63,9 @@ if not os.path.isdir(cojo_temp_folder):
 if not os.path.isdir(pheno_folder):
     os.makedirs(pheno_folder)
 
+if not os.path.isdir(id_folder):
+    os.makedirs(id_folder)
+
 if not os.path.isdir(regenie_step1_folder):
     os.makedirs(regenie_step1_folder)
 
@@ -154,6 +157,8 @@ def get_pheno_file(population):
         return os.path.join(pheno_folder, "pheno_mother")
     elif population == "fathers":
         return os.path.join(pheno_folder, "pheno_father")
+    elif population == "parents":
+        return os.path.join(pheno_folder, "pheno_parent")
     else:
         raise Exception(f"No pheno file implemented for population: '{population}'.")
 
@@ -165,6 +170,21 @@ def get_unrelated_sample_id_file(population):
         return os.path.join(id_folder, "mothers_id_unrelated_30k_plink")
     elif population == "fathers":
         return os.path.join(id_folder, "fathers_id_unrelated_30k_plink")
+    elif population == "parents":
+        return os.path.join(id_folder, "parents_id_unrelated_30k_plink")
+    else:
+        raise Exception(f"No id file implemented for population: '{population}'.")
+
+# Function to get the sample id file corresponding to the given population
+def get_sample_id_file(population):
+    if population == "children" :
+        return os.path.join(id_folder, "children_id_plink")
+    elif population == "mothers":
+        return os.path.join(id_folder, "mothers_id_plink")
+    elif population == "fathers":
+        return os.path.join(id_folder, "fathers_id_plink")
+    elif population == "parents":
+        return os.path.join(id_folder, "parents_id_plink")
     else:
         raise Exception(f"No id file implemented for population: '{population}'.")
 
@@ -230,6 +250,11 @@ rule all:
         child_pheno_file = get_pheno_file("children"),
         mother_pheno_file = get_pheno_file("mothers"),
         father_pheno_file = get_pheno_file("fathers"),
+        parents_pheno_file = get_pheno_file("parents"),
+        child_id_file = get_sample_id_file("children"),
+        mother_id_file = get_sample_id_file("mothers"),
+        father_id_file = get_sample_id_file("fathers"),
+        parents_id_file = get_sample_id_file("parents")
         # The association results
         association_results = get_regenie_output(),
         # cojo_results = get_cojo_output(),
@@ -252,7 +277,12 @@ rule pheno_file:
     output:
         child_pheno_file = get_pheno_file("children"),
         mother_pheno_file = get_pheno_file("mothers"),
-        father_pheno_file = get_pheno_file("fathers")
+        father_pheno_file = get_pheno_file("fathers"),
+        parents_pheno_file = get_pheno_file("parents"),
+        child_id_file = get_sample_id_file("children"),
+        mother_id_file = get_sample_id_file("mothers"),
+        father_id_file = get_sample_id_file("fathers"),
+        parents_id_file = get_sample_id_file("parents")
     conda:
         "envs/r_pheno.yaml"
     threads: 1
@@ -287,6 +317,7 @@ rule regenie_step1:
     input:
         plink_regenie_stem = rules.filter_multiallelic_variants.output.plink_regenie,
         pheno_file = lambda wildcards: get_pheno_file(wildcards.population),
+        samples_list = lambda wildcards: get_sample_id_file(wildcards.population),
         variant_list = best_snps
     output:
         output_file = os.path.join(regenie_step1_folder, '{analysis}', 'step1_pop_{population}_pheno_{phenotype}_pred.list')
@@ -312,6 +343,7 @@ rule regenie_step1:
         --covarFile {input.pheno_file} \
         --strict \
         {params.pheno_covariates} \
+        --keep {input.samples_list} \
         --extract {input.variant_list} \
         --bsize 10000 \
         {params.pheno_binary} \
