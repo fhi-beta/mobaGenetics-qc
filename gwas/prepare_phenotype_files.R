@@ -385,7 +385,7 @@ id_table_mother <- pheno_table_gwas_mother %>% select(FID, IID)
 
 write.table(
   x = id_table_mother,
-  file = file.path(ids_folder, "children_id_mother"),
+  file = file.path(ids_folder, "mother_id_plink"),
   row.names = F,
   col.names = F,
   quote = F,
@@ -396,7 +396,7 @@ id_table_father <- pheno_table_gwas_father %>% select(FID, IID)
 
 write.table(
   x = id_table_father,
-  file = file.path(ids_folder, "children_id_father"),
+  file = file.path(ids_folder, "father_id_plink"),
   row.names = F,
   col.names = F,
   quote = F,
@@ -407,7 +407,7 @@ id_table_parents <- pheno_table_gwas_parents %>% select(FID, IID)
 
 write.table(
   x = id_table_parents,
-  file = file.path(ids_folder, "children_id_parent"),
+  file = file.path(ids_folder, "parent_id_plink"),
   row.names = F,
   col.names = F,
   quote = F,
