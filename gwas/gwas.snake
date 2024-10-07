@@ -254,7 +254,7 @@ rule all:
         child_id_file = get_sample_id_file("children"),
         mother_id_file = get_sample_id_file("mothers"),
         father_id_file = get_sample_id_file("fathers"),
-        parents_id_file = get_sample_id_file("parents")
+        parents_id_file = get_sample_id_file("parents"),
         # The association results
         association_results = get_regenie_output(),
         # cojo_results = get_cojo_output(),
