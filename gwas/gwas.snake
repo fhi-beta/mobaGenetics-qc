@@ -259,7 +259,7 @@ rule all:
         association_results = get_regenie_output(),
         # cojo_results = get_cojo_output(),
         # The documentation
-        # documentation_no_cojo = get_md_no_cojo(),
+        documentation_no_cojo = get_md_no_cojo(),
         # documentation_with_cojo = get_md_cojo(),
         # readme_file = "gwas/README.md", # The readme file
 
@@ -379,7 +379,7 @@ rule REGENIE_step2:
         --phenoCol {params.pheno_column} \
         --covarFile {input.pheno_file} \
         {params.pheno_covariates} \
-        --bsize 400 \
+        --bsize 1000 \
         {params.pheno_binary} \
         --strict \
         --gz \
