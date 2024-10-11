@@ -61,11 +61,18 @@ geno_thr: 0.02
 # prune_markers --make founders (command and params).
 prune_cmd: --indep-pairwise 200 100 0.1
 # Minor allele count to use for pedigree and PCA in the merged set
-merged_set_mac_thr: 500
+merged_set_best_snps_mac_thr: 500
 # Missing genotype threshold (markers) for pedigree and PCA in the merged set
-merged_set_geno_thr: 0.05
+merged_set_best_snps_geno_thr: 0.05
 # Info score threshold for good markers
-merged_set_info_thr: 0.9
+merged_set_best_snps_info_thr: 0.9
+
+# Maf threshold for the release
+release_maf_thr: 0.001
+# HW threshold for the release
+release_hw_thr: 0.0000001
+# sd het threshold for the release
+release_sd_het_thr: 4
 
 # Kinship thresholds to create the set of good markers
 kinship_threshold: 0.1 # Used for the direct relatedness (not Djenghis Khan effect)

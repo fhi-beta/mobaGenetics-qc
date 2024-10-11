@@ -1166,6 +1166,33 @@ def copy_bedset(
     for extension in extensions:
         copyfile(trunkIn + extension, trunkOut + extension)
 
+def remove_bedset(
+        trunkIn,
+        extensions = [".bed", ".bim", ".fam"]
+):
+    """copies a plink bedset
+
+    This takes a plink trunk as input and copies the files with the given extension
+
+    """
+
+    for extension in extensions:
+        os.remove(trunkIn + extension)
+
+def remove_pgenset(
+        trunkIn,
+        extensions = [".pgen", ".pvar", ".psam"]
+):
+    """copies a plink bedset
+
+    This takes a plink trunk as input and copies the files with the given extension
+
+    """
+
+    for extension in extensions:
+        os.remove(trunkIn + extension)
+
+
 def dotplot(
         genomedata,
         prec = 2,

@@ -17,37 +17,128 @@ rule mod8_marker_filter:
         r2_table = r2_table, # rules.summarize_dr2.output.r2,
         best_snps = best_hits_table # rules.summarize_dr2.output.top_snps
     output:
+        pgenset_common_snps = multiext(str(tmpMod8 / rule_stem),".pgen",".pvar",".psam"),
+        pgenset_rare_snps = multiext(str(tmpMod8/rule_stem) + "_rare", ".pgen", ".pvar", ".psam"),
         pgenset_best_snps = multiext(str(tmpMod8/rule_stem) + "_best_snps", ".pgen", ".pvar", ".psam")
     params:
-        mac_threshold = config['merged_set_mac_thr'],
-        geno_threshold = config['merged_set_geno_thr'],
-        info_threshold = config['merged_set_info_thr']
+        release_maf_threshold = config['release_maf_thr'],
+        release_hw_threshold = config['release_hw_thr'],
+        release_sd_het_threshold = config['release_sd_het_thr'],
+        mac_threshold = config['merged_set_best_snps_mac_thr'],
+        geno_threshold = config['merged_set_best_snps_geno_thr'],
+        info_threshold = config['merged_set_best_snps_info_thr']
     run:
         try:
 
             inTrunk =  mqc.plinkBase(input.pgenset[0])
+            outTrunk_rare_snps =  mqc.plinkBase(output.pgenset_rare_snps[0])
             outTrunk_best_snps =  mqc.plinkBase(output.pgenset_best_snps[0])
+            outTrunk_all =  mqc.plinkBase(output.pgenset_common_snps[0])
+            outTrunk_all_temp1 = outTrunk_all + "_temp1"
+            outTrunk_all_temp2 = outTrunk_all + "_temp2"
 
-            id_file = tmpMod8/"ids_08"
-            print(f"Extracting markers with overall r2 >= {params.info_threshold}.")
-            r2_data = pd.read_csv(r2_table, sep = "\t")
-            snp_08 = r2_data[r2_data['COMBINED'] >= params.info_threshold]
-            snp_08['ID'].to_csv(id_file, index = False, header = False)
-            outTrunk_r2 =  mqc.plinkBase(output.pgenset_best_snps[0])
+            print(f"Initial filtering.")
 
             subprocess.run(
                 [
                     plink2local,
                     "--pfile", inTrunk,
-                    "--extract", id_file,
-                    "--max-alleles", "2",
-                    "--mac", str(params.mac_threshold),
-                    "--geno", str(params.geno_threshold),
-                    "--out", outTrunk_r2,
+                    "--max-maf", str(params.release_maf_threshold),
+                    "--out", outTrunk_rare_snps,
                     "--make-pgen"
                 ],
                 check=True
             )
+
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", inTrunk,
+                    "--mac", str(params.mac_threshold),
+                    "--maf", str(params.release_maf_threshold),
+                    "--out", outTrunk_all_temp1,
+                    "--make-pgen"
+                ],
+                check=True
+            )
+
+            print(f"HWE.")
+
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", outTrunk_all_temp1,
+                    "--hardy",
+                    "--out", outTrunk_all_temp1
+                ],
+                check = True
+            )
+
+            mqc.extract_list(
+                outTrunk_all_temp1 + ".hwe",
+                outTrunk_all_temp1 + ".exclude",
+                threshold_doc_file = outTrunk_all_temp1 + ".details",
+                sep = None,
+                colName = "^P$",
+                condition = "<",
+                threshold = params.release_hw_threshold,
+                key_cols = [1],
+                doc_cols = [0, 1]
+            )
+
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", outTrunk_all_temp1,
+                    "--exclude", outTrunk_all_temp1 + ".exclude",
+                    "--out", outTrunk_all_temp2,
+                    "--make-pgen"
+                ],
+                check = True
+            )
+
+            mqc.remove_pgenset(outTrunk_all_temp1)
+
+
+            print(f"het.")
+
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", outTrunk_all_temp2,
+                    "--autosome",
+                    "--maf", str(0.01),
+                    "--het",
+                    "--out",
+                    outTrunk_all_temp2
+                ],
+                check = True
+            )
+
+            het_p_values = outTrunk_all_temp2 + ".het"
+            mqc.compute_excess_het(het_p_values, outTrunk_all_temp2 + ".exclude", params.release_sd_het_threshold)
+
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", outTrunk_all_temp1,
+                    "--exclude", outTrunk_all_temp2 + ".exclude",
+                    "--out", outTrunk_all,
+                    "--make-pgen"
+                ],
+                check = True
+            )
+
+            mqc.remove_pgenset(outTrunk_all_temp2)
+
+
+            print(f"Best snps.")
+
+            id_file = tmpMod8/"ids_best"
+            print(f"Extracting markers with overall r2 >= {params.info_threshold}.")
+            r2_data = pd.read_csv(r2_table, sep = "\t")
+            snp_08 = r2_data[r2_data['COMBINED'] >= params.info_threshold]
+            snp_08['ID'].to_csv(id_file, index = False, header = False)
 
             # Change to best snps when chrom fixed
                     # "--pfile", inTrunk,
@@ -56,7 +147,8 @@ rule mod8_marker_filter:
             subprocess.run(
                 [
                     plink2local,
-                    "--pflie", outTrunk_r2,
+                    "--pflie", outTrunk_all,
+                    "--extract", id_file,
                     "--max-alleles", "2",
                     "--mac", str(params.mac_threshold),
                     "--geno", str(params.geno_threshold),
@@ -144,8 +236,8 @@ rule_stem = 'mod8_check_sex'
 rule mod8_check_sex:
     'Sex imputation. Currently not supported in plink2, running in plink1.'
     input:
-        pgenset = [mod7_output + ".pgen"],
-        pgenset_r2 = multiext(str(tmpMod8/"mod8_marker_filter") + "_best_snps", ".pgen", ".pvar", ".psam")
+        pgenset = rules.mod8_marker_filter.output.pgenset_common_snps,
+        pgenset_best_snps = rules.mod8_marker_filter.output.pgenset_common_snps,
     params:
         info_threshold = config['merged_set_info_thr']
     output:
@@ -331,7 +423,7 @@ rule mod8_pedigree_ibd_estimate:
 rule_stem = 'mod8_psam_reconstruction'
 rule mod8_psam_reconstruction:
     input:
-        psam_all_markers = mod7_output + ".psam", #rules.mod7_rename_missing_ids.output.pgenset[2],
+        psam_all_markers = rules.mod8_marker_filter.output.pgenset_common_snps[2],
         king_relatedness = rules.mod8_pedigree_ibd_estimate.output.king_relatedness,
         sex_check = rules.mod8_check_sex.output.sex_check,
         expected_relationships = config['expected_relationships'],
@@ -367,26 +459,31 @@ rule mod8_psam_reconstruction:
 rule_stem = 'mod8_exclude_conflictual_relationships'
 rule mod8_exclude_conflictual_relationships:
     input:
-        pgenset_all_markers = [mod7_output + ".pgen"], #rules.mod7_rename_missing_ids.output.pgenset,
+        pgenset_common_snps = rules.mod8_marker_filter.output.pgenset_common_snps,
+        pgenset_rare_snps = rules.mod8_marker_filter.output.pgenset_rare_snps,
+        pgenset_best_snps = rules.mod8_marker_filter.output.pgenset_common_snps,
         pgenset_pruned_markers = rules.mod8_prune_markers.output.pgenset,
         pedigree_sample_exclusion = rules.mod8_psam_reconstruction.output.pedigree_sample_exclusion,
         updated_psam = rules.mod8_psam_reconstruction.output.updated_psam
     output:
-        pgenset_all_markers =  multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
-        pgenset_pruned_markers = multiext(str(tmpMod8/(rule_stem + "_pruned")), ".pgen", ".pvar", ".psam")
+        pgenset_common_snps =  multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
+        pgenset_rare_snps = multiext(str(tmpMod8/(rule_stem + "_rare")), ".pgen", ".pvar", ".psam"),
+        pgenset_best_snps = multiext(str(tmpMod8/(rule_stem + "_best_snps")), ".pgen", ".pvar", ".psam")
     run:
         try:
-            inTrunk_all_markers = mqc.plinkBase(input.pgenset_all_markers[0])
-            outTrunk_all_markers = mqc.plinkBase(output.pgenset_all_markers[0])
-            inTrunk_pruned_markers = mqc.plinkBase(input.pgenset_pruned_markers[0])
-            outTrunk_pruned_markers = mqc.plinkBase(output.pgenset_pruned_markers[0])
+            inTrunk_common_markers = mqc.plinkBase(input.pgenset_common_snps[0])
+            outTrunk_common_markers = mqc.plinkBase(output.pgenset_common_snps[0])
+            inTrunk_rare_markers = mqc.plinkBase(input.pgenset_rare_snps[0])
+            outTrunk_rare_markers = mqc.plinkBase(output.pgenset_rare_snps[0])
+            inTrunk_best_markers = mqc.plinkBase(input.pgenset_best_snps[0])
+            outTrunk_best_markers = mqc.plinkBase(output.pgenset_best_snps[0])
 
             subprocess.run(
                 [
                     plink2local,
-                    "--pfile", inTrunk_all_markers,
+                    "--pfile", inTrunk_common_markers,
                     "--remove", input.pedigree_sample_exclusion,
-                    "--out", outTrunk_all_markers,
+                    "--out", outTrunk_common_markers,
                     "--make-pgen"
                 ],
                 check = True
@@ -395,17 +492,29 @@ rule mod8_exclude_conflictual_relationships:
             subprocess.run(
                 [
                     plink2local,
-                    "--pfile", inTrunk_pruned_markers,
+                    "--pfile", inTrunk_rare_markers,
                     "--remove", input.pedigree_sample_exclusion,
-                    "--out", outTrunk_pruned_markers,
+                    "--out", outTrunk_rare_markers,
+                    "--make-pgen"
+                ],
+                check = True
+            )
+
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", inTrunk_best_markers,
+                    "--remove", input.pedigree_sample_exclusion,
+                    "--out", outTrunk_best_markers,
                     "--make-pgen"
                 ],
                 check = True
             )
 
             # Update psam
-            copyfile(input.updated_psam, outTrunk_all_markers + ".psam")
-            copyfile(input.updated_psam, outTrunk_pruned_markers + ".psam")
+            copyfile(input.updated_psam, outTrunk_common_markers + ".psam")
+            copyfile(input.updated_psam, outTrunk_rare_markers + ".psam")
+            copyfile(input.updated_psam, outTrunk_best_markers + ".psam")
 
 
         except Exception as e:
@@ -417,8 +526,8 @@ rule mod8_exclude_conflictual_relationships:
 rule_stem = 'mod8_common_markers_moba_ref'
 rule mod8_common_markers_moba_ref:
     input:
-        bedset_ref = multiext(config["1000_genomes_stem"] ,'.bed','.bim','.fam'),
-        pgenset_moba = rules.mod8_exclude_conflictual_relationships.output.pgenset_pruned_markers
+        bedset_ref = multiext(config["1000_genomes_stem"], '.bed', '.bim', '.fam'),
+        pgenset_moba = rules.mod8_exclude_conflictual_relationships.output.pgenset_best_snps
     output:
         bedset_ref = multiext(str(tmpMod8/"pca_ref") ,'.bed','.bim','.fam'),
         bedset_moba = multiext(str(tmpMod8/"pca_moba") ,'.bed','.bim','.fam'),
@@ -511,10 +620,9 @@ rule mod8_common_markers_moba_ref:
             check = True
         )
 
-        for extension in ['.bed', '.bim', '.fam']:
-            os.remove(inTrunk_moba_1 + extension)
-            os.remove(outTrunk_moba_temp + extension)
-            os.remove(outTrunk_ref_temp + extension)
+        mqc.remove_bedset(inTrunk_moba_1)
+        mqc.remove_bedset(outTrunk_moba_temp)
+        mqc.remove_bedset(outTrunk_ref_temp)
 
 # We would prefer to run the PCA on 1kg and project MoBa on the eigenvectors but merging is more robust and works just fine.
 rule_stem = "mod8_pca_both"
