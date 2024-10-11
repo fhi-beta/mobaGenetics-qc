@@ -239,7 +239,7 @@ rule mod8_check_sex:
         pgenset = rules.mod8_marker_filter.output.pgenset_common_snps,
         pgenset_best_snps = rules.mod8_marker_filter.output.pgenset_common_snps,
     params:
-        info_threshold = config['merged_set_info_thr']
+        info_threshold = config['merged_set_best_snps_info_thr']
     output:
         sex_check = tmpMod8/(rule_stem + ".sexcheck")
     run:
