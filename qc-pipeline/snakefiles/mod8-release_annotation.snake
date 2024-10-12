@@ -68,14 +68,14 @@ rule mod8_marker_filter:
                 [
                     plink2local,
                     "--pfile", outTrunk_all_temp1,
-                    "--hardy",
+                    "--hardy", "midp",
                     "--out", outTrunk_all_temp1
                 ],
                 check = True
             )
 
             mqc.extract_list(
-                outTrunk_all_temp1 + ".hwe",
+                outTrunk_all_temp1 + ".hardy",
                 outTrunk_all_temp1 + ".exclude",
                 threshold_doc_file = outTrunk_all_temp1 + ".details",
                 sep = None,
@@ -200,7 +200,7 @@ rule mod8_generate_best_snps_stats:
                 [
                     plink2local,
                     "--pfile", plink_input,
-                    "--hardy",
+                    "--hardy", "midp"
                     "--out", plink_hwe_output
                 ],
                 check=True
