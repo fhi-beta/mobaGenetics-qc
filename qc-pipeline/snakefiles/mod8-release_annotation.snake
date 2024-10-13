@@ -63,16 +63,16 @@ rule mod8_marker_filter:
             # )
 
             print(f"HWE.")
-            #
-            # subprocess.run(
-            #     [
-            #         plink2local,
-            #         "--pfile", outTrunk_all_temp1,
-            #         "--hardy", "midp",
-            #         "--out", outTrunk_all_temp1
-            #     ],
-            #     check = True
-            # )
+
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", outTrunk_all_temp1,
+                    "--hardy", "midp",
+                    "--out", outTrunk_all_temp1
+                ],
+                check = True
+            )
 
             mqc.extract_list(
                 outTrunk_all_temp1 + ".hardy",
@@ -98,25 +98,6 @@ rule mod8_marker_filter:
                 doc_cols = [0, 1]
             )
 
-            exclude_file = open(outTrunk_all_temp1 + ".hardy", 'a+')
-            exclude_x_file = open(outTrunk_all_temp1 + "_x.exclude", 'r')
-
-            exclude_file.write(exclude_x_file.read())
-
-            exclude_x_file.close()
-            exclude_file.close()
-
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", outTrunk_all_temp1,
-                    "--exclude", outTrunk_all_temp1 + ".exclude",
-                    "--out", outTrunk_all_temp2,
-                    "--make-pgen"
-                ],
-                check = True
-            )
-
             mqc.remove_pgenset(outTrunk_all_temp1)
 
 
@@ -125,31 +106,37 @@ rule mod8_marker_filter:
             subprocess.run(
                 [
                     plink2local,
-                    "--pfile", outTrunk_all_temp2,
+                    "--pfile", outTrunk_all_temp1,
                     "--autosome",
                     "--maf", str(0.01),
                     "--het",
                     "--out",
-                    outTrunk_all_temp2
+                    outTrunk_all_temp1
                 ],
                 check = True
             )
 
-            het_p_values = outTrunk_all_temp2 + ".het"
-            mqc.compute_excess_het(het_p_values, outTrunk_all_temp2 + ".exclude", params.release_sd_het_threshold)
+            het_p_values = outTrunk_all_temp1 + ".het"
+            mqc.compute_excess_het(het_p_values, outTrunk_all_temp1 + "_het.exclude", params.release_sd_het_threshold)
+
+            with open(outTrunk_all_temp1 + ".exclude",'a') as exclude_file:
+                with open(outTrunk_all_temp1 + "_x.exclude",'r') as exclude_x_file:
+                    exclude_file.write(exclude_x_file.read())
+                with open(outTrunk_all_temp1 + "_het.exclude", 'r') as exclude_het_file:
+                    exclude_file.write(exclude_x_file.read())
 
             subprocess.run(
                 [
                     plink2local,
                     "--pfile", outTrunk_all_temp1,
-                    "--exclude", outTrunk_all_temp2 + ".exclude",
+                    "--exclude", outTrunk_all_temp1 + ".exclude",
                     "--out", outTrunk_all,
                     "--make-pgen"
                 ],
                 check = True
             )
 
-            mqc.remove_pgenset(outTrunk_all_temp2)
+            mqc.remove_pgenset(outTrunk_all_temp1)
 
 
             print(f"Best snps.")
