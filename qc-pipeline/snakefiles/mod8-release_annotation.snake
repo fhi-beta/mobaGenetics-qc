@@ -17,8 +17,8 @@ rule mod8_marker_filter:
         r2_table = r2_table, # rules.summarize_dr2.output.r2,
         best_snps = best_hits_table # rules.summarize_dr2.output.top_snps
     output:
-        pgenset_common_snps = multiext(str(tmpMod8 / rule_stem),".pgen",".pvar",".psam"),
-        pgenset_rare_snps = multiext(str(tmpMod8/rule_stem) + "_rare", ".pgen", ".pvar", ".psam"),
+        # pgenset_common_snps = multiext(str(tmpMod8 / rule_stem),".pgen",".pvar",".psam"),
+        # pgenset_rare_snps = multiext(str(tmpMod8/rule_stem) + "_rare", ".pgen", ".pvar", ".psam"),
         pgenset_best_snps = multiext(str(tmpMod8/rule_stem) + "_best_snps", ".pgen", ".pvar", ".psam")
     params:
         release_maf_threshold = config['release_maf_thr'],
@@ -38,29 +38,29 @@ rule mod8_marker_filter:
             outTrunk_all_temp2 = outTrunk_all + "_temp2"
 
             print(f"Initial filtering.")
-            #
-            # subprocess.run(
-            #     [
-            #         plink2local,
-            #         "--pfile", inTrunk,
-            #         "--max-maf", str(params.release_maf_threshold),
-            #         "--out", outTrunk_rare_snps,
-            #         "--make-pgen"
-            #     ],
-            #     check=True
-            # )
-            #
-            # subprocess.run(
-            #     [
-            #         plink2local,
-            #         "--pfile", inTrunk,
-            #         "--mac", str(params.mac_threshold),
-            #         "--maf", str(params.release_maf_threshold),
-            #         "--out", outTrunk_all_temp1,
-            #         "--make-pgen"
-            #     ],
-            #     check=True
-            # )
+
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", inTrunk,
+                    "--max-maf", str(params.release_maf_threshold),
+                    "--out", outTrunk_rare_snps,
+                    "--make-pgen"
+                ],
+                check=True
+            )
+
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", inTrunk,
+                    "--mac", str(params.mac_threshold),
+                    "--maf", str(params.release_maf_threshold),
+                    "--out", outTrunk_all_temp1,
+                    "--make-pgen"
+                ],
+                check=True
+            )
 
             print(f"HWE.")
 
