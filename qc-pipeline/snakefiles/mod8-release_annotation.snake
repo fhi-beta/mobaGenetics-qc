@@ -186,7 +186,7 @@ rule_stem = 'mod8_generate_best_snps_stats'
 rule mod8_generate_best_snps_stats:
     'Generate statistics on the filtered snps'
     input:
-        pgenset = rules.mod8_marker_filter.output.pgenset_best_snps
+        pgenset = rules.mod8_common_snps_filter.output.pgenset_best_snps
     output:
         het = tmpMod8/'mod8_best_snps.het',
         hardy = tmpMod8/'mod8_best_snps.hardy',
@@ -255,8 +255,8 @@ rule_stem = 'mod8_check_sex'
 rule mod8_check_sex:
     'Sex imputation. Currently not supported in plink2, running in plink1.'
     input:
-        pgenset = rules.mod8_marker_filter.output.pgenset_common_snps,
-        pgenset_best_snps = rules.mod8_marker_filter.output.pgenset_common_snps,
+        pgenset = rules.mod8_common_snps_filter.output.pgenset_common_snps,
+        pgenset_best_snps = rules.mod8_common_snps_filter.output.pgenset_best_snps,
     params:
         info_threshold = config['merged_set_best_snps_info_thr']
     output:
@@ -352,7 +352,7 @@ rule_stem = 'mod8_prune_markers'
 rule mod8_prune_markers:
     'Prune markers for LD' # Marc check, should not be needed anymore
     input:
-        pgenset = rules.mod8_marker_filter.output.pgenset_best_snps,
+        pgenset = rules.mod8_common_snps_filter.output.pgenset_best_snps,
         high_ld_regions_hg19 = high_ld_regions_hg19
     output:
         pgenset = multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
@@ -442,7 +442,7 @@ rule mod8_pedigree_ibd_estimate:
 rule_stem = 'mod8_psam_reconstruction'
 rule mod8_psam_reconstruction:
     input:
-        psam_all_markers = rules.mod8_marker_filter.output.pgenset_common_snps[2],
+        psam_all_markers = rules.mod8_common_snps_filter.output.pgenset_common_snps[2],
         king_relatedness = rules.mod8_pedigree_ibd_estimate.output.king_relatedness,
         sex_check = rules.mod8_check_sex.output.sex_check,
         expected_relationships = config['expected_relationships'],
@@ -478,9 +478,9 @@ rule mod8_psam_reconstruction:
 rule_stem = 'mod8_exclude_conflictual_relationships'
 rule mod8_exclude_conflictual_relationships:
     input:
-        pgenset_common_snps = rules.mod8_marker_filter.output.pgenset_common_snps,
-        pgenset_rare_snps = rules.mod8_marker_filter.output.pgenset_rare_snps,
-        pgenset_best_snps = rules.mod8_marker_filter.output.pgenset_common_snps,
+        pgenset_common_snps = rules.mod8_common_snps_filter.output.pgenset_common_snps,
+        pgenset_rare_snps = rules.mod8_split_rare_common.output.pgenset_rare_snps,
+        pgenset_best_snps = rules.mod8_common_snps_filter.output.pgenset_best_snps,
         pgenset_pruned_markers = rules.mod8_prune_markers.output.pgenset,
         pedigree_sample_exclusion = rules.mod8_psam_reconstruction.output.pedigree_sample_exclusion,
         updated_psam = rules.mod8_psam_reconstruction.output.updated_psam
