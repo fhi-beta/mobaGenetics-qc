@@ -131,7 +131,12 @@ rule mod8_common_snps_filter:
             )
 
             het_p_values = inTrunk + ".het"
-            mqc.compute_excess_het(het_p_values, inTrunk + "_het.exclude", params.release_sd_het_threshold)
+            mqc.compute_excess_het(
+                het_p_values,
+                inTrunk + "_het.exclude",
+                params.release_sd_het_threshold,
+                plink1=False
+            )
 
             with open(inTrunk + ".exclude",'a') as exclude_file:
                 with open(inTrunk + "_x.exclude",'r') as exclude_x_file:
