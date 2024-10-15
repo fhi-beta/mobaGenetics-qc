@@ -307,7 +307,6 @@ def extract_list(
      was used ' ' is used
 
     """
-    print(inFile)
     with open(inFile) as fp:
 
         # Identifying header column
@@ -852,7 +851,7 @@ def filter_hwe(
     return
 
 
-def compute_excess_het(het_file, out_file, sd):
+def compute_excess_het(het_file, out_file, sd, plink1=True):
     """Computes a list of samples with excess het
 
     Based on het_file and a number of standard deviation sd,
@@ -881,8 +880,14 @@ def compute_excess_het(het_file, out_file, sd):
         print(f"{my_name}: {str(e)}")
         return
 
-    # Columns defined in https://www.cog-genomics.org/plink/1.9/formats#het
-    df['het_rate'] = (df['N(NM)'] - df['O(HOM)']) / df['N(NM)']
+    if plink1:
+        # Columns defined in https://www.cog-genomics.org/plink/1.9/formats#het
+        df['het_rate'] = (df['N(NM)'] - df['O(HOM)']) / df['N(NM)']
+    
+    else:
+        # Columns defined in https://www.cog-genomics.org/plink/2.0/formats#het
+        df['het_rate'] = (df['OBS_CT'] - df['O(HOM)']) / df['OBS_CT']
+    
     failed = df[df.het_rate > df.het_rate.mean() + sd*df.het_rate.std()].copy()
     failed['het_dst'] = (failed['het_rate'] - df['het_rate'].mean()) / df['het_rate'].std()
 
