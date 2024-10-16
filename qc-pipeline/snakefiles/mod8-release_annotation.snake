@@ -65,6 +65,7 @@ rule mod8_common_snps_filter:
         best_snps = best_hits_table # rules.summarize_dr2.output.top_snps
     output:
         pgenset_common_snps = multiext(str(tmpMod8 / rule_stem),".pgen",".pvar",".psam"),
+        afreq_common_snps = tmpMod8/'mod8_common_snps.afreq',
         pgenset_best_snps = multiext(str(tmpMod8/rule_stem) + "_best_snps", ".pgen", ".pvar", ".psam")
     params:
         release_maf_threshold = config['release_maf_thr'],
@@ -80,11 +81,23 @@ rule mod8_common_snps_filter:
             outTrunk_best_snps =  mqc.plinkBase(output.pgenset_best_snps[0])
             outTrunk_common =  mqc.plinkBase(output.pgenset_common_snps[0])
 
+            # Precompute frequencies
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", inTrunk,
+                    "--freq",
+                    "--out", output.afreq_common_snps
+                ],
+                check=True
+            )
+
             subprocess.run(
                 [
                     plink2local,
                     "--pfile", inTrunk,
                     "--hardy", "midp",
+                    "--read-freq", output.afreq_common_snps,
                     "--out", inTrunk
                 ],
                 check = True
@@ -121,6 +134,7 @@ rule mod8_common_snps_filter:
                 [
                     plink2local,
                     "--pfile", inTrunk,
+                    "--read-freq", output.afreq_common_snps,
                     "--autosome",
                     "--maf", str(0.01),
                     "--het",
@@ -133,7 +147,7 @@ rule mod8_common_snps_filter:
             het_p_values = inTrunk + ".het"
             mqc.compute_excess_het(
                 het_p_values,
-                inTrunk + "_het.exclude",
+                inTrunk + "_het",
                 params.release_sd_het_threshold,
                 plink1=False
             )
@@ -208,28 +222,6 @@ rule mod8_generate_best_snps_stats:
             plink_freq_output = mqc.plinkBase(output.afreq)
             plink_miss_output = mqc.plinkBase(output.smiss)
 
-            # Heterozygocity rate
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", plink_input,
-                    "--het",
-                    "--out", plink_het_output
-                ],
-                check=True
-            )
-
-            # HWE
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", plink_input,
-                    "--hardy", "midp"
-                    "--out", plink_hwe_output
-                ],
-                check=True
-            )
-
             # Frequencies
             subprocess.run(
                 [
@@ -241,11 +233,36 @@ rule mod8_generate_best_snps_stats:
                 check=True
             )
 
+            # Heterozygocity rate
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--read-freq", output.afreq,
+                    "--het",
+                    "--out", plink_het_output
+                ],
+                check=True
+            )
+
+            # HWE
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--read-freq", output.afreq,
+                    "--hardy", "midp"
+                    "--out", plink_hwe_output
+                ],
+                check=True
+            )
+
             # Missingness
             subprocess.run(
                 [
                     plink2local,
                     "--pfile", plink_input,
+                    "--read-freq", output.afreq,
                     "--missing",
                     "--out", plink_miss_output
                 ],

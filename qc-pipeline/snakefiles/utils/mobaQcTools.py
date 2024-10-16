@@ -899,14 +899,24 @@ def compute_excess_het(het_file, out_file, sd, plink1=True):
     )
 
     # file to be used by plink to remove samples
-    failed[['FID', 'IID']].to_csv(
-        out_file,
-        sep = " ",
-        index = False,
-        header = False
-    )
+    if plink1:
+        failed[['FID', 'IID']].to_csv(
+            out_file,
+            sep = " ",
+            index = False,
+            header = False
+        )
 
-    # Documentation of the actual metrics  of the removed samples
+    else:
+        failed[['IID']].to_csv(
+            out_file,
+            sep = " ",
+            index = False,
+            header = False
+        )
+
+
+    # Documentation of the actual metrics of the removed samples
     failed.to_csv(
         out_file + ".details",
         sep = " ",
