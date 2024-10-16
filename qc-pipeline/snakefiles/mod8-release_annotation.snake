@@ -78,6 +78,7 @@ rule mod8_common_snps_filter:
         try:
 
             inTrunk =  mqc.plinkBase(input.pgenset[0])
+            freqTrunk =  mqc.plinkBase(output.afreq_common_snps)
             outTrunk_best_snps =  mqc.plinkBase(output.pgenset_best_snps[0])
             outTrunk_common =  mqc.plinkBase(output.pgenset_common_snps[0])
 
@@ -87,7 +88,7 @@ rule mod8_common_snps_filter:
                     plink2local,
                     "--pfile", inTrunk,
                     "--freq",
-                    "--out", output.afreq_common_snps
+                    "--out", freqTrunk
                 ],
                 check=True
             )
