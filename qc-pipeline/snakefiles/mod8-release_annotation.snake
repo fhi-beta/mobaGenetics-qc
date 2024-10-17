@@ -81,69 +81,69 @@ rule mod8_common_snps_filter:
             freqTrunk =  mqc.plinkBase(output.afreq_common_snps)
             outTrunk_best_snps =  mqc.plinkBase(output.pgenset_best_snps[0])
             outTrunk_common =  mqc.plinkBase(output.pgenset_common_snps[0])
-
-            # Precompute frequencies
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", inTrunk,
-                    "--freq",
-                    "--out", freqTrunk
-                ],
-                check=True
-            )
-
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", inTrunk,
-                    "--hardy", "midp",
-                    "--read-freq", output.afreq_common_snps,
-                    "--out", inTrunk
-                ],
-                check = True
-            )
-
-            mqc.extract_list(
-                inTrunk + ".hardy",
-                inTrunk + ".exclude",
-                threshold_doc_file = inTrunk + ".details",
-                sep = None,
-                colName = "^MIDP$",
-                condition = "<",
-                threshold = params.release_hw_threshold,
-                key_cols = [1],
-                doc_cols = [0, 1]
-            )
-
-            mqc.extract_list(
-                inTrunk + ".hardy.x",
-                inTrunk + "_x.exclude",
-                threshold_doc_file = inTrunk + ".details",
-                sep = None,
-                colName = "^MIDP$",
-                condition = "<",
-                threshold = params.release_hw_threshold,
-                key_cols = [1],
-                doc_cols = [0, 1]
-            )
-
-
-            print(f"het.")
-
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", inTrunk,
-                    "--read-freq", output.afreq_common_snps,
-                    "--autosome",
-                    "--maf", str(0.01),
-                    "--het",
-                    "--out",
-                    inTrunk
-                ],
-                check = True
-            )
+            #
+            # # Precompute frequencies
+            # subprocess.run(
+            #     [
+            #         plink2local,
+            #         "--pfile", inTrunk,
+            #         "--freq",
+            #         "--out", freqTrunk
+            #     ],
+            #     check=True
+            # )
+            #
+            # subprocess.run(
+            #     [
+            #         plink2local,
+            #         "--pfile", inTrunk,
+            #         "--hardy", "midp",
+            #         "--read-freq", output.afreq_common_snps,
+            #         "--out", inTrunk
+            #     ],
+            #     check = True
+            # )
+            #
+            # mqc.extract_list(
+            #     inTrunk + ".hardy",
+            #     inTrunk + ".exclude",
+            #     threshold_doc_file = inTrunk + ".details",
+            #     sep = None,
+            #     colName = "^MIDP$",
+            #     condition = "<",
+            #     threshold = params.release_hw_threshold,
+            #     key_cols = [1],
+            #     doc_cols = [0, 1]
+            # )
+            #
+            # mqc.extract_list(
+            #     inTrunk + ".hardy.x",
+            #     inTrunk + "_x.exclude",
+            #     threshold_doc_file = inTrunk + ".details",
+            #     sep = None,
+            #     colName = "^MIDP$",
+            #     condition = "<",
+            #     threshold = params.release_hw_threshold,
+            #     key_cols = [1],
+            #     doc_cols = [0, 1]
+            # )
+            #
+            #
+            # print(f"het.")
+            #
+            # subprocess.run(
+            #     [
+            #         plink2local,
+            #         "--pfile", inTrunk,
+            #         "--read-freq", output.afreq_common_snps,
+            #         "--autosome",
+            #         "--maf", str(0.01),
+            #         "--het",
+            #         "--out",
+            #         inTrunk
+            #     ],
+            #     check = True
+            # )
 
             het_p_values = inTrunk + ".het"
             mqc.compute_excess_het(
