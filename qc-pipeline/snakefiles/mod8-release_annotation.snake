@@ -129,32 +129,32 @@ rule mod8_common_snps_filter:
             # )
             #
             #
-            # print(f"het.")
-            #
-            # subprocess.run(
-            #     [
-            #         plink2local,
-            #         "--pfile", inTrunk,
-            #         "--read-freq", output.afreq_common_snps,
-            #         "--autosome",
-            #         "--maf", str(0.01),
-            #         "--het",
-            #         "--out",
-            #         inTrunk
-            #     ],
-            #     check = True
-            # )
+            print(f"het.")
+
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", inTrunk,
+                    "--read-freq", output.afreq_common_snps,
+                    "--autosome",
+                    "--maf", str(0.01),
+                    "--het",
+                    "--out",
+                    inTrunk
+                ],
+                check = True
+            )
 
             het_p_values = inTrunk + ".het"
             mqc.compute_excess_het(
                 het_p_values,
-                inTrunk + "_het",
+                inTrunk + "_het.exclude",
                 params.release_sd_het_threshold,
                 plink1=False
             )
 
-            with open(inTrunk + ".exclude",'a') as exclude_file:
-                with open(inTrunk + "_x.exclude",'r') as exclude_x_file:
+            with open(inTrunk + ".exclude", 'a') as exclude_file:
+                with open(inTrunk + "_x.exclude", 'r') as exclude_x_file:
                     exclude_file.write(exclude_x_file.read())
                 with open(inTrunk + "_het.exclude", 'r') as exclude_het_file:
                     exclude_file.write(exclude_x_file.read())
