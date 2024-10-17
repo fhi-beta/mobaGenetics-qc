@@ -65,7 +65,7 @@ rule mod8_common_snps_filter:
         best_snps = best_hits_table # rules.summarize_dr2.output.top_snps
     output:
         pgenset_common_snps = multiext(str(tmpMod8 / rule_stem),".pgen",".pvar",".psam"),
-        afreq_common_snps = tmpMod8/'mod8_common_snps.afreq',
+        # afreq_common_snps = tmpMod8/'mod8_common_snps.afreq',
         pgenset_best_snps = multiext(str(tmpMod8/rule_stem) + "_best_snps", ".pgen", ".pvar", ".psam")
     params:
         release_maf_threshold = config['release_maf_thr'],
@@ -157,7 +157,7 @@ rule mod8_common_snps_filter:
                 with open(inTrunk + "_x.exclude", 'r') as exclude_x_file:
                     exclude_file.write(exclude_x_file.read())
                 with open(inTrunk + "_het.exclude", 'r') as exclude_het_file:
-                    exclude_file.write(exclude_x_file.read())
+                    exclude_file.write(exclude_het_file.read())
 
             subprocess.run(
                 [
