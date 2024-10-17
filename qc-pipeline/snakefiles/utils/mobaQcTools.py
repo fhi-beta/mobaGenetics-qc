@@ -908,7 +908,7 @@ def compute_excess_het(het_file, out_file, sd, plink1=True):
         )
 
     else:
-        failed[['IID']].to_csv(
+        failed[['#IID']].to_csv(
             out_file,
             sep = " ",
             index = False,
