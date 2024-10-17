@@ -81,18 +81,18 @@ rule mod8_common_snps_filter:
             freqTrunk =  mqc.plinkBase(output.afreq_common_snps)
             outTrunk_best_snps =  mqc.plinkBase(output.pgenset_best_snps[0])
             outTrunk_common =  mqc.plinkBase(output.pgenset_common_snps[0])
-            #
-            # # Precompute frequencies
-            # subprocess.run(
-            #     [
-            #         plink2local,
-            #         "--pfile", inTrunk,
-            #         "--freq",
-            #         "--out", freqTrunk
-            #     ],
-            #     check=True
-            # )
-            #
+
+            # Precompute frequencies
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", inTrunk,
+                    "--freq",
+                    "--out", freqTrunk
+                ],
+                check=True
+            )
+
             # subprocess.run(
             #     [
             #         plink2local,
