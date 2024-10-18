@@ -251,8 +251,8 @@ rule mod8_generate_best_snps_stats:
                 [
                     plink2local,
                     "--pfile", plink_input,
+                    "--hardy", "midp",
                     "--read-freq", output.afreq,
-                    "--hardy", "midp"
                     "--out", plink_hwe_output
                 ],
                 check=True
