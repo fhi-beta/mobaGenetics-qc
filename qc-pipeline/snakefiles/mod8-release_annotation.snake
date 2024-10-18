@@ -186,7 +186,7 @@ rule mod8_common_snps_filter:
             subprocess.run(
                 [
                     plink2local,
-                    "--pflie", outTrunk_common,
+                    "--pfile", outTrunk_common,
                     "--extract", id_file,
                     "--max-alleles", "2",
                     "--mac", str(params.mac_threshold),
