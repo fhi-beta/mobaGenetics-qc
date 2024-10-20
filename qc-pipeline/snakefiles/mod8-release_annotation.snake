@@ -221,7 +221,7 @@ rule mod8_common_snps_filter:
             subprocess.run(
                 [
                     plink2local,
-                    "--pfile", inTrunk,
+                    "--pfile", temp1,
                     "--extract", output.pruned_list,
                     "--out", outTrunk_best_snps,
                     "--make-pgen"
