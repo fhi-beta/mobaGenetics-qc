@@ -88,7 +88,8 @@ rule mod8_common_snps_filter:
         release_sd_het_threshold = config['release_sd_het_thr'],
         mac_threshold = config['merged_set_best_snps_mac_thr'],
         geno_threshold = config['merged_set_best_snps_geno_thr'],
-        info_threshold = config['merged_set_best_snps_info_thr']
+        info_threshold = config['merged_set_best_snps_info_thr'],
+        prune_cmd = config["prune_cmd"]
     run:
         try:
 
