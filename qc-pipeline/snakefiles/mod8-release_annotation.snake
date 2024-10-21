@@ -217,8 +217,6 @@ rule mod8_common_snps_filter:
                 check = True
             )
 
-            mqc.remove_bedset(temp1)
-
             subprocess.run(
                 [
                     plink2local,
@@ -230,6 +228,7 @@ rule mod8_common_snps_filter:
                 check = True
             )
 
+            mqc.remove_bedset(temp1)
             mqc.remove_bedset(temp2)
 
         except Exception as e:
