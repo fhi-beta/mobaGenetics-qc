@@ -221,7 +221,7 @@ rule mod8_common_snps_filter:
                 [
                     plink2local,
                     "--pfile", temp1,
-                    "--extract", output.pruned_list,
+                    "--extract", output.best_pruned_list,
                     "--out", outTrunk_best_snps,
                     "--make-pgen"
                 ],
