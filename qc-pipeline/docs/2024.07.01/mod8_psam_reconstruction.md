@@ -5,9 +5,9 @@
 | Relationship |   |
 | ------------ | - |
 | Duplicates or monozygotic twins| 3725 |
-| Parent-offspring| 138876 |
-| Full siblings| 26014 |
-| 2nd degree| 119 |
+| Parent-offspring| 138835 |
+| Full siblings| 26009 |
+| 2nd degree| 143 |
 | 3rd degree| 0 |
 | 4th degree| 0 |
 | Unrelated| 0 |
@@ -39,18 +39,18 @@
 ![](mod8_psam_reconstruction/children_sex_plot.png)
 ## Parental relationship
 83839 mother-child relationships expected.
-- 83504 (99.6%) recovered by genetic relationships.
-- 335 (0.4%) not recovered by genetic relationships.
+- 83476 (99.57%) recovered by genetic relationships.
+- 363 (0.43%) not recovered by genetic relationships.
 
 
 59358 father-child relationships expected.
-- 59050 (99.48%) recovered by genetic relationships.
-- 308 (0.52%) not recovered by genetic relationships.
+- 59035 (99.46%) recovered by genetic relationships.
+- 323 (0.54%) not recovered by genetic relationships.
 
 
-145764 parent-offspring relationships detected
-- 142554 (97.8%) match to registry.
-- 3210 (2.2%) do not match to registry.
+145719 parent-offspring relationships detected
+- 142511 (97.8%) match to registry.
+- 3208 (2.2%) do not match to registry.
 
 
 ## Exclusion

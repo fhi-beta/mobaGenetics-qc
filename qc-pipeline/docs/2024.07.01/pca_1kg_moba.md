@@ -42,7 +42,7 @@ Clustering of the 1KG after an 80-20 split using svm in the top 10 PCs.
 | Population | AFR | AMR | EAS | EUR | SAS |
 | - | -  |  -  |  -  |  -  |  -  |
 | AFR | 526 | 3 | 0 | 0 | 0 |
-| AMR | 1 | 268 | 0 | 9 | 0 |
+| AMR | 2 | 268 | 0 | 8 | 0 |
 | EAS | 0 | 0 | 403 | 0 | 0 |
 | EUR | 0 | 0 | 0 | 402 | 0 |
 | SAS | 0 | 0 | 0 | 0 | 391 |
@@ -53,7 +53,7 @@ Clustering of the 1KG after an 80-20 split using svm in the top 10 PCs.
 Clustering of MoBa participants with svm using the top 10 PCs and 1KG as training.
 | Population | AFR | AMR | EAS | EUR | EUR_core | SAS |
 | - | -  |  -  |  -  |  -  |  -  |  -  |
-| MoBa | 1674 | 4277 | 1627 | 52061 | 168658 | 1321 |
+| MoBa | 4834 | 1510 | 1834 | 41840 | 178640 | 960 |
 
 
 ![](plot/moba_pop_plot.png)
