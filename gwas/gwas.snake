@@ -33,7 +33,7 @@ pheno_folder = os.path.join(work_folder, 'pheno')
 # Genotype files
 moba_release_folder = os.path.join('/mnt/archive/moba_genotypes_releases', release)
 plink_release_stem = os.path.join(moba_release_folder, 'moba_genotypes_' + release + '_common')
-plink_regenie_stem = plink_release_stem + "_regenie"
+
 best_snps = os.path.join(moba_release_folder, 'snp', 'moba_genotypes_' + release + '_reference_500k_snps')
 batches_file = os.path.join(moba_release_folder, 'batch', 'moba_genotypes_' + release + '_batches')
 
@@ -42,6 +42,7 @@ id_folder = os.path.join(pheno_folder, 'id')
 
 # Output folders
 temp_files_folder = os.path.join(scratch_folder, 'temp')
+plink_regenie_stem = temp_files_folder + "regenie"
 regenie_step1_folder = os.path.join(scratch_folder, 'regenie', 'step_1')
 cojo_temp_folder = os.path.join(scratch_folder, 'cojo_temp')
 results_folder = os.path.join(work_folder, 'results')
