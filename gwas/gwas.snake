@@ -42,7 +42,7 @@ id_folder = os.path.join(pheno_folder, 'id')
 
 # Output folders
 temp_files_folder = os.path.join(scratch_folder, 'temp')
-plink_regenie_stem = temp_files_folder + "regenie"
+plink_regenie_stem = temp_files_folder + "/regenie"
 regenie_step1_folder = os.path.join(scratch_folder, 'regenie', 'step_1')
 cojo_temp_folder = os.path.join(scratch_folder, 'cojo_temp')
 results_folder = os.path.join(work_folder, 'results')
