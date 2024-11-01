@@ -23,13 +23,14 @@ scratch_folder = os.path.join(config["scratch_folder"], release, name)
 
 cojo_threshold = 5e-8
 
+mode = "pc_covar"
 
 # Phenotypes
 raw_pheno_table = "/mnt/archive/snpQc/phenotypes/kvalitetssikring_vekt_hoyde_ny_24.09.06.csv"
 ids_table = "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz"
 relationship_table = "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz"
 pc_file = "/mnt/archive/moba_genotypes_releases/2024.07.01/pca/moba_genotypes_2024.07.01_clusters"
-pheno_folder = os.path.join(work_folder, 'pheno', 'pc_covar')
+pheno_folder = os.path.join(work_folder, 'pheno', mode)
 
 # Genotype files
 moba_release_folder = os.path.join('/mnt/archive/moba_genotypes_releases', release)
@@ -44,11 +45,11 @@ id_folder = os.path.join(pheno_folder, 'id')
 # Output folders
 temp_files_folder = os.path.join(scratch_folder, 'temp')
 plink_regenie_stem = temp_files_folder + "/regenie"
-regenie_step1_folder = os.path.join(scratch_folder, 'regenie', 'step_1')
+regenie_step1_folder = os.path.join(scratch_folder, 'regenie', 'step_1', mode)
 cojo_temp_folder = os.path.join(scratch_folder, 'cojo_temp')
-results_folder = os.path.join(work_folder, 'results')
+results_folder = os.path.join(work_folder, 'results', mode)
 docs_folder_relative = os.path.join('docs', release)
-docs_folder = os.path.join('gwas', docs_folder_relative)
+docs_folder = os.path.join('gwas', docs_folder_relative, mode)
 
 
 ####################### Housekeeping #########################################
@@ -257,13 +258,13 @@ rule all:
         mother_id_file = get_sample_id_file("mothers"),
         father_id_file = get_sample_id_file("fathers"),
         parents_id_file = get_sample_id_file("parents"),
-        # # The association results
-        # association_results = get_regenie_output(),
-        # # cojo_results = get_cojo_output(),
-        # # The documentation
-        # documentation_no_cojo = get_md_no_cojo(),
-        # # documentation_with_cojo = get_md_cojo(),
-        # # readme_file = "gwas/README.md", # The readme file
+        # The association results
+        association_results = get_regenie_output(),
+        # cojo_results = get_cojo_output(),
+        # The documentation
+        documentation_no_cojo = get_md_no_cojo(),
+        # documentation_with_cojo = get_md_cojo(),
+        # readme_file = "gwas/README.md", # The readme file
 
 
 rule pheno_file:
