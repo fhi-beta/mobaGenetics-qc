@@ -36,12 +36,13 @@ args <- commandArgs(TRUE)
    "/mnt/work/qc_genotypes/2024.07.01/moba_qc_gwas",
    "/mnt/archive/moba_genotypes_releases/2024.07.01/moba_genotypes_2024.07.01.psam",
    "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz",
-   "/mnt/archive/moba_genotypes_releases/2024.07.01/batch/moba_genotypes_2024.07.01_batches"
+   "/mnt/archive/moba_genotypes_releases/2024.07.01/batch/moba_genotypes_2024.07.01_batches",
+   "/mnt/archive/moba_genotypes_releases/2024.07.01/pca/moba_genotypes_2024.07.01_clusters"
    )
 
 }
 
-if (length(args) != 6) {
+if (length(args) != 7) {
   
   stop(paste0("Three command line arguments expected. ", length(args), " found."))
   
@@ -95,6 +96,13 @@ if (!file.exists(batch_file)) {
 
 }
 
+pc_file <- args[7]
+
+if (!file.exists(pc_file)) {
+
+  stop(paste0("PC file ", pc_file, " not found."))
+
+}
 
 # Load data
 
@@ -137,6 +145,13 @@ batch_table <- read.table(
 ) %>%
   clean_names()
 
+pc_table <- read.table(
+  file = pc_file,
+  header = T,
+  sep = "\t"
+)
+names(pc_table)[names(pc_table) == 'iid'] <- 'IID'
+pc_table$fid <- NULL
 
 # Exclusion criteria 
 # Note - in an actual GWAS pipeline we would have a standalone pipeline for phenotypes taking care of outliers and harmonization. Since this is just for QC we do handling of the phenotypes directly in here and keep things to a minimum.
@@ -295,9 +310,14 @@ add_batch_columns <- function(df){
   
 }
 
+
 pheno_table_gwas_child <- add_batch_columns(pheno_table_gwas_child)
 pheno_table_gwas_mother <- add_batch_columns(pheno_table_gwas_mother)
 pheno_table_gwas_father <- add_batch_columns(pheno_table_gwas_father)
+
+pheno_table_gwas_child <- merge(pheno_table_gwas_child, pc_table, by = 'IID')
+pheno_table_gwas_mother <- merge(pheno_table_gwas_mother, pc_table, by = 'IID')
+pheno_table_gwas_father <- merge(pheno_table_gwas_father, pc_table, by = 'IID')
 
 
 # Write tables
