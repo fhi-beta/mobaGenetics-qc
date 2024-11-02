@@ -2,31 +2,31 @@
 Principal component analysis of the MoBa samples vs genotyping batch.
 | Batch | Number of samples |
 | ----- | ----------------- |
-| snp001 | 783 |
-| snp002 | 82 |
-| snp003 | 554 |
-| snp007 | 138 |
-| snp008 | 122 |
-| snp009 | 744 |
-| snp010 | 440 |
-| snp011 | 224 |
-| snp012 | 758 |
-| snp014 | 358 |
-| snp015a | 580 |
-| snp015b | 186 |
-| snp016a | 1111 |
-| snp016b | 1053 |
-| snp017a | 1086 |
-| snp017b | 194 |
-| snp017c | 221 |
-| snp017d | 257 |
-| snp017e | 196 |
-| snp017f | 238 |
-| snp018a | 215 |
-| snp018b | 118 |
-| snp018c | 228 |
-| snp018de | 114 |
-| Total | 10000 |
+| snp001 | 18473 |
+| snp002 | 1662 |
+| snp003 | 12700 |
+| snp007 | 2970 |
+| snp008 | 2841 |
+| snp009 | 17484 |
+| snp010 | 9567 |
+| snp011 | 5157 |
+| snp012 | 17582 |
+| snp014 | 8781 |
+| snp015a | 13365 |
+| snp015b | 4363 |
+| snp016a | 24686 |
+| snp016b | 24749 |
+| snp017a | 24757 |
+| snp017b | 4645 |
+| snp017c | 4742 |
+| snp017d | 5566 |
+| snp017e | 4565 |
+| snp017f | 5210 |
+| snp018a | 5372 |
+| snp018b | 2676 |
+| snp018c | 5545 |
+| snp018de | 2160 |
+| Total | 229618 |
 ### pc2 vs. pc1
 ![](plot/pc1_pc2_batch.png)
 ### pc3 vs. pc2
