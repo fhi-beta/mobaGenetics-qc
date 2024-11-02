@@ -4,6 +4,8 @@ Documentation of the quality control of the genotypes from the [Norwegian Mother
 Quality control conducted post-imputation on the entire release
 - [Relatedness and sex assignment](mod8_psam_reconstruction.md): Summary statistics on inferred familial relationship and sex assignment. This was conducted using a set of approximately 500,000 high quality genotyped or imputed autosome markers pruned for LD.
 - [Admixture](pca_1kg_moba.md): Summary statistics on population clustering after running a principal component analysis on the genotypes merged with the 1,000 genomes. This was conducted using a set of approximately 500,000 high quality genotyped or imputedence autosome markers pruned for LD.
+- [Batches](pca_batches.md): Plot of the PCs used in admixture plots with colors per batch.
+
 ### Pre-imputation
 Quality control conducted pre-imputation on individual genotyping batches
 #### snp001
