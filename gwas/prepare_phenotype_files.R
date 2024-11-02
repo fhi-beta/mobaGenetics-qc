@@ -325,10 +325,6 @@ pheno_table_gwas_child <- add_pc_columns(pheno_table_gwas_child)
 pheno_table_gwas_mother <- add_pc_columns(pheno_table_gwas_mother)
 pheno_table_gwas_father <- add_pc_columns(pheno_table_gwas_father)
 
-# pheno_table_gwas_child <- merge(pheno_table_gwas_child, pc_table, by = 'IID')
-# pheno_table_gwas_mother <- merge(pheno_table_gwas_mother, pc_table, by = 'IID')
-# pheno_table_gwas_father <- merge(pheno_table_gwas_father, pc_table, by = 'IID')
-
 
 # Write tables
 
