@@ -1,0 +1,89 @@
+##
+#
+# This snakefile executes the QC pipeline. The different parts of the pipeline are organized in modules represented in different snake files.
+# The pipeline is expected to run in the conda environment named 'snpQc' built using `auxiliaries/environment/snpQc-env.txt`.
+#
+# Commands to execute from the qc-pipeline folder:
+# conda activate snp_qc
+# snakemake --snakefile Snakefile_debug_mod5 --cores 16 --use-conda --rerun-incomplete
+#
+##
+
+# External libraries
+from pathlib import Path
+from shutil import copyfile
+import pandas as pd
+import numpy as np
+import plotnine as p9
+import matplotlib
+import math
+import sys
+import yaml
+import io
+import shutil
+import os
+matplotlib.use('Agg')
+from shutil import copyfile
+
+
+# Local libraries
+sys.path.append('utils')  # in order to find our local packages
+import mobaQcTools as mqc
+import batch_report
+
+
+# Config file
+configfile: "parameters/config.yaml"
+
+# Pipeline variables and setup
+include: "parameters/variables.py"
+include: "parameters/batch_details.py"
+
+# Ensure bash as shell
+shell.executable("/bin/bash")
+
+# A file with rule properties and ordering
+with open("parameters/rules.yaml", 'r') as stream:
+    rule_info = yaml.safe_load(stream)
+
+# A bit of sanity check
+for batch in batches:
+    if batch not in batch_genotyping_chip:
+        raise Exception(f"Batch '{batch}' not in 'batch_genotyping_chip', please edit 'batch_details.py' accordingly.")
+    if batch not in batch_name:
+        raise Exception(f"Batch '{batch}' not in 'batch_mobagenetics_10_name', please edit 'batch_details.py' accordingly.")
+
+# Report (top level)
+report: "report/qc.rst"
+
+# The different modules
+include: "mod1-data-conversion.snake"
+include: "mod2-genetic-relationship.snake"
+include: "mod3-population-clustering.snake"
+include: "mod4-good-markers.snake"
+include: "mod5-pre-phasing.snake"
+include: "mod6-imputation.snake"
+# include: "mod7-post-imputation.snake"
+
+# Debug code
+# batches_debug = ['snp007']
+# chrs = ['20', '21']
+
+# rule all, lists the output of every module
+rule all:
+    input:
+        # expand(tmpMod4/ "{batch}" / "{number_of_samples}" / ("mod5_output.bed"), batch = batches_debug, number_of_samples = samples)
+        # expand(tmpMod4point5/ "{batch}" / ("mod4point5_cull_samples.bed"), batch = batches_debug)
+        # expand(tmpMod6/ "{batch}" / "all_samples" / ("mod6_conform.chr{chr}.conformed.vcf.gz"), batch = batches_debug, chr = chrs)
+        # expand(tmpMod6/ "{batch}" / f"{n_samples}_samples" / ("mod6_output.chr{chr}.bed"), batch = batches_debug, chr = chrs)
+        expand(tmpMod6/ "{batch}" / f"{n_samples}_samples" / ("mod6_output.pgen"), batch = batches_debug)
+        # expand(tmpMod4/ "{batch}" / "m4_output_good_markers.bed", batch = batches_debug)
+        #expand(tmpMod5/"{batch}"/"all_samples"/ "report" /"pre_imputation_report.md", batch = batches_debug)
+        # str(tmpMod7 / "all_samples" / "merge_list.txt")
+        #str(tmpMod7 / "all_samples" / "mod7_merge.bed")
+        # expand(tmpMod5/ "{batch}" / "all_samples" /"mod5_output.imiss", batch = batches_debug)
+
+
+
+
+
