@@ -204,6 +204,12 @@ for (sample_i in 1:nrow(n_samples)) {
   
 }
 
+write(
+  x = paste0("| Total | ", nrow(merged_pcs), " |"),
+  file = md_file,
+  append = T
+)
+
 
 # Plot the PCs against each other
 

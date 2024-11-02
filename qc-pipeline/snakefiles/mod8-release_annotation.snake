@@ -807,7 +807,7 @@ rule release_additional_files:
     params:
         version = config['release']
     output:
-        r2_table = release_folder/"snp"/(release_base_name + "_snp_r2"),
+        r2_table = release_folder/"snp"/(release_base_name + "_snp_r2.gz"),
         best_snps = release_folder/"snp"/(release_base_name + "_reference_500k_snps"),
         pcs = release_folder/"pca"/(release_base_name + ".pcs"),
         eigenvector = release_folder/"pca"/(release_base_name + ".vec"),
@@ -871,7 +871,9 @@ rule release_additional_files:
                 file.write(f"Made with love by the [Genetics and Bioinformatics department of the Norwegian Institute of Public Health](https://www.fhi.no/om/organisasjon/genetikk-og-bioinformatikk/).\n")
 
             # r2 table
-            copyfile(input.r2_table, output.r2_table)
+            with open(input.r2_table, 'rb') as f_in:
+                with gzip.open(output.r2_table, 'wb') as f_out:
+                    copyfileobj(f_in, f_out)
 
             # List of top SNPs
             copyfile(input.best_snps, output.best_snps)
