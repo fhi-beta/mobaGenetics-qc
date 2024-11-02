@@ -52,8 +52,6 @@ moba_pcs <- read.table(
     fid != 0
   )
 
-moba_pcs <- moba_pcs[sample(1:nrow(moba_pcs), 10000), ]
-
 moba_batches <- read.table(
   file = moba_batches_file,
   header = T,
