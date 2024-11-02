@@ -122,6 +122,65 @@ batches_colors <- scico(
 )
 
 
+for (pc_i in 1:10) {
+
+  pc_name_x <- paste0("pc", pc_i)
+  merged_pcs$x <- merged_pcs[[pc_name_x]]
+
+  write(
+    x = paste0("### ", pc_name_x),
+    file = md_file,
+    append = T
+  )
+
+  plot <- ggplot() +
+  theme_bw(
+    base_size = 24
+  ) +
+  geom_violin(
+    data = merged_pcs,
+    mapping = aes(
+      x = x,
+      y = batch,
+      col = batch
+    )
+  ) +
+    scale_color_manual(
+      name = "Batch",
+      values = batches_colors,
+      drop = F
+    ) +
+  scale_x_continuous(
+    name = pc_name_x
+  ) +
+  theme(
+    axis.title.y = element_blank(),
+    panel.grid.major.y = element_blank(),
+    panel.grid.minor.y = element_blank(),
+    legend.position = "none"
+  )
+
+  file_name <- paste0(pc_name_x, "_batch.png")
+
+  print(paste0("Plotting to ", plot_folder, "/", file_name))
+
+  png(
+    filename = file.path(plot_folder, file_name),
+    width = 800,
+    height = 600
+  )
+  grid.draw(plot)
+  device <- dev.off()
+
+  write(
+    x = paste0("![](plot/", file_name, ")"),
+    file = md_file,
+    append = T
+  )
+
+}
+
+
 for (pc_i in 1:9) {
 
   pc_name_x <- paste0("pc", pc_i)
@@ -182,12 +241,12 @@ for (pc_i in 1:9) {
       name = pc_name_y
     ) +
     scale_color_manual(
-      name = "Population",
+      name = "Batch",
       values = batches_colors,
       drop = F
     ) +
     scale_fill_manual(
-      name = "Population",
+      name = "Batch",
       values = batches_colors,
       drop = F
     ) +
