@@ -149,6 +149,14 @@ for (pc_i in 1:9) {
       ),
       alpha = 0.1
     ) +
+    geom_density2d(
+      data = merged_pcs,
+      mapping = aes(
+        x = x,
+        y = y,
+        col = batch
+      )
+    ) +
     geom_xsidedensity(
       data = merged_pcs,
       mapping = aes(
