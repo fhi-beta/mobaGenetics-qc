@@ -27,6 +27,26 @@ Principal component analysis of the MoBa samples vs genotyping batch.
 | snp018c | 5545 |
 | snp018de | 2160 |
 | Total | 229618 |
+### pc1
+![](plot/pc1_batch.png)
+### pc2
+![](plot/pc2_batch.png)
+### pc3
+![](plot/pc3_batch.png)
+### pc4
+![](plot/pc4_batch.png)
+### pc5
+![](plot/pc5_batch.png)
+### pc6
+![](plot/pc6_batch.png)
+### pc7
+![](plot/pc7_batch.png)
+### pc8
+![](plot/pc8_batch.png)
+### pc9
+![](plot/pc9_batch.png)
+### pc10
+![](plot/pc10_batch.png)
 ### pc2 vs. pc1
 ![](plot/pc1_pc2_batch.png)
 ### pc3 vs. pc2
