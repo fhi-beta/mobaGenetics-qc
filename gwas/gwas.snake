@@ -154,16 +154,17 @@ def get_binary_option_step2(analysis):
 
 # Function to get the pheno file corresponding to the given population
 def get_pheno_file(population):
-    if population == "children":
-        return os.path.join(pheno_folder, "pheno_child")
-    elif population == "mothers":
-        return os.path.join(pheno_folder, "pheno_mother")
-    elif population == "fathers":
-        return os.path.join(pheno_folder, "pheno_father")
-    elif population == "parents":
-        return os.path.join(pheno_folder, "pheno_parent")
-    else:
-        raise Exception(f"No pheno file implemented for population: '{population}'.")
+    return os.path.join(pheno_folder, f"pheno_{population}")
+    # if population == "children":
+    #     return os.path.join(pheno_folder, "pheno_child")
+    # elif population == "mothers":
+    #     return os.path.join(pheno_folder, "pheno_mother")
+    # elif population == "fathers":
+    #     return os.path.join(pheno_folder, "pheno_father")
+    # elif population == "parents":
+    #     return os.path.join(pheno_folder, "pheno_parent")
+    # else:
+    #     raise Exception(f"No pheno file implemented for population: '{population}'.")
 
 # Function to get an unrelated sample id file corresponding to the given population in the plink format
 def get_unrelated_sample_id_file(population):
@@ -180,16 +181,17 @@ def get_unrelated_sample_id_file(population):
 
 # Function to get the sample id file corresponding to the given population
 def get_sample_id_file(population):
-    if population == "children" :
-        return os.path.join(id_folder, "children_id_plink")
-    elif population == "mothers":
-        return os.path.join(id_folder, "mothers_id_plink")
-    elif population == "fathers":
-        return os.path.join(id_folder, "fathers_id_plink")
-    elif population == "parents":
-        return os.path.join(id_folder, "parents_id_plink")
-    else:
-        raise Exception(f"No id file implemented for population: '{population}'.")
+    return os.path.join(id_folder, f"{population}_id_plink")
+    # if population == "children" :
+    #     return os.path.join(id_folder, "children_id_plink")
+    # elif population == "mothers":
+    #     return os.path.join(id_folder, "mothers_id_plink")
+    # elif population == "fathers":
+    #     return os.path.join(id_folder, "fathers_id_plink")
+    # elif population == "parents":
+    #     return os.path.join(id_folder, "parents_id_plink")
+    # else:
+    #     raise Exception(f"No id file implemented for population: '{population}'.")
 
 # Function returning the cojo files expected for a given association study
 def get_cojo_chr_files(path):
@@ -245,26 +247,28 @@ def get_md_cojo():
 
 ############################## RULES ###########################################
 
+filter"_eur_core"
+
 print(f"Starting GWAS pipeline for {name}: {analyses_names}.")
 rule all:
     'The final output rule'
     input:
         # The phenotype files
-        child_pheno_file = get_pheno_file("children"),
-        mother_pheno_file = get_pheno_file("mothers"),
-        father_pheno_file = get_pheno_file("fathers"),
-        parents_pheno_file = get_pheno_file("parents"),
-        child_id_file = get_sample_id_file("children"),
-        mother_id_file = get_sample_id_file("mothers"),
-        father_id_file = get_sample_id_file("fathers"),
-        parents_id_file = get_sample_id_file("parents"),
-        # The association results
-        association_results = get_regenie_output(),
-        # cojo_results = get_cojo_output(),
-        # The documentation
-        documentation_no_cojo = get_md_no_cojo(),
-        # documentation_with_cojo = get_md_cojo(),
-        # readme_file = "gwas/README.md", # The readme file
+        child_pheno_file = get_pheno_file(f"children{filter}"),
+        mother_pheno_file = get_pheno_file(f"mothers{filter}"),
+        father_pheno_file = get_pheno_file(f"fathers{filter}"),
+        parents_pheno_file = get_pheno_file(f"parents{filter}"),
+        child_id_file = get_sample_id_file(f"children{filter}"),
+        mother_id_file = get_sample_id_file(f"mothers{filter}"),
+        father_id_file = get_sample_id_file(f"fathers{filter}"),
+        parents_id_file = get_sample_id_file(f"parents{filter}"),
+        # # The association results
+        # association_results = get_regenie_output(),
+        # # cojo_results = get_cojo_output(),
+        # # The documentation
+        # documentation_no_cojo = get_md_no_cojo(),
+        # # documentation_with_cojo = get_md_cojo(),
+        # # readme_file = "gwas/README.md", # The readme file
 
 
 rule pheno_file:
@@ -279,14 +283,14 @@ rule pheno_file:
     params:
         pheno_folder = pheno_folder
     output:
-        child_pheno_file = get_pheno_file("children"),
-        mother_pheno_file = get_pheno_file("mothers"),
-        father_pheno_file = get_pheno_file("fathers"),
-        parents_pheno_file = get_pheno_file("parents"),
-        child_id_file = get_sample_id_file("children"),
-        mother_id_file = get_sample_id_file("mothers"),
-        father_id_file = get_sample_id_file("fathers"),
-        parents_id_file = get_sample_id_file("parents")
+        child_pheno_file = get_pheno_file(f"children{filter}"),
+        mother_pheno_file = get_pheno_file(f"mothers{filter}"),
+        father_pheno_file = get_pheno_file(f"fathers{filter}"),
+        parents_pheno_file = get_pheno_file(f"parents{filter}"),
+        child_id_file = get_sample_id_file(f"children{filter}"),
+        mother_id_file = get_sample_id_file(f"mothers{filter}"),
+        father_id_file = get_sample_id_file(f"fathers{filter}"),
+        parents_id_file = get_sample_id_file(f"parents{filter}")
     conda:
         "envs/r_pheno.yaml"
     threads: 1

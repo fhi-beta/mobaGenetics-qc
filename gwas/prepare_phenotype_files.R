@@ -325,6 +325,10 @@ pheno_table_gwas_child <- add_pc_columns(pheno_table_gwas_child)
 pheno_table_gwas_mother <- add_pc_columns(pheno_table_gwas_mother)
 pheno_table_gwas_father <- add_pc_columns(pheno_table_gwas_father)
 
+pheno_table_gwas_child_eur_core <- pheno_table_gwas_child[pheno_table_gwas_child$pop_inference == 'EUR_core', ]
+pheno_table_gwas_mother_eur_core <- pheno_table_gwas_mother[pheno_table_gwas_mother$pop_inference == 'EUR_core', ]
+pheno_table_gwas_father_eur_core <- pheno_table_gwas_father[pheno_table_gwas_father$pop_inference == 'EUR_core', ]
+
 
 # Write tables
 
@@ -344,6 +348,14 @@ write.table(
   quote = F
 )
 
+write.table(
+  x = pheno_table_gwas_child_eur_core,
+  file = file.path(gwas_pheno_folder, "pheno_child_eur_core"),
+  row.names = F,
+  col.names = T,
+  quote = F
+)
+
 if (length(unique(pheno_table_gwas_mother$IID)) != nrow(pheno_table_gwas_mother)) {
   
   stop("Non-unique sentrix id for mothers")
@@ -351,8 +363,8 @@ if (length(unique(pheno_table_gwas_mother$IID)) != nrow(pheno_table_gwas_mother)
 }
 
 write.table(
-  x = pheno_table_gwas_mother,
-  file = file.path(gwas_pheno_folder, "pheno_mother"),
+  x = pheno_table_gwas_mother_eur_core,
+  file = file.path(gwas_pheno_folder, "pheno_mother_eur_core"),
   row.names = F,
   col.names = T,
   quote = F
@@ -372,7 +384,17 @@ write.table(
   quote = F
 )
 
+write.table(
+  x = pheno_table_gwas_father_eur_core,
+  file = file.path(gwas_pheno_folder, "pheno_father_eur_core"),
+  row.names = F,
+  col.names = T,
+  quote = F
+)
+
 pheno_table_gwas_parents <- rbind(pheno_table_gwas_mother, pheno_table_gwas_father)
+
+pheno_table_gwas_parents_eur_core <- rbind(pheno_table_gwas_mother_eur_core, pheno_table_gwas_father_eur_core)
 
 if (length(unique(pheno_table_gwas_parents$IID)) != nrow(pheno_table_gwas_parents)) {
   
@@ -383,6 +405,14 @@ if (length(unique(pheno_table_gwas_parents$IID)) != nrow(pheno_table_gwas_parent
 write.table(
   x = pheno_table_gwas_parents,
   file = file.path(gwas_pheno_folder, "pheno_parent"),
+  row.names = F,
+  col.names = T,
+  quote = F
+)
+
+write.table(
+  x = pheno_table_gwas_parents_eur_core,
+  file = file.path(gwas_pheno_folder, "pheno_parent_eur_core"),
   row.names = F,
   col.names = T,
   quote = F
@@ -407,11 +437,33 @@ write.table(
   sep = " "
 )
 
+id_table_child_eur_core <- pheno_table_gwas_child_eur_core %>% select(FID, IID)
+
+write.table(
+  x = id_table_child_eur_core,
+  file = file.path(ids_folder, "children_eur_core_id_plink"),
+  row.names = F,
+  col.names = F,
+  quote = F,
+  sep = " "
+)
+
 id_table_mother <- pheno_table_gwas_mother %>% select(FID, IID)
 
 write.table(
   x = id_table_mother,
   file = file.path(ids_folder, "mothers_id_plink"),
+  row.names = F,
+  col.names = F,
+  quote = F,
+  sep = " "
+)
+
+id_table_mother_eur_core <- pheno_table_gwas_mother_eur_core %>% select(FID, IID)
+
+write.table(
+  x = id_table_mother_eur_core,
+  file = file.path(ids_folder, "mothers_eur_core_id_plink"),
   row.names = F,
   col.names = F,
   quote = F,
@@ -429,6 +481,17 @@ write.table(
   sep = " "
 )
 
+id_table_father_eur_core <- pheno_table_gwas_father_eur_core %>% select(FID, IID)
+
+write.table(
+  x = id_table_father_eur_core,
+  file = file.path(ids_folder, "fathers_eur_core_id_plink"),
+  row.names = F,
+  col.names = F,
+  quote = F,
+  sep = " "
+)
+
 id_table_parents <- pheno_table_gwas_parents %>% select(FID, IID)
 
 write.table(
@@ -440,6 +503,16 @@ write.table(
   sep = " "
 )
 
+id_table_parents_eur_core <- pheno_table_gwas_parents_eur_core %>% select(FID, IID)
+
+write.table(
+  x = id_table_parents_eur_core,
+  file = file.path(ids_folder, "parents_eur_core_id_plink"),
+  row.names = F,
+  col.names = F,
+  quote = F,
+  sep = " "
+)
 
 
 

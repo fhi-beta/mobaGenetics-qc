@@ -28,7 +28,7 @@ analyses:
         - pc9
         - pc10
       populations:
-        - children
+        - children_eur_core
         # - mothers
         # - fathers
 
