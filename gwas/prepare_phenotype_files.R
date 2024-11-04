@@ -342,7 +342,7 @@ if (length(unique(pheno_table_gwas_child$IID)) != nrow(pheno_table_gwas_child)) 
 
 write.table(
   x = pheno_table_gwas_child,
-  file = file.path(gwas_pheno_folder, "pheno_child"),
+  file = file.path(gwas_pheno_folder, "pheno_children"),
   row.names = F,
   col.names = T,
   quote = F
@@ -350,7 +350,7 @@ write.table(
 
 write.table(
   x = pheno_table_gwas_child_eur_core,
-  file = file.path(gwas_pheno_folder, "pheno_child_eur_core"),
+  file = file.path(gwas_pheno_folder, "pheno_children_eur_core"),
   row.names = F,
   col.names = T,
   quote = F
@@ -364,7 +364,7 @@ if (length(unique(pheno_table_gwas_mother$IID)) != nrow(pheno_table_gwas_mother)
 
 write.table(
   x = pheno_table_gwas_mother_eur_core,
-  file = file.path(gwas_pheno_folder, "pheno_mother_eur_core"),
+  file = file.path(gwas_pheno_folder, "pheno_mothers_eur_core"),
   row.names = F,
   col.names = T,
   quote = F
@@ -378,7 +378,7 @@ if (length(unique(pheno_table_gwas_father$IID)) != nrow(pheno_table_gwas_father)
 
 write.table(
   x = pheno_table_gwas_father,
-  file = file.path(gwas_pheno_folder, "pheno_father"),
+  file = file.path(gwas_pheno_folder, "pheno_fathers"),
   row.names = F,
   col.names = T,
   quote = F
@@ -386,7 +386,7 @@ write.table(
 
 write.table(
   x = pheno_table_gwas_father_eur_core,
-  file = file.path(gwas_pheno_folder, "pheno_father_eur_core"),
+  file = file.path(gwas_pheno_folder, "pheno_fathers_eur_core"),
   row.names = F,
   col.names = T,
   quote = F
@@ -404,7 +404,7 @@ if (length(unique(pheno_table_gwas_parents$IID)) != nrow(pheno_table_gwas_parent
 
 write.table(
   x = pheno_table_gwas_parents,
-  file = file.path(gwas_pheno_folder, "pheno_parent"),
+  file = file.path(gwas_pheno_folder, "pheno_parents"),
   row.names = F,
   col.names = T,
   quote = F
@@ -412,7 +412,7 @@ write.table(
 
 write.table(
   x = pheno_table_gwas_parents_eur_core,
-  file = file.path(gwas_pheno_folder, "pheno_parent_eur_core"),
+  file = file.path(gwas_pheno_folder, "pheno_parents_eur_core"),
   row.names = F,
   col.names = T,
   quote = F
