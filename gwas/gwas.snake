@@ -247,21 +247,21 @@ def get_md_cojo():
 
 ############################## RULES ###########################################
 
-filter = "_eur_core"
+pc_filter = "_eur_core"
 
 print(f"Starting GWAS pipeline for {name}: {analyses_names}.")
 rule all:
     'The final output rule'
     input:
         # The phenotype files
-        child_pheno_file = get_pheno_file(f"children{filter}"),
-        mother_pheno_file = get_pheno_file(f"mothers{filter}"),
-        father_pheno_file = get_pheno_file(f"fathers{filter}"),
-        parents_pheno_file = get_pheno_file(f"parents{filter}"),
-        child_id_file = get_sample_id_file(f"children{filter}"),
-        mother_id_file = get_sample_id_file(f"mothers{filter}"),
-        father_id_file = get_sample_id_file(f"fathers{filter}"),
-        parents_id_file = get_sample_id_file(f"parents{filter}"),
+        child_pheno_file = get_pheno_file(f"children{pc_filter}"),
+        mother_pheno_file = get_pheno_file(f"mothers{pc_filter}"),
+        father_pheno_file = get_pheno_file(f"fathers{pc_filter}"),
+        parents_pheno_file = get_pheno_file(f"parents{pc_filter}"),
+        child_id_file = get_sample_id_file(f"children{pc_filter}"),
+        mother_id_file = get_sample_id_file(f"mothers{pc_filter}"),
+        father_id_file = get_sample_id_file(f"fathers{pc_filter}"),
+        parents_id_file = get_sample_id_file(f"parents{pc_filter}"),
         # # The association results
         # association_results = get_regenie_output(),
         # # cojo_results = get_cojo_output(),
@@ -283,14 +283,14 @@ rule pheno_file:
     params:
         pheno_folder = pheno_folder
     output:
-        child_pheno_file = get_pheno_file(f"children{filter}"),
-        mother_pheno_file = get_pheno_file(f"mothers{filter}"),
-        father_pheno_file = get_pheno_file(f"fathers{filter}"),
-        parents_pheno_file = get_pheno_file(f"parents{filter}"),
-        child_id_file = get_sample_id_file(f"children{filter}"),
-        mother_id_file = get_sample_id_file(f"mothers{filter}"),
-        father_id_file = get_sample_id_file(f"fathers{filter}"),
-        parents_id_file = get_sample_id_file(f"parents{filter}")
+        child_pheno_file = get_pheno_file(f"children{pc_filter}"),
+        mother_pheno_file = get_pheno_file(f"mothers{pc_filter}"),
+        father_pheno_file = get_pheno_file(f"fathers{pc_filter}"),
+        parents_pheno_file = get_pheno_file(f"parents{pc_filter}"),
+        child_id_file = get_sample_id_file(f"children{pc_filter}"),
+        mother_id_file = get_sample_id_file(f"mothers{pc_filter}"),
+        father_id_file = get_sample_id_file(f"fathers{pc_filter}"),
+        parents_id_file = get_sample_id_file(f"parents{pc_filter}")
     conda:
         "envs/r_pheno.yaml"
     threads: 1
