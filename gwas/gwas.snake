@@ -247,7 +247,7 @@ def get_md_cojo():
 
 ############################## RULES ###########################################
 
-filter"_eur_core"
+filter = "_eur_core"
 
 print(f"Starting GWAS pipeline for {name}: {analyses_names}.")
 rule all:
