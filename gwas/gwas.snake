@@ -112,13 +112,13 @@ def get_covariates(analysis, population):
     analysis_covariates = analyses[analysis]["covariates"]
     if analysis_covariates is None:
         analysis_covariates = []
-    if population == "children":
+    if population.startswith("children"):
         covariates_population = default_covariates_child + analysis_covariates
-    elif population == "mothers":
+    elif population.startswith("mothers"):
         covariates_population = default_covariates_mother + analysis_covariates
-    elif population == "fathers":
+    elif population.startswith("fathers"):
         covariates_population = default_covariates_father + analysis_covariates
-    else:
+    elif not population.endswith("_eur_core"):
         raise Exception(f"No covariate found for population: '{population}'.")
 
     result = ''
