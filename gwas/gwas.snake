@@ -23,7 +23,8 @@ scratch_folder = os.path.join(config["scratch_folder"], release, name)
 
 cojo_threshold = 5e-8
 
-mode = "pc_covar"
+mode = "no_pc_covar"
+pc_filter = "_eur_core"
 
 # Phenotypes
 raw_pheno_table = "/mnt/archive/snpQc/phenotypes/kvalitetssikring_vekt_hoyde_ny_24.09.06.csv"
@@ -247,7 +248,7 @@ def get_md_cojo():
 
 ############################## RULES ###########################################
 
-pc_filter = "_eur_core"
+
 
 print(f"Starting GWAS pipeline for {name}: {analyses_names}.")
 rule all:
