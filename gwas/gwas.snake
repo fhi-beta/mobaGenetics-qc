@@ -24,7 +24,7 @@ scratch_folder = os.path.join(config["scratch_folder"], release, name)
 cojo_threshold = 5e-8
 
 mode = "no_pc_covar"
-pc_filter = "_eur_core"
+pc_filter = ""
 
 # Phenotypes
 raw_pheno_table = "/mnt/archive/snpQc/phenotypes/kvalitetssikring_vekt_hoyde_ny_24.09.06.csv"
@@ -265,7 +265,7 @@ rule all:
         parents_id_file = get_sample_id_file(f"parents{pc_filter}"),
         # The association results
         association_results = get_regenie_output(),
-        # cojo_results = get_cojo_output(),
+        cojo_results = get_cojo_output(),
         # The documentation
         documentation_no_cojo = get_md_no_cojo(),
         # documentation_with_cojo = get_md_cojo(),
