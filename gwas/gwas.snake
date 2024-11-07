@@ -462,7 +462,7 @@ rule cojo:
         else
             echo "run COJO: $NO_SNP_FILE"
             gcta64 \
-                --bfile {params.plink_regenie_stem} \
+                --pfile {params.plink_regenie_stem} \
                 --cojo-file {params.input_file} \
                 --keep {params.samples_list} \
                 --chr {wildcards.chr} \
