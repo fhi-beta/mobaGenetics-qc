@@ -432,7 +432,7 @@ rule regenie_to_cojo:
     threads: 4
     shell:
         """
-        Rscript gwas/cojo/regenie_to_cojo.R {input.regenie_file} {params.cojo_folder} {output.output_file} {params.pheno_file} {params.pheno_column} {params.locus_zoom_folder} {params.cojo_threshold}
+        Rscript gwas/utils/cojo/regenie_to_cojo.R {input.regenie_file} {params.cojo_folder} {output.output_file} {params.pheno_file} {params.pheno_column} {params.locus_zoom_folder} {params.cojo_threshold}
         """
 
 rule cojo:
