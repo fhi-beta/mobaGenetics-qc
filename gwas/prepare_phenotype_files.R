@@ -363,6 +363,14 @@ if (length(unique(pheno_table_gwas_mother$IID)) != nrow(pheno_table_gwas_mother)
 }
 
 write.table(
+  x = pheno_table_gwas_mother,
+  file = file.path(gwas_pheno_folder, "pheno_mothers"),
+  row.names = F,
+  col.names = T,
+  quote = F
+)
+
+write.table(
   x = pheno_table_gwas_mother_eur_core,
   file = file.path(gwas_pheno_folder, "pheno_mothers_eur_core"),
   row.names = F,
