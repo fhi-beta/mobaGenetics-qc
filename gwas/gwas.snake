@@ -23,7 +23,7 @@ scratch_folder = os.path.join(config["scratch_folder"], release, name)
 
 cojo_threshold = 5e-8
 
-mode = "no_pc_covar"
+mode = "pc_covar"
 pc_filter = ""
 
 # Phenotypes
