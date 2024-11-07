@@ -264,10 +264,10 @@ rule all:
         father_id_file = get_sample_id_file(f"fathers{pc_filter}"),
         parents_id_file = get_sample_id_file(f"parents{pc_filter}"),
         # The association results
-        association_results = get_regenie_output(),
-        cojo_results = get_cojo_output(),
-        # The documentation
-        documentation_no_cojo = get_md_no_cojo(),
+        # association_results = get_regenie_output(),
+        # cojo_results = get_cojo_output(),
+        # # The documentation
+        # documentation_no_cojo = get_md_no_cojo(),
         # documentation_with_cojo = get_md_cojo(),
         # readme_file = "gwas/README.md", # The readme file
 
