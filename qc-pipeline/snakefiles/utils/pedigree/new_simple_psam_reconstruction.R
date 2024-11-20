@@ -1,0 +1,848 @@
+
+##
+#
+# This script does a simple fam file reconstruction
+#
+##
+
+set.seed(11111)
+
+
+# Command line arguments
+debug <- T
+if (debug) {
+  
+  args <- c(
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod8-release_annotation/mod8_pedigree_ibd_estimate.kin0", 
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod8-release_annotation/mod8_check_sex.sexcheck",
+    "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz",
+    "/mnt/archive/snpQc/phenotypes/birth_year_24.04.12.gz",
+    "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod7-post-imputation/all_samples/mod7_rename_missing_ids.psam",
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod8-release_annotation/mod8_psam_reconstruction.psam",
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod8-release_annotation/exclusion",
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod8-release_annotation/mismatch_information.gz",
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod8-release_annotation/mismatch_relationship.gz",
+    "/mnt/work/oystein/tmp/fam_reconstruction_debug.md",
+    "debug"
+  )
+  
+} else {
+ 
+args <- commandArgs(TRUE)
+
+if (length(args) != 12) {
+  
+  stop(paste0("Nine arguments expected: genome file, sex check file, expected relationships file, birth year file, id file, current psam file, destination file, exclusion file, mismatch_information, mismatch_relationship, md file, title. ", length(args), " found: ", paste(args, collapse = ", ")))
+  
+}
+}
+
+genome_file <- args[1]
+
+if (!file.exists(genome_file)) {
+  
+  stop("Genome file not found")
+  
+}
+
+sex_check_file <- args[2]
+
+if (!file.exists(sex_check_file)) {
+  
+  stop("sex check file not found")
+  
+}
+
+expected_relationships_file <- args[3]
+
+if (!file.exists(expected_relationships_file)) {
+  
+  stop("Expected relationship file not found")
+  
+}
+
+birth_year_file <- args[4]
+
+if (!file.exists(birth_year_file)) {
+  
+  stop("Birth year file not found")
+  
+}
+
+id_file <- args[5]
+
+if (!file.exists(id_file)) {
+  
+  stop("ID file not found")
+  
+}
+
+psam_file <- args[6]
+
+if (!file.exists(psam_file)) {
+  
+  stop("Psam file not found")
+  
+}
+
+destination_file <- args[7]
+
+exclusion_file <- args[8]
+
+mismatch_information_file <- args[9]
+
+mismatch_relationship_file <- args[10]
+
+md_file <- args[11]
+
+title <- args[12]
+
+
+# Libraries
+
+library(igraph)
+library(dplyr)
+library(ggplot2)
+library(grid)
+
+theme_set(theme_bw(base_size = 24))
+
+
+# Load data
+
+genomic_relatedness_table <- read.table(
+  file = genome_file,
+  header = T,
+  stringsAsFactors = F
+)
+sex_check_data <- read.table(
+  file = sex_check_file,
+  header = T,
+  sep = "\t",
+  stringsAsFactors = F
+)
+expected_relationships_data  <- read.table(
+  file = expected_relationships_file,
+  header = T,
+  sep = "\t",
+  stringsAsFactors = F
+)
+birth_year_data  <- read.table(
+  file = birth_year_file,
+  header = T,
+  sep = "\t",
+  stringsAsFactors = F
+)
+
+id_data  <- read.table(
+  file = id_file,
+  header = T,
+  sep = "\t",
+  stringsAsFactors = F
+)
+
+psam_data  <- read.table(
+  file = psam_file,
+  header = T,
+  sep = "\t",
+  col.names = c("IID", "SEX"),
+  stringsAsFactors = F
+)
+
+sample_ids <- psam_data[, 1]
+
+sample_data <- psam_data %>%
+    left_join(
+        id_data %>%
+        select(
+            IID = sentrix_id,
+            ID = id
+        ),
+    by = "IID"
+    )
+
+genomic_relatedness_table$relationship <- factor(genomic_relatedness_table$InfType, levels = c("Dup/MZ", "PO", "FS", "2nd", "3rd", "4th", "UN"))
+levels(genomic_relatedness_table$relationship) <- c("Duplicates or monozygotic twins", "Parent-offspring", "Full siblings", "2nd degree", "3rd degree", "4th degree", "Unrelated")
+
+sentrix_not_in_mbr <- unique(sample_ids[!sample_ids %in% birth_year_data$sentrix_id])
+
+if (length(sentrix_not_in_mbr) > 0) {
+  
+  mismatches_table <- data.frame(
+    sentrix_id = sentrix_not_in_mbr,
+    missing_birth_year = 1
+  )
+  
+} else {
+  
+  mismatches_table <- data.frame(
+    sentrix_id = character(),
+    missing_birth_year = c()
+  )
+  
+}
+
+# Write docs
+
+docs_dir <- dirname(md_file)
+file_name <- basename(md_file)
+docs_dir_name <- substr(file_name, 1, nchar(file_name) - 3)
+docs_dir <- file.path(docs_dir, docs_dir_name)
+
+if (!dir.exists(docs_dir)) {
+  
+  dir.create(docs_dir)
+  
+}
+
+write(
+  x = paste0("# ", title),
+  file = md_file,
+  append = F
+)
+
+write(
+  x = paste0("- Number of samples in the genotyping data: ", nrow(psam_data), "."),
+  file = md_file,
+  append = T
+)
+
+write(
+  x = paste0("- Number of. unique individuals in the genotyping data: ", nrow(sample_data[!duplicated(sample_data$ID),]), "."),
+  file = md_file,
+  append = T
+)
+
+write(
+  x = "## Samples not in Medical Birth Regsitry",
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0(length(sentrix_not_in_mbr), " samples with missing birth year, assumed to be parent in the following."),
+  file = md_file,
+  append = T
+)
+
+write(
+  x = "## Relationship inference",
+  file = md_file,
+  append = T
+)
+
+write(
+  x = "| Relationship |   |",
+  file = md_file,
+  append = T
+)
+write(
+  x = "| ------------ | - |",
+  file = md_file,
+  append = T
+)
+
+for (relationship in levels(genomic_relatedness_table$relationship)) {
+  
+  n <- sum(genomic_relatedness_table$relationship == relationship)
+  write(
+    x = paste0("| ", relationship, "| ", n, " |"),
+    file = md_file,
+    append = T
+  )
+}
+write(
+  x = "",
+  file = md_file,
+  append = T
+)
+
+ibd_plot <- ggplot() +
+  geom_point(
+    data = genomic_relatedness_table,
+    mapping = aes(
+      x = IBD1Seg,
+      y = IBD2Seg,
+      col = relationship
+    ),
+    alpha = 0.8
+  ) +
+  scale_x_continuous(
+    name = "IBD1 segment",
+    limits = c(0, 1)
+  ) +
+  scale_y_continuous(
+    name = "IBD2 segment",
+    limits = c(0, 1)
+  ) +
+  theme(
+    legend.title = element_blank(),
+    legend.position = "top"
+  ) + 
+  guides(
+    color = guide_legend(
+      override.aes = list(alpha = 1)
+    )
+  )
+
+plot_name <- "ibd_plot.png"
+
+png(
+  filename = file.path(docs_dir, plot_name),
+  width = 800,
+  height = 600
+)
+grid.draw(ibd_plot)
+device <- dev.off()
+
+write(
+  x = paste0("![](", docs_dir_name, "/", plot_name, ")"),
+  file = md_file,
+  append = T
+)
+
+# Sex inference parents
+
+mother_sex <- sex_check_data %>% 
+  filter(
+    IID %in% expected_relationships_data$mother_sentrix_id
+  ) %>% 
+  mutate(
+    inferred_sex = factor(SNPSEX, levels = 0:2)
+  )
+
+  levels(mother_sex$inferred_sex) <- c("Unknown", "Male", "Female")
+
+mother_exclude_sexcheck <- mother_sex$IID[mother_sex$SNPSEX == 1]
+
+if (length(mother_exclude_sexcheck) > 0) {
+  
+  mismathes_mothers <- data.frame(
+    sentrix_id = mother_exclude_sexcheck,
+    mother_male = 1
+  )
+  
+} else {
+  
+  mismathes_mothers <- data.frame(
+    sentrix_id = character(),
+    mother_male = c()
+  )
+  
+}
+
+mismatches_table <- mismatches_table %>% 
+  full_join(
+    mismathes_mothers,
+    by = "sentrix_id"
+  )
+
+write(
+  x = "## Mother sex check",
+  file = md_file,
+  append = T
+)
+
+write(
+  x = "| Inferred sex |   |",
+  file = md_file,
+  append = T
+)
+write(
+  x = "| ------------ | - |",
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| Unknown | ", sum(mother_sex$SNPSEX == 0), " |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| Male | ", sum(mother_sex$SNPSEX == 1), " |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| Female | ", sum(mother_sex$SNPSEX == 2), " |\n"),
+  file = md_file,
+  append = T
+)
+
+mother_sex_plot <- ggplot() +
+  geom_point(
+    data = mother_sex,
+    mapping = aes(
+      x = F,
+      y = YCOUNT,
+      col = inferred_sex
+    ),
+    alpha = 0.8
+  ) +
+  scale_x_continuous(
+    name = "F"
+  ) +
+  scale_y_continuous(
+    name = "YCOUNT"
+  ) +
+  theme(
+    legend.title = element_blank(),
+    legend.position = "top"
+  )
+
+plot_name <- "mother_sex_plot.png"
+
+png(
+  filename = file.path(docs_dir, plot_name),
+  width = 800,
+  height = 600
+)
+grid.draw(mother_sex_plot)
+device <- dev.off()
+
+write(
+  x = paste0("![](", docs_dir_name, "/", plot_name, ")"),
+  file = md_file,
+  append = T
+)
+
+father_sex <- sex_check_data %>% 
+  filter(
+    IID %in% expected_relationships_data$father_sentrix_id
+  ) %>% 
+  mutate(
+    inferred_sex = factor(SNPSEX, levels = 0:2)
+  )
+
+levels(father_sex$inferred_sex) <- c("Unknown", "Male", "Female")
+
+father_exclude_sexcheck <- father_sex$IID[father_sex$SNPSEX == 2]
+
+if (length(father_exclude_sexcheck)) {
+  
+  father_sexcheck <- data.frame(
+    sentrix_id = father_exclude_sexcheck,
+    father_female = 1
+  )
+  
+} else {
+  
+  father_sexcheck <- data.frame(
+    sentrix_id = character(),
+    father_female = c()
+  )
+  
+}
+
+mismatches_table <- mismatches_table %>% 
+  full_join(
+    father_sexcheck,
+    by = "sentrix_id"
+  )
+
+write(
+  x = "## Father sex check",
+  file = md_file,
+  append = T
+)
+
+write(
+  x = "| Inferred sex |   |",
+  file = md_file,
+  append = T
+)
+write(
+  x = "| ------------ | - |",
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| Unknown | ", sum(father_sex$SNPSEX == 0), " |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| Male | ", sum(father_sex$SNPSEX == 1), " |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| Female | ", sum(father_sex$SNPSEX == 2), " |\n"),
+  file = md_file,
+  append = T
+)
+
+father_sex_plot <- ggplot() +
+  geom_point(
+    data = father_sex,
+    mapping = aes(
+      x = F,
+      y = YCOUNT,
+      col = inferred_sex
+    ),
+    alpha = 0.8
+  ) +
+  scale_x_continuous(
+    name = "F"
+  ) +
+  scale_y_continuous(
+    name = "YCOUNT"
+  ) +
+  theme(
+    legend.title = element_blank(),
+    legend.position = "top"
+  )
+
+plot_name <- "father_sex_plot.png"
+
+png(
+  filename = file.path(docs_dir, plot_name),
+  width = 800,
+  height = 600
+)
+grid.draw(father_sex_plot)
+device <- dev.off()
+
+write(
+  x = paste0("![](", docs_dir_name, "/", plot_name, ")"),
+  file = md_file,
+  append = T
+)
+
+# Sex inference children
+
+children_sex <- sex_check_data %>% 
+  filter(
+    ! IID %in% expected_relationships_data$mother_sentrix_id & ! IID %in% expected_relationships_data$father_sentrix_id
+  ) %>% 
+  mutate(
+    inferred_sex = factor(SNPSEX, levels = 0:2)
+  )
+
+levels(children_sex$inferred_sex) <- c("Unknown", "Male", "Female")
+
+write(
+  x = "## Children sex check",
+  file = md_file,
+  append = T
+)
+
+write(
+  x = "| Inferred sex |   |",
+  file = md_file,
+  append = T
+)
+write(
+  x = "| ------------ | - |",
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| Unknown | ", sum(children_sex$SNPSEX == 0), " |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| Male | ", sum(children_sex$SNPSEX == 1), " |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| Female | ", sum(children_sex$SNPSEX == 2), " |\n"),
+  file = md_file,
+  append = T
+)
+
+children_sex_plot <- ggplot() +
+  geom_point(
+    data = children_sex,
+    mapping = aes(
+      x = F,
+      y = YCOUNT,
+      col = inferred_sex
+    ),
+    alpha = 0.8
+  ) +
+  scale_x_continuous(
+    name = "F"
+  ) +
+  scale_y_continuous(
+    name = "YCOUNT"
+  ) +
+  theme(
+    legend.title = element_blank(),
+    legend.position = "top"
+  )
+
+plot_name <- "children_sex_plot.png"
+
+png(
+  filename = file.path(docs_dir, plot_name),
+  width = 800,
+  height = 600
+)
+grid.draw(children_sex_plot)
+device <- dev.off()
+
+write(
+  x = paste0("![](", docs_dir_name, "/", plot_name, ")"),
+  file = md_file,
+  append = T
+)
+
+# Make families
+
+related_table <- genomic_relatedness_table %>% 
+  select(
+    ID1, ID2, InfType
+  ) %>% 
+  filter(
+    InfType %in% c("Dup/MZ", "PO", "FS")
+  )
+
+relatedness_graph <- graph_from_data_frame(
+  d = related_table,
+  directed = F
+)
+
+nuclear_families <- components(relatedness_graph)
+
+id_to_family <- data.frame(
+  id = V(relatedness_graph)$name,
+  family = paste0("kinship_cluster_", nuclear_families$membership),
+  stringsAsFactors = F
+)
+
+id_to_family_singletons <- data.frame(
+  id = sample_ids[! sample_ids %in% id_to_family$id],
+  stringsAsFactors = F
+) %>% 
+  mutate(
+    family = paste0("singleton_", row_number())
+  )
+
+id_to_family <- rbind(id_to_family, id_to_family_singletons)
+
+# Add sex
+
+id_to_family_sex <- id_to_family %>% 
+  left_join(
+    sex_check_data %>% 
+      select(
+        id = IID,
+        sex = SNPSEX
+      ),
+    by = "id"
+  ) %>% 
+  mutate(
+    sex = ifelse(id %in% expected_relationships_data$father_sentrix_id & sex == 0, 1, sex),
+    sex = ifelse(id %in% expected_relationships_data$mother_sentrix_id & sex == 0, 2, sex)
+  )
+
+if (sum(is.na(id_to_family_sex$sex)) > 0) {
+  
+  stop("Some individuals miss sex inference")
+  
+}
+
+# Merge with birth year and sex
+
+related_table <- related_table %>% 
+  left_join(
+    birth_year_data %>% 
+      select(
+        ID1 = sentrix_id,
+        birth_year1 = birth_year
+      ),
+    by = "ID1"
+  ) %>% 
+  left_join(
+    birth_year_data %>% 
+      select(
+        ID2 = sentrix_id,
+        birth_year2 = birth_year
+      ),
+    by = "ID2"
+  ) %>% 
+  mutate(
+    birth_year1 = ifelse(is.na(birth_year1), 1900, birth_year1),
+    birth_year2 = ifelse(is.na(birth_year2), 1900, birth_year2)
+  ) %>% 
+  left_join(
+    id_to_family_sex %>% 
+      select(
+        ID1 = id,
+        sex1 = sex
+      ),
+    by = "ID1"
+  ) %>% 
+  left_join(
+    id_to_family_sex %>% 
+      select(
+        ID2 = id,
+        sex2 = sex
+      ),
+    by = "ID2"
+  )
+
+filtered_table <- subset(related_table, InfType =="PO")
+
+parent_offspring_table <- data.frame(
+    parent_sentrix_id = ifelse(filtered_table$birth_year1 < filtered_table$birth_year2, filtered_table$ID1,filtered_table$ID2),
+    child_sentrix_id = ifelse(filtered_table$birth_year1 <filtered_table$birth_year2, filtered_table$ID2,filtered_table$ID1),
+    parent_birth_year = ifelse(filtered_table$birth_year1 < filtered_table$birth_year2,filtered_table$birth_year1,filtered_table$birth_year2),
+    child_birth_year = ifelse(filtered_table$birth_year1 < filtered_table$birth_year2, filtered_table$birth_year2,filtered_table$birth_year1),
+    age_difference = abs(filtered_table$birth_year1 - filtered_table$birth_year2),
+    parent_sex = ifelse(filtered_table$birth_year1 < filtered_table$birth_year2, filtered_table$sex1,filtered_table$sex2),
+    child_sex = ifelse(filtered_table$birth_year1 < filtered_table$birth_year2, filtered_table$sex2,filtered_table$sex1)
+)
+
+
+# Conflicting relationships
+
+conflicting_relationship_table <- parent_offspring_table %>% 
+  filter(
+age_difference <= 12
+  ) %>% 
+  select(
+    child_sentrix_id, parent_sentrix_id, age_difference
+  )
+
+mother_offspring_table <- subset(parent_offspring_table, parent_sex == 2)
+
+father_offspring_table <- subset(parent_offspring_table, parent_sex == 1)
+
+process_parent_relationship <- function(
+  expected_relationships_data, 
+  sample_ids, 
+  parent_offspring_table, 
+  parent_status
+) {
+  # Validate parent_status input
+  if (!parent_status %in% c("mother", "father")) {
+    stop("Invalid parent_status. Use 'mother' or 'father'.")
+  }
+  
+  # Dynamically set column names based on parent_status
+  parent_sentrix_col <- ifelse(parent_status == "mother", "mother_sentrix_id", "father_sentrix_id")
+  
+  result <- expected_relationships_data %>% 
+    filter(
+      !is.na(child_sentrix_id) & 
+      !is.na(!!sym(parent_sentrix_col)) & 
+      child_sentrix_id %in% sample_ids & 
+      !!sym(parent_sentrix_col) %in% sample_ids
+    ) %>%
+    select(
+      child_sentrix_id, 
+      !!sym(parent_sentrix_col)
+    ) %>%
+    mutate(
+      found = ifelse(
+        paste(child_sentrix_id, !!sym(parent_sentrix_col)) %in% 
+          paste(
+            parent_offspring_table$child_sentrix_id, 
+            parent_offspring_table$parent_sentrix_id
+          ),
+        TRUE,
+        FALSE
+      )
+    )
+  
+  return(result)
+}
+
+
+
+mother_child_expected <- process_parent_relationship(
+  expected_relationships_data = expected_relationships_data,
+  sample_ids = sample_ids,
+  parent_offspring_table = mother_offspring_table,
+  parent_status = "mother"
+)
+
+father_child_expected <- process_parent_relationship(
+  expected_relationships_data = expected_relationships_data,
+  sample_ids = sample_ids,
+  parent_offspring_table = father_offspring_table,
+  parent_status = "father"
+)
+
+
+write(
+  x = "## Parental relationship",
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0(nrow(mother_child_expected), " mother-child relationships expected."),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("- ", sum(mother_child_expected$found), " (", round(100 * sum(mother_child_expected$found)/nrow(mother_child_expected), digits = 2), "%) recovered by genetic relationships."),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("- ", sum(!mother_child_expected$found), " (", round(100 * sum(!mother_child_expected$found)/nrow(mother_child_expected), digits = 2), "%) not recovered by genetic relationships."),
+  file = md_file,
+  append = T
+)
+write(
+  x = "\n",
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0(nrow(father_child_expected), " father-child relationships expected."),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("- ", sum(father_child_expected$found), " (", round(100 * sum(father_child_expected$found)/nrow(father_child_expected), digits = 2), "%) recovered by genetic relationships."),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("- ", sum(!father_child_expected$found), " (", round(100 * sum(!father_child_expected$found)/nrow(father_child_expected), digits = 2), "%) not recovered by genetic relationships."),
+  file = md_file,
+  append = T
+)
+write(
+  x = "\n",
+  file = md_file,
+  append = T
+)
+
+conflicting_relationship_table <- conflicting_relationship_table %>% 
+  full_join(
+    mother_child_expected %>% 
+      filter(
+        !found
+      ) %>% 
+      select(
+        child_sentrix_id,
+        parent_sentrix_id = mother_sentrix_id
+      ) %>% 
+      mutate(
+        child_sentrix_id = as.character(child_sentrix_id),
+        missing_mother_child_genetic_relationship = 1
+      ),
+    by = c("child_sentrix_id", "parent_sentrix_id")
+  ) %>% 
+  full_join(
+    father_child_expected %>% 
+      filter(
+        !found
+      ) %>% 
+      select(
+        child_sentrix_id,
+        parent_sentrix_id = father_sentrix_id
+      ) %>% 
+      mutate(
+        child_sentrix_id = as.character(child_sentrix_id),
+        missing_father_child_genetic_relationship = 1
+      ),
+    by = c("child_sentrix_id", "parent_sentrix_id")
+  )
