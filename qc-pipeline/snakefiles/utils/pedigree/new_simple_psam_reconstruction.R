@@ -794,9 +794,9 @@ check_expected_relationships <- function(
   id_type
 ) {
 
-mother_offspring_detected <<- subset(parent_offspring_table, parent_sex == 2)
+mother_offspring_detected <- subset(parent_offspring_table, parent_sex == 2)
 
-father_offspring_detected <<- subset(parent_offspring_table, parent_sex == 1)
+father_offspring_detected <- subset(parent_offspring_table, parent_sex == 1)
 
 mother_offspring_expected <- expected_relationships_data %>%
   select(parent_id = mother_id, child_id)
@@ -827,9 +827,8 @@ write_relationship_docs(nrow(father_offspring_detected_found), sum(father_offspr
 
 }
 
-check_expected_relationships(expected_relationships_data_samples, parent_offspring_table_samples, sample_ids, "samples")
-
 check_expected_relationships(expected_relationships_data_ind, parent_offspring_table_ind, ind_ids, "individuals")
+check_expected_relationships(expected_relationships_data_samples, parent_offspring_table_samples, sample_ids, "samples")
 
 
 # Conflicting relationships
@@ -841,123 +840,17 @@ age_difference <= 12
   select(
     child_sentrix_id, parent_sentrix_id, age_difference
   )
-
-mother_offspring_table <- subset(parent_offspring_table, parent_sex == 2)
-
-father_offspring_table <- subset(parent_offspring_table, parent_sex == 1)
-
-# process_parent_relationship <- function(
-#   expected_relationships_data, 
-#   sample_ids, 
-#   parent_offspring_table, 
-#   parent_status
-# ) {
-
-#   if (!parent_status %in% c("mother", "father")) {
-#     stop("Invalid parent_status. Use 'mother' or 'father'.")
-#   }
-  
-#   # Dynamically set column names based on parent_status
-#   parent_sentrix_col <- ifelse(parent_status == "mother", "mother_sentrix_id", "father_sentrix_id")
-  
-#   result <- expected_relationships_data %>% 
-#     filter(
-#       !is.na(child_sentrix_id) & 
-#       !is.na(!!sym(parent_sentrix_col)) & 
-#       child_sentrix_id %in% sample_ids & 
-#       !!sym(parent_sentrix_col) %in% sample_ids
-#     ) %>%
-#     select(
-#       child_sentrix_id, 
-#       !!sym(parent_sentrix_col)
-#     ) %>%
-#     mutate(
-#       found = ifelse(
-#         paste(child_sentrix_id, !!sym(parent_sentrix_col)) %in% 
-#           paste(
-#             parent_offspring_table$child_sentrix_id, 
-#             parent_offspring_table$parent_sentrix_id
-#           ),
-#         TRUE,
-#         FALSE
-#       )
-#     )
-  
-#   return(result)
-# }
-
-
-
-mother_child_expected <- process_parent_relationship(
-  expected_relationships_data = expected_relationships_data,
-  sample_ids = sample_ids,
-  parent_offspring_table = mother_offspring_table,
-  parent_status = "mother"
-)
-
-father_child_expected <- process_parent_relationship(
-  expected_relationships_data = expected_relationships_data,
-  sample_ids = sample_ids,
-  parent_offspring_table = father_offspring_table,
-  parent_status = "father"
-)
-
-
-write(
-  x = "## Parental relationship",
-  file = md_file,
-  append = T
-)
-write(
-  x = paste0(nrow(mother_child_expected), " mother-child relationships expected."),
-  file = md_file,
-  append = T
-)
-write(
-  x = paste0("- ", sum(mother_child_expected$found), " (", round(100 * sum(mother_child_expected$found)/nrow(mother_child_expected), digits = 2), "%) recovered by genetic relationships."),
-  file = md_file,
-  append = T
-)
-write(
-  x = paste0("- ", sum(!mother_child_expected$found), " (", round(100 * sum(!mother_child_expected$found)/nrow(mother_child_expected), digits = 2), "%) not recovered by genetic relationships."),
-  file = md_file,
-  append = T
-)
-write(
-  x = "\n",
-  file = md_file,
-  append = T
-)
-write(
-  x = paste0(nrow(father_child_expected), " father-child relationships expected."),
-  file = md_file,
-  append = T
-)
-write(
-  x = paste0("- ", sum(father_child_expected$found), " (", round(100 * sum(father_child_expected$found)/nrow(father_child_expected), digits = 2), "%) recovered by genetic relationships."),
-  file = md_file,
-  append = T
-)
-write(
-  x = paste0("- ", sum(!father_child_expected$found), " (", round(100 * sum(!father_child_expected$found)/nrow(father_child_expected), digits = 2), "%) not recovered by genetic relationships."),
-  file = md_file,
-  append = T
-)
-write(
-  x = "\n",
-  file = md_file,
-  append = T
-)
+parent_offspring_detected_found <- rbind(mother_offspring_detected_found, father_offspring_detected_found)
 
 conflicting_relationship_table <- conflicting_relationship_table %>% 
   full_join(
-    mother_child_expected %>% 
+    mother_offspring_expected_found %>% 
       filter(
         !found
       ) %>% 
       select(
-        child_sentrix_id,
-        parent_sentrix_id = mother_sentrix_id
+        child_sentrix_id = child_id,
+        parent_sentrix_id = parent_id
       ) %>% 
       mutate(
         child_sentrix_id = as.character(child_sentrix_id),
@@ -966,48 +859,35 @@ conflicting_relationship_table <- conflicting_relationship_table %>%
     by = c("child_sentrix_id", "parent_sentrix_id")
   ) %>% 
   full_join(
-    father_child_expected %>% 
+    father_offspring_expected_found %>% 
       filter(
         !found
       ) %>% 
       select(
-        child_sentrix_id,
-        parent_sentrix_id = father_sentrix_id
+        child_sentrix_id = child_id,
+        parent_sentrix_id = parent_id
       ) %>% 
       mutate(
         child_sentrix_id = as.character(child_sentrix_id),
         missing_father_child_genetic_relationship = 1
       ),
     by = c("child_sentrix_id", "parent_sentrix_id")
+  )%>% 
+  full_join(
+    parent_offspring_detected_found %>% 
+      filter(
+        !found
+      ) %>% 
+      select(
+        child_sentrix_id = child_id,
+        parent_sentrix_id = parent_id
+      ) %>% 
+      mutate(
+        child_sentrix_id = as.character(child_sentrix_id),
+        missing_registry_relationship = 1
+      ),
+    by = c("child_sentrix_id", "parent_sentrix_id")
   )
 
-genetic_relationship_match_mother <- mother_offspring_table %>%
-  left_join(
-    expected_relationships_data %>%
-    select(
-      parent_sentrix_id = mother_sentrix_id,
-      child_sentrix_id
-    ),
-    by = c("parent_sentrix_id", "child_sentrix_id"),
-    multiple = "all"
-  )
-
-genetic_relationship_match_father <- father_offspring_table %>%
-  left_join(
-    expected_relationships_data %>%
-    select(
-      parent_sentrix_id = father_sentrix_id,
-      child_sentrix_id
-    ),
-    by = c("parent_sentrix_id", "child_sentrix_id"),
-    multiple = "all"
-  )
-
-
-mother_child_test <- process_parent_relationship(
-  expected_relationships_data = mother_offspring_table ,
-  sample_ids = sample_ids,
-  parent_offspring_table = expected_relationships_data,
-  parent_status = "mother"
-)
+ 
 
