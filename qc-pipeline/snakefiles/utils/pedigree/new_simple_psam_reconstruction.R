@@ -818,7 +818,7 @@ restored_psam_data <<- psam_data %>%
   left_join(
     parent_offspring_table %>%
     filter(
-        parent_sex == 1 & age_difference >= 12
+        parent_sex == 1
       ) %>%
       select(
         PAT = parent_id,
@@ -830,7 +830,7 @@ restored_psam_data <<- psam_data %>%
   left_join(
     parent_offspring_table %>%
     filter(
-        parent_sex == 2 & age_difference >= 12
+        parent_sex == 2
       ) %>%
       select(
         MAT = parent_id,
@@ -840,7 +840,13 @@ restored_psam_data <<- psam_data %>%
       multiple = "all"
   )
 
-n_trios = nrow(restored_psam_data[!is.na(restored_psam_data$IID) & !is.na(restored_psam_data$MAT) & !is.na(restored_psam_data$PAT) & !duplicated(restored_psam_data),])
+
+n_trios <- nrow(restored_psam_data[!is.na(restored_psam_data$IID) & !is.na(restored_psam_data$MAT) & !is.na(restored_psam_data$PAT) & !duplicated(restored_psam_data),])
+n_children <- nrow(restored_psam_data[!is.na(restored_psam_data$IID) & (!is.na(restored_psam_data$MAT) | !is.na(restored_psam_data$PAT)) & !duplicated(restored_psam_data),])
+n_fathers <- length(unique(na.omit(restored_psam_data$PAT)))
+n_mothers <- length(unique(na.omit(restored_psam_data$MAT)))
+n_mc <- nrow(restored_psam_data[!is.na(restored_psam_data$IID) & !is.na(restored_psam_data$MAT) & !duplicated(restored_psam_data),])
+n_fc <- nrow(restored_psam_data[!is.na(restored_psam_data$IID) & !is.na(restored_psam_data$PAT) & !duplicated(restored_psam_data),])
 
 write(
   x = paste("## Parental relationships,", id_type),
@@ -848,7 +854,7 @@ write(
   append = T
 )
 write(
-  x = paste(n_distinct(ids), id_type, "and", n_trios, "trios (mother-father-child relationships) detected.\n"),
+  x = paste(n_distinct(ids), id_type,  "detected.\n - ", n_children, "children\n - ", n_mothers, "mothers\n - ", n_fathers, "fathers\n - ",  n_mc, "mother-child pairs\n - ", n_fc, "father-child pairs\n - ", n_trios, "trios\n"),
   file = md_file,
   append = T
 )
