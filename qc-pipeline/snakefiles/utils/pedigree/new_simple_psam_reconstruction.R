@@ -703,8 +703,11 @@ expected_relationships_data_ind <- expected_relationships_data %>%
 expected_relationships_data_samples <- expected_relationships_data %>% rename(child_id = child_sentrix_id, mother_id = mother_sentrix_id, father_id = father_sentrix_id)
 
 ind_ids <- id_data %>%
-  filter(sentrix_id %in% sample_ids) %>%
-  pull(id)
+   filter(sentrix_id %in% sample_ids) %>%
+   pull(id)
+ind_ids <- unique(ind_ids)
+
+psam_data_ind <- data.frame(IID = ind_ids)
 
 
 if ( (nrow(parent_offspring_table_ind) != nrow(parent_offspring_table_samples)) |  (nrow(parent_offspring_table_ind) != nrow(parent_offspring_table))) {
@@ -790,6 +793,7 @@ write(
 check_expected_relationships <- function(
   expected_relationships_data,
   parent_offspring_table,
+  psam_data,
   ids,
   id_type
 ) {
@@ -809,16 +813,46 @@ father_offspring_expected_found <<- found_in(father_offspring_expected, father_o
 
 mother_offspring_detected_found <<- found_in(mother_offspring_detected, mother_offspring_expected, ids)
 father_offspring_detected_found <<- found_in(father_offspring_detected, father_offspring_expected, ids)
+
+restored_psam_data <<- psam_data %>%
+  left_join(
+    parent_offspring_table %>%
+    filter(
+        parent_sex == 1 & age_difference >= 12
+      ) %>%
+      select(
+        PAT = parent_id,
+        IID = child_id
+      ),
+      by = "IID",
+      multiple = "all"
+  ) %>%
+  left_join(
+    parent_offspring_table %>%
+    filter(
+        parent_sex == 2 & age_difference >= 12
+      ) %>%
+      select(
+        MAT = parent_id,
+        IID = child_id
+      ),
+      by = "IID",
+      multiple = "all"
+  )
+
+n_trios = nrow(restored_psam_data[!is.na(restored_psam_data$IID) & !is.na(restored_psam_data$MAT) & !is.na(restored_psam_data$PAT) & !duplicated(restored_psam_data),])
+
 write(
   x = paste("## Parental relationships,", id_type),
   file = md_file,
   append = T
 )
 write(
-  x = paste(n_distinct(ids), "unique", id_type, "detected.\n"),
+  x = paste(n_distinct(ids), id_type, "and", n_trios, "trios (mother-father-child relationships) detected.\n"),
   file = md_file,
   append = T
 )
+
 write_relationship_docs(nrow(mother_offspring_expected_found), sum(mother_offspring_expected_found$found), sum(!mother_offspring_expected_found$found), "mother-child relationships expected.", "recovered by genetic relationships.")
 write_relationship_docs(nrow(father_offspring_expected_found), sum(father_offspring_expected_found$found), sum(!father_offspring_expected_found$found), "father-child relationships expected.", "recovered by genetic relationships.")
 
@@ -827,8 +861,8 @@ write_relationship_docs(nrow(father_offspring_detected_found), sum(father_offspr
 
 }
 
-check_expected_relationships(expected_relationships_data_ind, parent_offspring_table_ind, ind_ids, "individuals")
-check_expected_relationships(expected_relationships_data_samples, parent_offspring_table_samples, sample_ids, "samples")
+check_expected_relationships(expected_relationships_data_ind, parent_offspring_table_ind, psam_data_ind, ind_ids, "individuals")
+check_expected_relationships(expected_relationships_data_samples, parent_offspring_table_samples, psam_data, sample_ids, "samples")
 
 
 # Conflicting relationships
