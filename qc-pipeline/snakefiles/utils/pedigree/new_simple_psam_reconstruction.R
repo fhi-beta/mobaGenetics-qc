@@ -848,13 +848,15 @@ n_mothers <<- length(unique(na.omit(restored_psam_data$MAT)))
 n_mc <<- nrow(restored_psam_data[!is.na(restored_psam_data$IID) & !is.na(restored_psam_data$MAT) & !duplicated(restored_psam_data),])
 n_fc <<- nrow(restored_psam_data[!is.na(restored_psam_data$IID) & !is.na(restored_psam_data$PAT) & !duplicated(restored_psam_data),])
 
+
+
 write(
   x = paste("## Parental relationships,", id_type),
   file = md_file,
   append = T
 )
 write(
-  x = paste(n_distinct(ids), id_type,  "detected (excluding duplicates).\n - ", n_children, "children\n - ", n_mothers, "mothers\n - ", n_fathers, "fathers\n - ",  n_mc, "mother-child pairs\n - ", n_fc, "father-child pairs\n - ", n_trios, "trios\n"),
+  x = paste(n_distinct(ids), id_type,  "detected.\n - ", n_children, "children\n - ", n_mothers, "mothers\n - ", n_fathers, "fathers\n - ",  n_mc, "mother-child pairs (excluding duplicate mothers)\n - ", n_fc, "father-child pairs (excluding duplicate fathers)\n - ", n_trios, "trios (excluding duplicate mothers and fathers)\n"),
   file = md_file,
   append = T
 )
