@@ -798,9 +798,9 @@ check_expected_relationships <- function(
   id_type
 ) {
 
-mother_offspring_detected <<- subset(parent_offspring_detected, parent_sex == 2)
+mother_offspring_detected <<- unique(parent_offspring_detected %>% filter(parent_sex == 2) %>% select(parent_id, child_id))
 
-father_offspring_detected <<- subset(parent_offspring_detected, parent_sex == 1)
+father_offspring_detected <<- unique(parent_offspring_detected %>% filter(parent_sex == 1) %>% select(parent_id, child_id))
 
 mother_offspring_expected <<- unique(parent_offspring_expected %>%
   select(parent_id = mother_id, child_id) %>%
@@ -858,7 +858,7 @@ write(
   append = T
 )
 write(
-  x = paste(n_distinct(ids), id_type,  "detected.\n - ", n_children, "children\n - ", n_mothers, "mothers\n - ", n_fathers, "fathers\n - ",  n_mc, "mother-child pairs (excluding duplicate mothers)\n - ", n_fc, "father-child pairs (excluding duplicate fathers)\n - ", n_trios, "trios (excluding duplicate mothers and fathers)\n"),
+  x = paste(n_distinct(ids), id_type,  "in total\n - ", n_children, "children\n - ", n_mothers, "mothers\n - ", n_fathers, "fathers\n - ",  n_mc, "mother-child pairs (excluding duplicate mothers)\n - ", n_fc, "father-child pairs (excluding duplicate fathers)\n - ", n_trios, "trios (excluding duplicate mothers and fathers)\n"),
   file = md_file,
   append = T
 )
