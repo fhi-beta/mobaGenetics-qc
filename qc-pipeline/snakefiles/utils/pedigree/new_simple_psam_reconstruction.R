@@ -824,7 +824,8 @@ restored_psam_data <<- psam_data %>%
         PAT = parent_id,
         IID = child_id
       ),
-      by = "IID"
+      by = "IID",
+      multiple = "first"
   ) %>%
   left_join(
     parent_offspring_detected %>%
@@ -835,7 +836,8 @@ restored_psam_data <<- psam_data %>%
         MAT = parent_id,
         IID = child_id
       ),
-      by = "IID"
+      by = "IID",
+      multiple = "first"
   )
 
 
@@ -852,7 +854,7 @@ write(
   append = T
 )
 write(
-  x = paste(n_distinct(ids), id_type,  "detected.\n - ", n_children, "children\n - ", n_mothers, "mothers\n - ", n_fathers, "fathers\n - ",  n_mc, "mother-child pairs\n - ", n_fc, "father-child pairs\n - ", n_trios, "trios\n"),
+  x = paste(n_distinct(ids), id_type,  "detected (excluding duplicates).\n - ", n_children, "children\n - ", n_mothers, "mothers\n - ", n_fathers, "fathers\n - ",  n_mc, "mother-child pairs\n - ", n_fc, "father-child pairs\n - ", n_trios, "trios\n"),
   file = md_file,
   append = T
 )
