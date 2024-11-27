@@ -802,11 +802,13 @@ mother_offspring_detected <<- subset(parent_offspring_detected, parent_sex == 2)
 
 father_offspring_detected <<- subset(parent_offspring_detected, parent_sex == 1)
 
-mother_offspring_expected <<- parent_offspring_expected %>%
-  select(parent_id = mother_id, child_id)
+mother_offspring_expected <<- unique(parent_offspring_expected %>%
+  select(parent_id = mother_id, child_id) %>%
+  filter(!is.na(parent_id) & !is.na(child_id)))
 
-father_offspring_expected <<- parent_offspring_expected %>%
-  select(parent_id = father_id, child_id)
+father_offspring_expected <<- unique(parent_offspring_expected %>%
+  select(parent_id = father_id, child_id) %>%
+  filter(!is.na(parent_id) & !is.na(child_id)))
 
 mother_offspring_expected_found <<- found_in(mother_offspring_expected, mother_offspring_detected, ids)
 father_offspring_expected_found <<- found_in(father_offspring_expected, father_offspring_detected, ids)
