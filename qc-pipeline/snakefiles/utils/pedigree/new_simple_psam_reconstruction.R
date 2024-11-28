@@ -853,7 +853,7 @@ n_fc <<- nrow(restored_psam_data[!is.na(restored_psam_data$IID) & !is.na(restore
 
 
 write(
-  x = paste("## Parental relationships,", id_type),
+  x = paste("### ", id_type),
   file = md_file,
   append = T
 )
@@ -864,7 +864,7 @@ write(
 )
 
 write(
-  x = paste("Duplicate parents (at the", id_type, "level:\n - ", nrow(mother_offspring_detected_dupl), "children with multiple mothers detected\n - ", nrow(father_offspring_detected_dupl), "children with multiple father detected\n - ", nrow(mother_offspring_expected_dupl), "children with multiple mothers in registry\n - ", nrow(father_offspring_expected_dupl), "children with multiple fathers in registry"),
+  x = paste("Duplicate parents (at the", id_type, "level):\n - ", nrow(mother_offspring_detected_dupl), "children with multiple mothers detected\n - ", nrow(father_offspring_detected_dupl), "children with multiple father detected\n - ", nrow(mother_offspring_expected_dupl), "children with multiple mothers in registry\n - ", nrow(father_offspring_expected_dupl), "children with multiple fathers in registry\n"),
   file = md_file,
   append = T
 )
@@ -877,6 +877,12 @@ write_relationship_docs(nrow(mother_offspring_detected_found), sum(mother_offspr
 write_relationship_docs(nrow(father_offspring_detected_found), sum(father_offspring_detected_found$found), sum(!father_offspring_detected_found$found), "father-child relationships detected.", "matched to registry.")
 
 }
+
+write(
+  x = paste("## Parental relationships"),
+  file = md_file,
+  append = T
+)
 
 write(
   x = paste(nrow(subset(psam_data, !(IID %in% id_data$sentrix_id))), "sentrix IDs missing from ID file"),
