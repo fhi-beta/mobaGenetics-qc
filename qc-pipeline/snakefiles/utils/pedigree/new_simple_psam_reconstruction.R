@@ -798,10 +798,10 @@ check_expected_relationships <- function(
   id_type
 ) {
 
-mother_offspring_detected <<- unique(parent_offspring_detected %>% filter(parent_sex == 2 & !is.na(parent_id) & !is.na(child_id)) %>% select(parent_id, child_id))
+mother_offspring_detected <<- unique(parent_offspring_detected %>% filter(parent_sex == 2 & !is.na(parent_id) & !is.na(child_id) & age_difference> 12) %>% select(parent_id, child_id))
 mother_offspring_detected_dupl <<- subset(mother_offspring_detected, duplicated(child_id))
 
-father_offspring_detected <<- unique(parent_offspring_detected %>% filter(parent_sex == 1 & !is.na(parent_id) & !is.na(child_id)) %>% select(parent_id, child_id))
+father_offspring_detected <<- unique(parent_offspring_detected %>% filter(parent_sex == 1 & !is.na(parent_id) & !is.na(child_id) && age_difference > 12) %>% select(parent_id, child_id))
 father_offspring_detected_dupl <<- subset(father_offspring_detected, duplicated(child_id))
 
 mother_offspring_expected <<- unique(parent_offspring_expected %>%
@@ -858,13 +858,13 @@ write(
   append = T
 )
 write(
-  x = paste(n_distinct(ids), id_type,  "in total. Breakdown excluding duplicate parents:\n - ", n_children, "children\n - ", n_mothers, "mothers\n - ", n_fathers, "fathers\n - ",  n_mc, "mother-child pairs\n - ", n_fc, "father-child pairs\n - ", n_trios, "trios\n"),
+  x = paste(n_distinct(ids), id_type,  "in total. Breakdown excluding multiple parents:\n - ", n_children, "children\n - ", n_mothers, "mothers\n - ", n_fathers, "fathers\n - ",  n_mc, "mother-child pairs\n - ", n_fc, "father-child pairs\n - ", n_trios, "trios\n"),
   file = md_file,
   append = T
 )
 
 write(
-  x = paste("Duplicate parents (at the", id_type, "level):\n - ", nrow(mother_offspring_detected_dupl), "children with multiple mothers detected\n - ", nrow(father_offspring_detected_dupl), "children with multiple father detected\n - ", nrow(mother_offspring_expected_dupl), "children with multiple mothers in registry\n - ", nrow(father_offspring_expected_dupl), "children with multiple fathers in registry\n"),
+  x = paste("Multiple parents (at the", substring(id_type, 1, char(id_type)-1), "level):\n - ", nrow(mother_offspring_detected_dupl), "children with multiple mothers detected\n - ", nrow(father_offspring_detected_dupl), "children with multiple fathers detected\n - ", nrow(mother_offspring_expected_dupl), "children with multiple mothers in registry\n - ", nrow(father_offspring_expected_dupl), "children with multiple fathers in registry\n"),
   file = md_file,
   append = T
 )
