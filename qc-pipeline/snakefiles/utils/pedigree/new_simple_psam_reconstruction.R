@@ -884,12 +884,6 @@ write(
   append = T
 )
 
-write(
-  x = paste("## Parental relationships,", id_type),
-  file = md_file,
-  append = T
-)
-
 check_expected_relationships(expected_relationships_data_ind, parent_offspring_table_ind, psam_data_ind, ind_ids, "individuals")
 check_expected_relationships(expected_relationships_data_samples, parent_offspring_table_samples, psam_data, sample_ids, "samples")
 
