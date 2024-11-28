@@ -953,7 +953,8 @@ conflicting_relationship_table <- conflicting_relationship_table %>%
   )
 
  # Complete new psam
-
+ 
+restored_psam_data$SEX <- NULL
  restored_psam_data <- restored_psam_data %>%
       left_join(
         id_to_family_sex %>%
