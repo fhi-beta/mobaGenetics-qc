@@ -864,7 +864,7 @@ write(
 )
 
 write(
-  x = paste("Multiple parents (at the", substring(id_type, 1, char(id_type)-1), "level):\n - ", nrow(mother_offspring_detected_dupl), "children with multiple mothers detected\n - ", nrow(father_offspring_detected_dupl), "children with multiple fathers detected\n - ", nrow(mother_offspring_expected_dupl), "children with multiple mothers in registry\n - ", nrow(father_offspring_expected_dupl), "children with multiple fathers in registry\n"),
+  x = paste("Multiple parents (at the", substring(id_type, 1, nchar(id_type)-1), "level):\n - ", nrow(mother_offspring_detected_dupl), "children with multiple mothers detected\n - ", nrow(father_offspring_detected_dupl), "children with multiple fathers detected\n - ", nrow(mother_offspring_expected_dupl), "children with multiple mothers in registry\n - ", nrow(father_offspring_expected_dupl), "children with multiple fathers in registry\n"),
   file = md_file,
   append = T
 )
