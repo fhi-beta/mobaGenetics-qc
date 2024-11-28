@@ -798,17 +798,23 @@ check_expected_relationships <- function(
   id_type
 ) {
 
-mother_offspring_detected <<- unique(parent_offspring_detected %>% filter(parent_sex == 2) %>% select(parent_id, child_id))
+mother_offspring_detected <<- unique(parent_offspring_detected %>% filter(parent_sex == 2 & !is.na(parent_id) & !is.na(child_id)) %>% select(parent_id, child_id))
+mother_offspring_detected_dupl <<- subset(mother_offspring_detected, duplicated(child_id))
 
-father_offspring_detected <<- unique(parent_offspring_detected %>% filter(parent_sex == 1) %>% select(parent_id, child_id))
+father_offspring_detected <<- unique(parent_offspring_detected %>% filter(parent_sex == 1 & !is.na(parent_id) & !is.na(child_id)) %>% select(parent_id, child_id))
+father_offspring_detected_dupl <<- subset(father_offspring_detected, duplicated(child_id))
 
 mother_offspring_expected <<- unique(parent_offspring_expected %>%
   select(parent_id = mother_id, child_id) %>%
   filter(!is.na(parent_id) & !is.na(child_id)))
 
+mother_offspring_expected_dupl <<- subset(mother_offspring_expected, duplicate(child_id))
+
 father_offspring_expected <<- unique(parent_offspring_expected %>%
   select(parent_id = father_id, child_id) %>%
   filter(!is.na(parent_id) & !is.na(child_id)))
+
+father_offspring_expected_dupl <<- subset(father_offspring_expected, dulicate(child_id))
 
 mother_offspring_expected_found <<- found_in(mother_offspring_expected, mother_offspring_detected, ids)
 father_offspring_expected_found <<- found_in(father_offspring_expected, father_offspring_detected, ids)
@@ -818,10 +824,7 @@ father_offspring_detected_found <<- found_in(father_offspring_detected, father_o
 
 restored_psam_data <<- psam_data %>%
   left_join(
-    parent_offspring_detected %>%
-    filter(
-        parent_sex == 1
-      ) %>%
+    father_offspring_detected %>%
       select(
         PAT = parent_id,
         IID = child_id
@@ -830,10 +833,7 @@ restored_psam_data <<- psam_data %>%
       multiple = "first"
   ) %>%
   left_join(
-    parent_offspring_detected %>%
-    filter(
-        parent_sex == 2
-      ) %>%
+    mother_offspring_detected %>%
       select(
         MAT = parent_id,
         IID = child_id
@@ -863,6 +863,13 @@ write(
   append = T
 )
 
+write(
+  x = paste("Duplicate parents (at the", id_type, "level:\n - ", nrow(mother_offspring_detected_dupl), "children with multiple mothers detected\n - ", nrow(father_offspring_detected_dupl), "children with multiple father detected\n - ", nrow(mother_offspring_expected_dupl), "children with multiple mothers in registry\n - ", nrow(father_offspring_expected_dupl), "children with multiple fathers in registry"),
+  file = md_file,
+  append = T
+)
+
+
 write_relationship_docs(nrow(mother_offspring_expected_found), sum(mother_offspring_expected_found$found), sum(!mother_offspring_expected_found$found), "mother-child relationships expected.", "recovered by genetic relationships.")
 write_relationship_docs(nrow(father_offspring_expected_found), sum(father_offspring_expected_found$found), sum(!father_offspring_expected_found$found), "father-child relationships expected.", "recovered by genetic relationships.")
 
@@ -870,6 +877,18 @@ write_relationship_docs(nrow(mother_offspring_detected_found), sum(mother_offspr
 write_relationship_docs(nrow(father_offspring_detected_found), sum(father_offspring_detected_found$found), sum(!father_offspring_detected_found$found), "father-child relationships detected.", "matched to registry.")
 
 }
+
+write(
+  x = paste(nrow(subset(psam_data, !(IID %in% id_data$sentrix_id))), "sentrix IDs missing from ID file"),
+  file = md_file,
+  append = T
+)
+
+write(
+  x = paste("## Parental relationships,", id_type),
+  file = md_file,
+  append = T
+)
 
 check_expected_relationships(expected_relationships_data_ind, parent_offspring_table_ind, psam_data_ind, ind_ids, "individuals")
 check_expected_relationships(expected_relationships_data_samples, parent_offspring_table_samples, psam_data, sample_ids, "samples")
