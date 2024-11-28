@@ -19,10 +19,10 @@ if (debug) {
     "/mnt/archive/snpQc/phenotypes/birth_year_24.04.12.gz",
     "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
     "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod7-post-imputation/all_samples/mod7_rename_missing_ids.psam",
-    "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod8-release_annotation/mod8_psam_reconstruction.psam",
-    "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod8-release_annotation/exclusion",
-    "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod8-release_annotation/mismatch_information.gz",
-    "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod8-release_annotation/mismatch_relationship.gz",
+    "/mnt/work/oystein/tmp/mod8_psam_reconstruction.psam",
+    "/mnt/work/oystein/tmp/exclusion",
+    "/mnt/work/oystein/tmp/mismatch_information.gz",
+    "/mnt/work/oystein/tmp/mismatch_relationship.gz",
     "/mnt/work/oystein/tmp/fam_reconstruction_debug.md",
     "debug"
   )
@@ -952,6 +952,22 @@ conflicting_relationship_table <- conflicting_relationship_table %>%
     by = c("child_sentrix_id", "parent_sentrix_id")
   )
 
+mismatches_table <- mismatches_table %>%
+   full_join(
+    conflicting_relationship_table %>%
+     mutate(conflicting_relationship_child = 1) %>%
+     select(sentrix_id = child_sentrix_id, conflicting_relationship_child),
+     by = "sentrix_id",
+     multiple = "first"
+    ) %>%
+    full_join(
+      conflicting_relationship_table %>%
+     mutate(conflicting_relationship_parent = 1) %>%
+     select(sentrix_id = parent_sentrix_id, conflicting_relationship_parent),
+     by = "sentrix_id",
+     multiple = "first"
+    )
+
  # Complete new psam
  
 restored_psam_data$SEX <- NULL
@@ -969,3 +985,90 @@ restored_psam_data$SEX <- NULL
 restored_psam_data <- restored_psam_data[, c("FID", setdiff(names(restored_psam_data), "FID"))]
 colnames(restored_psam_data)[colnames(restored_psam_data) == "FID"] <- "#FID"
 
+child_ids <- expected_relationships_data$child_sentrix_id
+
+mismatches_to_exclude <- mismatches_table$sentrix_id[!is.na(mismatches_table$mother_male)]
+relationships_to_exclude1 <- conflicting_relationship_table %>% 
+  filter(
+    !is.na(age_difference) | !is.na(missing_mother_child_genetic_relationship)
+  )
+relationships_to_exclude2 <- conflicting_relationship_table %>% 
+  filter(
+    !is.na(missing_father_child_genetic_relationship) & child_sentrix_id %in% relationships_to_exclude1$child_sentrix_id
+  )
+
+to_remove_ids <- c(
+  mismatches_to_exclude,
+  relationships_to_exclude1$child_sentrix_id, relationships_to_exclude1$parent_sentrix_id,
+  relationships_to_exclude2$child_sentrix_id, relationships_to_exclude2$parent_sentrix_id
+  )
+to_remove_psam <- restored_psam_data[restored_psam_data$id %in% to_remove_ids, 1:2]
+
+write.table(
+  x = restored_psam_data,
+  file = destination_file,
+  col.names = T,
+  row.names = F,
+  sep = "\t",
+  quote = F
+)
+
+write.table(
+  x = mismatches_table,
+  file = gzfile(mismatch_information_file),
+  col.names = T,
+  row.names = F,
+  sep = "\t",
+  quote = F
+)
+
+write.table(
+  x = conflicting_relationship_table,
+  file = gzfile(mismatch_relationship_file),
+  col.names = T,
+  row.names = F,
+  sep = "\t",
+  quote = F
+)
+
+# Write a list of samples to be excluded due to mismatch between the genetic relationship and registry information
+child_ids <- expected_relationships_data$child_sentrix_id
+
+mismatches_to_exclude <- mismatches_table$sentrix_id[!is.na(mismatches_table$mother_male)]
+relationships_to_exclude1 <- conflicting_relationship_table %>% 
+  filter(
+    !is.na(age_difference) | !is.na(missing_mother_child_genetic_relationship)
+  )
+relationships_to_exclude2 <- conflicting_relationship_table %>% 
+  filter(
+    !is.na(missing_father_child_genetic_relationship) & child_sentrix_id %in% relationships_to_exclude1$child_sentrix_id
+  )
+
+to_remove_ids <- c(
+  mismatches_to_exclude,
+  relationships_to_exclude1$child_sentrix_id, relationships_to_exclude1$parent_sentrix_id,
+  relationships_to_exclude2$child_sentrix_id, relationships_to_exclude2$parent_sentrix_id
+  )
+to_remove_psam <- updated_psam_data[updated_psam_data$IID %in% to_remove_ids, 1:2]
+
+write.table(
+  x = to_remove_psam,
+  file = exclusion_file,
+  append = F,
+  col.names = F,
+  row.names = F,
+  sep = " ",
+  quote = F
+)
+
+write(
+  x = "## Exclusion",
+  file = md_file,
+  append = T
+)
+
+write(
+  x = paste0("- Number of samples excluded: ", nrow(to_remove_psam)),
+  file = md_file,
+  append = T
+)
