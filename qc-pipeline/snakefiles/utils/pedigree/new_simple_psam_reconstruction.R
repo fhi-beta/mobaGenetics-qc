@@ -853,7 +853,7 @@ n_fc <<- nrow(restored_psam_data[!is.na(restored_psam_data$IID) & !is.na(restore
 
 
 write(
-  x = paste("### ", id_type),
+  x = paste("### ", tools::toTitleCase(id_type)),
   file = md_file,
   append = T
 )
