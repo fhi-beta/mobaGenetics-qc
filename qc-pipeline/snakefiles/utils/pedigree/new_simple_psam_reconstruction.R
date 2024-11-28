@@ -885,7 +885,7 @@ write(
 )
 
 write(
-  x = paste(nrow(subset(psam_data, !(IID %in% id_data$sentrix_id))), "sentrix IDs missing from ID file"),
+  x = paste(nrow(subset(psam_data, !(IID %in% id_data$sentrix_id))), "sentrix IDs missing from ID file. These are not counted as individuals."),
   file = md_file,
   append = T
 )
@@ -952,5 +952,19 @@ conflicting_relationship_table <- conflicting_relationship_table %>%
     by = c("child_sentrix_id", "parent_sentrix_id")
   )
 
- 
+ # Complete new psam
+
+ restored_psam_data <- restored_psam_data %>%
+      left_join(
+        id_to_family_sex %>%
+           select(
+            FID = family,
+            IID = id,
+            SEX = sex
+           ),
+        by = "IID"
+      )
+
+restored_psam_data <- restored_psam_data[, c("FID", setdiff(names(restored_psam_data), "FID"))]
+colnames(restored_psam_data)[colnames(restored_psam_data) == "FID"] <- "#FID"
 
