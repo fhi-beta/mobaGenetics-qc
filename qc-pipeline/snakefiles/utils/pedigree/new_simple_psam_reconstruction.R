@@ -858,13 +858,13 @@ write(
   append = T
 )
 write(
-  x = paste(n_distinct(ids), id_type,  "in total. Breakdown excluding multiple parents:\n - ", n_children, "children\n - ", n_mothers, "mothers\n - ", n_fathers, "fathers\n - ",  n_mc, "mother-child pairs\n - ", n_fc, "father-child pairs\n - ", n_trios, "trios\n"),
+  x = paste(n_distinct(ids), id_type,  "in total. Breakdown excluding multiple same-sex parents:\n - ", n_children, "children\n - ", n_mothers, "mothers\n - ", n_fathers, "fathers\n - ",  n_mc, "mother-child pairs\n - ", n_fc, "father-child pairs\n - ", n_trios, "trios\n"),
   file = md_file,
   append = T
 )
 
 write(
-  x = paste("Multiple parents (at the", substring(id_type, 1, nchar(id_type)-1), "level):\n - ", nrow(mother_offspring_detected_dupl), "children with multiple mothers detected\n - ", nrow(father_offspring_detected_dupl), "children with multiple fathers detected\n - ", nrow(mother_offspring_expected_dupl), "children with multiple mothers in registry\n - ", nrow(father_offspring_expected_dupl), "children with multiple fathers in registry\n"),
+  x = paste("Multiple same-sex parents (at the", substring(id_type, 1, nchar(id_type)-1), "level):\n - ", nrow(mother_offspring_detected_dupl), "children with more than one mother detected\n - ", nrow(father_offspring_detected_dupl), "children with more than one father detected\n - ", nrow(mother_offspring_expected_dupl), "children with more than one mother in registry\n - ", nrow(father_offspring_expected_dupl), "children with more than one father in registry\n"),
   file = md_file,
   append = T
 )
