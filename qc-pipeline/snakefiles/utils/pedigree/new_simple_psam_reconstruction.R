@@ -863,7 +863,7 @@ write(
   append = T
 )
 write(
-  x = paste(n_distinct(ids), id_type,  "in total. Breakdown excluding multiple same-sex parents:\n - ", n_children, "children\n - ", n_mothers, "mothers\n - ", n_fathers, "fathers\n - ",  n_mc, "mother-child pairs\n - ", n_fc, "father-child pairs\n - ", n_trios, "trios\n - ", n_unrelated, "unrelated\n"),
+  x = paste(n_distinct(ids), id_type,  "in total. Breakdown excluding multiple same-sex parents:\n - ", n_children, "children\n - ", n_mothers, "mothers\n - ", n_fathers, "fathers\n - ",  n_mc, "mother-child pairs\n - ", n_fc, "father-child pairs\n - ", n_trios, "mother-father-child trios\n - ", n_unrelated, "unrelated\n"),
   file = md_file,
   append = T
 )
