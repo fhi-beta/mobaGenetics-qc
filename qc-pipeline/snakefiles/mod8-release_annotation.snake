@@ -8,6 +8,7 @@ import os
 mod7_output = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.23/mod7-post-imputation/all_samples/mod7_rename_missing_ids"
 r2_table = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.23/mod7-post-imputation/all_samples/mod7_dr2.txt.gz"
 best_hits_table = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.23/mod7-post-imputation/all_samples/mod7_best_snps_le.txt"
+id_table = "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz"
 
 rule_stem = 'mod8_split_rare_common'
 rule mod8_split_rare_common:
@@ -456,7 +457,8 @@ rule mod8_psam_reconstruction:
         king_relatedness = rules.mod8_pedigree_ibd_estimate.output.king_relatedness,
         sex_check = rules.mod8_check_sex.output.sex_check,
         expected_relationships = config['expected_relationships'],
-        birth_year = config['birth_year']
+        birth_year = config['birth_year'],
+        id_mapping = config['id_mapping']
     params:
         title = "\"Psam file reconstruction\""
     output:
@@ -475,6 +477,7 @@ rule mod8_psam_reconstruction:
             {input.sex_check} \
             {input.expected_relationships} \
             {input.birth_year} \
+            {input.id_mapping} \
             {input.psam_all_markers} \
             {output.updated_psam} \
             {output.pedigree_sample_exclusion} \
