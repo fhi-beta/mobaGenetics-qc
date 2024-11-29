@@ -844,9 +844,14 @@ restored_psam_data <<- psam_data %>%
 
 
 n_trios <<- nrow(restored_psam_data[!is.na(restored_psam_data$IID) & !is.na(restored_psam_data$MAT) & !is.na(restored_psam_data$PAT) & !duplicated(restored_psam_data),])
-n_children <<- nrow(restored_psam_data[!is.na(restored_psam_data$IID) & (!is.na(restored_psam_data$MAT) | !is.na(restored_psam_data$PAT)) & !duplicated(restored_psam_data),])
-n_fathers <<- length(unique(na.omit(restored_psam_data$PAT)))
-n_mothers <<- length(unique(na.omit(restored_psam_data$MAT)))
+children <<- restored_psam_data[!is.na(restored_psam_data$IID) & (!is.na(restored_psam_data$MAT) | !is.na(restored_psam_data$PAT)) & !duplicated(restored_psam_data),]$IID 
+fathers <<- unique(na.omit(restored_psam_data$PAT))
+mothers <<- unique(na.omit(restored_psam_data$MAT))
+unrelated <<- subset(restored_psam_data, !(IID %in% children) & !(IID %in% fathers) & !(IID %in% mothers))$IID 
+n_children <<- length(children)
+n_fathers <<- length(fathers)
+n_mothers <<- length(mothers)
+n_unrelated <<- length(unrelated)
 n_mc <<- nrow(restored_psam_data[!is.na(restored_psam_data$IID) & !is.na(restored_psam_data$MAT) & !duplicated(restored_psam_data),])
 n_fc <<- nrow(restored_psam_data[!is.na(restored_psam_data$IID) & !is.na(restored_psam_data$PAT) & !duplicated(restored_psam_data),])
 
@@ -858,7 +863,7 @@ write(
   append = T
 )
 write(
-  x = paste(n_distinct(ids), id_type,  "in total. Breakdown excluding multiple same-sex parents:\n - ", n_children, "children\n - ", n_mothers, "mothers\n - ", n_fathers, "fathers\n - ",  n_mc, "mother-child pairs\n - ", n_fc, "father-child pairs\n - ", n_trios, "trios\n"),
+  x = paste(n_distinct(ids), id_type,  "in total. Breakdown excluding multiple same-sex parents:\n - ", n_children, "children\n - ", n_mothers, "mothers\n - ", n_fathers, "fathers\n - ",  n_mc, "mother-child pairs\n - ", n_fc, "father-child pairs\n - ", n_trios, "trios\n - ", , n_unrelated, "unrelated\n"),
   file = md_file,
   append = T
 )
