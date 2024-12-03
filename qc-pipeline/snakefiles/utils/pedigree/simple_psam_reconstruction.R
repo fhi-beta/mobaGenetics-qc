@@ -990,24 +990,6 @@ restored_psam_data$SEX <- NULL
 restored_psam_data <- restored_psam_data[, c("FID", setdiff(names(restored_psam_data), "FID"))]
 colnames(restored_psam_data)[colnames(restored_psam_data) == "FID"] <- "#FID"
 
-child_ids <- expected_relationships_data$child_sentrix_id
-
-mismatches_to_exclude <- mismatches_table$sentrix_id[!is.na(mismatches_table$mother_male)]
-relationships_to_exclude1 <- conflicting_relationship_table %>% 
-  filter(
-    !is.na(age_difference) | !is.na(missing_mother_child_genetic_relationship)
-  )
-relationships_to_exclude2 <- conflicting_relationship_table %>% 
-  filter(
-    !is.na(missing_father_child_genetic_relationship) & child_sentrix_id %in% relationships_to_exclude1$child_sentrix_id
-  )
-
-to_remove_ids <- c(
-  mismatches_to_exclude,
-  relationships_to_exclude1$child_sentrix_id, relationships_to_exclude1$parent_sentrix_id,
-  relationships_to_exclude2$child_sentrix_id, relationships_to_exclude2$parent_sentrix_id
-  )
-to_remove_psam <- restored_psam_data[restored_psam_data$id %in% to_remove_ids, 1:2]
 
 write.table(
   x = restored_psam_data,
@@ -1054,6 +1036,9 @@ to_remove_ids <- c(
   relationships_to_exclude1$child_sentrix_id, relationships_to_exclude1$parent_sentrix_id,
   relationships_to_exclude2$child_sentrix_id, relationships_to_exclude2$parent_sentrix_id
   )
+  
+to_remove_ids <- unique(to_remove_ids)
+
 to_remove_psam <- restored_psam_data[restored_psam_data$IID %in% to_remove_ids, 1:2]
 
 write.table(
