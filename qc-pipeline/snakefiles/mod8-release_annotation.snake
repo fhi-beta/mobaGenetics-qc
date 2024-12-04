@@ -48,7 +48,7 @@ rule mod8_split_rare_common:
                 [
                     plink2local,
                     "--pfile", inTrunk,
-                    "--exclude", outTrunk_common_snps.pvar,
+                    "--exclude", outTrunk_common_snps + ".pvar",
                     "--out", outTrunk_rare_snps,
                     "--make-pgen"
                 ],
