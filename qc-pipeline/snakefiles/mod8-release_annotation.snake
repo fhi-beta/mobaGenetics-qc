@@ -20,7 +20,7 @@ rule mod8_split_rare_common:
     output:
         pgenset_common_snps = multiext(str(tmpMod8 / rule_stem),".pgen",".pvar",".psam"),
         afreq_common_snps = tmpMod8/(rule_stem + '.afreq'),
-        common_snps_list = tmpMod8/(rule_stem + ".snplist")
+        common_snps_list = tmpMod8/(rule_stem + ".snplist"),
         pgenset_rare_snps = multiext(str(tmpMod8/rule_stem) + "_rare", ".pgen", ".pvar", ".psam")
     params:
         release_maf_threshold = config['release_maf_thr'],
