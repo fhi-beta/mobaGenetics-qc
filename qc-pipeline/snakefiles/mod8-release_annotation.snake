@@ -42,7 +42,7 @@ rule mod8_split_rare_common:
                     "--maf", str(params.release_maf_threshold),
                     "--out", outTrunk_common_snps,
                     "--make-pgen",
-                    "--write-snp-list",
+                    "--write-snplist",
                     "--freq"
                 ],
                 check=True
