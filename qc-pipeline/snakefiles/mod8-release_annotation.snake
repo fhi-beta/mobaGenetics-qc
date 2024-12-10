@@ -513,6 +513,11 @@ rule mod8_exclude_conflictual_relationships:
             inTrunk_best_markers = mqc.plinkBase(input.pgenset_best_snps[0])
             outTrunk_best_markers = mqc.plinkBase(output.pgenset_best_snps[0])
 
+            # Update psam
+            copyfile(input.updated_psam, inTrunk_common_markers + ".psam")
+            copyfile(input.updated_psam, inTrunk_rare_markers + ".psam")
+            copyfile(input.updated_psam, inTrunk_best_markers + ".psam")
+
             subprocess.run(
                 [
                     plink2local,
@@ -546,10 +551,7 @@ rule mod8_exclude_conflictual_relationships:
                 check = True
             )
 
-            # Update psam
-            copyfile(input.updated_psam, outTrunk_common_markers + ".psam")
-            copyfile(input.updated_psam, outTrunk_rare_markers + ".psam")
-            copyfile(input.updated_psam,outTrunk_best_markers + ".psam")
+
 
 
         except Exception as e:
