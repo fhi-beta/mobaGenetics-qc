@@ -990,6 +990,10 @@ restored_psam_data$SEX <- NULL
 restored_psam_data <- restored_psam_data[, c("FID", setdiff(names(restored_psam_data), "FID"))]
 colnames(restored_psam_data)[colnames(restored_psam_data) == "FID"] <- "#FID"
 
+if (!identical(psam_data$IID, restored_psam_data$IID)){
+  stop("Restored psam IIDs do not match original")
+}
+
 
 write.table(
   x = restored_psam_data,
