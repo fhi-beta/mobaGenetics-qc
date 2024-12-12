@@ -13,8 +13,8 @@ debug <- F
 if (debug) {
   
   args <- c(
-    "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod8-release_annotation/mod8_pedigree_ibd_estimate.kin0", 
-    "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod8-release_annotation/mod8_check_sex.sexcheck",
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_pedigree_ibd_estimate.kin0", 
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_check_sex.sexcheck",
     "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz",
     "/mnt/archive/snpQc/phenotypes/birth_year_24.04.12.gz",
     "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
@@ -144,7 +144,7 @@ id_data  <- read.table(
 
 psam_data  <- read.table(
   file = psam_file,
-  header = T,
+  header = F,
   sep = "\t",
   col.names = c("IID", "SEX"),
   stringsAsFactors = F
@@ -1036,7 +1036,7 @@ to_remove_ids <- c(
   relationships_to_exclude1$child_sentrix_id, relationships_to_exclude1$parent_sentrix_id,
   relationships_to_exclude2$child_sentrix_id, relationships_to_exclude2$parent_sentrix_id
   )
-  
+
 to_remove_ids <- unique(to_remove_ids)
 
 to_remove_psam <- restored_psam_data[restored_psam_data$IID %in% to_remove_ids, 1:2]
