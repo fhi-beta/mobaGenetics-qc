@@ -470,7 +470,7 @@ rule mod8_psam_reconstruction:
         pedigree_sample_exclusion = tmpMod8/(rule_stem + "_pedigree_sample_exclusion"),
         mismatch_information = tmpMod8/"mismatch_information.gz",
         mismatch_relationship = tmpMod8/"mismatch_relationship.gz",
-        md_file = github_docs/(rule_stem + ".md")
+        md_file = github_docs2/(rule_stem + ".md")
     conda:
         "envs/r_4.2.yaml"
     threads: 1
@@ -718,7 +718,7 @@ rule mod8_plot_pca_both:
     params:
         title = "\"Principal Component Analysys (PCA) vs. 1 KG\""
     output:
-        md_file = github_docs/"pca_1kg_moba.md",
+        md_file = github_docs2/"pca_1kg_moba.md",
         cluster_file = tmpMod8/"clusters",
         ceu_id_file = tmpMod8/"ceu_core_ids"
     conda:
@@ -738,13 +738,13 @@ rule mod8_plot_pca_both:
 rule_stem = "release_md"
 rule release_md:
     input:
-        pca_md_file = github_docs/"pca_1kg_moba.md",
-        relatedness_md_file = github_docs/"mod8_psam_reconstruction.md"
+        pca_md_file = github_docs2/"pca_1kg_moba.md",
+        relatedness_md_file = github_docs2/"mod8_psam_reconstruction.md"
     params:
-        docs_folder = github_docs,
-        version = config['release']
+        docs_folder = github_docs2,
+        version = config['release2']
     output:
-        release_md_file = github_docs/"readme.md"
+        release_md_file = github_docs2/"readme.md"
     conda:
         "envs/plot_pca_both.yaml"
     threads: 1
@@ -764,7 +764,7 @@ rule release_genotypes:
         pgenset_common_snps = rules.mod8_exclude_conflictual_relationships.output.pgenset_common_snps,
         pgenset_best_snps = rules.mod8_exclude_conflictual_relationships.output.pgenset_best_snps
     params:
-        version = config['release']
+        version = config['release2']
     output:
         pgenset_rare_snps =  multiext(str(release_folder / (release_base_name + "_rare")), ".pgen", ".pvar", ".psam"),
         pgenset_common_snps =  multiext(str(release_folder / (release_base_name + "_common")), ".pgen", ".pvar", ".psam"),
@@ -819,7 +819,7 @@ rule release_additional_files:
         sex_check = rules.mod8_check_sex.output.sex_check,
         batch_table = rules.mod8_batch_table.output.batch_table
     params:
-        version = config['release']
+        version = config['release2']
     output:
         r2_table = release_folder/"snp"/(release_base_name + "_snp_r2.gz"),
         best_snps = release_folder/"snp"/(release_base_name + "_reference_500k_snps"),
