@@ -5,6 +5,7 @@
 ##
 import os
 import gzip
+import shutil
 
 mod7_output = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.23/mod7-post-imputation/all_samples/mod7_rename_missing_ids"
 r2_table = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.23/mod7-post-imputation/all_samples/mod7_dr2.txt.gz"
@@ -891,7 +892,7 @@ rule release_additional_files:
             # r2 table
             with open(input.r2_table, 'rb') as f_in:
                 with gzip.open(output.r2_table, 'wb') as f_out:
-                    copyfileobj(f_in, f_out)
+                    shutil.copyfileobj(f_in, f_out)
 
             # List of top SNPs
             copyfile(input.best_snps, output.best_snps)
