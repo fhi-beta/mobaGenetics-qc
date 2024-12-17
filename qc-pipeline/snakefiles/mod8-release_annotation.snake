@@ -4,6 +4,7 @@
 #
 ##
 import os
+import gzip
 
 mod7_output = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.23/mod7-post-imputation/all_samples/mod7_rename_missing_ids"
 r2_table = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.23/mod7-post-imputation/all_samples/mod7_dr2.txt.gz"
