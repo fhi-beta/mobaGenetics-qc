@@ -554,12 +554,13 @@ rule mod8_exclude_conflictual_relationships:
                 ],
                 check = True
             )
+            # Restore original .psam
+            copyfile(inTrunk_common_markers + "_original.psam", inTrunk_common_markers + ".psam")
+            copyfile(inTrunk_rare_markers + "_original.psam", inTrunk_rare_markers + ".psam")
+            copyfile(inTrunk_best_markers + "_original.psam", inTrunk_best_markers + ".psam")
 
 
-        # Restore original .psam
-        copyfile(inTrunk_common_markers + "_original.psam", inTrunk_common_markers + ".psam")
-        copyfile(inTrunk_rare_markers + "_original.psam", inTrunk_rare_markers + ".psam")
-        copyfile(inTrunk_best_markers + "_original.psam", inTrunk_best_markers + ".psam")
+
 
         except Exception as e:
                     print(f"An exception occurred in rule {rule}.")
