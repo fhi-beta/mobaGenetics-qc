@@ -491,7 +491,6 @@ rule mod8_psam_reconstruction:
             {params.title}
         """
 
-
 rule_stem = 'mod8_exclude_conflictual_relationships'
 rule mod8_exclude_conflictual_relationships:
     input:
@@ -513,7 +512,7 @@ rule mod8_exclude_conflictual_relationships:
             inTrunk_best_markers = mqc.plinkBase(input.pgenset_best_snps[0])
             outTrunk_best_markers = mqc.plinkBase(output.pgenset_best_snps[0])
 
-            # Backup original .psam (for control and debug)
+            # Backup original .psam
             copyfile(inTrunk_common_markers + ".psam", inTrunk_common_markers + "_original.psam")
             copyfile(inTrunk_rare_markers + ".psam", inTrunk_rare_markers + "_original.psam")
             copyfile(inTrunk_best_markers + ".psam", inTrunk_best_markers + "_original.psam")
@@ -557,7 +556,10 @@ rule mod8_exclude_conflictual_relationships:
             )
 
 
-
+        # Restore original .psam
+        copyfile(inTrunk_common_markers + "_original.psam", inTrunk_common_markers + ".psam")
+        copyfile(inTrunk_rare_markers + "_original.psam", inTrunk_rare_markers + ".psam")
+        copyfile(inTrunk_best_markers + "_original.psam", inTrunk_best_markers + ".psam")
 
         except Exception as e:
                     print(f"An exception occurred in rule {rule}.")
