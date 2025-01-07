@@ -23,8 +23,7 @@ if (debug) {
     "/mnt/work/oystein/tmp/ceu_core_ids"
   )
   
-}
-else{
+} else {
   args <- commandArgs(TRUE)
 }
 
