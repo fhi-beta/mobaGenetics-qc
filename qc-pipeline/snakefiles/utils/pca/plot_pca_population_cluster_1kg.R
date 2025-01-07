@@ -293,7 +293,7 @@ for (pc_i in 1:9) {
         color = F
       ),
       alpha = 0.1
-    )
+    ) +
     scale_color_gradient(
       low = "red",
       high = "blue",
