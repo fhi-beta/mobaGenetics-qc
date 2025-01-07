@@ -143,8 +143,7 @@ merged_pcs <- pcs %>%
   mutate(
     pop = ifelse(is.na(pop), "MoBa", pop),
     pop_factor = factor(pop, levels = populations_order)
-  )
-  %>% 
+  ) %>% 
   left_join(
     het %>% 
       select(
