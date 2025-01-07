@@ -17,7 +17,7 @@ if (debug) {
     "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_pca_both.pcs",
     "/mnt/archive/snpQc/1000Genomes/all_phase3.psam",
     "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_best_snps.het",
-    "/mnt/work/oystein/tmp/pca_1kg_moba.md"
+    "/mnt/work/oystein/tmp/pca_1kg_moba.md",
     "\"Principal Component Analysys (PCA) vs. 1 KG\"",
     "/mnt/work/oystein/tmp/clusters",
     "/mnt/work/oystein/tmp/ceu_core_ids"
