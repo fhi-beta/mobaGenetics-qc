@@ -9,7 +9,24 @@
 
 set.seed(20240112)
 
-args <- commandArgs(TRUE)
+debug <- T
+
+if (debug) {
+  
+  args <- c(
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_pca_both.pcs",
+    "/mnt/archive/snpQc/1000Genomes/all_phase3.psam",
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_best_snps.het",
+    "/mnt/work/oystein/tmp/pca_1kg_moba.md"
+    "\"Principal Component Analysys (PCA) vs. 1 KG\"",
+    "/mnt/work/oystein/tmp/clusters",
+    "/mnt/work/oystein/tmp/ceu_core_ids"
+  )
+  
+}
+else{
+  args <- commandArgs(TRUE)
+}
 
 pcs_file <- args[1]
 
@@ -27,7 +44,15 @@ if (!file.exists(thousand_genomes_populations_file)) {
   
 }
 
-md_file <- args[3]
+het_file <- args[3]
+
+if (!file.exists(het_file)) {
+  
+  stop("Heterozygosity file not found")
+  
+}
+
+md_file <- args[4]
 docs_folder <- dirname(md_file)
 
 if (!dir.exists(docs_folder)) {
@@ -44,11 +69,11 @@ if (!dir.exists(plot_folder)) {
   
 }
 
-md_title <- args[4]
+md_title <- args[5]
 
-cluster_file <- args[5]
+cluster_file <- args[6]
 
-ceu_ids_file <- args[6]
+ceu_ids_file <- args[7]
 
 
 # Local debug - do not uncomment
@@ -97,6 +122,12 @@ pcs <- read.table(
 ) %>% 
   clean_names()
 
+het <- read.table(
+  "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_best_snps.het", 
+  header = F, 
+  col.names = c("iid", "o_hom", "e_hom", "obs_ct", "F")
+  )
+
 
 # Merge
 
@@ -113,6 +144,14 @@ merged_pcs <- pcs %>%
   mutate(
     pop = ifelse(is.na(pop), "MoBa", pop),
     pop_factor = factor(pop, levels = populations_order)
+  )
+  %>% 
+  left_join(
+    het %>% 
+      select(
+        iid, F
+      ),
+    by = "iid"
   ) %>% 
   arrange(
     desc(pop_factor)
@@ -252,10 +291,15 @@ for (pc_i in 1:9) {
       data = moba_data,
       mapping = aes(
         x = x,
-        y = y
+        y = y,
+        color = F
       ),
-      alpha = 0.1,
-        col = "black"
+      alpha = 0.1
+    )
+    scale_color_gradient(
+      low = "red",
+      high = "blue",
+      name = "F Value"
     ) +
     geom_density2d(
       data = kg_data,
