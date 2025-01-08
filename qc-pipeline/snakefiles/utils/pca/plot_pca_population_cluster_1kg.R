@@ -75,7 +75,7 @@ cluster_file <- args[6]
 
 ceu_ids_file <- args[7]
 
-std_cutoff <- args[8]
+std_cutoff <- as.numeric(args[8])
 
 
 # Local debug - do not uncomment
