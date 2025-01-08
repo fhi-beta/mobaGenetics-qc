@@ -783,7 +783,7 @@ for (pc_i in 1:9) {
         y = y
       ),
       alpha = 0.6
-    # ) +
+    ) +
     # geom_xsidedensity(
     #   data = moba_plot_data,
     #   mapping = aes(
