@@ -799,6 +799,9 @@ for (pc_i in 1:9) {
     #   ),
     #   alpha = 0.8
     # ) +
+    scale_color_continuous(
+      type= "viridis"
+    ) +
     scale_x_continuous(
       name = pc_name_x
     ) +
