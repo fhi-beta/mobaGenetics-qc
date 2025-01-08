@@ -779,8 +779,7 @@ for (pc_i in 1:9) {
       data = kg_plot_data,
       mapping = aes(
         x = x,
-        y = y,
-        col = pop_factor
+        y = y
       )
     ) +
     geom_xsidedensity(
