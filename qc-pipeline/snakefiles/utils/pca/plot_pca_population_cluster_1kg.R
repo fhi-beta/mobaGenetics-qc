@@ -784,7 +784,7 @@ for (pc_i in 1:9) {
       )
     ) +
     geom_xsidedensity(
-      data = moba_data,
+      data = moba_plot_data,
       mapping = aes(
         x = x,
         y = after_stat(density),
@@ -793,7 +793,7 @@ for (pc_i in 1:9) {
       alpha = 0.8
     ) +
     geom_ysidedensity(
-      data = moba_data,
+      data = moba_plot_data,
       mapping = aes(
         x = after_stat(density),
         y = y,
