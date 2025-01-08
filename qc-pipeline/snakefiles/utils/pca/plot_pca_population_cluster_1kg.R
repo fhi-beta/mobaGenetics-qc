@@ -167,6 +167,8 @@ merged_pcs <- pcs %>%
     desc(pop_factor)
   )
 
+# testing filtering for heterozygote rate less than 1 std over the mean 
+merged_pcs <- subset(merged_pcs, (pop_factor == "MoBa" & stds_het_rate == 0) | pop_factor != "MoBa")
 
 # Write docs
 
