@@ -799,7 +799,7 @@ for (pc_i in 1:9) {
     #   ),
     #   alpha = 0.8
     # ) +
-    scale_color_gradientn(
+    scale_color_stepsn(
       colours = c("black", "red","yellow","green","lightblue","darkblue")
     ) +
     scale_x_continuous(
