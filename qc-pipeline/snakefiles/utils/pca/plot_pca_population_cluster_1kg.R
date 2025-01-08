@@ -20,7 +20,8 @@ if (debug) {
     "/mnt/work/oystein/tmp/pca_1kg_moba.md",
     "\"Principal Component Analysys (PCA) vs. 1 KG\"",
     "/mnt/work/oystein/tmp/clusters",
-    "/mnt/work/oystein/tmp/ceu_core_ids"
+    "/mnt/work/oystein/tmp/ceu_core_ids",
+    4
   )
   
 } else {
@@ -74,6 +75,8 @@ cluster_file <- args[6]
 
 ceu_ids_file <- args[7]
 
+std_cutoff <- args[8]
+
 
 # Local debug - do not uncomment
 # 
@@ -122,10 +125,19 @@ pcs <- read.table(
   clean_names()
 
 het <- read.table(
-  "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_best_snps.het", 
+  het_file, 
   header = F, 
-  col.names = c("iid", "o_hom", "e_hom", "obs_ct", "F")
+  col.names = c("iid", "o_hom", "e_hom", "obs_ct", "f")
   )
+
+het$het_rate <- (het$obs_ct - het$o_hom)/het$obs_ct
+het$stds_het_rate <- 0
+mean_het_rate <- mean(het$het_rate)
+std_het_rate <- sd(het$het_rate)
+
+for (std in 1:(std_cutoff-1)){
+  het$stds_het_rate[het$het_rate > mean_het_rate + std*std_het_rate] <- std 
+}
 
 
 # Merge
@@ -147,7 +159,7 @@ merged_pcs <- pcs %>%
   left_join(
     het %>% 
       select(
-        iid, F
+        iid, stds_het_rate
       ),
     by = "iid"
   ) %>% 
@@ -289,16 +301,15 @@ for (pc_i in 1:9) {
       data = moba_data,
       mapping = aes(
         x = x,
-        y = y,
-        colour = F
+        y = y
       ),
       alpha = 0.1
     ) +
-    # scale_color_gradient(
-    #   low = "red",
-    #   high = "blue",
-    #   name = "F Value"
-    # ) +
+    scale_color_gradient(
+      low = "red",
+      high = "blue",
+      name = "F Value"
+    ) +
     geom_density2d(
       data = kg_data,
       mapping = aes(
@@ -581,7 +592,7 @@ moba_df <- merged_pcs %>%
     pop == "MoBa"
   ) %>% 
   select(
-    fid, iid, starts_with("pc")
+    fid, iid, starts_with("pc"), stds_het_rate
   )
 
 predict_df <- moba_df %>% 
@@ -714,6 +725,8 @@ write(
 
 # Plot the PCs of the clusters
 
+
+
 write(
   x = paste0("### Principal components with color of the top cluster"),
   file = md_file,
@@ -761,6 +774,122 @@ for (pc_i in 1:9) {
         x = x,
         y = y,
         col = pop_factor
+      ),
+      alpha = 0.1
+    ) +
+    geom_density2d(
+      data = kg_plot_data,
+      mapping = aes(
+        x = x,
+        y = y,
+        col = pop_factor
+      )
+    ) +
+    geom_xsidedensity(
+      data = kg_plot_data,
+      mapping = aes(
+        x = x,
+        y = after_stat(density),
+        fill = pop_factor
+      ),
+      alpha = 0.8
+    ) +
+    geom_ysidedensity(
+      data = kg_plot_data,
+      mapping = aes(
+        x = after_stat(density),
+        y = y,
+        fill = pop_factor
+      ),
+      alpha = 0.8
+    ) +
+    scale_x_continuous(
+      name = pc_name_x
+    ) +
+    scale_y_continuous(
+      name = pc_name_y
+    ) +
+    theme(
+      ggside.panel.scale = 0.15,
+      ggside.axis.ticks = element_blank(),
+      ggside.axis.text = element_blank(),
+      ggside.panel.grid = element_blank(),
+      ggside.panel.background = element_blank(),
+      ggside.panel.spacing = unit(0, "pt"),
+      panel.border = element_blank()
+    )
+  
+  file_name <- paste0(pc_name_x, "_", pc_name_y, "_1kg_inferred.png")
+  
+  print(paste0("Plotting to ", plot_folder, file_name))
+  
+  png(
+    filename = file.path(plot_folder, file_name),
+    width = 800,
+    height = 600
+  )
+  grid.draw(plot)
+  device <- dev.off()
+  
+  write(
+    x = paste0("![](plot/", file_name, ")"),
+    file = md_file,
+    append = T
+  )
+  
+}
+
+# Plot the heterozygote rates vs PCs
+# TODO: Move this into a function for plotting other attributes against PCs
+
+write(
+  x = paste0("### Principal components with heterozygote rate"),
+  file = md_file,
+  append = T
+)
+
+plot_folder <- file.path(docs_folder, "plot")
+
+stds <- sort(unique(moba_df$stds_het_rate))
+populations <- sort(unique(c(moba_df$pop_inference, merged_pcs$pop)))
+
+for (pc_i in 1:9) {
+  
+  pc_name_x <- paste0("pc", pc_i)
+  pc_name_y <- paste0("pc", pc_i + 1)
+  
+  moba_plot_data <- moba_df
+  moba_plot_data$x <- moba_df[[pc_name_x]]
+  moba_plot_data$y <- moba_df[[pc_name_y]]
+  moba_plot_data$stds_het_rate <- factor(moba_plot_data$stds_het_rate, levels = stds)
+  
+  kg_plot_data <- merged_pcs %>% 
+    filter(
+      pop != "MoBa"
+    ) %>% 
+    mutate(
+      pop_factor = factor(pop, levels = populations)
+    )
+  
+  kg_plot_data$x <- kg_plot_data[[pc_name_x]]
+  kg_plot_data$y <- kg_plot_data[[pc_name_y]]
+  
+  write(
+    x = paste0("### ", pc_name_y, " vs. ", pc_name_x),
+    file = md_file,
+    append = T
+  )
+  
+  plot <- ggplot() +
+    theme_bw(
+      base_size = 24
+    ) +
+    geom_point(
+      data = moba_plot_data,
+      mapping = aes(
+        x = x,
+        y = y,
+        col = stds_het_rate
       ),
       alpha = 0.1
     ) +
