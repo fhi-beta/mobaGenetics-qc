@@ -589,7 +589,7 @@ moba_df <- merged_pcs %>%
     pop == "MoBa"
   ) %>% 
   select(
-    fid, iid, starts_with("pc"), stds_het_rate
+    fid, iid, starts_with("pc"), stds_het_rate, f
   )
 
 predict_df <- moba_df %>% 
