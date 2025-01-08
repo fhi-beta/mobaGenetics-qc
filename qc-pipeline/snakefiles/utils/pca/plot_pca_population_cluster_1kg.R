@@ -800,7 +800,7 @@ for (pc_i in 1:9) {
     #   alpha = 0.8
     # ) +
     scale_color_gradientn(
-      colours = c("red","yellow","green","lightblue","darkblue")
+      colours = c("black", "red","yellow","green","lightblue","darkblue")
     ) +
     scale_x_continuous(
       name = pc_name_x
