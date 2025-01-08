@@ -732,6 +732,7 @@ write(
 plot_folder <- file.path(docs_folder, "plot")
 
 stds <- sort(unique(moba_df$stds_het_rate))
+moba_df$stds_het_rate <- factor(moba_df$stds_het_rate, levels = stds)
 populations <- sort(unique(c(moba_df$pop_inference, merged_pcs$pop)))
 
 for (pc_i in 1:9) {
@@ -742,7 +743,7 @@ for (pc_i in 1:9) {
   moba_plot_data <- moba_df
   moba_plot_data$x <- moba_df[[pc_name_x]]
   moba_plot_data$y <- moba_df[[pc_name_y]]
-  moba_plot_data$stds_het_rate <- factor(moba_plot_data$stds_het_rate, levels = stds)
+  
   
   kg_plot_data <- merged_pcs %>% 
     filter(
@@ -772,7 +773,7 @@ for (pc_i in 1:9) {
         y = y,
         col = stds_het_rate
       ),
-      alpha = 0.1
+      alpha = 0.3
     ) +
     geom_density2d(
       data = kg_plot_data,
@@ -783,20 +784,20 @@ for (pc_i in 1:9) {
       )
     ) +
     geom_xsidedensity(
-      data = kg_plot_data,
+      data = moba_data,
       mapping = aes(
         x = x,
         y = after_stat(density),
-        fill = pop_factor
+        fill = stds_het_rate
       ),
       alpha = 0.8
     ) +
     geom_ysidedensity(
-      data = kg_plot_data,
+      data = moba_data,
       mapping = aes(
         x = after_stat(density),
         y = y,
-        fill = pop_factor
+        fill = stds_het_rate
       ),
       alpha = 0.8
     ) +
