@@ -159,7 +159,7 @@ merged_pcs <- pcs %>%
   left_join(
     het %>% 
       select(
-        iid, stds_het_rate
+        iid, stds_het_rate, f
       ),
     by = "iid"
   ) %>% 
@@ -721,6 +721,123 @@ write(
 )
 
 
+# Plot the heterozygote rates vs PCs
+# TODO: Move this into a function for plotting other attributes against PCs
+
+write(
+  x = paste0("### Principal components with F statistics"),
+  file = md_file,
+  append = T
+)
+
+plot_folder <- file.path(docs_folder, "plot")
+
+# stds <- sort(unique(moba_df$stds_het_rate))
+# moba_df$stds_het_rate <- factor(moba_df$stds_het_rate, levels = stds)
+# populations <- sort(unique(c(moba_df$pop_inference, merged_pcs$pop)))
+
+for (pc_i in 1:9) {
+  
+  pc_name_x <- paste0("pc", pc_i)
+  pc_name_y <- paste0("pc", pc_i + 1)
+  
+  moba_plot_data <- moba_df
+  moba_plot_data$x <- moba_df[[pc_name_x]]
+  moba_plot_data$y <- moba_df[[pc_name_y]]
+  
+  
+  kg_plot_data <- merged_pcs %>% 
+    filter(
+      pop != "MoBa"
+    ) %>% 
+    mutate(
+      pop_factor = factor(pop, levels = populations)
+    )
+  
+  kg_plot_data$x <- kg_plot_data[[pc_name_x]]
+  kg_plot_data$y <- kg_plot_data[[pc_name_y]]
+  
+  write(
+    x = paste0("### ", pc_name_y, " vs. ", pc_name_x),
+    file = md_file,
+    append = T
+  )
+  
+  plot <- ggplot() +
+    theme_bw(
+      base_size = 24
+    ) +
+    geom_point(
+      data = moba_plot_data,
+      mapping = aes(
+        x = x,
+        y = y,
+        col = f
+      ),
+      alpha = 0.4
+    ) +
+    geom_density2d(
+      data = kg_plot_data,
+      mapping = aes(
+        x = x,
+        y = y
+      ),
+      alpha = 0.6
+    # ) +
+    # geom_xsidedensity(
+    #   data = moba_plot_data,
+    #   mapping = aes(
+    #     x = x,
+    #     y = after_stat(density),
+    #     fill = stds_het_rate
+    #   ),
+    #   alpha = 0.8
+    # ) +
+    # geom_ysidedensity(
+    #   data = moba_plot_data,
+    #   mapping = aes(
+    #     x = after_stat(density),
+    #     y = y,
+    #     fill = stds_het_rate
+    #   ),
+    #   alpha = 0.8
+    # ) +
+    scale_x_continuous(
+      name = pc_name_x
+    ) +
+    scale_y_continuous(
+      name = pc_name_y
+    ) +
+    theme(
+      ggside.panel.scale = 0.15,
+      ggside.axis.ticks = element_blank(),
+      ggside.axis.text = element_blank(),
+      ggside.panel.grid = element_blank(),
+      ggside.panel.background = element_blank(),
+      ggside.panel.spacing = unit(0, "pt"),
+      panel.border = element_blank()
+    )
+  
+  file_name <- paste0(pc_name_x, "_", pc_name_y, "_1kg_heterozygote_stds.png")
+  
+  print(paste0("Plotting to ", plot_folder, file_name))
+  
+  png(
+    filename = file.path(plot_folder, file_name),
+    width = 800,
+    height = 600
+  )
+  grid.draw(plot)
+  device <- dev.off()
+  
+  write(
+    x = paste0("![](plot/", file_name, ")"),
+    file = md_file,
+    append = T
+  )
+  
+}
+
 
 # Plot the heterozygote rates vs PCs
 # TODO: Move this into a function for plotting other attributes against PCs
@@ -838,6 +955,8 @@ for (pc_i in 1:9) {
   )
   
 }
+
+
 
 
 # Plot the PCs of the clusters
