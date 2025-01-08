@@ -773,7 +773,7 @@ for (pc_i in 1:9) {
         y = y,
         col = stds_het_rate
       ),
-      alpha = 0.5
+      alpha = 0.4
     ) +
     geom_density2d(
       data = kg_plot_data,
@@ -781,7 +781,7 @@ for (pc_i in 1:9) {
         x = x,
         y = y
       ),
-      alpha = 0.5
+      alpha = 0.6
     ) +
     geom_xsidedensity(
       data = moba_plot_data,
