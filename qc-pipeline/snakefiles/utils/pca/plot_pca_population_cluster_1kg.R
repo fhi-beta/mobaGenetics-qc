@@ -305,11 +305,6 @@ for (pc_i in 1:9) {
       ),
       alpha = 0.1
     ) +
-    scale_color_gradient(
-      low = "red",
-      high = "blue",
-      name = "F Value"
-    ) +
     geom_density2d(
       data = kg_data,
       mapping = aes(
