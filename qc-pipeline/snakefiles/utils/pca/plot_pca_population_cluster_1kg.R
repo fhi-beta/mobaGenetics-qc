@@ -612,7 +612,7 @@ moba_df$pop_inference[moba_df$pop_inference == "EUR" & moba_df$p_EUR >= core_thr
 
 #testing filtering for f<0 and not EUR_core
 
-moba_df <- subset(moba_df, f>0 | (f<0 & pop_inference == "EUR_core"))
+#moba_df <- subset(moba_df, f>0 | (f<0 & pop_inference == "EUR_core"))
 
 write(
   x = paste0("### Clustering in MoBa"),
@@ -805,8 +805,8 @@ for (pc_i in 1:9) {
     #   alpha = 0.8
     # ) +
     scale_color_stepsn(
-      breaks = c(-0.05, -0.025, 0, 0.1, 0.2, 0.3),
-      colours = c("black", "red","yellow","green","lightblue","darkblue")
+      breaks = c(-0.05, -0.025, 0, 0.1, 0.2),
+      colours = c("black", "red","yellow","green","darkblue")
     ) +
     scale_x_continuous(,
       name = pc_name_x
