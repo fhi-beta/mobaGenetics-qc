@@ -784,7 +784,7 @@ for (pc_i in 1:9) {
         x = x,
         y = y
       ),
-      alpha = 0.6
+      alpha = 0.5
     ) +
     # geom_xsidedensity(
     #   data = moba_plot_data,
@@ -805,7 +805,7 @@ for (pc_i in 1:9) {
     #   alpha = 0.8
     # ) +
     scale_color_stepsn(
-      breaks = c(0, 0.1, 0.2),
+      breaks = c(0, 0.2),
       colours = c("red","yellow","green")
     ) +
     scale_x_continuous(,
