@@ -166,7 +166,8 @@ merged_pcs <- pcs %>%
   arrange(
     desc(pop_factor)
   )
-
+# Testing filtering for > 0.5 std het rate
+merged_pcs <- subset(merged_pcs, (pop_factor == "MoBa" & stds_het_rate == 0) | pop_factor != "MoBa")
 # Write docs
 
 write(
