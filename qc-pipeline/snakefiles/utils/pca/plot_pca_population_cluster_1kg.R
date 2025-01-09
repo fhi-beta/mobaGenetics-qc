@@ -135,8 +135,8 @@ het$stds_het_rate <- 0
 mean_het_rate <- mean(het$het_rate)
 std_het_rate <- sd(het$het_rate)
 
-for (std in 1:(std_cutoff-1)){
-  het$stds_het_rate[het$het_rate > mean_het_rate + std*std_het_rate] <- std 
+for (std in 1:(2*(std_cutoff-1))){
+  het$stds_het_rate[het$het_rate > mean_het_rate + 0.5*std*std_het_rate] <- std 
 }
 
 
@@ -159,7 +159,7 @@ merged_pcs <- pcs %>%
   left_join(
     het %>% 
       select(
-        iid, stds_het_rate, f
+        iid, het_rate, stds_het_rate, f
       ),
     by = "iid"
   ) %>% 
@@ -802,7 +802,7 @@ for (pc_i in 1:9) {
     scale_color_stepsn(
       colours = c("black", "red","yellow","green","lightblue","darkblue")
     ) +
-    scale_x_continuous(
+    scale_x_continuous(,
       name = pc_name_x
     ) +
     scale_y_continuous(
