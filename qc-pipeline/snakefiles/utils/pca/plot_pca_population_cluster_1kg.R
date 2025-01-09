@@ -167,7 +167,7 @@ merged_pcs <- pcs %>%
     desc(pop_factor)
   )
 # Testing filtering for > 0.5 std het rate
-# merged_pcs <- subset(merged_pcs, (pop_factor == "MoBa" & stds_het_rate == 0) | pop_factor != "MoBa")
+#merged_pcs <- subset(merged_pcs, (pop_factor == "MoBa" & stds_het_rate == 0) | pop_factor != "MoBa")
 # Write docs
 
 write(
@@ -609,6 +609,10 @@ names(probabilities) <- paste0("p_", names(probabilities))
 moba_df <- cbind(moba_df, probabilities)
 
 moba_df$pop_inference[moba_df$pop_inference == "EUR" & moba_df$p_EUR >= core_threshold_p] <- "EUR_core"
+
+#testing filtering for f<0 and not EUR_core
+
+moba_df <- subset(moba_df, f>0 | (f<0 & pop_inference == "EUR_core"))
 
 write(
   x = paste0("### Clustering in MoBa"),
