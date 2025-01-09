@@ -906,7 +906,7 @@ for (pc_i in 1:9) {
         x = x,
         y = y
       ),
-      alpha = 0.4
+      alpha = 0.2
     ) +
     geom_xsidedensity(
       data = moba_plot_data,
