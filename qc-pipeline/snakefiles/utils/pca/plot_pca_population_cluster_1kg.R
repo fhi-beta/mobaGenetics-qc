@@ -778,14 +778,13 @@ for (pc_i in 1:9) {
       ),
       alpha = 0.4
     ) +
-    geom_point(
+    geom_density2d(
       data = kg_plot_data,
       mapping = aes(
         x = x,
-        y = y,
-        col = "blue"
+        y = y
       ),
-      alpha = 0.8
+      alpha = 0.6
     ) +
     # geom_xsidedensity(
     #   data = moba_plot_data,
@@ -901,13 +900,13 @@ for (pc_i in 1:9) {
       ),
       alpha = 0.4
     ) +
-    geom_density2d(
+    geom_point(
       data = kg_plot_data,
       mapping = aes(
         x = x,
         y = y
       ),
-      alpha = 0.6
+      alpha = 0.8
     ) +
     geom_xsidedensity(
       data = moba_plot_data,
