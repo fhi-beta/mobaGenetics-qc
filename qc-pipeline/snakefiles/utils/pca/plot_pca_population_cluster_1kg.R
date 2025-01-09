@@ -719,7 +719,7 @@ write(
 )
 
 
-# Plot the heterozygote rates vs PCs
+# Plot the F stats rates vs PCs
 # TODO: Move this into a function for plotting other attributes against PCs
 
 write(
@@ -801,6 +801,7 @@ for (pc_i in 1:9) {
     #   alpha = 0.8
     # ) +
     scale_color_stepsn(
+      breaks = c(-0.05, -0.025, 0, 0.1, 0.2, 0.33)
       colours = c("black", "red","yellow","green","lightblue","darkblue")
     ) +
     scale_x_continuous(,
