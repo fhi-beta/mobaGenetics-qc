@@ -806,7 +806,7 @@ for (pc_i in 1:9) {
     # ) +
     scale_color_stepsn(
       breaks = c(-0.02, 0, 0.2),
-      colours = c("red","yellow", "green", "blue")
+      colours = terrain.colours(10)
     ) +
     scale_x_continuous(,
       name = pc_name_x
