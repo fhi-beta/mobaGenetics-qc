@@ -136,7 +136,7 @@ mean_het_rate <- mean(het$het_rate)
 std_het_rate <- sd(het$het_rate)
 
 for (std in 1:(2*(std_cutoff-1))){
-  het$stds_het_rate[het$het_rate > mean_het_rate + 0.5*std*std_het_rate] <- std 
+  het$stds_het_rate[het$het_rate > mean_het_rate + 0.5*std*std_het_rate] <- 0.5*std 
 }
 
 
