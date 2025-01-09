@@ -148,7 +148,7 @@ merged_pcs <- pcs %>%
   left_join(
     thousand_genomes_populations %>% 
       select(
-        iid, pop = super_pop
+        iid, pop = super_pop, sub_pop = population
       ),
     by = "iid"
   ) %>% 
