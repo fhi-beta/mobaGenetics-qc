@@ -805,7 +805,7 @@ for (pc_i in 1:9) {
     #   alpha = 0.8
     # ) +
     scale_color_stepsn(
-      breaks = c(0, 0.2),
+      breaks = c(-0.02, 0, 0.2),
       colours = c("red","yellow","green")
     ) +
     scale_x_continuous(,
