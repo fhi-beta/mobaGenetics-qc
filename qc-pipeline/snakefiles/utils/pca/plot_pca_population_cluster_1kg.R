@@ -778,7 +778,7 @@ for (pc_i in 1:9) {
       ),
       alpha = 0.4
     ) +
-    geom_point(
+    geom_density2d(
       data = kg_plot_data,
       mapping = aes(
         x = x,
@@ -900,7 +900,7 @@ for (pc_i in 1:9) {
       ),
       alpha = 0.4
     ) +
-    geom_point(
+    geom_density(
       data = kg_plot_data,
       mapping = aes(
         x = x,
