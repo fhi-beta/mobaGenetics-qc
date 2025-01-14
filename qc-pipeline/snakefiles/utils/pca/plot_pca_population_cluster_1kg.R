@@ -151,7 +151,7 @@ for (std in 1:(2*(std_cutoff-1))){
 
 # Merge
 
-populations_order <- c(sort(unique(thousand_genomes_populations$super_pop)), "MoBa", "MoBa_Mysterious", "MoBa_Very_Mysterious" )
+populations_order <- c(sort(unique(thousand_genomes_populations$super_pop)), "MoBa")
 
 merged_pcs <- pcs %>% 
   left_join(
