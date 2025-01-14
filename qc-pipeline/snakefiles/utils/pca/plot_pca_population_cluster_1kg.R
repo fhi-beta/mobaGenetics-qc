@@ -399,8 +399,8 @@ plot_discrete <- function(column, plot_data, top_pc){
   pc_name_y <- paste0("pc", pc_i + 1)
   
   moba_plot_data <- subset(plot_data, pop == "MoBa")
-  moba_plot_data$x <- plot_data[[pc_name_x]]
-  moba_plot_data$y <- plot_data[[pc_name_y]]
+  moba_plot_data$x <- moba_plot_data[[pc_name_x]]
+  moba_plot_data$y <- moba_plot_data[[pc_name_y]]
   
   
   kg_plot_data <- plot_data %>% 
