@@ -21,7 +21,8 @@ if (debug) {
     "\"Principal Component Analysys (PCA) vs. 1 KG\"",
     "/mnt/work/oystein/tmp/clusters",
     "/mnt/work/oystein/tmp/ceu_core_ids",
-    4
+    4,
+    "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz"
   )
   
 } else {
@@ -77,6 +78,7 @@ ceu_ids_file <- args[7]
 
 std_cutoff <- as.numeric(args[8])
 
+id_file <- args[9]
 
 # Local debug - do not uncomment
 # 
@@ -130,6 +132,13 @@ het <- read.table(
   col.names = c("iid", "o_hom", "e_hom", "obs_ct", "f")
   )
 
+id_data  <- read.table(
+  file = id_file,
+  header = T,
+  sep = "\t",
+  stringsAsFactors = F
+)
+
 het$het_rate <- (het$obs_ct - het$o_hom)/het$obs_ct
 het$stds_het_rate <- 0
 mean_het_rate <- mean(het$het_rate)
@@ -142,7 +151,7 @@ for (std in 1:(2*(std_cutoff-1))){
 
 # Merge
 
-populations_order <- c(sort(unique(thousand_genomes_populations$super_pop)), "MoBa")
+populations_order <- c(sort(unique(thousand_genomes_populations$super_pop)), "MoBa", "MoBa_Mysterious", "MoBa_Very_Mysterious" )
 
 merged_pcs <- pcs %>% 
   left_join(
@@ -153,13 +162,20 @@ merged_pcs <- pcs %>%
     by = "iid"
   ) %>% 
   mutate(
-    pop = ifelse(is.na(pop), "MoBa", pop),
-    pop_factor = factor(pop, levels = populations_order)
-  ) %>% 
+    pop = ifelse(is.na(pop), "MoBa", pop), 
+   pop_factor = factor(pop, levels = populations_order)
+  ) %>%
   left_join(
     het %>% 
       select(
         iid, het_rate, stds_het_rate, f
+      ),
+    by = "iid"
+  ) %>%
+  left_join(
+    id_data %>% 
+      select(
+        iid = sentrix_id, role
       ),
     by = "iid"
   ) %>% 
@@ -167,10 +183,6 @@ merged_pcs <- pcs %>%
     desc(pop_factor)
   )
 
-
-# Testing filtering for < 0.5 std het rate
-#merged_pcs <- subset(merged_pcs, (pop_factor == "MoBa" & stds_het_rate == 0) | pop_factor != "MoBa")
-# Write docs
 
 write(
   x = paste0("# ", md_title),
@@ -380,6 +392,109 @@ for (pc_i in 1:9) {
 }
 
 
+plot_discrete <- function(column, data, top_pc){
+ for (pc_i in 1:top_pc) {
+  
+  pc_name_x <- paste0("pc", pc_i)
+  pc_name_y <- paste0("pc", pc_i + 1)
+  
+  moba_plot_data <- subset(data, pop == "MoBa")
+  moba_plot_data$x <- data[[pc_name_x]]
+  moba_plot_data$y <- data[[pc_name_y]]
+  
+  
+  kg_plot_data <- data %>% 
+   filter(
+     pop != "MoBa"
+   )
+  
+  kg_plot_data$x <- kg_plot_data[[pc_name_x]]
+  kg_plot_data$y <- kg_plot_data[[pc_name_y]]
+  
+  write(
+    x = paste0("### ", pc_name_y, " vs. ", pc_name_x),
+    file = md_file,
+    append = T
+  )
+  
+  plot <- ggplot() +
+    theme_bw(
+      base_size = 24
+    ) +
+    geom_point(
+      data = moba_plot_data,
+      mapping = aes(
+        x = x,
+        y = y,
+        col = .data[[column]]
+      ),
+      alpha = 0.2
+    ) +
+    geom_density2d(
+      data = kg_plot_data,
+      mapping = aes(
+       x = x,
+       y = y
+      ),
+      alpha = 0.8
+    ) +
+     geom_xsidedensity(
+       data = moba_plot_data,
+       mapping = aes(
+         x = x,
+         y = after_stat(density),
+         fill = .data[[column]]
+       ),
+       alpha = 0.8
+     ) +
+     geom_ysidedensity(
+       data = moba_plot_data,
+       mapping = aes(
+         x = after_stat(density),
+         y = y,
+         fill = .data[[column]]
+       ),
+       alpha = 0.8
+     ) +
+    scale_x_continuous(,
+      name = pc_name_x
+    ) +
+    scale_y_continuous(
+      name = pc_name_y
+    ) +
+    theme(
+      ggside.panel.scale = 0.15,
+      ggside.axis.ticks = element_blank(),
+      ggside.axis.text = element_blank(),
+      ggside.panel.grid = element_blank(),
+      ggside.panel.background = element_blank(),
+      ggside.panel.spacing = unit(0, "pt"),
+      panel.border = element_blank()
+    )
+  
+  file_name <- paste0(pc_name_x, "_", pc_name_y, "_", column, ".png")
+  
+  print(paste0("Plotting to ", plot_folder, file_name))
+  
+  png(
+    filename = file.path(plot_folder, file_name),
+    width = 800,
+    height = 600
+  )
+  grid.draw(plot)
+  device <- dev.off()
+  
+  write(
+    x = paste0("![](plot/", file_name, ")"),
+    file = md_file,
+    append = T
+  )
+  
+}
+
+}
+
+plot_discrete("stds_het_rate", merged_pcs, 9)
 # 1kg cluster size
 
 kg <- merged_pcs %>% 
@@ -589,7 +704,7 @@ moba_df <- merged_pcs %>%
     pop == "MoBa"
   ) %>% 
   select(
-    fid, iid, starts_with("pc"), stds_het_rate, het_rate, f
+    fid, iid, starts_with("pc"), stds_het_rate, het_rate, f, role
   )
 
 predict_df <- moba_df %>% 
@@ -612,9 +727,6 @@ moba_df <- cbind(moba_df, probabilities)
 
 moba_df$pop_inference[moba_df$pop_inference == "EUR" & moba_df$p_EUR >= core_threshold_p] <- "EUR_core"
 
-#testing filtering for f<0 and not EUR_core
-
-#moba_df <- subset(moba_df, f>0 | (f<0 & pop_inference == "EUR_core"))
 
 write(
   x = paste0("### Clustering in MoBa"),
@@ -725,8 +837,12 @@ write(
 )
 
 
-# Plot the F stats rates vs PCs
-# TODO: Move this into a function for plotting other attributes against PCs
+populations_colors <- scico(
+  n = length(populations_order),
+  begin = 0.2,
+  end = 0.8,
+  palette = "hawaii"
+)
 
 write(
   x = paste0("### Principal components with F statistics"),
@@ -736,233 +852,11 @@ write(
 
 plot_folder <- file.path(docs_folder, "plot")
 
-# stds <- sort(unique(moba_df$stds_het_rate))
-# moba_df$stds_het_rate <- factor(moba_df$stds_het_rate, levels = stds)
-# populations <- sort(unique(c(moba_df$pop_inference, merged_pcs$pop)))
-
-for (pc_i in 1:9) {
-  
-  pc_name_x <- paste0("pc", pc_i)
-  pc_name_y <- paste0("pc", pc_i + 1)
-  
-  moba_plot_data <- moba_df
-  moba_plot_data$x <- moba_df[[pc_name_x]]
-  moba_plot_data$y <- moba_df[[pc_name_y]]
-  
-  
-  kg_plot_data <- merged_pcs %>% 
-    filter(
-      pop != "MoBa"
-    ) %>% 
-    mutate(
-      pop_factor = factor(pop, levels = populations)
-    )
-  
-  kg_plot_data$x <- kg_plot_data[[pc_name_x]]
-  kg_plot_data$y <- kg_plot_data[[pc_name_y]]
-  
-  write(
-    x = paste0("### ", pc_name_y, " vs. ", pc_name_x),
-    file = md_file,
-    append = T
-  )
-  
-  plot <- ggplot() +
-    theme_bw(
-      base_size = 24
-    ) +
-    geom_point(
-      data = moba_plot_data,
-      mapping = aes(
-        x = x,
-        y = y,
-        col = f
-      ),
-      alpha = 0.4
-    ) +
-    geom_density2d(
-      data = kg_plot_data,
-      mapping = aes(
-        x = x,
-        y = y
-      ),
-      alpha = 0.5
-    ) +
-    # geom_xsidedensity(
-    #   data = moba_plot_data,
-    #   mapping = aes(
-    #     x = x,
-    #     y = after_stat(density),
-    #     fill = stds_het_rate
-    #   ),
-    #   alpha = 0.8
-    # ) +
-    # geom_ysidedensity(
-    #   data = moba_plot_data,
-    #   mapping = aes(
-    #     x = after_stat(density),
-    #     y = y,
-    #     fill = stds_het_rate
-    #   ),
-    #   alpha = 0.8
-    # ) +
-    scale_color_stepsn(
-      breaks = c(0),
-      colours = c("red", "blue")
-    ) +
-    scale_x_continuous(,
-      name = pc_name_x
-    ) +
-    scale_y_continuous(
-      name = pc_name_y
-    ) +
-    theme(
-      ggside.panel.scale = 0.15,
-      ggside.axis.ticks = element_blank(),
-      ggside.axis.text = element_blank(),
-      ggside.panel.grid = element_blank(),
-      ggside.panel.background = element_blank(),
-      ggside.panel.spacing = unit(0, "pt"),
-      panel.border = element_blank()
-    )
-  
-  file_name <- paste0(pc_name_x, "_", pc_name_y, "_1kg_f_stat.png")
-  
-  print(paste0("Plotting to ", plot_folder, file_name))
-  
-  png(
-    filename = file.path(plot_folder, file_name),
-    width = 800,
-    height = 600
-  )
-  grid.draw(plot)
-  device <- dev.off()
-  
-  write(
-    x = paste0("![](plot/", file_name, ")"),
-    file = md_file,
-    append = T
-  )
-  
-}
 
 
-# Plot the heterozygote rates vs PCs
-# TODO: Move this into a function for plotting other attributes against PCs
 
-write(
-  x = paste0("### Principal components with heterozygote rate"),
-  file = md_file,
-  append = T
-)
 
-plot_folder <- file.path(docs_folder, "plot")
 
-stds <- sort(unique(moba_df$stds_het_rate))
-moba_df$stds_het_rate <- factor(moba_df$stds_het_rate, levels = stds)
-populations <- sort(unique(c(moba_df$pop_inference, merged_pcs$pop)))
-
-for (pc_i in 1:9) {
-  
-  pc_name_x <- paste0("pc", pc_i)
-  pc_name_y <- paste0("pc", pc_i + 1)
-  
-  moba_plot_data <- moba_df
-  moba_plot_data$x <- moba_df[[pc_name_x]]
-  moba_plot_data$y <- moba_df[[pc_name_y]]
-  
-  
-  kg_plot_data <- merged_pcs %>% 
-    filter(
-      pop != "MoBa"
-    ) %>% 
-    mutate(
-      pop_factor = factor(pop, levels = populations)
-    )
-  
-  kg_plot_data$x <- kg_plot_data[[pc_name_x]]
-  kg_plot_data$y <- kg_plot_data[[pc_name_y]]
-  
-  write(
-    x = paste0("### ", pc_name_y, " vs. ", pc_name_x),
-    file = md_file,
-    append = T
-  )
-  
-  plot <- ggplot() +
-    theme_bw(
-      base_size = 24
-    ) +
-    geom_point(
-      data = moba_plot_data,
-      mapping = aes(
-        x = x,
-        y = y,
-        col = stds_het_rate
-      ),
-      alpha = 0.4
-    ) +
-    geom_density2d(
-      data = kg_plot_data,
-      mapping = aes(
-        x = x,
-        y = y
-      ),
-      alpha = 0.5
-    ) +
-    geom_xsidedensity(
-      data = moba_plot_data,
-      mapping = aes(
-        x = x,
-        y = after_stat(density),
-        fill = stds_het_rate
-      ),
-      alpha = 0.8
-    ) +
-    geom_ysidedensity(
-      data = moba_plot_data,
-      mapping = aes(
-        x = after_stat(density),
-        y = y,
-        fill = stds_het_rate
-      ),
-      alpha = 0.8
-    ) +
-    scale_x_continuous(
-      name = pc_name_x
-    ) +
-    scale_y_continuous(
-      name = pc_name_y
-    ) +
-    theme(
-      ggside.panel.scale = 0.15,
-      ggside.axis.ticks = element_blank(),
-      ggside.axis.text = element_blank(),
-      ggside.panel.grid = element_blank(),
-      ggside.panel.background = element_blank(),
-      ggside.panel.spacing = unit(0, "pt"),
-      panel.border = element_blank()
-    )
-  
-  file_name <- paste0(pc_name_x, "_", pc_name_y, "_1kg_heterozygote_stds.png")
-  
-  print(paste0("Plotting to ", plot_folder, file_name))
-  
-  png(
-    filename = file.path(plot_folder, file_name),
-    width = 800,
-    height = 600
-  )
-  grid.draw(plot)
-  device <- dev.off()
-  
-  write(
-    x = paste0("![](plot/", file_name, ")"),
-    file = md_file,
-    append = T
-  )
-  
-}
 
 
 
