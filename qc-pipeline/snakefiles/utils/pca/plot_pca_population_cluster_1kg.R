@@ -392,18 +392,18 @@ for (pc_i in 1:9) {
 }
 
 
-plot_discrete <- function(column, data, top_pc){
+plot_discrete <- function(column, plot_data, top_pc){
  for (pc_i in 1:top_pc) {
   
   pc_name_x <- paste0("pc", pc_i)
   pc_name_y <- paste0("pc", pc_i + 1)
   
-  moba_plot_data <- subset(data, pop == "MoBa")
-  moba_plot_data$x <- data[[pc_name_x]]
-  moba_plot_data$y <- data[[pc_name_y]]
+  moba_plot_data <- subset(plot_data, pop == "MoBa")
+  moba_plot_data$x <- plot_data[[pc_name_x]]
+  moba_plot_data$y <- plot_data[[pc_name_y]]
   
   
-  kg_plot_data <- data %>% 
+  kg_plot_data <- plot_data %>% 
    filter(
      pop != "MoBa"
    )
