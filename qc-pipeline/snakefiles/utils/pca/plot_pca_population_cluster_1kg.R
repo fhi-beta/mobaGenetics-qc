@@ -408,7 +408,12 @@ for (pc_i in 1:9) {
 }
 
 
-plot_discrete <- function(column, plot_data, top_pc){
+plot_discrete <- function(column, plot_data, title){
+write(
+  x = paste0(title),
+  file = md_file,
+  append = T
+)
  for (pc_i in 1:top_pc) {
   
   pc_name_x <- paste0("pc", pc_i)
@@ -510,8 +515,8 @@ plot_discrete <- function(column, plot_data, top_pc){
 
 }
 
-plot_discrete("stds_het_rate", merged_pcs, 9)
-plot_discrete("batch", merged_pcs, 9)
+plot_discrete("stds_het_rate", merged_pcs, 9, "Heterozygote rate (standard deviations above the mean)")
+plot_discrete("batch", merged_pcs, 9, "Batches")
 # 1kg cluster size
 
 kg <- merged_pcs %>% 
