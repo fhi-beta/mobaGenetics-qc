@@ -316,12 +316,12 @@ for (pc_i in 1:9) {
   
   moba_data <- merged_pcs %>% 
     filter(
-      pop == "MoBa"
+      pop.startsWith("MoBa")
     )
   
   kg_data <- merged_pcs %>% 
     filter(
-      pop != "MoBa"
+      !pop.startsWith("MoBa")
     )
   
   write(
@@ -422,14 +422,14 @@ plot_discrete <- function(column, plot_data, top_pc, file_suffix){
   pc_name_x <- paste0("pc", pc_i)
   pc_name_y <- paste0("pc", pc_i + 1)
   
-  moba_plot_data <- subset(plot_data, pop == "MoBa")
+  moba_plot_data <- subset(plot_data, pop.startsWith("MoBa"))
   moba_plot_data$x <- moba_plot_data[[pc_name_x]]
   moba_plot_data$y <- moba_plot_data[[pc_name_y]]
   
   
   kg_plot_data <- plot_data %>% 
    filter(
-     pop != "MoBa"
+     !pop.startsWith("MoBa")
    )
   
   kg_plot_data$x <- kg_plot_data[[pc_name_x]]
@@ -528,7 +528,7 @@ plot_discrete("stds_het_rate", merged_pcs, 9, "stds_het_rate")
 
 kg <- merged_pcs %>% 
   filter(
-    pop != "MoBa"
+    !pop.startsWith("MoBa")
   ) %>% 
   select(
     iid_kg = iid,
@@ -710,7 +710,7 @@ write(
 
 train_df <- merged_pcs %>% 
   filter(
-    pop != "MoBa"
+    !pop.startsWith("MoBa")
   ) %>% 
   mutate(
     pop_factor = factor(pop)
@@ -730,7 +730,7 @@ classifier <- svm(
 
 moba_df <- merged_pcs %>% 
   filter(
-    pop == "MoBa"
+    pop.startsWith("MoBa")
   ) %>% 
   select(
     fid, iid, starts_with("pc"), stds_het_rate, het_rate, f, role
@@ -916,7 +916,7 @@ for (pc_i in 1:9) {
   
   kg_plot_data <- merged_pcs %>% 
     filter(
-      pop != "MoBa"
+      !pop.startsWith("MoBa")
     ) %>% 
     mutate(
       pop_factor = factor(pop, levels = populations)
