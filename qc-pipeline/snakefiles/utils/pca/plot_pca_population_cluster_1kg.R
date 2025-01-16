@@ -163,7 +163,7 @@ het$stds_het_rate <- as.factor(het$stds_het_rate)
 
 # Merge
 
-populations_order <- c(sort(unique(thousand_genomes_populations$super_pop)), "MoBa")
+populations_order <- c(sort(unique(thousand_genomes_populations$super_pop)), "MoBa", "MoBa_Mysterious", "MoBa_Very_Mysterious")
 
 merged_pcs <- pcs %>% 
   left_join(
@@ -174,7 +174,14 @@ merged_pcs <- pcs %>%
     by = "iid"
   ) %>% 
   mutate(
-    pop = ifelse(is.na(pop), "MoBa", pop), 
+    pop = ifelse(is.na(pop), "MoBa", pop)
+  ) %>%
+  mutate(
+    pop = ifelse(pop == "MoBa" & pc2>0 & pc3>0, "MoBa_Mysterious", pop), 
+   pop_factor = factor(pop, levels = populations_order)
+  ) %>%
+  mutate(
+    pop = ifelse(pop == "MoBa_Mysterious" & pc3>0.1, "MoBa_Very_Mysterious", pop), 
    pop_factor = factor(pop, levels = populations_order)
   ) %>%
   left_join(
@@ -510,6 +517,8 @@ plot_discrete <- function(column, plot_data, top_pc, file_suffix){
 }
 
 }
+
+plot_discrete("pop_factor", merged_pcs, 3, "pop_factor")
 
 plot_discrete("batch", merged_pcs, 3, "batch")
 
