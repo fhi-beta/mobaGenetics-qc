@@ -409,7 +409,7 @@ for (pc_i in 1:9) {
 
 
 plot_discrete <- function(column, plot_data, top_pc){
-  
+
  for (pc_i in 1:top_pc) {
   
   pc_name_x <- paste0("pc", pc_i)
@@ -512,7 +512,7 @@ plot_discrete <- function(column, plot_data, top_pc){
 }
 
 for (b in unique(merged_pcs$batch)){
-  plot_discrete("batch", subset(merged_pcs, batch = b), 3)
+  plot_discrete("batch", subset(merged_pcs, batch == b), 3)
 }
 
 
