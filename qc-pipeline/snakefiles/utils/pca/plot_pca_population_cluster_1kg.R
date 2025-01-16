@@ -408,7 +408,7 @@ for (pc_i in 1:9) {
 }
 
 
-plot_discrete <- function(column, plot_data, title){
+plot_discrete <- function(column, plot_data, top_pc, title){
 write(
   x = paste0(title),
   file = md_file,
