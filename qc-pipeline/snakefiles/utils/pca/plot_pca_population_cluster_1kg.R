@@ -408,7 +408,7 @@ for (pc_i in 1:9) {
 }
 
 
-plot_discrete <- function(column, plot_data, top_pc){
+plot_discrete <- function(column, plot_data, top_pc, file_suffix){
 
  for (pc_i in 1:top_pc) {
   
@@ -489,7 +489,7 @@ plot_discrete <- function(column, plot_data, top_pc){
       panel.border = element_blank()
     )
   
-  file_name <- paste0(pc_name_x, "_", pc_name_y, "_", column, ".png")
+  file_name <- paste0(pc_name_x, "_", pc_name_y, "_", file_suffix, ".png")
   
   print(paste0("Plotting to ", plot_folder, file_name))
   
@@ -512,12 +512,12 @@ plot_discrete <- function(column, plot_data, top_pc){
 }
 
 for (b in unique(merged_pcs$batch)){
-  plot_discrete("batch", subset(merged_pcs, batch == b), 3)
+  plot_discrete("batch", subset(merged_pcs, batch == b), 3, paste0("batch_", b))
 }
 
 
 
-plot_discrete("stds_het_rate", merged_pcs, 9)
+plot_discrete("stds_het_rate", merged_pcs, 9, "stds_het_rate")
 
 # 1kg cluster size
 
