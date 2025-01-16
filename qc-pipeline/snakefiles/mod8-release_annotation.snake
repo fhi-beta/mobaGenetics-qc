@@ -745,7 +745,7 @@ rule mod8_plot_pca_both:
         ids = "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
         batches = "/mnt/archive/moba_genotypes_releases/2024.12.03/batch/moba_genotypes_2024.12.03_batches"
     params:
-        title = "\"Principal Component Analysys (PCA) vs. 1 KG\""
+        title = "\"Principal Component Analysys (PCA) vs. 1 KG\"",
         std_het_cutoff = config["release_sd_het_thr"]
     output:
         md_file = github_docs2/"pca_1kg_moba.md",
