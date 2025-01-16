@@ -83,6 +83,8 @@ id_file <- args[9]
 
 batches_file <- args[10]
 
+
+
 # Local debug - do not uncomment
 # 
 # pcs_file <- "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod3-population-clustering/snp012/pca_both.pcs"
@@ -181,7 +183,7 @@ merged_pcs <- pcs %>%
    pop_factor = factor(pop, levels = populations_order)
   ) %>%
   mutate(
-    pop = ifelse(pop == "MoBa_Mysterious" & pc3>0.1, "MoBa_Very_Mysterious", pop), 
+    pop = ifelse(pop == "MoBa_Mysterious" & pc2>0.1 & pc3>0.05, "MoBa_Very_Mysterious", pop), 
    pop_factor = factor(pop, levels = populations_order)
   ) %>%
   left_join(
@@ -1017,9 +1019,27 @@ core_ids <- moba_df %>%
     fid, iid
   )
 
+
+very_mysterious_samples <- merged_pcs %>% 
+  filter(
+    pop == "MoBa_Very_Mysterious"
+  ) %>% 
+  select(
+    fid, iid
+  )
+
 write.table(
   core_ids,
   file = ceu_ids_file,
+  col.names = F,
+  row.names = F,
+  sep = " ",
+  quote = F
+)
+
+write.table(
+  very_mysterious_samples,
+  file = "/mnt/work/oystein/tmp/very_mysterious_samples.txt",
   col.names = F,
   row.names = F,
   sep = " ",
