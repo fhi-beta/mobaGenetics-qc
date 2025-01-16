@@ -314,15 +314,9 @@ for (pc_i in 1:9) {
   merged_pcs$x <- merged_pcs[[pc_name_x]]
   merged_pcs$y <- merged_pcs[[pc_name_y]]
   
-  moba_data <- merged_pcs %>% 
-    filter(
-      pop.startsWith("MoBa")
-    )
+  moba_data <- subset(merged_pcs, startsWith(pop, "MoBa"))
   
-  kg_data <- merged_pcs %>% 
-    filter(
-      !pop.startsWith("MoBa")
-    )
+  kg_data <- subset(merged_pcs, !startsWith(pop, "MoBa"))
   
   write(
     x = paste0("### ", pc_name_y, " vs. ", pc_name_x),
@@ -422,15 +416,12 @@ plot_discrete <- function(column, plot_data, top_pc, file_suffix){
   pc_name_x <- paste0("pc", pc_i)
   pc_name_y <- paste0("pc", pc_i + 1)
   
-  moba_plot_data <- subset(plot_data, pop.startsWith("MoBa"))
+  moba_plot_data <- subset(plot_data, startsWith(pop, "MoBa"))
   moba_plot_data$x <- moba_plot_data[[pc_name_x]]
   moba_plot_data$y <- moba_plot_data[[pc_name_y]]
   
   
-  kg_plot_data <- plot_data %>% 
-   filter(
-     !pop.startsWith("MoBa")
-   )
+  kg_plot_data <- subset(merged_pcs, !startsWith(pop, "MoBa"))
   
   kg_plot_data$x <- kg_plot_data[[pc_name_x]]
   kg_plot_data$y <- kg_plot_data[[pc_name_y]]
@@ -525,11 +516,9 @@ plot_discrete("batch", merged_pcs, 3, "batch")
 plot_discrete("stds_het_rate", merged_pcs, 9, "stds_het_rate")
 
 # 1kg cluster size
+kg <- subset(merged_pcs, !startsWith(pop, "MoBa"))
 
-kg <- merged_pcs %>% 
-  filter(
-    !pop.startsWith("MoBa")
-  ) %>% 
+kg <- kg %>%  
   select(
     iid_kg = iid,
     pc1_kg = pc1,
@@ -707,11 +696,9 @@ write(
 
 
 # Inference in MoBa
+train_df <- (merged_pcs, !startsWith(pop, "MoBa"))
 
-train_df <- merged_pcs %>% 
-  filter(
-    !pop.startsWith("MoBa")
-  ) %>% 
+train_df <- train_df %>%  
   mutate(
     pop_factor = factor(pop)
   ) %>% 
@@ -728,10 +715,7 @@ classifier <- svm(
   probability = TRUE
 )
 
-moba_df <- merged_pcs %>% 
-  filter(
-    pop.startsWith("MoBa")
-  ) %>% 
+moba_df <- subset(merged_pcs, startsWith(pop, "MoBa")) %>% 
   select(
     fid, iid, starts_with("pc"), stds_het_rate, het_rate, f, role
   )
@@ -914,10 +898,7 @@ for (pc_i in 1:9) {
   moba_plot_data$y <- moba_df[[pc_name_y]]
   moba_plot_data$pop_factor <- factor(moba_plot_data$pop, levels = populations)
   
-  kg_plot_data <- merged_pcs %>% 
-    filter(
-      !pop.startsWith("MoBa")
-    ) %>% 
+  kg_plot_data <- subset(merged_pcs, !startsWith(pop, "MoBa")) %>% 
     mutate(
       pop_factor = factor(pop, levels = populations)
     )
