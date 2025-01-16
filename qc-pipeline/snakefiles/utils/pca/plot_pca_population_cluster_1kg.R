@@ -511,11 +511,7 @@ plot_discrete <- function(column, plot_data, top_pc, file_suffix){
 
 }
 
-for (b in unique(merged_pcs$batch)){
-  plot_discrete("batch", subset(merged_pcs, batch == b), 3, paste0("batch_", b))
-}
-
-
+plot_discrete("batch", merged_pcs, 3, "batch")
 
 plot_discrete("stds_het_rate", merged_pcs, 9, "stds_het_rate")
 
