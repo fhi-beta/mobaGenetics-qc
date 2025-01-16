@@ -9,7 +9,7 @@
 
 set.seed(20240112)
 
-debug <- T
+debug <- F
 
 if (debug) {
   
