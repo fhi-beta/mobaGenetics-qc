@@ -22,7 +22,8 @@ if (debug) {
     "/mnt/work/oystein/tmp/clusters",
     "/mnt/work/oystein/tmp/ceu_core_ids",
     4,
-    "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz"
+    "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
+    "/mnt/archive/moba_genotypes_releases/2024.12.03/batch/moba_genotypes_2024.12.03_batches"
   )
   
 } else {
@@ -79,6 +80,8 @@ ceu_ids_file <- args[7]
 std_cutoff <- as.numeric(args[8])
 
 id_file <- args[9]
+
+batches_file <- args[10]
 
 # Local debug - do not uncomment
 # 
@@ -139,6 +142,14 @@ id_data  <- read.table(
   stringsAsFactors = F
 )
 
+batches_data  <- read.table(
+  file = batches_file,
+  header = T,
+  sep = "\t",
+  stringsAsFactors = F
+)
+batches_data$batch <- as.factor(batches_data$batch)
+
 het$het_rate <- (het$obs_ct - het$o_hom)/het$obs_ct
 het$stds_het_rate <- 0
 mean_het_rate <- mean(het$het_rate)
@@ -179,7 +190,11 @@ merged_pcs <- pcs %>%
         iid = sentrix_id, role
       ),
     by = "iid"
-  ) %>% 
+  ) %>%
+  left_join(
+    batches_data,
+    by = "iid"
+  ) %>%
   arrange(
     desc(pop_factor)
   )
@@ -496,6 +511,7 @@ plot_discrete <- function(column, plot_data, top_pc){
 }
 
 plot_discrete("stds_het_rate", merged_pcs, 9)
+plot_discrete("batch", merged_pcs, 9)
 # 1kg cluster size
 
 kg <- merged_pcs %>% 
