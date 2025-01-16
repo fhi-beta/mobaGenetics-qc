@@ -86,8 +86,8 @@ rule all:
         #str(tmpMod7 / f"{n_samples}_samples" / "mod7_dr2.txt.gz")
         #str(tmpMod7 / f"{n_samples}_samples" / "mod7_ld.prune.in")
         # str(tmpMod7 / f"{n_samples}_samples" / "mod7_best_snps_le.txt")
-        #tmpMod8/"clusters"
-        tmpMod8/'mod8_best_snps.smiss'
+        tmpMod8/"clusters"
+        #tmpMod8/'mod8_best_snps.smiss'
         #release_folder/"readme.md"
         #str(tmpMod8/"mod8_psam_reconstruction.psam")
         #expand(tmpMod7 / f"{n_samples}_samples" / "mod7_convert_chrs_to_pgen.chr{chr}.pgen", chr = ["X"])

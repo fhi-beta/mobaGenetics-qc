@@ -14,11 +14,32 @@ id_table = "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz"
 
 mod7_pgenset = [mod7_output + ".pgen", mod7_output + ".pvar", mod7_output + ".psam"]
 
+
+rule_stem = "exclude_very_mysterious_samples"
+
+rule mod8_exclude_very_mysterious_samples:
+    input:
+        pgenset = mod7_pgenset,
+        very_mysterious_samples = "/mnt/work/oystein/tmp/very_mysterious_samples.txt"
+    output:
+        pgenset = multiext(str(tmpMod8 / rule_stem),".pgen",".pvar",".psam")
+    run:
+        inTrunk =  mqc.plinkBase(input.pgenset[0])
+        outTrunk =  mqc.plinkBase(output.pgenset[0])
+        subprocess.run([
+            plink2local,
+            "--exclude", input.very_mysterious_samples
+            "--out", outTrunk,
+            "--make-pgen"
+
+        ])
+
 rule_stem = 'mod8_split_rare_common'
 rule mod8_split_rare_common:
     'Split the rare from common markers'
     input:
-        pgenset = mod7_pgenset # rules.mod7_rename_missing_ids.output.pgenset,
+        #pgenset = mod7_pgenset # rules.mod7_rename_missing_ids.output.pgenset,
+        pgenset = rules.mod8_exclude_very_mysterious_samples.output.pgenset
     output:
         pgenset_common_snps = multiext(str(tmpMod8 / rule_stem),".pgen",".pvar",".psam"),
         afreq_common_snps = tmpMod8/(rule_stem + '.afreq'),
@@ -720,8 +741,12 @@ rule mod8_plot_pca_both:
     input:
         pcs = rules.mod8_pca_both.output.pcs,
         pop_map = config["1000_genomes_pop"],
+        het = rules.mod8_generate_best_snps_stats.output.het,
+        ids = "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
+        batches = "/mnt/archive/moba_genotypes_releases/2024.12.03/batch/moba_genotypes_2024.12.03_batches"
     params:
         title = "\"Principal Component Analysys (PCA) vs. 1 KG\""
+        std_het_cutoff = config["release_sd_het_thr"]
     output:
         md_file = github_docs2/"pca_1kg_moba.md",
         cluster_file = tmpMod8/"clusters",
@@ -734,10 +759,13 @@ rule mod8_plot_pca_both:
         Rscript utils/pca/plot_pca_population_cluster_1kg.R \
             {input.pcs} \
             {input.pop_map} \
+            {input.het} \
             {output.md_file} \
             {params.title} \
             {output.cluster_file} \
-            {output.ceu_id_file}
+            {output.ceu_id_file} \
+            {input.ids} \
+            {input.batches}
         """
 
 rule_stem = "release_md"

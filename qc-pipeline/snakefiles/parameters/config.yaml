@@ -1,6 +1,6 @@
 # The version number of the release
 release: "2024.07.01"
-release2: "2024.12.03"
+release2: "2025.01.12"
 
 # The folder where the raw data for all batches are saved
 raw_folder: "/mnt/archive/Momics/MomicsPub/snpArray/Datasets"
