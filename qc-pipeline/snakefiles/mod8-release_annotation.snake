@@ -28,7 +28,7 @@ rule mod8_exclude_very_mysterious_samples:
         outTrunk =  mqc.plinkBase(output.pgenset[0])
         subprocess.run([
             plink2local,
-            "--exclude", input.very_mysterious_samples
+            "--exclude", input.very_mysterious_samples,
             "--out", outTrunk,
             "--make-pgen"
 
