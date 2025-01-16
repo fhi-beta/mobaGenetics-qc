@@ -696,7 +696,7 @@ write(
 
 
 # Inference in MoBa
-train_df <- (merged_pcs, !startsWith(pop, "MoBa"))
+train_df <- subset(merged_pcs, !startsWith(pop, "MoBa"))
 
 train_df <- train_df %>%  
   mutate(
