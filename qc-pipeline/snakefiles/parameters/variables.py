@@ -46,7 +46,7 @@ tmpMod6Archive = archive_base/'mod6-imputation'
 #tmpMod7 = base/'mod7-post-imputation'
 tmpMod7 = Path(config['output_base']) / '2024.09.23' / 'mod7-post-imputation'
 # tmpMod72 = Path(config['output_base']) / '2024.09.23' / 'mod7-post-imputation'
-tmpMod8 = Path(config['output_base']) / '2024.12.03' / 'mod8-release_annotation'
+tmpMod8 = Path(config['output_base']) / config['release2'] / 'mod8-release_annotation'
 release_folder = Path(config['release_base']) / config['release2'] # Path(config['release_base']) / config['release']
 release_base_name = "moba_genotypes_" + config['release2'] # "moba_genotypes_" + config['release']
 

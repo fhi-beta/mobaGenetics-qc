@@ -29,7 +29,7 @@ rule mod8_exclude_very_mysterious_samples:
         subprocess.run([
             plink2local,
             "--pfile", inTrunk,
-            "--exclude", input.very_mysterious_samples,
+            "--remove", input.very_mysterious_samples,
             "--out", outTrunk,
             "--make-pgen"
 
