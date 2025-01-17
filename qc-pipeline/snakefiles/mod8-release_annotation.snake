@@ -20,7 +20,7 @@ rule_stem = "exclude_very_mysterious_samples"
 rule mod8_exclude_very_mysterious_samples:
     input:
         pgenset = mod7_pgenset,
-        very_mysterious_samples = "/mnt/work/oystein/tmp/very_mysterious_samples.txt"
+        very_mysterious_samples = "/mnt/work/oystein/tmp/very_mysterious_samples_iid.txt"
     output:
         pgenset = multiext(str(tmpMod8 / rule_stem),".pgen",".pvar",".psam")
     run:
