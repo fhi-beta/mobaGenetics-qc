@@ -9,7 +9,7 @@
 
 set.seed(20240112)
 
-debug <- F
+debug <- T
 
 if (debug) {
   
@@ -23,7 +23,8 @@ if (debug) {
     "/mnt/work/oystein/tmp/ceu_core_ids",
     4,
     "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
-    "/mnt/archive/moba_genotypes_releases/2024.12.03/batch/moba_genotypes_2024.12.03_batches"
+    "/mnt/archive/moba_genotypes_releases/2024.12.03/batch/moba_genotypes_2024.12.03_batches",
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_psam_reconstruction.psam"
   )
   
 } else {
@@ -150,6 +151,15 @@ batches_data  <- read.table(
   sep = "\t",
   stringsAsFactors = F
 )
+
+psam_data  <- read.table(
+  file = psam_file,
+  header = F,
+  sep = "\t",
+  col.names = c("fid", "iid", "pat", "mat", "sex"),
+  stringsAsFactors = F
+)
+
 batches_data$batch <- as.factor(batches_data$batch)
 
 het$het_rate <- (het$obs_ct - het$o_hom)/het$obs_ct
@@ -165,7 +175,9 @@ het$stds_het_rate <- as.factor(het$stds_het_rate)
 
 # Merge
 
-populations_order <- c(sort(unique(thousand_genomes_populations$super_pop)), "MoBa")
+
+
+populations_order <- c(sort(unique(thousand_genomes_populations$super_pop)), "MoBa", "MoBa_Mysterious", "MoBa_Very_Mysterious")
 
 merged_pcs <- pcs %>% 
   left_join(
@@ -176,8 +188,15 @@ merged_pcs <- pcs %>%
     by = "iid"
   ) %>% 
   mutate(
-    pop = ifelse(is.na(pop), "MoBa", pop),
-    pop_factor = factor(pop, levels = populations_order)
+    pop = ifelse(is.na(pop), "MoBa", pop)
+  ) %>%
+  mutate(
+    pop = ifelse(pop == "MoBa" & pc2>0 & pc3>0, "MoBa_Mysterious", pop), 
+   pop_factor = factor(pop, levels = populations_order)
+  ) %>%
+  mutate(
+    pop = ifelse(pop == "MoBa_Mysterious" & pc2>0.1 & pc3>0.05, "MoBa_Very_Mysterious", pop), 
+   pop_factor = factor(pop, levels = populations_order)
   ) %>%
   left_join(
     het %>% 
@@ -1013,13 +1032,13 @@ core_ids <- moba_df %>%
   )
 
 
-# very_mysterious_samples <- merged_pcs %>% 
-#   filter(
-#     pop == "MoBa_Very_Mysterious"
-#   ) %>% 
-#   select(
-#     fid, iid
-#   )
+very_mysterious_samples <- merged_pcs %>% 
+  filter(
+    pop == "MoBa_Very_Mysterious"
+  ) %>% 
+  select(
+    fid, iid
+  )
 
 write.table(
   core_ids,
@@ -1030,11 +1049,11 @@ write.table(
   quote = F
 )
 
-# write.table(
-#   very_mysterious_samples,
-#   file = "/mnt/work/oystein/tmp/very_mysterious_samples.txt",
-#   col.names = F,
-#   row.names = F,
-#   sep = " ",
-#   quote = F
-# )
+write.table(
+  very_mysterious_samples,
+  file = "/mnt/work/oystein/tmp/very_mysterious_samples.txt",
+  col.names = F,
+  row.names = F,
+  sep = " ",
+  quote = F
+)
