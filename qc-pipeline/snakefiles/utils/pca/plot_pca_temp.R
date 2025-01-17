@@ -84,6 +84,8 @@ id_file <- args[9]
 
 batches_file <- args[10]
 
+psam_file <- args[11]
+
 
 
 # Local debug - do not uncomment
@@ -214,6 +216,13 @@ merged_pcs <- pcs %>%
   ) %>%
   left_join(
     batches_data,
+    by = "iid"
+  ) %>%
+  left_join(
+    psam_data %>% 
+      select(
+        fid, iid, pat, mat
+      ),
     by = "iid"
   ) %>%
   arrange(
