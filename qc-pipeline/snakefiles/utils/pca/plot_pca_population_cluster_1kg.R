@@ -252,72 +252,6 @@ trios_plot_data <- child_data %>%
   left_join(mother_data, by = "mat")
 
 
-
-
-
-
-
-
-
-plot <- ggplot() +
-    theme_bw(
-      base_size = 24
-    ) +
-    
-    geom_point(
-      data = trios_plot_data,
-      mapping = aes(
-        x = pc2_child,
-        y = pc3_child
-      ),
-      alpha = 0.5
-    ) +
-    geom_point(
-      data = trios_plot_data,
-      mapping = aes(
-        x = pc2_child,
-        y = pc3_child
-      ),
-      alpha = 0.5
-    ) +
-    geom_segment(data = trios_plot_data, aes(x = pc2_child, y = pc3_child, xend = pc2_father, yend = pc3_father), linetype = "dashed", color = "red", alpha = 0.1) +
-    geom_segment(data = trios_plot_data, aes(x = pc2_child, y = pc3_child, xend = pc2_mother, yend = pc3_mother), linetype = "dashed", color = "blue", alpha = 0.1) +
-    
-    
-    scale_x_continuous(
-      name = "pc2"
-    ) +
-    scale_y_continuous(
-      name = "pc3"
-    ) +
-    theme(
-      ggside.panel.scale = 0.15,
-      ggside.axis.ticks = element_blank(),
-      ggside.axis.text = element_blank(),
-      ggside.panel.grid = element_blank(),
-      ggside.panel.background = element_blank(),
-      ggside.panel.spacing = unit(0, "pt"),
-      panel.border = element_blank()
-    )
-  
-  file_name <- "children_parents_pc2_pc3.png"
-  
-  print(paste0("Plotting to ", plot_folder, file_name))
-  
-  png(
-    filename = file.path(plot_folder, file_name),
-    width = 800,
-    height = 600
-  )
-  grid.draw(plot)
-  device <- dev.off()
-
-write(
-  x = paste0("# ", md_title),
-  file = md_file,
-  append = F
-)
-
 write(
   x = paste0("Principal component analysis of the MoBa samples merged with the thousand genomes."),
   file = md_file,
@@ -495,7 +429,7 @@ for (pc_i in 1:9) {
   
   file_name <- paste0(pc_name_x, "_", pc_name_y, "_1kg.png")
   
-  print(paste0("Plotting to ", plot_folder, file_name))
+  print(paste0("Plotting to ", plot_folder, "/", file_name))
   
   png(
     filename = file.path(plot_folder, file_name),
@@ -564,7 +498,7 @@ for (pc_i in 1:num_pcs){
   
   file_name <- paste0("expected_midpoint_pc_", pc_i, ".png")
   
-  print(paste0("Plotting to ", plot_folder, file_name))
+  print(paste0("Plotting to ", plot_folder, "/", file_name))
   
   png(
     filename = file.path(plot_folder, file_name),
@@ -655,7 +589,7 @@ plot <- ggplot() +
   
   file_name <- paste0("children_parents_pc", pc_i, "_pc", pc_i + 1, "_", plot_suffix, ".png")
   
-  print(paste0("Plotting to ", plot_folder, file_name))
+   print(paste0("Plotting to ", plot_folder, "/", file_name))
   
   png(
     filename = file.path(plot_folder, file_name),
@@ -754,7 +688,7 @@ plot_discrete <- function(column, plot_data, top_pc, file_suffix){
   
   file_name <- paste0(pc_name_x, "_", pc_name_y, "_", file_suffix, ".png")
   
-  print(paste0("Plotting to ", plot_folder, file_name))
+  print(paste0("Plotting to ", plot_folder, "/", file_name))
   
   png(
     filename = file.path(plot_folder, file_name),
@@ -1236,7 +1170,7 @@ for (pc_i in 1:9) {
   
   file_name <- paste0(pc_name_x, "_", pc_name_y, "_1kg_inferred.png")
   
-  print(paste0("Plotting to ", plot_folder, file_name))
+  print(paste0("Plotting to ", plot_folder, "/", file_name))
   
   png(
     filename = file.path(plot_folder, file_name),
