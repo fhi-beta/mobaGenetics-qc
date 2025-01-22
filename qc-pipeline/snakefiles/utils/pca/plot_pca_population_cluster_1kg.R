@@ -9,7 +9,7 @@
 
 set.seed(20240112)
 
-debug <- F
+debug <- T
 
 if (debug) {
   
@@ -23,7 +23,8 @@ if (debug) {
     "/mnt/work/oystein/tmp/ceu_core_ids",
     4,
     "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
-    "/mnt/archive/moba_genotypes_releases/2024.12.03/batch/moba_genotypes_2024.12.03_batches"
+    "/mnt/archive/moba_genotypes_releases/2024.12.03/batch/moba_genotypes_2024.12.03_batches",
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_psam_reconstruction.psam"
   )
   
 } else {
@@ -82,6 +83,8 @@ std_cutoff <- as.numeric(args[8])
 id_file <- args[9]
 
 batches_file <- args[10]
+
+psam_file <- args[11]
 
 
 
@@ -150,6 +153,15 @@ batches_data  <- read.table(
   sep = "\t",
   stringsAsFactors = F
 )
+
+psam_data  <- read.table(
+  file = psam_file,
+  header = F,
+  sep = "\t",
+  col.names = c("fid", "iid", "pat", "mat", "sex"),
+  stringsAsFactors = F
+)
+
 batches_data$batch <- as.factor(batches_data$batch)
 
 het$het_rate <- (het$obs_ct - het$o_hom)/het$obs_ct
@@ -163,9 +175,8 @@ for (std in 1:(2*(std_cutoff-1))){
 
 het$stds_het_rate <- as.factor(het$stds_het_rate)
 
-# Merge
-
-populations_order <- c(sort(unique(thousand_genomes_populations$super_pop)), "MoBa")
+# The mysterious groupings should be removed here and below before doing a full rerun, as they are only mysterious because they stand out in this particular collection of samples
+populations_order <- c(sort(unique(thousand_genomes_populations$super_pop)), "MoBa", "MoBa_Mysterious", "MoBa_Very_Mysterious")
 
 merged_pcs <- pcs %>% 
   left_join(
@@ -176,8 +187,15 @@ merged_pcs <- pcs %>%
     by = "iid"
   ) %>% 
   mutate(
-    pop = ifelse(is.na(pop), "MoBa", pop),
-    pop_factor = factor(pop, levels = populations_order)
+    pop = ifelse(is.na(pop), "MoBa", pop)
+  ) %>%
+  mutate(
+    pop = ifelse(pop == "MoBa" & pc2>0 & pc3>0, "MoBa_Mysterious", pop), 
+   pop_factor = factor(pop, levels = populations_order)
+  ) %>%
+  mutate(
+    pop = ifelse(pop == "MoBa_Mysterious" & pc2>0.1 & pc3>0.05, "MoBa_Very_Mysterious", pop), 
+   pop_factor = factor(pop, levels = populations_order)
   ) %>%
   left_join(
     het %>% 
@@ -197,10 +215,102 @@ merged_pcs <- pcs %>%
     batches_data,
     by = "iid"
   ) %>%
+  left_join(
+    psam_data %>% 
+      select(
+        fid, iid, pat, mat
+      ),
+    by = "iid"
+  ) %>%
   arrange(
     desc(pop_factor)
   )
 
+trios <- subset(merged_pcs, !is.na(pat) & ! is.na(mat))
+
+num_pcs <- 10
+
+pc_child_names <- paste0("pc", 1:num_pcs, "_child")
+pc_father_names <- paste0("pc", 1:num_pcs, "_father")
+pc_mother_names <- paste0("pc", 1:num_pcs, "_mother")
+
+child_data <- trios %>%
+  rename_with(~ pc_child_names, starts_with("pc")) %>%
+  select(iid, pat, mat, all_of(pc_child_names), pop_factor_child = pop_factor)
+
+father_data <- subset(merged_pcs, iid %in% trios$pat) %>%
+  rename_with(~ pc_father_names, starts_with("pc")) %>%
+  select(pat = iid, all_of(pc_father_names), pop_factor_father = pop_factor)
+
+
+mother_data <- subset(merged_pcs, iid %in% trios$mat) %>%
+  rename_with(~ pc_mother_names, starts_with("pc")) %>%
+  select(mat = iid, all_of(pc_mother_names), pop_factor_mother = pop_factor)
+
+trios_plot_data <- child_data %>%
+  left_join(father_data, by = "pat") %>%
+  left_join(mother_data, by = "mat")
+
+
+
+
+
+
+
+
+
+plot <- ggplot() +
+    theme_bw(
+      base_size = 24
+    ) +
+    
+    geom_point(
+      data = trios_plot_data,
+      mapping = aes(
+        x = pc2_child,
+        y = pc3_child
+      ),
+      alpha = 0.5
+    ) +
+    geom_point(
+      data = trios_plot_data,
+      mapping = aes(
+        x = pc2_child,
+        y = pc3_child
+      ),
+      alpha = 0.5
+    ) +
+    geom_segment(data = trios_plot_data, aes(x = pc2_child, y = pc3_child, xend = pc2_father, yend = pc3_father), linetype = "dashed", color = "red", alpha = 0.1) +
+    geom_segment(data = trios_plot_data, aes(x = pc2_child, y = pc3_child, xend = pc2_mother, yend = pc3_mother), linetype = "dashed", color = "blue", alpha = 0.1) +
+    
+    
+    scale_x_continuous(
+      name = "pc2"
+    ) +
+    scale_y_continuous(
+      name = "pc3"
+    ) +
+    theme(
+      ggside.panel.scale = 0.15,
+      ggside.axis.ticks = element_blank(),
+      ggside.axis.text = element_blank(),
+      ggside.panel.grid = element_blank(),
+      ggside.panel.background = element_blank(),
+      ggside.panel.spacing = unit(0, "pt"),
+      panel.border = element_blank()
+    )
+  
+  file_name <- "children_parents_pc2_pc3.png"
+  
+  print(paste0("Plotting to ", plot_folder, file_name))
+  
+  png(
+    filename = file.path(plot_folder, file_name),
+    width = 800,
+    height = 600
+  )
+  grid.draw(plot)
+  device <- dev.off()
 
 write(
   x = paste0("# ", md_title),
@@ -403,10 +513,170 @@ for (pc_i in 1:9) {
   
 }
 
+for (i in 1:num_pcs) {
+  pc_father <- paste0("pc", i, "_father")
+  pc_mother <- paste0("pc", i, "_mother")
+  midpoint <- paste0("midpoint_pc", i)
+  trios_plot_data[[midpoint]] <- (trios_plot_data[[pc_father]] + trios_plot_data[[pc_mother]]) / 2
+}
+
+# Plot the pc of the children against the midpoint between parents, to check that the points cluster along the diagonal:
+
+for (pc_i in 1:num_pcs){
+  pc_name <- paste0("pc", pc_i)
+  pc_father <- paste0(pc_name, "_father")
+  pc_mother <- paste0(pc_name, "_mother")
+  midpoint_name <- paste0("midpoint_pc", pc_i)
+  child_pc_name <- paste0("pc", pc_i, "_child")
+  trios_plot_data[[midpoint_name]] <- (trios_plot_data[[pc_father]] + trios_plot_data[[pc_mother]]) / 2
+  trios_plot_data$x <- trios_plot_data[[midpoint_name]]
+  trios_plot_data$y <- trios_plot_data[[child_pc_name]]
+
+  plot <- ggplot() +
+    theme_bw(
+      base_size = 24
+    ) +
+    
+    geom_point(
+      data = trios_plot_data,
+      mapping = aes(
+        x = x,
+        y = y
+      ),
+      alpha = 0.5
+    ) +
+    
+    scale_x_continuous(
+      name = paste0("Expected ", pc_name)
+    ) +
+    scale_y_continuous(
+      name = paste0("Observed ", pc_name)
+    ) +
+    theme(
+      ggside.panel.scale = 0.15,
+      ggside.axis.ticks = element_blank(),
+      ggside.axis.text = element_blank(),
+      ggside.panel.grid = element_blank(),
+      ggside.panel.background = element_blank(),
+      ggside.panel.spacing = unit(0, "pt"),
+      panel.border = element_blank()
+    )
+  
+  file_name <- paste0("expected_midpoint_pc_", pc_i, ".png")
+  
+  print(paste0("Plotting to ", plot_folder, file_name))
+  
+  png(
+    filename = file.path(plot_folder, file_name),
+    width = 800,
+    height = 600
+  )
+  grid.draw(plot)
+  device <- dev.off()
+}
+
+
+
+plot_trios <-function(plot_data, plot_suffix, top_pc){
+ for (pc_i in 1:(top_pc-1)){
+  pc_name_x <- paste0("pc", pc_i)
+  pc_name_y <- paste0("pc", pc_i + 1)
+
+  child_pc_name_x <- paste0("pc", pc_i, "_child")
+  child_pc_name_y <- paste0("pc", pc_i+1, "_child")
+
+  father_pc_name_x <- paste0("pc", pc_i, "_father")
+  father_pc_name_y <- paste0("pc", pc_i+1, "_father")
+
+  
+  mother_pc_name_x <- paste0("pc", pc_i, "_mother")
+  mother_pc_name_y <- paste0("pc", pc_i+1, "_mother")
+
+  
+  plot_data$child_x <- plot_data[[child_pc_name_x]]
+  plot_data$child_y <- plot_data[[child_pc_name_y]]
+  plot_data$father_x <- plot_data[[father_pc_name_x]]
+  plot_data$father_y <- plot_data[[father_pc_name_y]]
+  plot_data$mother_x <- plot_data[[mother_pc_name_x]]
+  plot_data$mother_y <- plot_data[[mother_pc_name_y]]
+
+
+
+plot <- ggplot() +
+    theme_bw(
+      base_size = 24
+    ) +
+    
+    geom_point(
+      data = plot_data,
+      mapping = aes(
+        x = father_x,
+        y = father_y
+      ),
+      alpha = 0.3,
+      color = "red"
+    ) +
+    geom_point(
+      data = plot_data,
+      mapping = aes(
+        x = mother_x,
+        y = mother_y
+      ),
+      alpha = 0.3,
+      color = "blue"
+    ) +
+    
+     geom_segment(data = plot_data, aes(x = child_x, y = child_y, xend = father_x, yend = father_y), linetype = "dashed", color = "red", alpha = 0.2) +
+    geom_segment(data = plot_data, aes(x = child_x, y = child_y, xend = mother_x, yend = mother_y), linetype = "dashed", color = "blue", alpha = 0.2) +
+    geom_point(
+      data = plot_data,
+      mapping = aes(
+        x = child_x,
+        y = child_y
+      ),
+      alpha = 0.5
+    ) +
+    
+    scale_x_continuous(
+      name = pc_name_x
+    ) +
+    scale_y_continuous(
+      name = pc_name_y
+    ) +
+    theme(
+      ggside.panel.scale = 0.15,
+      ggside.axis.ticks = element_blank(),
+      ggside.axis.text = element_blank(),
+      ggside.panel.grid = element_blank(),
+      ggside.panel.background = element_blank(),
+      ggside.panel.spacing = unit(0, "pt"),
+      panel.border = element_blank()
+    )
+  
+  file_name <- paste0("children_parents_pc", pc_i, "_pc", pc_i + 1, "_", plot_suffix, ".png")
+  
+  print(paste0("Plotting to ", plot_folder, file_name))
+  
+  png(
+    filename = file.path(plot_folder, file_name),
+    width = 800,
+    height = 600
+  )
+  grid.draw(plot)
+  device <- dev.off()
+  write(
+    x = paste0("![](plot/", file_name, ")"),
+    file = md_file,
+    append = T
+  )
+
+}
+}
+
 
 plot_discrete <- function(column, plot_data, top_pc, file_suffix){
 
- for (pc_i in 1:top_pc) {
+ for (pc_i in 1:(top_pc-1)) {
   
   pc_name_x <- paste0("pc", pc_i)
   pc_name_y <- paste0("pc", pc_i + 1)
@@ -504,11 +774,13 @@ plot_discrete <- function(column, plot_data, top_pc, file_suffix){
 
 }
 
+plot_trios(trios_plot_data, "trios", 10)
+
 plot_discrete("pop_factor", merged_pcs, 3, "pop_factor")
 
 plot_discrete("batch", merged_pcs, 3, "batch")
 
-plot_discrete("stds_het_rate", merged_pcs, 9, "stds_het_rate")
+plot_discrete("stds_het_rate", merged_pcs, 10, "stds_het_rate")
 
 # 1kg cluster size
 kg <- subset(merged_pcs, !startsWith(pop, "MoBa"))
@@ -1013,13 +1285,13 @@ core_ids <- moba_df %>%
   )
 
 
-# very_mysterious_samples <- merged_pcs %>% 
-#   filter(
-#     pop == "MoBa_Very_Mysterious"
-#   ) %>% 
-#   select(
-#     fid, iid
-#   )
+very_mysterious_samples <- merged_pcs %>% 
+  filter(
+    pop == "MoBa_Very_Mysterious"
+  ) %>% 
+  select(
+    fid, iid
+  )
 
 write.table(
   core_ids,
@@ -1030,11 +1302,11 @@ write.table(
   quote = F
 )
 
-# write.table(
-#   very_mysterious_samples,
-#   file = "/mnt/work/oystein/tmp/very_mysterious_samples.txt",
-#   col.names = F,
-#   row.names = F,
-#   sep = " ",
-#   quote = F
-# )
+write.table(
+  very_mysterious_samples,
+  file = "/mnt/work/oystein/tmp/very_mysterious_samples.txt",
+  col.names = F,
+  row.names = F,
+  sep = " ",
+  quote = F
+)
