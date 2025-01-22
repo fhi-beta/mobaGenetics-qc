@@ -218,7 +218,7 @@ merged_pcs <- pcs %>%
   left_join(
     psam_data %>% 
       select(
-        fid, iid, pat, mat
+        iid, pat, mat
       ),
     by = "iid"
   ) %>%
