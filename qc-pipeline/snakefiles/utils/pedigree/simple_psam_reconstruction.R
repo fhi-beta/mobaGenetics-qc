@@ -725,7 +725,7 @@ parent_offspring_table_ind <- parent_offspring_table %>%
 
 }else{
   parent_offspring_table_samples <- parent_offspring_table %>% rename(parent_id = parent_sentrix_id, child_id = child_sentrix_id)
-  parent_offspring_table_ind <- parent_offspring_table
+  parent_offspring_table_ind <- parent_offspring_table_samples
 }
 
 
@@ -838,11 +838,13 @@ check_expected_relationships <- function(
   id_type
 ) {
 
+
 mother_offspring_detected <<- unique(parent_offspring_detected %>% filter(parent_sex == 2 & !is.na(parent_id) & !is.na(child_id) & age_difference> 12) %>% select(parent_id, child_id))
 mother_offspring_detected_dupl <<- subset(mother_offspring_detected, duplicated(child_id))
-
 father_offspring_detected <<- unique(parent_offspring_detected %>% filter(parent_sex == 1 & !is.na(parent_id) & !is.na(child_id) & age_difference > 12) %>% select(parent_id, child_id))
 father_offspring_detected_dupl <<- subset(father_offspring_detected, duplicated(child_id))
+
+
 
 mother_offspring_expected <<- unique(parent_offspring_expected %>%
   select(parent_id = mother_id, child_id) %>%
