@@ -28,8 +28,7 @@ if (debug) {
     "debug",
     1
   )
-  }
-  else if(debug_plink_version == 2){
+  } else if(debug_plink_version == 2){
     args <- c(
     "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_pedigree_ibd_estimate.kin0", 
     "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_check_sex.sexcheck",
@@ -164,7 +163,7 @@ id_data  <- read.table(
   stringsAsFactors = F
 )
 
-if (plink_version == 1){
+if(plink_version == 1){
  psam_data_raw  <- read.table(
   file = psam_file,
   header = F,
@@ -172,9 +171,8 @@ if (plink_version == 1){
   stringsAsFactors = F
 )
 psam_data <- psam_data_raw[,c("IID", "SEX")]
-}
 
-else if(plink_version == 2){
+} else if(plink_version == 2){
   psam_data  <- read.table(
   file = psam_file,
   header = F,
@@ -1039,8 +1037,7 @@ if(plink_version == 1){
   sep = "\t",
   quote = F
 )
-}
-else if(plink_version == 2){
+} else if(plink_version == 2){
   write.table(
   x = restored_psam_data,
   file = destination_file,
