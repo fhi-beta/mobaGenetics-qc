@@ -705,15 +705,15 @@ related_table <- related_table %>%
 filtered_table <- subset(related_table, InfType =="PO")
 
 parent_offspring_table <- data.frame(
-    parent_sentrix_id = ifelse(filtered_table$birth_year1 < filtered_table$birth_year2, filtered_table$ID1,filtered_table$ID2),
-    child_sentrix_id = ifelse(filtered_table$birth_year1 <filtered_table$birth_year2, filtered_table$ID2,filtered_table$ID1),
+    parent_sentrix_id = as.character(ifelse(filtered_table$birth_year1 < filtered_table$birth_year2, filtered_table$ID1,filtered_table$ID2)),
+    child_sentrix_id = as.character(ifelse(filtered_table$birth_year1 <filtered_table$birth_year2, filtered_table$ID2,filtered_table$ID1)),
     parent_birth_year = ifelse(filtered_table$birth_year1 < filtered_table$birth_year2,filtered_table$birth_year1,filtered_table$birth_year2),
     child_birth_year = ifelse(filtered_table$birth_year1 < filtered_table$birth_year2, filtered_table$birth_year2,filtered_table$birth_year1),
     age_difference = abs(filtered_table$birth_year1 - filtered_table$birth_year2),
     parent_sex = ifelse(filtered_table$birth_year1 < filtered_table$birth_year2, filtered_table$sex1,filtered_table$sex2),
     child_sex = ifelse(filtered_table$birth_year1 < filtered_table$birth_year2, filtered_table$sex2,filtered_table$sex1)
 )
-if(nrow(parent_offspring_table>0)){
+
 parent_offspring_table_ind <- parent_offspring_table %>%
   left_join(id_data, by = c("child_sentrix_id" = "sentrix_id")) %>%
   rename(child_id = id) %>%
@@ -722,12 +722,6 @@ parent_offspring_table_ind <- parent_offspring_table %>%
   select(parent_id, child_id, parent_birth_year, child_birth_year, age_difference, parent_sex, child_sex)
 
   parent_offspring_table_samples <- parent_offspring_table %>% rename(parent_id = parent_sentrix_id, child_id = child_sentrix_id)
-
-}else{
-  parent_offspring_table_samples <- parent_offspring_table %>% rename(parent_id = parent_sentrix_id, child_id = child_sentrix_id)
-  parent_offspring_table_ind <- parent_offspring_table_samples
-}
-
 
 
 
