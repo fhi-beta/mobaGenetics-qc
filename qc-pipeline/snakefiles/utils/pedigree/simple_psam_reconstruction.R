@@ -11,19 +11,20 @@ set.seed(11111)
 # Command line arguments
 debug <- T
 debug_plink_version <- 1
+debug_batch <- "snp009"
 if (debug) {
   if(debug_plink_version == 1){
     args <- c(
-    "/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod2-genetic-relationship/snp008/pedigree_ibd_estimate.kin0", 
-    "/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod2-genetic-relationship/snp008/check_sex.sexcheck",
+    paste0("/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod2-genetic-relationship/",debug_batch,"/pedigree_ibd_estimate.kin0"), 
+    paste0("/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod2-genetic-relationship/", debug_batch, "/check_sex.sexcheck"),
     "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz",
     "/mnt/archive/snpQc/phenotypes/birth_year_24.04.12.gz",
     "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
-    "/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod2-genetic-relationship/snp008/callrate_permanent_removal.fam",
-    "/mnt/work/oystein/tmp/fam_reconstruction/plink1/snp008/fam_reconstruction.fam",
-    "/mnt/work/oystein/tmp/fam_reconstruction/plink1/snp008/exclusion",
-    "/mnt/work/oystein/tmp/fam_reconstruction/plink1/snp008/mismatch_information.gz",
-    "/mnt/work/oystein/tmp/fam_reconstruction/plink1/snp008/mismatch_relationship.gz",
+    paste0("/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod2-genetic-relationship/", debug_batch, "/callrate_permanent_removal.fam"),
+    paste0("/mnt/work/oystein/tmp/fam_reconstruction/plink1/", debug_batch, "/fam_reconstruction.fam"),
+    paste0("/mnt/work/oystein/tmp/fam_reconstruction/plink1/", debug_batch, "/exclusion"),
+    paste0("/mnt/work/oystein/tmp/fam_reconstruction/plink1/", debug_batch, "/mismatch_information.gz"),
+    paste0("/mnt/work/oystein/tmp/fam_reconstruction/plink1/", debug_batch, "/mismatch_relationship.gz"),
     "/mnt/work/oystein/tmp/fam_reconstruction/plink1/fam_reconstruction_debug.md",
     "debug",
     1
