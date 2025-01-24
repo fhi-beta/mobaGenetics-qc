@@ -140,7 +140,6 @@ genomic_relatedness_table <- read.table(
 sex_check_data <- read.table(
   file = sex_check_file,
   header = T,
-  sep = "\t",
   stringsAsFactors = F
 )
 expected_relationships_data <- read.table(
