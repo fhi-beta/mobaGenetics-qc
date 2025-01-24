@@ -9,31 +9,52 @@ set.seed(11111)
 
 
 # Command line arguments
-debug <- F
+debug <- T
+debug_plink_version <- 1
 if (debug) {
-  
-  args <- c(
+  if(debug_plink_version == 1){
+    args <- c(
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod2-genetic-relationship/snp008/pedigree_ibd_estimate.kin0", 
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod2-genetic-relationship/snp008/check_sex.sexcheck",
+    "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz",
+    "/mnt/archive/snpQc/phenotypes/birth_year_24.04.12.gz",
+    "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod2-genetic-relationship/snp008/callrate_permanent_removal.fam",
+    "/mnt/work/oystein/tmp/fam_reconstruction/plink1/snp008/fam_reconstruction.fam",
+    "/mnt/work/oystein/tmp/fam_reconstruction/plink1/snp008/exclusion",
+    "/mnt/work/oystein/tmp/fam_reconstruction/plink1/snp008/mismatch_information.gz",
+    "/mnt/work/oystein/tmp/fam_reconstruction/plink1/snp008/mismatch_relationship.gz",
+    "/mnt/work/oystein/tmp/fam_reconstruction/plink1/fam_reconstruction_debug.md",
+    "debug",
+    1
+  )
+  }
+  else if(debug_plink_version == 2){
+    args <- c(
     "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_pedigree_ibd_estimate.kin0", 
     "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_check_sex.sexcheck",
     "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz",
     "/mnt/archive/snpQc/phenotypes/birth_year_24.04.12.gz",
     "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
     "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod7-post-imputation/all_samples/mod7_rename_missing_ids.psam",
-    "/mnt/work/oystein/tmp/mod8_psam_reconstruction.psam",
-    "/mnt/work/oystein/tmp/exclusion",
-    "/mnt/work/oystein/tmp/mismatch_information.gz",
-    "/mnt/work/oystein/tmp/mismatch_relationship.gz",
-    "/mnt/work/oystein/tmp/fam_reconstruction_debug.md",
-    "debug"
+    "/mnt/work/oystein/tmp/fam_reconstruction/plink2/mod8_psam_reconstruction.psam",
+    "/mnt/work/oystein/tmp/fam_reconstruction/plink2/exclusion",
+    "/mnt/work/oystein/tmp/fam_reconstruction/plink2/mismatch_information.gz",
+    "/mnt/work/oystein/tmp/fam_reconstruction/plink2/mismatch_relationship.gz",
+    "/mnt/work/oystein/tmp/fam_reconstruction/plink2/fam_reconstruction_debug.md",
+    "debug",
+    2
   )
+  }
+  
   
 } else {
  
 args <- commandArgs(TRUE)
 
-if (length(args) != 12) {
+if (length(args) != 13) {
   
-  stop(paste0("Nine arguments expected: genome file, sex check file, expected relationships file, birth year file, id file, current psam file, destination file, exclusion file, mismatch_information, mismatch_relationship, md file, title. ", length(args), " found: ", paste(args, collapse = ", ")))
+  stop(paste0("13 arguments expected: IBD estimate file, sex check file, expected relationships file, birth year file, id file, current psam/fam file, destination file, exclusion file, mismatch_information, mismatch_relationship, md file, title, plink version (1 or 2) ", length(args), " found: ", paste(args, collapse = ", ")))
   
 }
 }
@@ -97,6 +118,7 @@ mismatch_relationship_file <- args[10]
 md_file <- args[11]
 
 title <- args[12]
+plink_version <- args[13]
 
 
 # Libraries
@@ -142,13 +164,26 @@ id_data  <- read.table(
   stringsAsFactors = F
 )
 
-psam_data  <- read.table(
+if (plink_version == 1){
+ psam_data_raw  <- read.table(
+  file = psam_file,
+  header = F,
+  col.names = c("FID", "IID", "PAT", "MAT", "SEX", "PHE"),
+  stringsAsFactors = F
+)
+psam_data <- psam_data_raw[,c("IID", "SEX")]
+}
+
+else if(plink_version == 2){
+  psam_data  <- read.table(
   file = psam_file,
   header = F,
   sep = "\t",
   col.names = c("IID", "SEX"),
   stringsAsFactors = F
 )
+}
+
 
 sample_ids <- psam_data[, 1]
 
@@ -793,7 +828,7 @@ write(
 check_expected_relationships <- function(
   parent_offspring_expected,
   parent_offspring_detected,
-  psam_data,
+  orig_psam_data,
   ids,
   id_type
 ) {
@@ -822,7 +857,7 @@ father_offspring_expected_found <<- found_in(father_offspring_expected, father_o
 mother_offspring_detected_found <<- found_in(mother_offspring_detected, mother_offspring_expected, ids)
 father_offspring_detected_found <<- found_in(father_offspring_detected, father_offspring_expected, ids)
 
-restored_psam_data <<- psam_data %>%
+restored_psam_data <<- orig_psam_data %>%
   left_join(
     father_offspring_detected %>%
       select(
@@ -994,8 +1029,19 @@ if (!identical(psam_data$IID, restored_psam_data$IID)){
   stop("Restored psam IIDs do not match original")
 }
 
-
-write.table(
+if(plink_version == 1){
+  restored_psam_data$PHE <- -9
+  write.table(
+  x = restored_psam_data,
+  file = destination_file,
+  col.names = F,
+  row.names = F,
+  sep = "\t",
+  quote = F
+)
+}
+else if(plink_version == 2){
+  write.table(
   x = restored_psam_data,
   file = destination_file,
   col.names = T,
@@ -1003,6 +1049,11 @@ write.table(
   sep = "\t",
   quote = F
 )
+
+}
+
+
+
 
 write.table(
   x = mismatches_table,
