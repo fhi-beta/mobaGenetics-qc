@@ -713,7 +713,7 @@ parent_offspring_table <- data.frame(
     parent_sex = ifelse(filtered_table$birth_year1 < filtered_table$birth_year2, filtered_table$sex1,filtered_table$sex2),
     child_sex = ifelse(filtered_table$birth_year1 < filtered_table$birth_year2, filtered_table$sex2,filtered_table$sex1)
 )
-
+if(nrow(parent_offspring_table>0)){
 parent_offspring_table_ind <- parent_offspring_table %>%
   left_join(id_data, by = c("child_sentrix_id" = "sentrix_id")) %>%
   rename(child_id = id) %>%
@@ -721,7 +721,15 @@ parent_offspring_table_ind <- parent_offspring_table %>%
   rename(parent_id = id) %>%
   select(parent_id, child_id, parent_birth_year, child_birth_year, age_difference, parent_sex, child_sex)
 
-parent_offspring_table_samples <- parent_offspring_table %>% rename(parent_id = parent_sentrix_id, child_id = child_sentrix_id)
+  parent_offspring_table_samples <- parent_offspring_table %>% rename(parent_id = parent_sentrix_id, child_id = child_sentrix_id)
+
+}else{
+  parent_offspring_table_samples <- parent_offspring_table %>% rename(parent_id = parent_sentrix_id, child_id = child_sentrix_id)
+  parent_offspring_table_ind <- parent_offspring_table
+}
+
+
+
 
 expected_relationships_data_ind <- expected_relationships_data %>%
   left_join(id_data, by = c("child_sentrix_id" = "sentrix_id")) %>%
