@@ -512,7 +512,8 @@ rule mod8_psam_reconstruction:
             {output.mismatch_information} \
             {output.mismatch_relationship} \
             {output.md_file} \
-            {params.title}
+            {params.title} \
+            2
         """
 
 rule_stem = 'mod8_exclude_conflictual_relationships'
