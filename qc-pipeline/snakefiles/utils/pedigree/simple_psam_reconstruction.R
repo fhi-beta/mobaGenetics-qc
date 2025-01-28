@@ -11,7 +11,7 @@ set.seed(11111)
 # Command line arguments
 debug <- T
 debug_plink_version <- 1
-debug_batch <- "snp009"
+debug_batch <- "snp010"
 if (debug) {
   if(debug_plink_version == 1){
     args <- c(
@@ -1010,6 +1010,8 @@ mismatches_table <- mismatches_table %>%
      multiple = "first"
     )
 
+
+mismatches_table <- unique(mismatches_table)
  # Complete new psam
  
 restored_psam_data$SEX <- NULL
