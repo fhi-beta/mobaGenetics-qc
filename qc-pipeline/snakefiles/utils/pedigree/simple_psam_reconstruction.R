@@ -9,7 +9,7 @@ set.seed(11111)
 
 
 # Command line arguments
-debug <- F
+debug <- T
 debug_plink_version <- 1
 debug_batch <- "snp010"
 if (debug) {
@@ -25,7 +25,7 @@ if (debug) {
     paste0("/mnt/work/oystein/tmp/fam_reconstruction/plink1/", debug_batch, "/exclusion"),
     paste0("/mnt/work/oystein/tmp/fam_reconstruction/plink1/", debug_batch, "/mismatch_information.gz"),
     paste0("/mnt/work/oystein/tmp/fam_reconstruction/plink1/", debug_batch, "/mismatch_relationship.gz"),
-    "/mnt/work/oystein/tmp/fam_reconstruction/plink1/fam_reconstruction_debug.md",
+    paste0("/mnt/work/oystein/tmp/fam_reconstruction/plink1/", debug_batch, "/fam_reconstruction_debug.md",
     "debug",
     1
   )
