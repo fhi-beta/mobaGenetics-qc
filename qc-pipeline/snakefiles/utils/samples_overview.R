@@ -47,7 +47,7 @@ md_file <- args[2]
 title <- args[3]
 
 write(
-  x = title,
+  x = paste0("## ", title),
   file = md_file,
   append = T
 )
