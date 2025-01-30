@@ -49,7 +49,7 @@ title <- args[3]
 write(
   x = paste0("## ", title),
   file = md_file,
-  append = T
+  append = F
 )
 
 id_data  <- read.table(
@@ -61,7 +61,7 @@ id_data  <- read.table(
 
 write_counts <- function(fam_table){
   n_samples <- nrow(fam_table)
-  n_individuals <- length(unique(fam_table$ind_id))
+  n_individuals <- length(unique(subset(fam_table, !is.na(ind_id))$ind_id))
   n_samples_without_ind_id <- nrow(subset(fam_table, is.na(ind_id)))
   write(
     x = paste0(" - ", n_samples, " samples\n - ", n_individuals, " individuals\n - ", n_samples_without_ind_id, " samples without registry match\n\n"),
@@ -78,7 +78,7 @@ join_and_write_counts <- function(file) {
       ),
     by = "iid"
   )
-  pattern <- "(snp\\d+)"
+  pattern <- "(snp\\d+[a-zA-Z]*)"
   batch <- str_extract(string = file, pattern = pattern)
   write(
     x = paste0("### ", batch),
