@@ -33,22 +33,24 @@ hrc_ega = Path(config['hrc_ega'])
 hrc_bref = Path(config['hrc_bref'])
 github_docs = Path(os.path.dirname(workflow.basedir)) / 'docs' / config['release']
 
-github_docs2 = Path(os.path.dirname(workflow.basedir)) / 'docs' / config['release2']
+#github_docs2 = Path(os.path.dirname(workflow.basedir)) / 'docs' / config['release2']
 tmpMod1 = base/'mod1-data-preparation'
 tmpMod2 = base/'mod2-genetic-relationship'
 tmpMod3 = base/'mod3-population-clustering'
 tmpMod4 = base/'mod4-good_markers'
 tmpMod5 = base/'mod5-pre-phasing'
 tmpMod6 = base/'mod6-imputation'
-tmpMergeTest = base/'merge_test'
+tmpMod7 = base/'mod7-post-imputation'
+tmpMod8 = base/'mod8-release_annotation'
+#tmpMergeTest = base/'merge_test'
 # use archive for these for now, since /work is full:
-tmpMod6Archive = archive_base/'mod6-imputation'
+#tmpMod6Archive = archive_base/'mod6-imputation'
 #tmpMod7 = base/'mod7-post-imputation'
-tmpMod7 = Path(config['output_base']) / '2024.09.23' / 'mod7-post-imputation'
+#tmpMod7 = Path(config['output_base']) / '2024.09.23' / 'mod7-post-imputation'
 # tmpMod72 = Path(config['output_base']) / '2024.09.23' / 'mod7-post-imputation'
-tmpMod8 = Path(config['output_base']) / config['release2'] / 'mod8-release_annotation'
-release_folder = Path(config['release_base']) / config['release2'] # Path(config['release_base']) / config['release']
-release_base_name = "moba_genotypes_" + config['release2'] # "moba_genotypes_" + config['release']
+#tmpMod8 = Path(config['output_base']) / config['release2'] / 'mod8-release_annotation'
+release_folder = Path(config['release_base']) / config['release'] # Path(config['release_base']) / config['release']
+release_base_name = "moba_genotypes_" + config['release'] # "moba_genotypes_" + config['release']
 
 n_samples = config['n_samples']
 # tmpMod5 = base/'mod5-samples_unrelated'

@@ -70,10 +70,28 @@ rule initial_merge:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
+tmpMod1str = str(tmpMod1)
+def get_all_fam_files(wildcards):
+    return [f"{tmpMod1str}/{batch}/{rule_stem}.fam" for batch in batches]
 
-def get_all
-rule count_initial_sampkes:
+
+rule create_samples_overview:
     input:
+        fam_files = get_all_fam_files,
+        id_mapping = config["id_mapping"]
+    output:
+        md_file = github_docs / "initial_samples_overview.md"
+    params:
+        title = "\"Before QC\""
+    shell:
+        shell:
+        """
+        Rscript utils/samples_overview.R \
+            {input.id_mapping} \
+            {output.md_file} \
+            {params.title} \
+            {input.fam_files}
+        """
 
 
 rule_stem = 'remove_chr0'

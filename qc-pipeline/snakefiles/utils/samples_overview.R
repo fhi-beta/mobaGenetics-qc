@@ -5,7 +5,7 @@ if (debug) {
   args <- c(
     "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
     "/mnt/work/oystein/tmp/module_overview.md",
-    "Before QC:",
+    "Before QC",
     "/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod1-data-preparation/snp001/initial_merge.fam",
     "/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod1-data-preparation/snp002/initial_merge.fam",
     "/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod1-data-preparation/snp003/initial_merge.fam",
