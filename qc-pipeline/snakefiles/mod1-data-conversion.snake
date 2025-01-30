@@ -98,7 +98,6 @@ rule create_samples_overview:
 rule_stem = 'remove_chr0'
 rule remove_chr0:
     input:
-        md_file = rules.create_samples_overview.output.md_file,
         bedset = rules.initial_merge.output.bedset
     output:
         bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
