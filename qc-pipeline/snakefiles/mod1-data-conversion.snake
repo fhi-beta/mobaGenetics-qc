@@ -72,7 +72,7 @@ rule initial_merge:
 
 tmpMod1str = str(tmpMod1)
 def get_all_fam_files(wildcards):
-    return [f"{tmpMod1str}/{batch}/{rule_stem}.fam" for batch in batches]
+    return [f"{tmpMod1str}/{batch}/initial_merge.fam" for batch in batches]
 
 
 rule create_samples_overview:
