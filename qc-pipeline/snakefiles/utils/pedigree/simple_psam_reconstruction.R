@@ -1,7 +1,7 @@
 
 ##
 #
-# This script does a simple fam file reconstruction
+# This script does a simple fam or psam file reconstruction. For fam input/otput, set plink_version to 1, for psam input/output, set plink_version to 2
 #
 ##
 

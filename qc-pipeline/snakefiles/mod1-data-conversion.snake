@@ -70,6 +70,12 @@ rule initial_merge:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
+
+def get_all
+rule count_initial_sampkes:
+    input:
+
+
 rule_stem = 'remove_chr0'
 rule remove_chr0:
     input:

@@ -1,10 +1,11 @@
-
-debug <- T
+debug <- F
 
 if (debug) {
   
   args <- c(
-    ""
+    "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
+    "/mnt/work/oystein/tmp/module_overview.md",
+    "Before QC:",
     "/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod1-data-preparation/snp001/initial_merge.fam",
     "/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod1-data-preparation/snp002/initial_merge.fam",
     "/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod1-data-preparation/snp003/initial_merge.fam",
@@ -39,8 +40,18 @@ library(janitor)
 library(glue)
 library(tidyr)
 library(dplyr)
+library(stringr)
 
-id_file <- "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz"
+id_file <- args[1]
+md_file <- args[2]
+title <- args[3]
+
+write(
+  x = title,
+  file = md_file,
+  append = T
+)
+
 id_data  <- read.table(
   file = id_file,
   header = T,
@@ -48,16 +59,45 @@ id_data  <- read.table(
   stringsAsFactors = F
 )
 
-fam_list <- lapply(args, function(file) {
-  read.table(file, header = FALSE, stringsAsFactors = FALSE, col.names = c("fid", "iid", "pat", "mat", "sex", "phe"))
-})
+write_counts <- function(fam_table){
+  n_samples <- nrow(fam_table)
+  n_individuals <- length(unique(fam_table$ind_id))
+  n_samples_without_ind_id <- nrow(subset(fam_table, is.na(ind_id)))
+  write(
+    x = paste0(" - ", n_samples, " samples\n - ", n_individuals, " individuals\n - ", n_samples_without_ind_id, " samples without registry match\n\n"),
+    file = md_file,
+    append = T
+)
+}
 
-merged_fam <- do.call(rbind, fam_list)
-
-merged_with_ids <- merged_fam %>% left_join(
+join_and_write_counts <- function(file) {
+  df <-  read.table(file, header = FALSE, stringsAsFactors = FALSE, col.names = c("fid", "iid", "pat", "mat", "sex", "phe")) %>% left_join(
     id_data %>% 
       select(
         iid = sentrix_id, ind_id = id, role
       ),
     by = "iid"
   )
+  pattern <- "(snp\\d+)"
+  batch <- str_extract(string = file, pattern = pattern)
+  write(
+    x = paste0("### ", batch),
+    file = md_file,
+    append = T
+  )
+  write_counts(df)
+  return(df)
+}
+
+fam_list <- lapply(args[-c(1,2,3)], join_and_write_counts)
+
+merged_fam <- do.call(rbind, fam_list)
+
+ write(
+    x = paste0("### Total:"),
+    file = md_file,
+    append = T
+  )
+write_counts(merged_fam)
+
+
