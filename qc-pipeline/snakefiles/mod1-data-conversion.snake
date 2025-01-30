@@ -94,8 +94,6 @@ rule create_samples_overview:
             {input.fam_files}
         """
 
-def get_rst_file(wildcards):
-    return f"{resultPath}/{wildcards.batch}/remove_chr0.rst"
 
 rule_stem = 'remove_chr0'
 rule remove_chr0:
@@ -106,7 +104,7 @@ rule remove_chr0:
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
             category = "Module 1 Data preparation",
-            caption = get_rst_file
+            caption = resultPath/"{batch}"/(rule_stem + ".rst")
         )
     threads: 1
     run:
