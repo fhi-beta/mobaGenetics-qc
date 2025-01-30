@@ -22,7 +22,7 @@ rule initial_merge:
     input:
         beds = lambda wildcards: getInitialBeds(wildcards.batch)
     output:
-        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
+        bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam')
     threads: 1
     run:
         try:
