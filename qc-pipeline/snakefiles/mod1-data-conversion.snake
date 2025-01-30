@@ -83,6 +83,8 @@ rule create_samples_overview:
         md_file = github_docs / "initial_samples_overview.md"
     params:
         title = "\"Before QC\""
+    conda:
+        "envs/r_4.2.yaml"
     shell:
         """
         Rscript utils/samples_overview.R \
