@@ -84,7 +84,6 @@ rule create_samples_overview:
     params:
         title = "\"Before QC\""
     shell:
-        shell:
         """
         Rscript utils/samples_overview.R \
             {input.id_mapping} \
