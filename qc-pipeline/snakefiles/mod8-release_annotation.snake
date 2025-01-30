@@ -494,7 +494,7 @@ rule mod8_psam_reconstruction:
         pedigree_sample_exclusion = tmpMod8/(rule_stem + "_pedigree_sample_exclusion"),
         mismatch_information = tmpMod8/"mismatch_information.gz",
         mismatch_relationship = tmpMod8/"mismatch_relationship.gz",
-        md_file = github_docs2/(rule_stem + ".md")
+        md_file = github_docs/(rule_stem + ".md")
     conda:
         "envs/r_4.2.yaml"
     threads: 1
@@ -750,7 +750,7 @@ rule mod8_plot_pca_both:
         title = "\"Principal Component Analysys (PCA) vs. 1 KG\"",
         std_het_cutoff = config["release_sd_het_thr"]
     output:
-        md_file = github_docs2/"pca_1kg_moba.md",
+        md_file = github_docs/"pca_1kg_moba.md",
         cluster_file = tmpMod8/"clusters",
         ceu_id_file = tmpMod8/"ceu_core_ids"
     conda:
@@ -773,13 +773,13 @@ rule mod8_plot_pca_both:
 rule_stem = "release_md"
 rule release_md:
     input:
-        pca_md_file = github_docs2/"pca_1kg_moba.md",
-        relatedness_md_file = github_docs2/"mod8_psam_reconstruction.md"
+        pca_md_file = github_docs/"pca_1kg_moba.md",
+        relatedness_md_file = github_docs/"mod8_psam_reconstruction.md"
     params:
-        docs_folder = github_docs2,
+        docs_folder = github_docs,
         version = config['release2']
     output:
-        release_md_file = github_docs2/"readme.md"
+        release_md_file = github_docs/"readme.md"
     conda:
         "envs/plot_pca_both.yaml"
     threads: 1
