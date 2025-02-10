@@ -1,4 +1,4 @@
-debug <- T
+debug <- F
 
 if (debug) {
   
