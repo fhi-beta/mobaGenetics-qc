@@ -74,15 +74,22 @@ tmpMod1str = str(tmpMod1)
 def get_all_fam_files(wildcards):
     return [f"{tmpMod1str}/{batch}/initial_merge.fam" for batch in batches]
 
+def get_all_bim_files(wildcards):
+    return [f"{tmpMod1str}/{batch}/initial_merge.bim" for batch in batches]
+
 
 rule create_samples_overview:
     input:
         fam_files = get_all_fam_files,
+        bim_files = get_all_bim_files
         id_mapping = config["id_mapping"]
     output:
-        md_file = github_docs / "initial_samples_overview.md"
+        md_file = github_docs / "initial_samples_overview.md",
+        samples_table = resultPath / "count_tables" / "samples_mod1",
+        variants_table = resultPath / "count_tables" / "variants_mod1"
     params:
-        title = "\"Before QC\""
+        title = "\"Before QC\"",
+        mod = "mod1"
     conda:
         "envs/r_4.2.yaml"
     shell:
@@ -92,6 +99,18 @@ rule create_samples_overview:
             {output.md_file} \
             {params.title} \
             {input.fam_files}
+        Rscript utils/extend_count_tables.R \
+            {input.id_mapping} \
+            init \
+            {output.samples_table} \
+            {params.mod} \
+            {input.fam_files}
+        Rscript utils/extend_count_tables.R \
+            {input.id_mapping} \
+            init \
+            {output.variants_table} \
+            {params.mod} \
+            {input.bim_files}
         """
 
 
