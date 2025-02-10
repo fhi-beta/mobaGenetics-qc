@@ -8,10 +8,10 @@
 
 tmpMod1str = str(tmpMod1)
 def get_all_mod1_output_fam_files(wildcards):
-    return [f"{tmpMod1str}/{batch}/mod1_output.fam" for batch in batches]
+    return [f"{tmpMod1str}/{batch}/m1_output.fam" for batch in batches]
 
 def get_all_mod1_output_bim_files(wildcards):
-    return [f"{tmpMod1str}/{batch}/mod1_output.bim" for batch in batches]
+    return [f"{tmpMod1str}/{batch}/m1_output.bim" for batch in batches]
 
 rule mod2_extend_count_tables:
     input:
