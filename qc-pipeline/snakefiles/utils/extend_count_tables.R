@@ -67,6 +67,7 @@ batch_list <- lapply(plink_files, get_batch_name)
 count_df <- data.frame(t(unlist(count_list)))
 colnames(count_df) <- unlist(batch_list)
 rownames(count_df) <- module
+count_df$total <- rowSums(count_df)
 
 if(module != "mod1"){
     existing_df = read.table(existing_table)
