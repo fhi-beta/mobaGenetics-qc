@@ -78,15 +78,15 @@ def get_all_bim_files(wildcards):
     return [f"{tmpMod1str}/{batch}/initial_merge.bim" for batch in batches]
 
 
-rule create_module_overview:
+rule mod1_create_module_overview:
     input:
         fam_files = get_all_fam_files,
         bim_files = get_all_bim_files,
         id_mapping = config["id_mapping"]
     output:
         md_file = github_docs / "initial_samples_overview.md",
-        samples_table = resultPath / "count_tables" / "samples_mod1",
-        variants_table = resultPath / "count_tables" / "variants_mod1"
+        samples_table = resultPath / "count_tables" / "mod1_samples",
+        variants_table = resultPath / "count_tables" / "mod1_variants"
     params:
         title = "\"Before QC\"",
         mod = "mod1"
@@ -536,8 +536,7 @@ rule remove_duplicate_markers:
         plink_dup_list = tmpMod1/"{batch}"/"plink.dupvar",
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 1 Data preparation",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 1 Data preparation"
         )
     params:
         details = resultPath/"{batch}"/(rule_stem + ".yaml.details")

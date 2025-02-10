@@ -88,7 +88,7 @@ rule all:
         # str(tmpMod7 / f"{n_samples}_samples" / "mod7_best_snps_le.txt")
         #tmpMod8/"clusters"
         #expand(tmpMod1/"{batch}"/"remove_chr0.bed", batch = batches)
-        resultPath / "count_tables" / "variants_mod1"
+        resultPath / "count_tables" / "mod2_variants"
         #tmpMod8/'mod8_best_snps.smiss'
         #release_folder/"readme.md"
         #str(tmpMod8/"mod8_psam_reconstruction.psam")

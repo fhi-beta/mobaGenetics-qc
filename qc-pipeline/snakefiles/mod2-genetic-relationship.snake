@@ -5,6 +5,45 @@
 ##
 
 # Generate statistics on raw dataset before anything happens to the data
+
+tmpMod1str = str(tmpMod1)
+def get_all_mod1_output_fam_files(wildcards):
+    return [f"{tmpMod1str}/{batch}/mod1_output.fam" for batch in batches]
+
+def get_all_mod1_output_bim_files(wildcards):
+    return [f"{tmpMod1str}/{batch}/mod1_output.bim" for batch in batches]
+
+rule mod2_extend_count_tables:
+    input:
+        fam_files = get_all_mod1_output_fam_files,
+        bim_files = get_all_mod1_output_bim_files,
+        previous_samples_table = rules.mod1_create_module_overview.output.samples_table,
+        previous_variants_table = rules.mod1_create_module_overview.output.variants_table,
+        id_mapping = config["id_mapping"]
+    output:
+        md_file = github_docs / "initial_samples_overview.md",
+        samples_table = resultPath / "count_tables" / "mod2_samples",
+        variants_table = resultPath / "count_tables" / "mod2_variants"
+    params:
+        mod = "mod2"
+    conda:
+        "envs/r_4.2.yaml"
+    shell:
+        """
+        Rscript utils/extend_count_tables.R \
+            {input.id_mapping} \
+            {input.previous_samples_table} \
+            {output.samples_table} \
+            {params.mod} \
+            {input.fam_files}
+        Rscript utils/extend_count_tables.R \
+            {input.id_mapping} \
+            {input.previous_variants_table} \
+            {output.variants_table} \
+            {params.mod} \
+            {input.bim_files}
+        """
+
 rule_stem = 'mod2_generate_start_stats'
 rule mod2_generate_start_stats:
     input:
