@@ -78,7 +78,7 @@ def get_all_bim_files(wildcards):
     return [f"{tmpMod1str}/{batch}/initial_merge.bim" for batch in batches]
 
 
-rule create_samples_overview:
+rule create_module_overview:
     input:
         fam_files = get_all_fam_files,
         bim_files = get_all_bim_files,

@@ -61,10 +61,19 @@ id_data  <- read.table(
 
 write_counts <- function(fam_table){
   n_samples <- nrow(fam_table)
+  child_table <- subset(fam_table, role == "child")
+  father_table <- subset(fam_table, role == "father")
+  mother_table <- subset(fam_table, role == "mother")
+  n_child_samples <- nrow(child_table)
+  n_father_samples <- nrow(father_table)
+  n_mother_samples <- nrow(mother_table)
   n_individuals <- length(unique(subset(fam_table, !is.na(ind_id))$ind_id))
+  n_children <- length(unique(subset(child_table, !is.na(ind_id))$ind_id))
+  n_fathers <- length(unique(subset(father_table, !is.na(ind_id))$ind_id))
+  n_mothers <- length(unique(subset(mother_table, !is.na(ind_id))$ind_id))
   n_samples_without_ind_id <- nrow(subset(fam_table, is.na(ind_id)))
   write(
-    x = paste0(" - ", n_samples, " samples\n - ", n_individuals, " individuals\n - ", n_samples_without_ind_id, " samples without registry match\n\n"),
+    x = paste0(" - ", n_samples, " samples\n - ",  n_child_samples, " child samples\n - ", n_mother_samples, " mother samples\n - ", n_father_samples, " father samples\n - ", n_individuals, " individuals\n - ", n_children, " children\n - ", n_mothers, " mothers\n - ", n_fathers, " fathers\n - ", n_samples_without_ind_id, " samples without registry match\n\n"),
     file = md_file,
     append = T
 )
