@@ -81,7 +81,7 @@ def get_all_bim_files(wildcards):
 rule create_samples_overview:
     input:
         fam_files = get_all_fam_files,
-        bim_files = get_all_bim_files
+        bim_files = get_all_bim_files,
         id_mapping = config["id_mapping"]
     output:
         md_file = github_docs / "initial_samples_overview.md",
