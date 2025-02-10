@@ -122,8 +122,7 @@ rule remove_chr0:
         bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 1 Data preparation",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 1 Data preparation"
         )
     threads: 1
     run:
