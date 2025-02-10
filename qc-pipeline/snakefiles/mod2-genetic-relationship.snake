@@ -21,7 +21,6 @@ rule mod2_extend_count_tables:
         previous_variants_table = rules.mod1_create_module_overview.output.variants_table,
         id_mapping = config["id_mapping"]
     output:
-        md_file = github_docs / "initial_samples_overview.md",
         samples_table = resultPath / "count_tables" / "mod2_samples",
         variants_table = resultPath / "count_tables" / "mod2_variants"
     params:
