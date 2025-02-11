@@ -122,13 +122,11 @@ rule maf_removal_markers:
         callrate_marker = tmpMod2/"{batch}"/(rule_stem + '.lmiss'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 2 Core samples and pedigree inference"
         ),
         plot = report(
             resultPath/"{batch}"/(rule_stem + ".png"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 2 Core samples and pedigree inference"
         )
     params:
         threshold = config['pedigree_maf_thr']
@@ -194,8 +192,7 @@ rule missing_genotype_samples:
         bedset = multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/(rule_stem + ".rst")
+            category = "Module 2 Core samples and pedigree inference"
         )
     params:
         threshold = config['pedigree_mind_thr']
@@ -234,13 +231,11 @@ rule callrate_permanent_removal:
         bedset = multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 2 Core samples and pedigree inference"
         ),
         plot = report(
             resultPath/"{batch}"/(rule_stem + ".png"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 2 Core samples and pedigree inference"
         )
     run:
         try:
@@ -294,13 +289,11 @@ rule missing_genotype_markers:
         bedset = multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 2 Core samples and pedigree inference"
         ),
         plot = report(
             resultPath/"{batch}"/(rule_stem + ".png"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 2 Core samples and pedigree inference"
         )
     params:
         threshold = config['geno_thr']
@@ -336,8 +329,7 @@ rule exclude_unplaced_and_non_autosomal_markers:
         bedset = multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 2 Core samples and pedigree inference"
         )
     run:
         try:
@@ -382,13 +374,11 @@ rule hardy_weinberg_filtered_markers:
         bedset = multiext(str(tmpMod2/"{batch}"/rule_stem) ,'.bed','.bim','.fam'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 2 Core samples and pedigree inference"
         ),
         plot = report(
             resultPath/"{batch}"/(rule_stem + ".png"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 2 Core samples and pedigree inference"
         )
     params:
         threshold = config['pedigree_hwe_thr']
@@ -424,8 +414,7 @@ rule exclude_strand_ambigious_markers:
         bedset = multiext(str(tmpMod2/"{batch}"/rule_stem) , '.bed', '.bim', '.fam'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 2 Core samples and pedigree inference"
         )
     run:
         try:
@@ -466,8 +455,7 @@ rule exclude_high_ld_markers:
         bedset = multiext(str(tmpMod2/"{batch}"/rule_stem) ,'.bed' ,'.bim' ,'.fam'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 2 Core samples and pedigree inference"
         )
     run:
         try:
@@ -514,8 +502,7 @@ rule mod2_prune_markers:
         pruned_list = tmpMod2/"{batch}"/(rule_stem + ".prune.in"),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 2 Core samples and pedigree inference"
         )
     params:
         prune_cmd = config["prune_cmd"]
@@ -604,8 +591,7 @@ rule ibd_prune:
         bedset = multiext(str(tmpMod2/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 2 Core samples and pedigree inference"
         )
     run:
         try:
@@ -758,8 +744,7 @@ rule fam_update:
         bedset_pruned_markers = multiext(str(tmpMod2/"{batch}"/(rule_stem + "_pruned")), '.bed', '.bim', '.fam'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 2 Core samples and pedigree inference"
         )
     threads: 1
     run:
@@ -809,8 +794,7 @@ rule exclude_conflictual_relationships:
         bedset_pruned_markers = multiext(str(tmpMod2/"{batch}"/(rule_stem + "_pruned")), '.bed', '.bim', '.fam'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 2 Core samples and pedigree inference",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 2 Core samples and pedigree inference"
         )
     run:
         try:
@@ -878,13 +862,11 @@ rule m2_output:
         king_relatedness = tmpMod2/"{batch}"/(rule_stem + ".kin0"),
         report_markers = report(
             resultPath/"{batch}"/(rule_stem + ".markers.yaml"),
-            category = "- Module 2 Pedigree fix recap",
-            caption = resultPath/"{batch}"/(rule_stem + ".markers.rst")
+            category = "- Module 2 Pedigree fix recap"
         ),
         report_samples = report(
             resultPath/"{batch}"/(rule_stem + ".samples.yaml"),
-            category = "- Module 2 Pedigree fix recap",
-            caption = resultPath/"{batch}"/(rule_stem + ".samples.rst")
+            category = "- Module 2 Pedigree fix recap"
         )
     run:
         try:

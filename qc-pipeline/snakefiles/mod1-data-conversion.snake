@@ -618,13 +618,11 @@ rule remove_markers_cluster_sep:
         bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 1 Data preparation",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 1 Data preparation"
         ),
         plot = report(
             resultPath/"{batch}"/(rule_stem + ".png"),
-            category = "Module 1 Data preparation",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 1 Data preparation"
         ),
         # in addition to the removal list .txt, a *removal.txt.samples is produced, sporting only the sample-list
         removal= tmpMod1/"{batch}"/(rule_stem + ".txt"),
@@ -736,13 +734,11 @@ rule remove_markers_gc_score:
         bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 1 Data preparation",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 1 Data preparation"
         ),
         plot = report(
             resultPath/"{batch}"/(rule_stem + ".png"),
-            category = "Module 1 Data preparation",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 1 Data preparation"
         ),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
         removal= tmpMod1/"{batch}"/(rule_stem + ".txt"),
@@ -849,13 +845,11 @@ rule remove_markers_aa_theta_deviation:
         bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 1 Data preparation",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 1 Data preparation"
         ),
         plot = report(
             resultPath/"{batch}"/(rule_stem + ".png"),
-            category = "Module 1 Data preparation",
-            caption = resultPath/"{batch}"/(rule_stem + ".rst")
+            category = "Module 1 Data preparation"
         ),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
         removal = tmpMod1/"{batch}"/(rule_stem + ".txt"),
@@ -966,13 +960,11 @@ rule m1_output:
         # We use - as prefix to force final reports to be sorted first.
         report_markers = report(
             resultPath/"{batch}"/(rule_stem + ".markers.yaml"),
-            category = "- Module 1 Data conversion recap",
-            caption = resultPath/"{batch}"/(rule_stem + ".markers.rst")
+            category = "- Module 1 Data conversion recap"
         ),
         report_samples = report(
             resultPath/"{batch}"/(rule_stem + ".samples.yaml"),
-            category = "- Module 1 Data conversion recap",
-            caption = resultPath/"{batch}"/(rule_stem + ".samples.rst")
+            category = "- Module 1 Data conversion recap"
         ),
     run:
         try:
