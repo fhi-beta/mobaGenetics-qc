@@ -122,7 +122,8 @@ rule remove_chr0:
         bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 1 Data preparation"
+            category = "Module 1 Data preparation",
+            caption = resultPath/"{batch}"/(rule_stem + ".rst")
         )
     threads: 1
     run:
@@ -535,7 +536,8 @@ rule remove_duplicate_markers:
         plink_dup_list = tmpMod1/"{batch}"/"plink.dupvar",
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 1 Data preparation"
+            category = "Module 1 Data preparation",
+            caption = resultPath/"{batch}"/(rule_stem + ".rst")
         )
     params:
         details = resultPath/"{batch}"/(rule_stem + ".yaml.details")
@@ -618,11 +620,13 @@ rule remove_markers_cluster_sep:
         bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 1 Data preparation"
+            category = "Module 1 Data preparation",
+            caption = resultPath/"{batch}"/(rule_stem + ".rst")
         ),
         plot = report(
             resultPath/"{batch}"/(rule_stem + ".png"),
-            category = "Module 1 Data preparation"
+            category = "Module 1 Data preparation",
+            caption = resultPath/"{batch}"/(rule_stem + ".rst")
         ),
         # in addition to the removal list .txt, a *removal.txt.samples is produced, sporting only the sample-list
         removal= tmpMod1/"{batch}"/(rule_stem + ".txt"),
@@ -734,11 +738,13 @@ rule remove_markers_gc_score:
         bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 1 Data preparation"
+            category = "Module 1 Data preparation",
+            caption = resultPath/"{batch}"/(rule_stem + ".rst")
         ),
         plot = report(
             resultPath/"{batch}"/(rule_stem + ".png"),
-            category = "Module 1 Data preparation"
+            category = "Module 1 Data preparation",
+            caption = resultPath/"{batch}"/(rule_stem + ".rst")
         ),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
         removal= tmpMod1/"{batch}"/(rule_stem + ".txt"),
@@ -845,11 +851,13 @@ rule remove_markers_aa_theta_deviation:
         bedset = multiext(str(tmpMod1/"{batch}"/rule_stem), '.bed', '.bim', '.fam'),
         results = report(
             resultPath/"{batch}"/(rule_stem + ".yaml"),
-            category = "Module 1 Data preparation"
+            category = "Module 1 Data preparation",
+            caption = resultPath/"{batch}"/(rule_stem + ".rst")
         ),
         plot = report(
             resultPath/"{batch}"/(rule_stem + ".png"),
-            category = "Module 1 Data preparation"
+            category = "Module 1 Data preparation",
+            caption = resultPath/"{batch}"/(rule_stem + ".rst")
         ),
         # in addition to the removal list, a *removal.txt.samples is produced, sporting only the sample-list
         removal = tmpMod1/"{batch}"/(rule_stem + ".txt"),
