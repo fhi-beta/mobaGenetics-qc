@@ -121,7 +121,7 @@ rule common_markers_moba_ref:
         bedset_ref = multiext(str(tmpMod3/"{batch}"/"pca_ref") ,'.bed','.bim','.fam'),
         bedset_moba = multiext(str(tmpMod3/"{batch}"/"pca_moba") ,'.bed','.bim','.fam'),
         marker_list = (tmpMod3/"{batch}"/rule_stem).with_suffix(".txt"),
-        tri_alleles = tmpMod3/(rule_stem + "_tri_alleles.missnp"),
+        tri_alleles = tmpMod3/"{batch}"/(rule_stem + "_tri_alleles.missnp"),
         results_moba = report(
             (resultPath/"{batch}"/"pca_moba").with_suffix(".yaml"),
             category = "Module 3 1000Genomes prep"
