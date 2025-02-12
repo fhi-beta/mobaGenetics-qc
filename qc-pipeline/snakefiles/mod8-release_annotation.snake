@@ -15,32 +15,12 @@ id_table = "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz"
 mod7_pgenset = [mod7_output + ".pgen", mod7_output + ".pvar", mod7_output + ".psam"]
 
 
-rule_stem = "exclude_very_mysterious_samples"
-
-rule mod8_exclude_very_mysterious_samples:
-    input:
-        pgenset = mod7_pgenset,
-        very_mysterious_samples = "/mnt/work/oystein/tmp/very_mysterious_samples_iid.txt"
-    output:
-        pgenset = multiext(str(tmpMod8 / rule_stem),".pgen",".pvar",".psam")
-    run:
-        inTrunk =  mqc.plinkBase(input.pgenset[0])
-        outTrunk =  mqc.plinkBase(output.pgenset[0])
-        subprocess.run([
-            plink2local,
-            "--pfile", inTrunk,
-            "--remove", input.very_mysterious_samples,
-            "--out", outTrunk,
-            "--make-pgen"
-
-        ])
 
 rule_stem = 'mod8_split_rare_common'
 rule mod8_split_rare_common:
     'Split the rare from common markers'
     input:
-        #pgenset = mod7_pgenset # rules.mod7_rename_missing_ids.output.pgenset,
-        pgenset = rules.mod8_exclude_very_mysterious_samples.output.pgenset
+        pgenset = mod7_pgenset # rules.mod7_rename_missing_ids.output.pgenset
     output:
         pgenset_common_snps = multiext(str(tmpMod8 / rule_stem),".pgen",".pvar",".psam"),
         afreq_common_snps = tmpMod8/(rule_stem + '.afreq'),
