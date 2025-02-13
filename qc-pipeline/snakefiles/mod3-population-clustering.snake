@@ -52,7 +52,7 @@ rule mod3_generate_start_stats:
         hwe = tmpMod3/"{batch}"/'mod3_start_hwe.hwe',
         freq = tmpMod3/"{batch}"/'mod3_start_freq.frq',
         lmiss = tmpMod3/"{batch}"/'mod3_start_missing.lmiss',
-        imiss = tmpMod3/"{batch}"/'mod3_start_missing.imiss',
+        imiss = tmpMod3/"{batch}"/'mod3_start_missing.imiss'
     threads: 1
     run:
         try:
@@ -125,7 +125,7 @@ rule common_markers_moba_ref:
         results_moba = report(
             (resultPath/"{batch}"/"pca_moba").with_suffix(".yaml"),
             category = "Module 3 1000Genomes prep"
-        ),
+        )
     benchmark:
 
         (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
