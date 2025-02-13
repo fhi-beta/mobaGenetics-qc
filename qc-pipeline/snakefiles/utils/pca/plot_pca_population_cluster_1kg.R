@@ -9,7 +9,7 @@
 
 set.seed(20240112)
 
-debug <- T
+debug <- F
 debug_plink_version <- 1
 
 if (debug) {
@@ -215,6 +215,7 @@ merged_pcs <- pcs %>%
 
 trios <- subset(merged_pcs, !is.na(pat) & ! is.na(mat))
 
+if(nrow(trios > 0)){
 num_pcs <- 10
 
 pc_child_names <- paste0("pc", 1:num_pcs, "_child")
@@ -237,6 +238,8 @@ mother_data <- subset(merged_pcs, iid %in% trios$mat) %>%
 trios_plot_data <- child_data %>%
   left_join(father_data, by = "pat") %>%
   left_join(mother_data, by = "mat")
+}
+
 
 
 write(
@@ -433,7 +436,7 @@ for (pc_i in 1:9) {
   )
   
 }
-
+if(nrow(trios) > 0){
 for (i in 1:num_pcs) {
   pc_father <- paste0("pc", i, "_father")
   pc_mother <- paste0("pc", i, "_mother")
@@ -505,6 +508,9 @@ for (pc_i in 1:num_pcs){
   )
   
 }
+
+}
+
 
 
 
@@ -708,7 +714,7 @@ plot_discrete <- function(column, plot_data, top_pc, file_suffix){
 #plot_trios(trios_plot_data, "trios", 10)
 
 #plot_discrete("pop_factor", merged_pcs, 3, "pop_factor")
-
+if(plink_version == 2){
 write(
   x = "## PCs with batches marked",
   file = md_file,
@@ -716,6 +722,8 @@ write(
 )
 
 plot_discrete("batch", merged_pcs, 3, "batch")
+}
+
 
 # 1kg cluster size
 kg <- subset(merged_pcs, !startsWith(pop, "MoBa"))
