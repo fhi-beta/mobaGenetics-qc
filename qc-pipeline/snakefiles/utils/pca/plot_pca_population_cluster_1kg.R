@@ -138,19 +138,24 @@ batches_data  <- read.table(
 )
 
 if(plink_version == 2){
- cols <- c("fid", "iid", "pat", "mat", "sex")
-} else if(plink_version == 1){
- cols <- c("fid", "iid", "pat", "mat", "sex", "phen")
-}
-
-
-psam_data  <- read.table(
+ psam_data  <- read.table(
   file = psam_file,
   header = F,
   sep = "\t",
-  col.names = cols,
+  col.names = c("fid", "iid", "pat", "mat", "sex"),
   stringsAsFactors = F
 )
+} else if(plink_version == 1){
+  psam_data  <- read.table(
+  file = psam_file,
+  header = F,
+  col.names = c("fid", "iid", "pat", "mat", "sex", "phen"),
+  stringsAsFactors = F
+)
+}
+
+
+
 
 
 batches_data$batch <- as.factor(batches_data$batch)
