@@ -232,7 +232,7 @@ rule pca_both:
         eigenvector = tmpMod3/"{batch}"/(rule_stem + ".vec"),
         snp_loadings = tmpMod3/"{batch}"/(rule_stem + ".load"),
         eigenvalues = tmpMod3/"{batch}"/(rule_stem + ".val"),
-        variance_explained = tmpMod3/"{batch}"/(rule_stem + ".pve"),
+        variance_explained = tmpMod3/"{batch}"/(rule_stem + ".pve")
     benchmark:
         (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
     run:
