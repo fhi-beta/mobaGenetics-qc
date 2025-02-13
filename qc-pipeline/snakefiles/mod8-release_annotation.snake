@@ -723,9 +723,9 @@ rule mod8_plot_pca_both:
     input:
         pcs = rules.mod8_pca_both.output.pcs,
         pop_map = config["1000_genomes_pop"],
-        het = rules.mod8_generate_best_snps_stats.output.het,
-        ids = "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
-        batches = "/mnt/archive/moba_genotypes_releases/2024.12.03/batch/moba_genotypes_2024.12.03_batches"
+        ids = config["id_mapping"],
+        batches = config["batch_files"],
+        psam = rules.mod8_exclude_conflictual_relationships.output.pgenset_best_snps[2]
     params:
         title = "\"Principal Component Analysys (PCA) vs. 1 KG\"",
         std_het_cutoff = config["release_sd_het_thr"]
@@ -741,13 +741,14 @@ rule mod8_plot_pca_both:
         Rscript utils/pca/plot_pca_population_cluster_1kg.R \
             {input.pcs} \
             {input.pop_map} \
-            {input.het} \
             {output.md_file} \
             {params.title} \
             {output.cluster_file} \
             {output.ceu_id_file} \
             {input.ids} \
-            {input.batches}
+            {input.batches} \
+            {input.psam} \
+            2
         """
 
 rule_stem = "release_md"

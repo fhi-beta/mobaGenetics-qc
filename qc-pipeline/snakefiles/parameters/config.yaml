@@ -17,6 +17,7 @@ release_base: "/mnt/archive/moba_genotypes_releases"
 expected_relationships: "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz"
 birth_year: "/mnt/archive/snpQc/phenotypes/birth_year_24.04.12.gz"
 id_mapping: "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz"
+batch_files: "/mnt/archive/moba_genotypes_releases/2024.12.03/batch/moba_genotypes_2024.12.03_batches"
 
 # from http://www.haplotype-reference-consortium.org/ http://www.haplotype-reference-consortium.org/site
 # contains HRC.r1-1.GRCh37.wgs.mac5.sites.tab. If not found - google it.

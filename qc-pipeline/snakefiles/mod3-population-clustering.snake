@@ -127,7 +127,7 @@ rule common_markers_moba_ref:
             category = "Module 3 1000Genomes prep"
         ),
     benchmark:
-    
+
         (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
 
     run:
@@ -271,6 +271,9 @@ rule plot_pca_both:
     input:
         pcs = rules.pca_both.output.pcs,
         pop_map = config["1000_genomes_pop"],
+        ids = config["id_mapping"],
+        batches = config["batch_files"],
+        fam = rules.m2_output.output.bedset[2]
     params:
         title = "\"Principal Component Analysys (PCA) in {batch} vs. 1 KG\""
     output:
@@ -288,7 +291,11 @@ rule plot_pca_both:
             {output.md_file} \
             {params.title} \
             {output.cluster_file} \
-            {output.ceu_id_file}
+            {output.ceu_id_file} \
+            {input.ids} \
+            {input.batches} \
+            {input.fam} \
+            1
         """
 
 

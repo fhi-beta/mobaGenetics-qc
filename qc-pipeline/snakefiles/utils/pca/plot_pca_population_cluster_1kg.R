@@ -9,7 +9,7 @@
 
 set.seed(20240112)
 
-debug <- T
+debug <- F
 
 if (debug) {
   
@@ -22,7 +22,8 @@ if (debug) {
     "/mnt/work/oystein/tmp/ceu_core_ids",
     "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
     "/mnt/archive/moba_genotypes_releases/2024.12.03/batch/moba_genotypes_2024.12.03_batches",
-    "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_psam_reconstruction.psam"
+    "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_psam_reconstruction.psam",
+    2
   )
   
 } else {
@@ -74,6 +75,8 @@ id_file <- args[7]
 batches_file <- args[8]
 
 psam_file <- args[9]
+
+plink_version <- args[10]
 
 
 # Libraries
@@ -134,13 +137,22 @@ batches_data  <- read.table(
   stringsAsFactors = F
 )
 
+if(plink_version == 2){
+ cols <- c("fid", "iid", "pat", "mat", "sex")
+}
+else if(plink_version == 1){
+cols <- c("fid", "iid", "pat", "mat", "sex", "phen")
+}
+
+
 psam_data  <- read.table(
   file = psam_file,
   header = F,
   sep = "\t",
-  col.names = c("fid", "iid", "pat", "mat", "sex"),
+  col.names = cols,
   stringsAsFactors = F
 )
+
 
 batches_data$batch <- as.factor(batches_data$batch)
 
