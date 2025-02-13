@@ -15,7 +15,7 @@ debug_plink_version <- 1
 if (debug) {
   if(debug_plink_version == 1){
       args <- c(
-    "/work/qc_genotypes/pipeOut_dev/2025.01.30/mod3-population-clustering/snp001/pca_both.pcs",
+    "/mnt/work/qc_genotypes/pipeOut_dev/2025.01.30/mod3-population-clustering/snp001/pca_both.pcs",
     "/mnt/archive/snpQc/1000Genomes/all_phase3.psam",
     "/mnt/work/oystein/tmp/pca_1kg_moba.md",
     "\"Principal Component Analysys (PCA) vs. 1 KG\"",
