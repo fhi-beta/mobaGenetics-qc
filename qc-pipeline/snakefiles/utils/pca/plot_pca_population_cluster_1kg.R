@@ -209,7 +209,7 @@ trios_plot_data <- child_data %>%
 write(
   x = paste0("Principal component analysis of the MoBa samples merged with the thousand genomes."),
   file = md_file,
-  append = T
+  append = F
 )
 
 write(
