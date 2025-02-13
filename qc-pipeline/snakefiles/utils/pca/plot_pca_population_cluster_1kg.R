@@ -215,7 +215,7 @@ merged_pcs <- pcs %>%
 
 trios <- subset(merged_pcs, !is.na(pat) & ! is.na(mat))
 
-if(nrow(trios > 0)){
+if(nrow(trios)>0){
 num_pcs <- 10
 
 pc_child_names <- paste0("pc", 1:num_pcs, "_child")
