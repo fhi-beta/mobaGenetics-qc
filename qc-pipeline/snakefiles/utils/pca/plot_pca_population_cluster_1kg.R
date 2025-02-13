@@ -114,11 +114,11 @@ pcs <- read.table(
 ) %>% 
   clean_names()
 
-het <- read.table(
-  het_file, 
-  header = F, 
-  col.names = c("iid", "o_hom", "e_hom", "obs_ct", "f")
-  )
+# het <- read.table(
+#   het_file, 
+#   header = F, 
+#   col.names = c("iid", "o_hom", "e_hom", "obs_ct", "f")
+#   )
 
 id_data  <- read.table(
   file = id_file,
@@ -880,7 +880,7 @@ classifier <- svm(
 
 moba_df <- subset(merged_pcs, startsWith(pop, "MoBa")) %>% 
   select(
-    fid, iid, starts_with("pc"), stds_het_rate, het_rate, f, role
+    fid, iid, starts_with("pc"), role
   )
 
 predict_df <- moba_df %>% 
