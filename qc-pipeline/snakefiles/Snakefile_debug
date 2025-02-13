@@ -78,7 +78,7 @@ rule all:
         # expand(tmpMod6/ "{batch}" / f"{n_samples}_samples" / ("mod6_output.pgen"), batch = batches_debug)
         # expand(tmpMod6/"{batch}"/f"{n_samples}_samples" / "mod6_merge_chrs.vcf.gz", batch = batches_debug)
         # expand(tmpMod4/ "{batch}" / "m4_output_good_markers.bed", batch = batches_debug)
-        expand(tmpMod3/"{batch}"/"clusters", batch = batches)
+        #expand(tmpMod3/"{batch}"/"clusters", batch = batches)
         #expand(tmpMod5/"{batch}"/"all_samples"/ "report" /"pre_imputation_report.md", batch = batches_debug).
        # expand(str(tmpMod7 / f"{n_samples}_samples" / "mod7_merge_batches_chr{chr}.vcf.gz"), chr = chrs_debug)
         # str(tmpMod7 / "all_samples" / "mod7_duplicate_samples.txt")
@@ -89,7 +89,7 @@ rule all:
         # str(tmpMod7 / f"{n_samples}_samples" / "mod7_best_snps_le.txt")
         #tmpMod8/"clusters"
         #expand(tmpMod1/"{batch}"/"remove_chr0.bed", batch = batches)
-        #resultPath / "count_tables" / "mod3_variants"
+        resultPath / "count_tables" / "mod5_variants"
         #tmpMod8/'mod8_best_snps.smiss'
         #release_folder/"readme.md"
         #str(tmpMod8/"mod8_psam_reconstruction.psam")
