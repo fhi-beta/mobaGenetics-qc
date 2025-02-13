@@ -9,11 +9,26 @@
 
 set.seed(20240112)
 
-debug <- F
+debug <- T
+debug_plink_version <- 1
 
 if (debug) {
-  
-  args <- c(
+  if(debug_plink_version == 1){
+      args <- c(
+    "/work/qc_genotypes/pipeOut_dev/2025.01.30/mod3-population-clustering/snp001/pca_both.pcs",
+    "/mnt/archive/snpQc/1000Genomes/all_phase3.psam",
+    "/mnt/work/oystein/tmp/pca_1kg_moba.md",
+    "\"Principal Component Analysys (PCA) vs. 1 KG\"",
+    "/mnt/work/oystein/tmp/clusters",
+    "/mnt/work/oystein/tmp/ceu_core_ids",
+    "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
+    "/mnt/archive/moba_genotypes_releases/2024.12.03/batch/moba_genotypes_2024.12.03_batches",
+    "/mnt/work/qc_genotypes/pipeOut_dev/2025.01.30/mod2-genetic-relationship/snp001/m2_output.fam",
+    1
+  )
+
+  } else if(debug_plink_version == 2){
+        args <- c(
     "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_pca_both.pcs",
     "/mnt/archive/snpQc/1000Genomes/all_phase3.psam",
     "/mnt/work/oystein/tmp/pca_1kg_moba.md",
@@ -25,6 +40,8 @@ if (debug) {
     "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_psam_reconstruction.psam",
     2
   )
+  }
+
   
 } else {
   args <- commandArgs(TRUE)
