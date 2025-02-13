@@ -16,12 +16,10 @@ if (debug) {
   args <- c(
     "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_pca_both.pcs",
     "/mnt/archive/snpQc/1000Genomes/all_phase3.psam",
-    "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_best_snps.het",
     "/mnt/work/oystein/tmp/pca_1kg_moba.md",
     "\"Principal Component Analysys (PCA) vs. 1 KG\"",
     "/mnt/work/oystein/tmp/clusters",
     "/mnt/work/oystein/tmp/ceu_core_ids",
-    4,
     "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
     "/mnt/archive/moba_genotypes_releases/2024.12.03/batch/moba_genotypes_2024.12.03_batches",
     "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_psam_reconstruction.psam"
@@ -47,15 +45,8 @@ if (!file.exists(thousand_genomes_populations_file)) {
   
 }
 
-het_file <- args[3]
 
-if (!file.exists(het_file)) {
-  
-  stop("Heterozygosity file not found")
-  
-}
-
-md_file <- args[4]
+md_file <- args[3]
 docs_folder <- dirname(md_file)
 
 if (!dir.exists(docs_folder)) {
@@ -72,28 +63,17 @@ if (!dir.exists(plot_folder)) {
   
 }
 
-md_title <- args[5]
+md_title <- args[4]
 
-cluster_file <- args[6]
+cluster_file <- args[5]
 
-ceu_ids_file <- args[7]
+ceu_ids_file <- args[6]
 
-std_cutoff <- as.numeric(args[8])
+id_file <- args[7]
 
-id_file <- args[9]
+batches_file <- args[8]
 
-batches_file <- args[10]
-
-psam_file <- args[11]
-
-
-
-# Local debug - do not uncomment
-# 
-# pcs_file <- "/mnt/archive/snpQc/pipeOut_dev_2024.01.05/mod3-population-clustering/snp012/pca_both.pcs"
-# thousand_genomes_populations_file <- "/mnt/archive/snpQc/1000Genomes/all_phase3.psam"
-# md_file <- "/mnt/work/marc/github/mobaGenetics-qc/qc-pipeline/docs/snp012/pca_1kg_moba.md"
-# md_title <- "Principal Component Analysys (PCA) in snp012 vs. 1kg"
+psam_file <- args[9]
 
 
 # Libraries
@@ -164,19 +144,7 @@ psam_data  <- read.table(
 
 batches_data$batch <- as.factor(batches_data$batch)
 
-het$het_rate <- (het$obs_ct - het$o_hom)/het$obs_ct
-het$stds_het_rate <- 0
-mean_het_rate <- mean(het$het_rate)
-std_het_rate <- sd(het$het_rate)
-
-for (std in 1:(2*(std_cutoff-1))){
-  het$stds_het_rate[het$het_rate > mean_het_rate + 0.5*std*std_het_rate] <- 0.5*std 
-}
-
-het$stds_het_rate <- as.factor(het$stds_het_rate)
-
-# The mysterious groupings should be removed here and below before doing a full rerun, as they are only mysterious because they stand out in this particular collection of samples
-populations_order <- c(sort(unique(thousand_genomes_populations$super_pop)), "MoBa", "MoBa_Mysterious", "MoBa_Very_Mysterious")
+populations_order <- c(sort(unique(thousand_genomes_populations$super_pop)), "MoBa")
 
 merged_pcs <- pcs %>% 
   left_join(
@@ -187,22 +155,8 @@ merged_pcs <- pcs %>%
     by = "iid"
   ) %>% 
   mutate(
-    pop = ifelse(is.na(pop), "MoBa", pop)
-  ) %>%
-  mutate(
-    pop = ifelse(pop == "MoBa" & pc2>0 & pc3>0, "MoBa_Mysterious", pop), 
-   pop_factor = factor(pop, levels = populations_order)
-  ) %>%
-  mutate(
-    pop = ifelse(pop == "MoBa_Mysterious" & pc2>0.1 & pc3>0.05, "MoBa_Very_Mysterious", pop), 
-   pop_factor = factor(pop, levels = populations_order)
-  ) %>%
-  left_join(
-    het %>% 
-      select(
-        iid, het_rate, stds_het_rate, f
-      ),
-    by = "iid"
+    pop = ifelse(is.na(pop), "MoBa", pop),
+    pop_factor = factor(pop, levels = populations_order)
   ) %>%
   left_join(
     id_data %>% 
@@ -455,7 +409,11 @@ for (i in 1:num_pcs) {
 }
 
 # Plot the pc of the children against the midpoint between parents, to check that the points cluster along the diagonal:
-
+write(
+  x = "## Midpoint of parents vs actual position of children on the PCs (full trios only)",
+  file = md_file,
+  append = T
+)
 for (pc_i in 1:num_pcs){
   pc_name <- paste0("pc", pc_i)
   pc_father <- paste0(pc_name, "_father")
@@ -481,10 +439,10 @@ for (pc_i in 1:num_pcs){
     ) +
     
     scale_x_continuous(
-      name = paste0("Expected ", pc_name)
+      name = paste0("Parents' midpoint on ", pc_name)
     ) +
     scale_y_continuous(
-      name = paste0("Observed ", pc_name)
+      name = paste0("Child's position on ", pc_name)
     ) +
     theme(
       ggside.panel.scale = 0.15,
@@ -511,101 +469,101 @@ for (pc_i in 1:num_pcs){
 
 
 
-plot_trios <-function(plot_data, plot_suffix, top_pc){
- for (pc_i in 1:(top_pc-1)){
-  pc_name_x <- paste0("pc", pc_i)
-  pc_name_y <- paste0("pc", pc_i + 1)
+# plot_trios <-function(plot_data, plot_suffix, top_pc){
+#  for (pc_i in 1:(top_pc-1)){
+#   pc_name_x <- paste0("pc", pc_i)
+#   pc_name_y <- paste0("pc", pc_i + 1)
 
-  child_pc_name_x <- paste0("pc", pc_i, "_child")
-  child_pc_name_y <- paste0("pc", pc_i+1, "_child")
+#   child_pc_name_x <- paste0("pc", pc_i, "_child")
+#   child_pc_name_y <- paste0("pc", pc_i+1, "_child")
 
-  father_pc_name_x <- paste0("pc", pc_i, "_father")
-  father_pc_name_y <- paste0("pc", pc_i+1, "_father")
-
-  
-  mother_pc_name_x <- paste0("pc", pc_i, "_mother")
-  mother_pc_name_y <- paste0("pc", pc_i+1, "_mother")
+#   father_pc_name_x <- paste0("pc", pc_i, "_father")
+#   father_pc_name_y <- paste0("pc", pc_i+1, "_father")
 
   
-  plot_data$child_x <- plot_data[[child_pc_name_x]]
-  plot_data$child_y <- plot_data[[child_pc_name_y]]
-  plot_data$father_x <- plot_data[[father_pc_name_x]]
-  plot_data$father_y <- plot_data[[father_pc_name_y]]
-  plot_data$mother_x <- plot_data[[mother_pc_name_x]]
-  plot_data$mother_y <- plot_data[[mother_pc_name_y]]
+#   mother_pc_name_x <- paste0("pc", pc_i, "_mother")
+#   mother_pc_name_y <- paste0("pc", pc_i+1, "_mother")
+
+  
+#   plot_data$child_x <- plot_data[[child_pc_name_x]]
+#   plot_data$child_y <- plot_data[[child_pc_name_y]]
+#   plot_data$father_x <- plot_data[[father_pc_name_x]]
+#   plot_data$father_y <- plot_data[[father_pc_name_y]]
+#   plot_data$mother_x <- plot_data[[mother_pc_name_x]]
+#   plot_data$mother_y <- plot_data[[mother_pc_name_y]]
 
 
 
-plot <- ggplot() +
-    theme_bw(
-      base_size = 24
-    ) +
+# plot <- ggplot() +
+#     theme_bw(
+#       base_size = 24
+#     ) +
     
-    geom_point(
-      data = plot_data,
-      mapping = aes(
-        x = father_x,
-        y = father_y
-      ),
-      alpha = 0.3,
-      color = "red"
-    ) +
-    geom_point(
-      data = plot_data,
-      mapping = aes(
-        x = mother_x,
-        y = mother_y
-      ),
-      alpha = 0.3,
-      color = "blue"
-    ) +
+#     geom_point(
+#       data = plot_data,
+#       mapping = aes(
+#         x = father_x,
+#         y = father_y
+#       ),
+#       alpha = 0.3,
+#       color = "red"
+#     ) +
+#     geom_point(
+#       data = plot_data,
+#       mapping = aes(
+#         x = mother_x,
+#         y = mother_y
+#       ),
+#       alpha = 0.3,
+#       color = "blue"
+#     ) +
     
-     geom_segment(data = plot_data, aes(x = child_x, y = child_y, xend = father_x, yend = father_y), linetype = "dashed", color = "red", alpha = 0.2) +
-    geom_segment(data = plot_data, aes(x = child_x, y = child_y, xend = mother_x, yend = mother_y), linetype = "dashed", color = "blue", alpha = 0.2) +
-    geom_point(
-      data = plot_data,
-      mapping = aes(
-        x = child_x,
-        y = child_y
-      ),
-      alpha = 0.5
-    ) +
+#      geom_segment(data = plot_data, aes(x = child_x, y = child_y, xend = father_x, yend = father_y), linetype = "dashed", color = "red", alpha = 0.2) +
+#     geom_segment(data = plot_data, aes(x = child_x, y = child_y, xend = mother_x, yend = mother_y), linetype = "dashed", color = "blue", alpha = 0.2) +
+#     geom_point(
+#       data = plot_data,
+#       mapping = aes(
+#         x = child_x,
+#         y = child_y
+#       ),
+#       alpha = 0.5
+#     ) +
     
-    scale_x_continuous(
-      name = pc_name_x
-    ) +
-    scale_y_continuous(
-      name = pc_name_y
-    ) +
-    theme(
-      ggside.panel.scale = 0.15,
-      ggside.axis.ticks = element_blank(),
-      ggside.axis.text = element_blank(),
-      ggside.panel.grid = element_blank(),
-      ggside.panel.background = element_blank(),
-      ggside.panel.spacing = unit(0, "pt"),
-      panel.border = element_blank()
-    )
+#     scale_x_continuous(
+#       name = pc_name_x
+#     ) +
+#     scale_y_continuous(
+#       name = pc_name_y
+#     ) +
+#     theme(
+#       ggside.panel.scale = 0.15,
+#       ggside.axis.ticks = element_blank(),
+#       ggside.axis.text = element_blank(),
+#       ggside.panel.grid = element_blank(),
+#       ggside.panel.background = element_blank(),
+#       ggside.panel.spacing = unit(0, "pt"),
+#       panel.border = element_blank()
+#     )
   
-  file_name <- paste0("children_parents_pc", pc_i, "_pc", pc_i + 1, "_", plot_suffix, ".png")
+#   file_name <- paste0("children_parents_pc", pc_i, "_pc", pc_i + 1, "_", plot_suffix, ".png")
   
-   print(paste0("Plotting to ", plot_folder, "/", file_name))
+#    print(paste0("Plotting to ", plot_folder, "/", file_name))
   
-  png(
-    filename = file.path(plot_folder, file_name),
-    width = 800,
-    height = 600
-  )
-  grid.draw(plot)
-  device <- dev.off()
-  write(
-    x = paste0("![](plot/", file_name, ")"),
-    file = md_file,
-    append = T
-  )
+#   png(
+#     filename = file.path(plot_folder, file_name),
+#     width = 800,
+#     height = 600
+#   )
+#   grid.draw(plot)
+#   device <- dev.off()
+#   write(
+#     x = paste0("![](plot/", file_name, ")"),
+#     file = md_file,
+#     append = T
+#   )
 
-}
-}
+# }
+#}
 
 
 plot_discrete <- function(column, plot_data, top_pc, file_suffix){
@@ -708,13 +666,17 @@ plot_discrete <- function(column, plot_data, top_pc, file_suffix){
 
 }
 
-plot_trios(trios_plot_data, "trios", 10)
+#plot_trios(trios_plot_data, "trios", 10)
 
-plot_discrete("pop_factor", merged_pcs, 3, "pop_factor")
+#plot_discrete("pop_factor", merged_pcs, 3, "pop_factor")
+
+write(
+  x = "## PCs with batches marked",
+  file = md_file,
+  append = T
+)
 
 plot_discrete("batch", merged_pcs, 3, "batch")
-
-plot_discrete("stds_het_rate", merged_pcs, 10, "stds_het_rate")
 
 # 1kg cluster size
 kg <- subset(merged_pcs, !startsWith(pop, "MoBa"))

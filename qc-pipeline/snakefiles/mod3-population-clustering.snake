@@ -127,6 +127,7 @@ rule common_markers_moba_ref:
             category = "Module 3 1000Genomes prep"
         ),
     benchmark:
+    
         (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
 
     run:
