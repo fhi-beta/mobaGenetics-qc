@@ -465,6 +465,12 @@ for (pc_i in 1:num_pcs){
   )
   grid.draw(plot)
   device <- dev.off()
+  write(
+    x = paste0("![](plot/", file_name, ")"),
+    file = md_file,
+    append = T
+  )
+  
 }
 
 
