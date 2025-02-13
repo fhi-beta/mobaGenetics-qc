@@ -139,9 +139,8 @@ batches_data  <- read.table(
 
 if(plink_version == 2){
  cols <- c("fid", "iid", "pat", "mat", "sex")
-}
-else if(plink_version == 1){
-cols <- c("fid", "iid", "pat", "mat", "sex", "phen")
+} else if(plink_version == 1){
+ cols <- c("fid", "iid", "pat", "mat", "sex", "phen")
 }
 
 
