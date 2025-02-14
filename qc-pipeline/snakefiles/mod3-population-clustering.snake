@@ -128,6 +128,7 @@ rule common_markers_moba_ref:
         )
     benchmark:
         (tmpMod3/"{batch}"/rule_stem).with_suffix(".benchmark")
+    threads: 2
     run:
         item_type = rule_info[rule]["rule type"]
         mqc.log(runlog, rule_info[rule]["QC test"])
