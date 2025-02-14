@@ -26,7 +26,11 @@ def dev_log(
         header = None,
         dtype = str
     )
-    ids = np.unique(fam_data[[1, 2, 3]].to_numpy().flatten())
+
+    selected_columns = fam_data[[1, 2, 3]]
+    selected_columns = selected_columns.applymap(str)
+    ids = np.unique(selected_columns.to_numpy().flatten())
+    #ids = np.unique(fam_data[[1, 2, 3]].to_numpy().flatten())
     ids = ids[ids != 0]
     n_samples = len(ids)
 
