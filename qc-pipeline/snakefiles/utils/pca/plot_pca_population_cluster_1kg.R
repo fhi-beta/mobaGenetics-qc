@@ -215,7 +215,7 @@ merged_pcs <- pcs %>%
     desc(pop_factor)
   )
 
-trios <- subset(merged_pcs, !is.na(pat) & ! is.na(mat))
+trios <- subset(merged_pcs, !is.na(pat) & pat !="0" & !is.na(mat) & mat !="0")
 
 if(nrow(trios)>0){
 num_pcs <- 10
