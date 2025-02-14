@@ -103,8 +103,7 @@ rule mod4_keep_main_cluster:
         bedset = multiext(str(tmpMod4 / "{batch}" / rule_stem), '.bed', '.bim', '.fam'),
         results = report(
             resultPath / "{batch}" / (rule_stem + ".yaml"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
+            category = "Module 4 Good markers"
         )
     benchmark:
         tmpMod4 / "{batch}" / (rule_stem + ".benchmark")
@@ -173,13 +172,11 @@ rule split_founders_offspring:
         bedset_offspring = multiext(str(tmpMod4 / "{batch}" / "offspring" / rule_stem), '.bed', '.bim', '.fam'),
         results_founders = report(
             resultPath / "{batch}" / (rule_stem + "_founders.yaml"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + "_founders.rst")
+            category = "Module 4 Good markers"
         ),
         results_offspring = report(
             resultPath / "{batch}" / (rule_stem + "_offspring.yaml"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + "_offspring.rst")
+            category = "Module 4 Good markers"
         )
     benchmark:
         tmpMod4 / "{batch}" / (rule_stem + ".benchmark")
@@ -361,8 +358,7 @@ rule ibd_exclusion:
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
         results = report(
             resultPath / "{batch}" / "{role}" / (rule_stem + ".yaml"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
+            category = "Module 4 Good markers"
         ),
     benchmark:
         tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".benchmark")
@@ -523,13 +519,11 @@ rule hwe_autos_geno:
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
         results = report(
             resultPath / "{batch}" / "{role}" / (rule_stem + ".yaml"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
+            category = "Module 4 Good markers"
         ),
         plot = report(
             resultPath / "{batch}" / "{role}" / (rule_stem + ".png"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
+            category = "Module 4 Good markers"
         )
     benchmark:
         tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".benchmark")
@@ -659,16 +653,14 @@ rule sex_check:
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
         results = report(
             resultPath / "{batch}" / "{role}" / (rule_stem + ".yaml"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
+            category = "Module 4 Good markers"
         ),
         # File containing the F-statistics for the sex chromosomes
         f_x = tmpMod4 / "{batch}" / "{role}" / "sexcheck_report_x.sexcheck",
         # in addition to the removal list, a removal.samples.txt is produced, sporting only the sample-list
         plot = report(
             resultPath / "{batch}" / "{role}" / (rule_stem + ".png"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
+            category = "Module 4 Good markers"
         ),
         # These two files are referred to later
         bim = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bim"),
@@ -730,18 +722,15 @@ rule female_xmarkers:
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
         results = report(
             resultPath / "{batch}" / "{role}" / (rule_stem + ".yaml"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
+            category = "Module 4 Good markers"
         ),
         exclude_markers = report(
             tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".exclude"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
+            category = "Module 4 Good markers"
         ),
         plot = report(
             resultPath / "{batch}" / "{role}" / (rule_stem + ".png"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
+            category = "Module 4 Good markers"
         ),
     params:
         threshold = config['xmarkers_clean'],
@@ -784,18 +773,15 @@ rule par_regions:
         bed = tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".bed"),
         results = report(
             resultPath / "{batch}" / "{role}" / (rule_stem + ".yaml"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
+            category = "Module 4 Good markers"
         ),
         exclude_markers = report(
             tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".exclude"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
+            category = "Module 4 Good markers"
         ),
         plot = report(
             resultPath / "{batch}" / "{role}" / (rule_stem + ".png"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
+            category = "Module 4 Good markers"
         ),
     params:
         threshold = config['xmarkers_clean'],
@@ -840,8 +826,7 @@ rule clean_male_x:
     output:
         exclude_markers = report(
             tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".exclude"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
+            category = "Module 4 Good markers"
         ),
         chr23 = tmpMod4 / "{batch}" / "{role}" / "sex_check.bim23"
 
@@ -882,13 +867,11 @@ rule sex_clean:
         bim = tmpMod4 / "{batch}" / '{role}' / (rule_stem + '.bim'),
         exclude_markers = report(
             tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".exclude"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
+            category = "Module 4 Good markers"
         ),
         results = report(
             resultPath / "{batch}" / "{role}" / (rule_stem + ".yaml"),
-            category = "Module 4 Good markers",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
+            category = "Module 4 Good markers"
         )
     benchmark:
         tmpMod4 / "{batch}" / "{role}" / (rule_stem + ".benchmark")
@@ -973,8 +956,7 @@ rule m4_output_good_markers:
         m4_output_good_markers = multiext(os.path.join(tmpMod4, "{batch}", rule_stem), '.bed', '.bim', '.fam'),
         results = report(
             resultPath / "{batch}" / (rule_stem + ".yaml"),
-            category = "- Module 4 Good markers recap",
-            caption = resultPath / "{batch}" / (rule_stem + ".rst")
+            category = "- Module 4 Good markers recap"
         )
     run:
         try:
