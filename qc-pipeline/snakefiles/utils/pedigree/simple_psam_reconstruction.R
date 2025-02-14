@@ -9,7 +9,7 @@ set.seed(11111)
 
 
 # Command line arguments
-debug <- F
+debug <- T
 debug_plink_version <- 1
 debug_batch <- "snp010"
 if (debug) {
@@ -1041,7 +1041,8 @@ if(plink_version == 1){
   col.names = F,
   row.names = F,
   sep = "\t",
-  quote = F
+  quote = F,
+  na = 0
 )
 } else if(plink_version == 2){
   write.table(
@@ -1050,7 +1051,8 @@ if(plink_version == 1){
   col.names = T,
   row.names = F,
   sep = "\t",
-  quote = F
+  quote = F,
+  na = 0
 )
 
 }
