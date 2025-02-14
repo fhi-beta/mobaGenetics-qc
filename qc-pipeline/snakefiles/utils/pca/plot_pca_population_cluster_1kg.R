@@ -171,6 +171,8 @@ if(plink_version == 2){
 )
 }
 
+psam_data <- psam_data %>% mutate(pat = as.character(pat),
+         mat = as.character(mat))
 
 
 
