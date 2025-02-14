@@ -1042,7 +1042,7 @@ if(plink_version == 1){
   row.names = F,
   sep = "\t",
   quote = F,
-  na = 0
+  na = "0"
 )
 } else if(plink_version == 2){
   write.table(
@@ -1052,7 +1052,7 @@ if(plink_version == 1){
   row.names = F,
   sep = "\t",
   quote = F,
-  na = 0
+  na = "0"
 )
 
 }
