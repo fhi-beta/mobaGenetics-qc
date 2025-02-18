@@ -233,11 +233,11 @@ rule mod5_compute_allele_frequencies:
     input:
         bedset = rules.mod5_missingness_and_hwe.output.bedset
     output:
-        frq = tmpMod5 / "{batch}" / ("mod5_compute_allele_frequencies" + ".frq")
+        frq = tmpMod5 / "{batch}" / ("mod5_compute_allele_frequencies.frq")
     run:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
-            outTrunk = mqc.plinkBase(output.bedset[0])
+            outTrunk = mqc.plinkBase(output.frq)
             subprocess.run(
                 [
                     plinklocal,
