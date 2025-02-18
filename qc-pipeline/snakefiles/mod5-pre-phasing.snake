@@ -283,7 +283,7 @@ rule_stem = "mod5_exclude"
 rule mod5_exclude:
     input:
         exclude = rules.mod5_hrc1000.output.exclude,
-        bedset = rules.mod5_compute_allele_frequencies.output.bedset
+        bedset = rules.mod5_missingness_and_hwe.output.bedset
     output:
         bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
     run:
