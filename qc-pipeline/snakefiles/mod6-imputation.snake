@@ -1,3 +1,40 @@
+tmpMod5str = str(tmpMod5)
+def get_all_mod5_output_fam_files(wildcards):
+    return [f"{tmpMod5str}/{batch}/mod5_output.fam" for batch in batches]
+
+def get_all_mod5_output_bim_files(wildcards):
+    return [f"{tmpMod5str}/{batch}/mod5_output.bim" for batch in batches]
+
+rule mod6_extend_count_tables:
+    input:
+        fam_files = get_all_mod5_output_fam_files,
+        bim_files = get_all_mod5_output_bim_files,
+        previous_samples_table = rules.mod5_extend_count_tables.output.samples_table,
+        previous_variants_table = rules.mod5_extend_count_tables.output.variants_table,
+        id_mapping = config["id_mapping"]
+    output:
+        samples_table = resultPath / "count_tables" / "mod6_samples",
+        variants_table = resultPath / "count_tables" / "mod6_variants"
+    params:
+        mod = "mod6"
+    conda:
+        "envs/r_4.2.yaml"
+    shell:
+        """
+        Rscript utils/extend_count_tables.R \
+            {input.id_mapping} \
+            {input.previous_samples_table} \
+            {output.samples_table} \
+            {params.mod} \
+            {input.fam_files}
+        Rscript utils/extend_count_tables.R \
+            {input.id_mapping} \
+            {input.previous_variants_table} \
+            {output.variants_table} \
+            {params.mod} \
+            {input.bim_files}
+        """
+
 rule_stem = "mod6_split_into_chromosomes"
 rule mod6_split_into_chromosomes:
     input:
