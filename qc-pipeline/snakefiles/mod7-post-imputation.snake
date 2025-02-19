@@ -98,7 +98,6 @@ rule mod7_convert_chrs_to_pgen:
             ]
         )
 
-chrs = chrs_debug # remove in prod!
 def chr_pgens_to_merge(wildcards):
     tmpMod7str = str(tmpMod7)
     return [f"{tmpMod7str}/{wildcards.number_of_samples}_samples/mod7_convert_chrs_to_pgen.chr{chr}.pgen" for chr in chrs]
@@ -112,8 +111,6 @@ rule mod7_merge:
         out_trunk = mqc.plinkBase(output.pgenset[0])
         mqc.merge_pgensets(input.pgens, out_trunk, plink2local)
 
-batch = batches_debug
-chrs = chrs_debug
 def get_info_files(wildcards):
     tmpMod6str = str(tmpMod6)
     return [rf"{tmpMod6str}/{batch}/{wildcards.number_of_samples}_samples/mod6_impute.chr{chr}.imputed.vcf.gz.info" for batch in batches for chr in chrs]
@@ -144,7 +141,7 @@ rule mod7_rename_missing_ids:
         inTrunk="${{input_full%.pgen}}"
         output_full={output.pgenset[0]}
         outTrunk="${{output_full%.pgen}}"
-        {plink2local} --pfile $inTrunk --set-missing-var-ids @_#\$1:\$2 --make-pgen --out $outTrunk
+        {plink2local} --pfile $inTrunk --set-missing-var-ids @_#_\$1:\$2 --make-pgen --out $outTrunk
         """
 
 rule mod7_allele_counts:

@@ -1510,7 +1510,7 @@ def best_snps_of_subset(dr2_file, out, snp_cutoff, subset):
 
 def fetch_info_data(info_file):
     info_data = pd.read_csv(info_file, sep=r'\s+', names =["CHROM", "POS", "ID", "IMP", "REF", "ALT", "DR2", "AF"])
-    info_data['ID'] = info_data.apply(lambda row: f"{row['CHROM']}_{row['POS']}{row['REF']}:{row['ALT']}" if row['ID'] == '.' else row['ID'], axis=1)
+    info_data['ID'] = info_data.apply(lambda row: f"{row['CHROM']}_{row['POS']}_{row['REF']}:{row['ALT']}" if row['ID'] == '.' else row['ID'], axis=1)
     return info_data
 
 def get_n_samples(vcf_file):
