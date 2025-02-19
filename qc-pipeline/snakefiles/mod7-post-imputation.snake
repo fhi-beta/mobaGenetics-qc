@@ -20,7 +20,6 @@ rule mod7_index_filter:
         tabix -p vcf {input.filtered_vcf}
         """
 
-batches = batches_debug # remove in prod!
 
 tmpMod7str = str(tmpMod7)
 def get_vcf_batch_files_to_merge(wildcards):
