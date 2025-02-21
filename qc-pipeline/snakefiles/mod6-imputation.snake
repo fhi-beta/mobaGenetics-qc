@@ -109,7 +109,18 @@ rule mod6_conform:
             java -Xmx{config[mod6conform_mem]} -jar {conform_gt} gt={input.sorted_vcf} ref=$reffile out=$outTrunk chrom={wildcards.chr} match=POS
         fi
         """
-
+rule mod6_fill_ac:
+    input:
+        vcf = rules.mod6_conform.output.conformed_vcf
+    output:
+        bcf = str(tmpMod6 / "{batch}" / "mod6_fill_ac.chr{chr}.bcf.gz")
+    conda:
+        "envs/bcf_tabix.yaml"
+    shell:
+    """
+    bcftools +fill-AN-AC -Ob {input.vcf} -o {output.bcf}
+    tabix -p bcf {output.bcf}
+    """
 rule mod6_generate_shapeit_family_files:
     input:
         fam = rules.mod5_output.output.bedset[2]
@@ -150,7 +161,7 @@ def get_shapeit_fam(wildcards):
 rule mod6_phase:
     input:
         shapeit_fam = get_shapeit_fam,
-        vcf = rules.mod6_conform.output.conformed_vcf
+        bcf = rules.mod6_fill_ac.output.bcf
     output:
         phased_bcf = str(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.phased.bcf"),
         phaseit_log = str(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.log")
@@ -163,7 +174,7 @@ rule mod6_phase:
         """
         reffile={hrc_bref}/HRC_GRCh37.chr{wildcards.chr}.bref3
         mapfile={mapfiles}/plink.chr{params.map_chr}.GRCh37.map
-        SHAPEIT5_phase_common --input {input.vcf} --pedigree {input.shapeit_fam} --region {wildcards.chr} --map $mapfile --output {output.phased_bcf} --output-format bcf --thread 8
+        SHAPEIT5_phase_common --input {input.bcf} --pedigree {input.shapeit_fam} --region {wildcards.chr} --map $mapfile --output {output.phased_bcf} --output-format bcf --thread 8
         """
         
 
