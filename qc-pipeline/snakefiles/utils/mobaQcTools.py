@@ -1536,7 +1536,7 @@ def filter_fam_table_for_shapeit(input_file_path, output_file_path):
     """
     Takes as input the path to a .fam file and writes the family relations formatted for shapeit
     """
-    df = pd.read_csv(input_file_path, header = None)
+    df = pd.read_csv(input_file_path, header = None, delimiter = "\t")
     selected_columns_df = df.iloc[:, [1, 2, 3]]
     filtered_df = selected_columns_df[(selected_columns_df.iloc[:, 1] != 0) | (selected_columns_df.iloc[:, 2] != 0)]
     filtered_df.replace(0, 'NA', inplace=True)
