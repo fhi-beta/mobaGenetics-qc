@@ -117,10 +117,10 @@ rule mod6_fill_ac:
     conda:
         "envs/bcf_tabix.yaml"
     shell:
-    """
-    bcftools +fill-AN-AC -Ob {input.vcf} -o {output.bcf}
-    tabix -p bcf {output.bcf}
-    """
+        """
+        bcftools +fill-AN-AC -Ob {input.vcf} -o {output.bcf}
+        tabix -p bcf {output.bcf}
+        """
 rule mod6_generate_shapeit_family_files:
     input:
         fam = rules.mod5_output.output.bedset[2]
