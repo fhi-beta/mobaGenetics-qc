@@ -1,4 +1,4 @@
-name: shapeit5
+name: shapeit_5
 channels:
   - conda-forge
   - bioconda
