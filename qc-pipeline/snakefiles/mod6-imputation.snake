@@ -154,6 +154,8 @@ rule mod6_phase:
     output:
         phased_vcf = str(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.phased.vcf"),
         phaseit_log = str(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.log")
+    params:
+        map_chr=get_map_chr
     conda:
         "envs/shapeit5.yaml"
     threads: 8
