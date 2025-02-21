@@ -1,0 +1,5 @@
+name: shapeit5
+channels:
+  - bioconda
+dependencies:
+  - shapeit5

@@ -108,7 +108,8 @@ rule all:
         # expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_merge_chrs.vcf.gz"), batch = batches_debug)
        # expand(str(tmpMod6Archive / "{batch}" / f"{n_samples}_samples" / "mod6_merge_chrs.vcf.gz"), batch = batches_debug)
         # expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_impute.chr{chr}.imputed.vcf.gz"), batch = batches_debug, chr = chrs_debug)
-        expand(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info", batch = batches, chr = chrs)
+        #expand(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info", batch = batches, chr = chrs)
+        str(tmpMod6 / "snp001" / "mod6_phase.chr21.phased.vcf")
         # expand(tmpMod5/ "{batch}" / "all_samples" /"mod5_output.imiss", batch = batches_debug)
 
 

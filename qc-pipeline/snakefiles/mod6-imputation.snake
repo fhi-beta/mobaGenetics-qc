@@ -110,6 +110,17 @@ rule mod6_conform:
         fi
         """
 
+rule mod6_generate_shapeit_family_files:
+    input:
+        fam = rules.mod5_output.output.bedset[2]
+    output:
+        shapeit_fam = str(tmpMod6 / "{batch}" / "shapeit_fam.fam")
+    run:
+        mqc.filter_fam_table_for_shapeit(input.fam, output.shapeit_fam)
+
+
+
+
         # shell:
     #     """
     #     reffile=$(echo {hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{params.ref_chr}.haplotypes*.vcf.gz)
@@ -131,6 +142,27 @@ def get_beagle_chr(wildcards):
         return "X"
     else:
         return wildcards.chr
+
+def get_shapeit_fam(wildcards):
+    return str(tmpMod6 / "{wildcards.batch}" / "shapeit_fam.fam")
+
+rule mod6_phase:
+    input:
+        shapeit_fam = get_shapeit_fam,
+        vcf = rules.mod6_comform.output.vcf
+    output:
+        phased_vcf = str(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.phased.vcf"),
+        phaseit_log = str(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.log")
+    conda:
+        "envs/shapeit5.yaml"
+    threads: 8
+    shell:
+        """
+        reffile={hrc_bref}/HRC_GRCh37.chr{wildcards.chr}.bref3
+        mapfile={mapfiles}/plink.chr{params.map_chr}.GRCh37.map
+        phase_common --input {input.vcf} --pedigree {input.shapeit_fam} --region {wildcards.chr} --map $mapfile --output {output.phased_vcf} --output-format vcf --thread 8
+        """
+        
 
 rule_stem = "mod6_impute"
 rule mod6_impute:
