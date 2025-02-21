@@ -1,5 +1,6 @@
 name: shapeit5
 channels:
+  - conda-forge
   - bioconda
 dependencies:
   - shapeit5
