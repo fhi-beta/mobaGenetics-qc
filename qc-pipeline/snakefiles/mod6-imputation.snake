@@ -150,7 +150,7 @@ def get_shapeit_fam(wildcards):
 rule mod6_phase:
     input:
         shapeit_fam = get_shapeit_fam,
-        vcf = rules.mod6_sort.output.sorted_vcf#rules.mod6_conform.output.conformed_vcf
+        vcf = rules.mod6_conform.output.conformed_vcf
     output:
         phased_bcf = str(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.phased.bcf"),
         phaseit_log = str(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.log")
