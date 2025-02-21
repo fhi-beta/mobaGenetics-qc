@@ -157,13 +157,13 @@ rule mod6_phase:
     params:
         map_chr=get_map_chr
     conda:
-        "envs/shapeit5.yaml"
+        "envs/shapeit_5.yaml"
     threads: 8
     shell:
         """
         reffile={hrc_bref}/HRC_GRCh37.chr{wildcards.chr}.bref3
         mapfile={mapfiles}/plink.chr{params.map_chr}.GRCh37.map
-        shapeit5 phase_common --input {input.vcf} --pedigree {input.shapeit_fam} --region {wildcards.chr} --map $mapfile --output {output.phased_vcf} --output-format vcf --thread 8
+        SHAPEIT5_phase_common --input {input.vcf} --pedigree {input.shapeit_fam} --region {wildcards.chr} --map $mapfile --output {output.phased_vcf} --output-format vcf --thread 8
         """
         
 
