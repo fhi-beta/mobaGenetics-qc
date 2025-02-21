@@ -143,8 +143,9 @@ def get_beagle_chr(wildcards):
     else:
         return wildcards.chr
 
+tmpMod6str = str(tmpMod6)
 def get_shapeit_fam(wildcards):
-    return str(tmpMod6 / "{wildcards.batch}" / "shapeit_fam.fam")
+    return f"{tmpMod6}/{wildcards.batch}/shapeit_fam.fam"
 
 rule mod6_phase:
     input:
