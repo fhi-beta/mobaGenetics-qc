@@ -25,6 +25,7 @@ batch_files: "/mnt/archive/moba_genotypes_releases/2024.12.03/batch/moba_genotyp
 hrc_sites: "/mnt/archive/snpQc/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
 hrc_ega: "/mnt/archive/HRC_1.1_EGA/24.05.30"
 hrc_bref: "/mnt/archive/HRC_bref3"
+hrc_vcf: "/mnt/archive/HRC_vcf"
 
 # Genetic maps found at https://bochet.gcc.biostat.washington.edu/beagle/genetic_maps/
 mapfiles: "/mnt/archive/genetic_maps"

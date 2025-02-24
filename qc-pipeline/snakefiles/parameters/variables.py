@@ -31,6 +31,7 @@ base = Path(config['output_base']) / config['release']
 archive_base = Path(config['archive_output_base']) / config['release']
 hrc_ega = Path(config['hrc_ega'])
 hrc_bref = Path(config['hrc_bref'])
+hrc_vcf = Path(config['hrc_vcf'])
 github_docs = Path(os.path.dirname(workflow.basedir)) / 'docs' / config['release']
 
 #github_docs2 = Path(os.path.dirname(workflow.basedir)) / 'docs' / config['release2']
