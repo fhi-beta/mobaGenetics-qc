@@ -109,12 +109,22 @@ rule mod6_conform:
             java -Xmx{config[mod6conform_mem]} -jar {conform_gt} gt={input.sorted_vcf} ref=$reffile out=$outTrunk chrom={wildcards.chr} match=POS
         fi
         """
+rule mod6_index_conform:
+    input:
+        vcf = rules.mod6_conform.output.conformed_vcf
+    output:
+        index = str(tmpMod6 / "{batch}" / "mod6_conform.chr{chr}.vcf.gz.tbi")
+    shell:
+        """
+        tabix -p vcf {input.vcf}
+        """
+
+
 rule mod6_fill_ac:
     input:
         vcf = rules.mod6_conform.output.conformed_vcf
     output:
-        bcf = str(tmpMod6 / "{batch}" / "mod6_fill_ac.chr{chr}.bcf.gz"),
-        index = str(tmpMod6 / "{batch}" / "mod6_fill_ac.chr{chr}.bcf.gz.tbi")
+        bcf = str(tmpMod6 / "{batch}" / "mod6_fill_ac.chr{chr}.bcf.gz")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -133,7 +143,7 @@ rule mod6_index_fill_ac:
     input:
         bcf = rules.mod6_fill_ac.output.bcf
     output:
-        index = str(tmpMod6 / "{batch}" / "mod6_fill_ac.chr{chr}.bcf.gz.tbi")
+        index = str(tmpMod6 / "{batch}" / "mod6_fill_ac.chr{chr}.bcf.csi")
     shell:
         """
         tabix -p bcf {input.bcf}
