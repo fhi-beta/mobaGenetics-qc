@@ -146,7 +146,7 @@ rule mod6_index_fill_ac:
     input:
         bcf = rules.mod6_fill_ac.output.bcf
     output:
-        index = str(tmpMod6 / "{batch}" / "mod6_fill_ac.chr{chr}.bcf.csi")
+        index = str(tmpMod6 / "{batch}" / "mod6_fill_ac.chr{chr}.bcf.gz.csi")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
