@@ -114,6 +114,8 @@ rule mod6_index_conform:
         vcf = rules.mod6_conform.output.conformed_vcf
     output:
         index = str(tmpMod6 / "{batch}" / "mod6_conform.chr{chr}.vcf.gz.tbi")
+    conda:
+        "envs/bcf_tabix.yaml"
     shell:
         """
         tabix -p vcf {input.vcf}
@@ -145,6 +147,8 @@ rule mod6_index_fill_ac:
         bcf = rules.mod6_fill_ac.output.bcf
     output:
         index = str(tmpMod6 / "{batch}" / "mod6_fill_ac.chr{chr}.bcf.csi")
+    conda:
+        "envs/bcf_tabix.yaml"
     shell:
         """
         tabix -p bcf {input.bcf}
