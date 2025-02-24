@@ -174,7 +174,7 @@ rule mod6_phase:
         """
         reffile=$(echo {hrc_vcf}/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes*.vcf.gz)
         mapfile={mapfiles}/shapeit.chr{params.map_chr}.GRCh37.map
-        SHAPEIT5_phase_common --input {input.bcf} --pedigree {input.shapeit_fam} --reference $reffile --region {wildcards.chr} --map $mapfile --output {output.phased_bcf} --output-format bcf --thread 8
+        SHAPEIT5_phase_common --input {input.bcf} --pedigree {input.shapeit_fam} --region {wildcards.chr} --map $mapfile --output {output.phased_bcf} --output-format bcf --thread 8
         """
         
 
