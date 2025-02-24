@@ -123,7 +123,7 @@ rule mod6_index_conform:
 rule mod6_fill_ac:
     input:
         vcf = rules.mod6_conform.output.conformed_vcf,
-    rulesmod6rules.mod6_index_conform.output.index
+        index = rules.mod6_index_conform.output.index
     output:
         bcf = str(tmpMod6 / "{batch}" / "mod6_fill_ac.chr{chr}.bcf.gz")
     conda:
