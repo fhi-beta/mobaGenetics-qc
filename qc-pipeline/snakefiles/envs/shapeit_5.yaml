@@ -3,4 +3,4 @@ channels:
   - conda-forge
   - bioconda
 dependencies:
-  - shapeit5=5.1.0
+  - shapeit5
