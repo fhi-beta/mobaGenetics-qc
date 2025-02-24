@@ -113,7 +113,7 @@ rule mod6_index_conform:
     input:
         vcf = rules.mod6_conform.output.conformed_vcf
     output:
-        index = str(tmpMod6 / "{batch}" / "mod6_conform.chr{chr}.vcf.gz.tbi")
+        index = str(tmpMod6 / "{batch}" / "mod6_conform.chr{chr}.conformed.vcf.gz.tbi")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
