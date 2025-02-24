@@ -120,7 +120,6 @@ rule mod6_fill_ac:
     shell:
         """
         bcftools +fill-AN-AC -Ob {input.vcf} -o {output.bcf}
-        tabix -p bcf {output.bcf}
         """
 rule mod6_generate_shapeit_family_files:
     input:
@@ -130,7 +129,15 @@ rule mod6_generate_shapeit_family_files:
     run:
         mqc.filter_fam_table_for_shapeit(input.fam, output.shapeit_fam)
 
-
+rule mod6_index_fill_ac:
+    input:
+        bcf = rules.mod6_fill_ac.output.bcf
+    output:
+        index = str(tmpMod6 / "{batch}" / "mod6_fill_ac.chr{chr}.bcf.gz.tbi")
+    shell:
+        """
+        tabix -p bcf {input.bcf}
+        """
 
 
         # shell:
@@ -163,7 +170,7 @@ rule mod6_phase:
     input:
         shapeit_fam = get_shapeit_fam,
         bcf = rules.mod6_fill_ac.output.bcf,
-        index = rules.mod6_fill_ac.output.index
+        index = rules.mod6_index_fill_ac.output.index
     output:
         phased_bcf = str(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.phased.bcf"),
         phaseit_log = str(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.log")
