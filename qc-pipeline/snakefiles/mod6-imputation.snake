@@ -205,7 +205,7 @@ rule mod6_phase:
 rule_stem = "mod6_impute"
 rule mod6_impute:
     input:
-        bcf = rules.mod6_phase.output.phased_bcf #rules.mod6_conform.output.conformed_vcf
+        vcf = rules.mod6_phase.output.phased_vcf #rules.mod6_conform.output.conformed_vcf
     output:
         imputed_vcf = str(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz")
     params:
@@ -220,7 +220,7 @@ rule mod6_impute:
         mapfile={mapfiles}/plink.chr{params.map_chr}.GRCh37.map
         output_full={output.imputed_vcf}
         outTrunk="${{output_full%.vcf.gz}}"
-        java -Xmx{config[mem]} -jar {beagle} gt={input.bcf} ref=$reffile impute=true out=$outTrunk chrom={params.beagle_chr} nthreads={config[beagle_threads]} ap=true gp=true map=$mapfile
+        java -Xmx{config[mem]} -jar {beagle} gt={input.vcf} ref=$reffile impute=true out=$outTrunk chrom={params.beagle_chr} nthreads={config[beagle_threads]} ap=true gp=true map=$mapfile
         """
 
 # rule mod6_norm_and_rename:
