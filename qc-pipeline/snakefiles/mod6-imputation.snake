@@ -187,7 +187,7 @@ rule mod6_phase:
         bcf = rules.mod6_fill_ac.output.bcf,
         index = rules.mod6_index_fill_ac.output.index
     output:
-        phased_vcf = str(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.phased.vcf"),
+        phased_bcf = str(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.phased.bcf"),
         shapeit_log = str(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.phased.log")
     params:
         map_chr=get_map_chr
@@ -198,14 +198,26 @@ rule mod6_phase:
         """
         reffile=$(echo {hrc_vcf}/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes*.vcf.gz)
         mapfile={mapfiles}/shapeit/chr{params.map_chr}.b37.gmap.gz
-        SHAPEIT5_phase_common --input {input.bcf} --pedigree {input.shapeit_fam} --region {wildcards.chr} --reference $reffile --map $mapfile --output {output.phased_vcf} --output-format vcf --log {output.shapeit_log} --thread 8
+        SHAPEIT5_phase_common --input {input.bcf} --pedigree {input.shapeit_fam} --region {wildcards.chr} --reference $reffile --map $mapfile --output {output.phased_bcf} --output-format bcf --log {output.shapeit_log} --thread 8
         """
-        
+
+
+rule mod6_convert_to_vcf:
+    input:
+        bcf = rules.mod6_phase.output.phased_bcf
+    output:
+        vcf = str(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.phased.vcf")
+    conda:
+        "envs/bcf_tabix.yaml"
+    shell:
+        """
+        bcftools convert -Ov -o {output.vcf} {input.bcf}
+        """
 
 rule_stem = "mod6_impute"
 rule mod6_impute:
     input:
-        vcf = rules.mod6_phase.output.phased_vcf #rules.mod6_conform.output.conformed_vcf
+        vcf = rules.mod6_convert_to_vcf.output.vcf #rules.mod6_conform.output.conformed_vcf
     output:
         imputed_vcf = str(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz")
     params:
@@ -220,7 +232,7 @@ rule mod6_impute:
         mapfile={mapfiles}/plink.chr{params.map_chr}.GRCh37.map
         output_full={output.imputed_vcf}
         outTrunk="${{output_full%.vcf.gz}}"
-        java -Xmx{config[mem]} -jar {beagle} gt={input.vcf} ref=$reffile impute=true out=$outTrunk chrom={params.beagle_chr} nthreads={config[beagle_threads]} ap=true gp=true map=$mapfile
+        java -Xmx{config[mem]} -jar {beagle} gt={input.conformed_vcf} ref=$reffile impute=true out=$outTrunk chrom={params.beagle_chr} nthreads={config[beagle_threads]} ap=true gp=true map=$mapfile
         """
 
 # rule mod6_norm_and_rename:
