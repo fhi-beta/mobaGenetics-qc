@@ -124,10 +124,10 @@ rule mod6_index_conform:
 
 rule mod6_fill_ac:
     input:
-        vcf = rules.mod6_conform.output.conformed_vcf,
+        vcf = mod6_sort.output.sorted_vcf #rules.mod6_conform.output.conformed_vcf,
         index = rules.mod6_index_conform.output.index
     output:
-        bcf = str(tmpMod6 / "{batch}" / "mod6_fill_ac.chr{chr}.bcf.gz")
+        bcf = str(tmpMod6 / "{batch}" / "mod6_fill_ac_SKIP_CONFORM.chr{chr}.bcf.gz")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -146,7 +146,7 @@ rule mod6_index_fill_ac:
     input:
         bcf = rules.mod6_fill_ac.output.bcf
     output:
-        index = str(tmpMod6 / "{batch}" / "mod6_fill_ac.chr{chr}.bcf.gz.csi")
+        index = str(tmpMod6 / "{batch}" / "mod6_fill_ac_SKIP_CONFORM.chr{chr}.bcf.gz.csi")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
