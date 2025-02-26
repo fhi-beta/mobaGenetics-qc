@@ -191,14 +191,14 @@ rule mod6_phase:
         phaseit_log = str(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.log")
     params:
         map_chr=get_map_chr
-    conda:
-        "envs/shapeit_5.yaml"
+    # conda:
+    #     "envs/shapeit_5.yaml"
     threads: 8
     shell:
         """
         reffile=$(echo {hrc_vcf}/HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes*.vcf.gz)
         mapfile={mapfiles}/shapeit.chr{params.map_chr}.GRCh37.map
-        SHAPEIT5_phase_common --input {input.bcf} --pedigree {input.shapeit_fam} --region {wildcards.chr} --map $mapfile --reference $reffile --output {output.phased_bcf} --output-format bcf --thread 8
+        {shapeit5local} --input {input.bcf} --pedigree {input.shapeit_fam} --region {wildcards.chr} --map $mapfile --output {output.phased_bcf} --output-format bcf --thread 8
         """
         
 
