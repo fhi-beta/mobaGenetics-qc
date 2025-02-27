@@ -2,17 +2,19 @@ rule mod7_filter:
     input:
         imputed_vcf = rules.mod6_impute.output.imputed_vcf
     output:
-        filtered_vcf = str(tmpMod7 / "{batch}" / "{number_of_samples}_samples" / "mod7_filter.chr{chr}.vcf.gz")
+        filtered_vcf = str(tmpMod7 / "{batch}" / "mod7_filter.chr{chr}.vcf.gz")
     conda:
         "envs/bcf_tabix.yaml"
+    params:
+        dr2_threshold = config['post_imputation_dr2_threshold']
     shell:
-        "bcftools view -i 'INFO/DR2>=0.3' {input.imputed_vcf} -o {output.filtered_vcf}"
+        "bcftools view -i 'INFO/DR2>={params.dr2_threshold}' {input.imputed_vcf} -o {output.filtered_vcf}"
 
 rule mod7_index_filter:
     input:
         filtered_vcf = rules.mod7_filter.output.filtered_vcf
     output:
-        index = str(tmpMod7 / "{batch}" / "{number_of_samples}_samples" / "mod7_filter.chr{chr}.vcf.gz.tbi"),
+        index = str(tmpMod7 / "{batch}" / "mod7_filter.chr{chr}.vcf.gz.tbi"),
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -23,21 +25,21 @@ rule mod7_index_filter:
 
 tmpMod7str = str(tmpMod7)
 def get_vcf_batch_files_to_merge(wildcards):
-    return [f"{tmpMod7str}/{batch}/{wildcards.number_of_samples}_samples/mod7_filter.chr{wildcards.chr}.vcf.gz" for batch in batches]
+    return [f"{tmpMod7str}/{batch}/mod7_filter.chr{wildcards.chr}.vcf.gz" for batch in batches]
 
 tmpMod7str = str(tmpMod7)
 def get_index_batch_files_to_merge(wildcards):
-    return [f"{tmpMod7str}/{batch}/{wildcards.number_of_samples}_samples/mod7_filter.chr{wildcards.chr}.vcf.gz.tbi" for batch in batches]
+    return [f"{tmpMod7str}/{batch}/mod7_filter.chr{wildcards.chr}.vcf.gz.tbi" for batch in batches]
 
 rule mod7_merge_batches:
     input:
         vcfs = get_vcf_batch_files_to_merge,
         index = get_index_batch_files_to_merge
     output:
-        merged_vcf = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches_chr{chr}.vcf.gz")
+        merged_vcf = str(tmpMod7 / "mod7_merge_batches_chr{chr}.vcf.gz")
     log:
         # str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches.log")
-        str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches_chr{chr}.log")
+        str(tmpMod7  / "mod7_merge_batches_chr{chr}.log")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -55,7 +57,7 @@ rule mod7_norm:
         merged_vcf = rules.mod7_merge_batches.output.merged_vcf
         # index = rules.mod7_index_batch_merge.output.index
     output:
-        norm_vcf = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_norm.chr{chr}.vcf.gz")
+        norm_vcf = str(tmpMod7 / "mod7_norm.chr{chr}.vcf.gz")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -65,13 +67,13 @@ rule mod7_norm:
 
 def get_pre_imputation_fam_files(wildcards):
     tmpMod5str = str(tmpMod5)
-    return [f"{tmpMod5str}/{batch}/{wildcards.number_of_samples}_samples/mod5_output.fam" for batch in batches]
+    return [f"{tmpMod5str}/{batch}/mod5_output.fam" for batch in batches]
 
 rule mod7_update_sex_file:
     input:
         fams = get_pre_imputation_fam_files
     output:
-        sex_file = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_update_sex_file.txt")
+        sex_file = str(tmpMod7 / "mod7_update_sex_file.txt")
     threads: 24
     run:
         mqc.create_update_sex_file(input.fams, output.sex_file, threads)
@@ -82,7 +84,7 @@ rule mod7_convert_chrs_to_pgen:
         norm_vcf = rules.mod7_norm.output.norm_vcf,
         sex_file = rules.mod7_update_sex_file.output.sex_file
     output:
-        pgensets = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_convert_chrs_to_pgen.chr{chr}"), ".pgen", ".pvar", ".psam")
+        pgensets = multiext(str(tmpMod7 / "mod7_convert_chrs_to_pgen.chr{chr}"), ".pgen", ".pvar", ".psam")
     threads: config['mod7_convert_chrs_to_pgen_threads']
     run:
         outTrunk = mqc.plinkBase(output.pgensets[0])
