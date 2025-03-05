@@ -15,7 +15,6 @@ plinklocal = Path(os.path.dirname(workflow.basedir))/'bin'/'plink-1.90b5.4'/'pli
 plink2local = Path(os.path.dirname(workflow.basedir))/'bin'/'plink2'/'plink2'
 flashpca = Path(os.path.dirname(workflow.basedir))/'bin'/'flashpca_x86-64'
 kinglocal = Path(os.path.dirname(workflow.basedir))/'bin'/'Linux-king'/'king'
-shapeit5local = Path(os.path.dirname(workflow.basedir))/'bin'/'shapeit5'/'phase_common_static'
 
 # Resources
 resources_folder = Path(os.path.dirname(workflow.basedir))/'resources'
