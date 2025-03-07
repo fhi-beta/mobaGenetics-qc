@@ -109,7 +109,7 @@ rule mod7_update_sex_file:
 
 rule mod7_convert_chrs_to_pgen:
     input:
-        norm_vcf = rules.mod7_merge_batches.output.merged_vcf #rules.mod7_norm.output.norm_vcf,
+        norm_vcf = rules.mod7_merge_batches.output.merged_vcf, #rules.mod7_norm.output.norm_vcf,
         sex_file = rules.mod7_update_sex_file.output.sex_file
     output:
         pgensets = multiext(str(tmpMod7 / "mod7_convert_chrs_to_pgen.chr{chr}"), ".pgen", ".pvar", ".psam")
