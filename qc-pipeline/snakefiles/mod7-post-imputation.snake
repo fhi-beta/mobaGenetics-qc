@@ -21,19 +21,19 @@ rule mod7_format_phased_dosage:
         formatted_vcf = str(tmpMod7 / "{batch}" / "mod7_format.chr{chr}.vcf.gz")
     shell:
         """
-        zcat {input.filtered_vcf} | awk 'BEGIN {OFS="\t"} \
-        /^##FORMAT=<ID=AP1/ || /^##FORMAT=<ID=AP2/ || /^##FORMAT=<ID=DS/ {next} \
-        /^##FORMAT=<ID=GT/ {print; print "##FORMAT=<ID=HDS,Number=.,Type=Float,Description=\"Phased dosage\">"; next} \
-        /^#/ {print; next} \
-        {split($9, fmt, ":"); \
-        if (fmt[1]=="GT" && fmt[2]=="DS" && fmt[3]=="AP1" && fmt[4]=="AP2") { \
+        zcat {input.filtered_vcf} | awk 'BEGIN {{OFS="\t"}} \
+        /^##FORMAT=<ID=AP1/ || /^##FORMAT=<ID=AP2/ || /^##FORMAT=<ID=DS/ {{next}} \
+        /^##FORMAT=<ID=GT/ {{print; print "##FORMAT=<ID=HDS,Number=.,Type=Float,Description=\"Phased dosage\">"; next}} \
+        /^#/ {{print; next}} \
+        {{split($9, fmt, ":"); \
+        if (fmt[1]=="GT" && fmt[2]=="DS" && fmt[3]=="AP1" && fmt[4]=="AP2") {{ \
            $9="GT:HDS"; \
-           for (i=10; i<=NF; i++) { \
+           for (i=10; i<=NF; i++) {{ \
                split($i, vals, ":"); \
                $i=vals[1]":"vals[3]","vals[4]; \
-           } \
-        } \
-        print}' | bgzip > {output.formatted_vcf}
+           }} \
+        }} \
+        print}}' | bgzip > {output.formatted_vcf}
         """
 
 rule mod7_index_format:
