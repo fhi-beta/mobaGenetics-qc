@@ -42,7 +42,7 @@ rule mod7_index_format:
     input:
         formatted_vcf = rules.mod7_format_phased_dosage.output.formatted_vcf
     output:
-        index = str(tmpMod7 / "{batch}" / "mod7_format.chr{chr}.vcf.gz.tbi"),
+        index = str(tmpMod7 / "{batch}" / "mod7_format.chr{chr}.vcf.gz.tbi")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -120,8 +120,7 @@ rule mod7_convert_chrs_to_pgen:
             [
                 plink2local,
                 "--vcf", input.norm_vcf,
-                "dosage=HDS
-                ",
+                "dosage=HDS",
                 "--update-sex", input.sex_file,
                 "--memory", config['mod7_convert_chrs_to_pgen_mem'],
                 "--make-pgen",
