@@ -120,7 +120,7 @@ rule mod7_convert_chrs_to_pgen:
             [
                 plink2local,
                 "--vcf", input.norm_vcf,
-                "dosage=hds",
+                "dosage=HDS",
                 "--update-sex", input.sex_file,
                 "--memory", config['mod7_convert_chrs_to_pgen_mem'],
                 "--make-pgen",
