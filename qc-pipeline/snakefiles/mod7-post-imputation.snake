@@ -23,9 +23,9 @@ rule mod7_format_phased_dosage:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        zcat {input.filtered_vcf}  | awk 'BEGIN {{OFS="\t"}} \
+        zcat {input.filtered_vcf}  | awk 'BEGIN {{OFS="\\t"}} \
     /^##FORMAT=<ID=(AP1|AP2|DS)/ {{next}} \
-    /^##FORMAT=<ID=GT/ {{print; print "##FORMAT=<ID=HDS,Number=.,Type=Float,Description=\"Phased dosage\">"; next}} \
+    /^##FORMAT=<ID=GT/ {{print; print "##FORMAT=<ID=HDS,Number=.,Type=Float,Description=\\"Phased dosage\\">"; next}} \
     /^#/ {{print; next}} \
     {{split($9, fmt, ":"); \
      if (fmt[1]=="GT" && fmt[2]=="DS" && fmt[3]=="AP1" && fmt[4]=="AP2") {{ \
