@@ -130,13 +130,13 @@ rule mod7_convert_chrs_to_pgen:
 
 def chr_pgens_to_merge(wildcards):
     tmpMod7str = str(tmpMod7)
-    return [f"{tmpMod7str}/{wildcards.number_of_samples}_samples/mod7_convert_chrs_to_pgen.chr{chr}.pgen" for chr in chrs]
+    return [f"{tmpMod7str}/mod7_convert_chrs_to_pgen.chr{chr}.pgen" for chr in chrs]
 
 rule mod7_merge:
     input:
         pgens = chr_pgens_to_merge
     output:
-        pgenset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge"), ".pgen", ".pvar", ".psam")
+        pgenset = multiext(str(tmpMod7 / "mod7_merge"), ".pgen", ".pvar", ".psam")
     run:
         out_trunk = mqc.plinkBase(output.pgenset[0])
         mqc.merge_pgensets(input.pgens, out_trunk, plink2local)
