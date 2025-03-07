@@ -16,6 +16,7 @@ import matplotlib
 import gzip
 import shutil
 import multiprocessing as mp
+import time
 matplotlib.use('Agg')
 
 
@@ -272,6 +273,34 @@ compOperands = {
     "==": eq,
     ">": gt
 }
+
+
+
+def reformat_phased_dosages(input_file, output_file):
+    start_time = time.time()
+    pattern = r"([01\.]\|[01\.]:[\d\.]+:[\d\.]+):([\d\.]+)"
+    header_start_1 = "##FORMAT=<ID=AP1"
+    header_start_2 = "##FORMAT=<ID=AP2"
+    replacement_header = '##FORMAT=<ID=HDS,Number=.,Type=Float,Description="Estimated Haploid Alternate Allele Dosage">'
+    header_replaced = False
+    def replace_colon(match):
+        return match.group(1) + "," + match.group(2)
+    with gzip.open(input_file, 'rt') as infile, gzip.open(output_file, 'wt') as outfile:
+        for line in infile:
+            if not header_replaced:
+                if line.startswith(header_start_1):
+                    outfile.write(replacement_header + "\n")
+                elif line.startswith(header_start_2):
+                    header_replaced = True
+            else:
+                result = re.sub(pattern, replace_colon, line)
+                result = result.replace("AP1:AP2", "HDS")
+                outfile.write(result)
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    print(f"Function runtime: {elapsed_time:.2f} seconds")
+
+
 
 
 def extract_list(

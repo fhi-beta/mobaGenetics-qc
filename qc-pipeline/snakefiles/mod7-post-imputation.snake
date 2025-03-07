@@ -9,27 +9,49 @@ rule mod7_filter:
         dr2_threshold = config['post_imputation_dr2_threshold']
     shell:
         "bcftools view -i 'INFO/DR2>={params.dr2_threshold}' {input.imputed_vcf} -o {output.filtered_vcf}"
-
-rule mod7_index_filter:
+    
+rule mod7_format_phased_dosage:
     input:
         filtered_vcf = rules.mod7_filter.output.filtered_vcf
     output:
-        index = str(tmpMod7 / "{batch}" / "mod7_filter.chr{chr}.vcf.gz.tbi"),
+        formatted_vcf = str(tmpMod7 / "{batch}" / "mod7_format.chr{chr}.vcf.gz")
+    shell:
+        """
+        zcat {inut.filtered_vcf}} | awk 'BEGIN {OFS="\t"} \
+        /^##FORMAT=<ID=AP1/ || /^##FORMAT=<ID=AP2/ || /^##FORMAT=<ID=DS/ {next} \
+        /^##FORMAT=<ID=GT/ {print; print "##FORMAT=<ID=HDS,Number=.,Type=Float,Description=\"Phased dosage\">"; next} \
+        /^#/ {print; next} \
+        {split($9, fmt, ":"); \
+        if (fmt[1]=="GT" && fmt[2]=="DS" && fmt[3]=="AP1" && fmt[4]=="AP2") { \
+           $9="GT:HDS"; \
+           for (i=10; i<=NF; i++) { \
+               split($i, vals, ":"); \
+               $i=vals[1]":"vals[3]","vals[4]; \
+           } \
+        } \
+        print}' | bgzip > {output.formatted_vcf}
+        """
+
+rule mod7_index_format:
+    input:
+        formatted_vcf = rules.mod7_format_phased_dosage.output.formatted_vcf
+    output:
+        index = str(tmpMod7 / "{batch}" / "mod7_format.chr{chr}.vcf.gz.tbi"),
     conda:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        tabix -p vcf {input.filtered_vcf}
+        tabix -p vcf {input.formatted_vcf}
         """
 
 
 tmpMod7str = str(tmpMod7)
 def get_vcf_batch_files_to_merge(wildcards):
-    return [f"{tmpMod7str}/{batch}/mod7_filter.chr{wildcards.chr}.vcf.gz" for batch in batches]
+    return [f"{tmpMod7str}/{batch}/mod7_format.chr{wildcards.chr}.vcf.gz" for batch in batches]
 
 tmpMod7str = str(tmpMod7)
 def get_index_batch_files_to_merge(wildcards):
-    return [f"{tmpMod7str}/{batch}/mod7_filter.chr{wildcards.chr}.vcf.gz.tbi" for batch in batches]
+    return [f"{tmpMod7str}/{batch}/mod7_format.chr{wildcards.chr}.vcf.gz.tbi" for batch in batches]
 
 rule mod7_merge_batches:
     input:
