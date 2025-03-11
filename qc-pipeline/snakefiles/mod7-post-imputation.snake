@@ -80,17 +80,18 @@ rule mod7_merge_batches:
         for file in {input.vcfs}; do echo "$file" >> {log}; done
         """
 
-rule mod7_norm:
+# Plink2 does not support phased dosages for multialleleic variants yet, so they are removed for now
+rule mod7_remove_multiallelic_variants:
     input:
         merged_vcf = rules.mod7_merge_batches.output.merged_vcf
         # index = rules.mod7_index_batch_merge.output.index
     output:
-        norm_vcf = str(tmpMod7 / "mod7_norm.chr{chr}.vcf.gz")
+        vcf = str(tmpMod7 / "mod7_remove_multiallelic_variants.chr{chr}.vcf.gz")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        bcftools norm -m + {input.merged_vcf} -o {output.norm_vcf}
+        bcftools view -m2 -M2 {input.merged_vcf} -o {output.vcf}
         """
 
 def get_pre_imputation_fam_files(wildcards):
@@ -109,7 +110,7 @@ rule mod7_update_sex_file:
 
 rule mod7_convert_chrs_to_pgen:
     input:
-        norm_vcf = rules.mod7_norm.output.norm_vcf,
+        vcf = rules.mod7_remove_multiallelic_variants.output.vcf,
         sex_file = rules.mod7_update_sex_file.output.sex_file
     output:
         pgensets = multiext(str(tmpMod7 / "mod7_convert_chrs_to_pgen.chr{chr}"), ".pgen", ".pvar", ".psam")
@@ -119,7 +120,7 @@ rule mod7_convert_chrs_to_pgen:
         subprocess.run(
             [
                 plink2local,
-                "--vcf", input.norm_vcf,
+                "--vcf", input.vcf,
                 "dosage=HDS",
                 "--update-sex", input.sex_file,
                 "--memory", config['mod7_convert_chrs_to_pgen_mem'],
