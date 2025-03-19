@@ -91,7 +91,7 @@ rule mod7_remove_multiallelic_variants:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        bcftools norm -m + | bcftools view -m2 -M2 {input.merged_vcf} -o {output.vcf}
+        bcftools norm -m + {input.merged_vcf} | bcftools view -m2 -M2 -o {output.vcf}
         """
 
 def get_pre_imputation_fam_files(wildcards):
