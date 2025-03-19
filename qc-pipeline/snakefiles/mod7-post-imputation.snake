@@ -80,7 +80,7 @@ rule mod7_merge_batches:
         for file in {input.vcfs}; do echo "$file" >> {log}; done
         """
 
-# Plink2 does not support phased dosages for multialleleic variants yet, so they are removed for now
+# Plink2 does not support phased dosages for multiallelic variants yet, so they are removed for now
 rule mod7_remove_multiallelic_variants:
     input:
         merged_vcf = rules.mod7_merge_batches.output.merged_vcf
@@ -91,7 +91,7 @@ rule mod7_remove_multiallelic_variants:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        bcftools view -m2 -M2 {input.merged_vcf} -o {output.vcf}
+        bcftools norm -m + | bcftools view -m2 -M2 {input.merged_vcf} -o {output.vcf}
         """
 
 def get_pre_imputation_fam_files(wildcards):
