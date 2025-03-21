@@ -107,10 +107,10 @@ rule all:
         # expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_output.vcf.gz"), batch = batches_debug)
         # expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_merge_chrs.vcf.gz"), batch = batches_debug)
        # expand(str(tmpMod6Archive / "{batch}" / f"{n_samples}_samples" / "mod6_merge_chrs.vcf.gz"), batch = batches_debug)
-        tmpMod7 / "mod7_merge.pgen"
+        #tmpMod7 / "mod7_merge.pgen"
         #expand(tmpMod7 / "{batch}" / "mod7_filter_and_format_phased_dosage.chr{chr}.vcf.gz", batch = batches, chr = chrs)
         #expand(tmpMod7 / "{batch}" / "mod7_format.chr{chr}.vcf.gz.tbi", batch = batches, chr = chrs)
-        #expand(str(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info"), batch = batches, chr = chrs)
+        expand(str(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info"), batch = batches, chr = ['X'])
         #expand(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info", batch = batches, chr = chrs)
         #expand(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.phased.bcf", batch = ["snp001"], chr = ["22"])
         # expand(tmpMod5/ "{batch}" / "all_samples" /"mod5_output.imiss", batch = batches_debug)
