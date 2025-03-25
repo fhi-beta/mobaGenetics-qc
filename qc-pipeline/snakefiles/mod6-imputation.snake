@@ -35,43 +35,45 @@ rule mod6_extend_count_tables:
             {input.bim_files}
         """
 
-rule mod6_generate_chromosome_file:
-    input:
-        bim = rules.mod5_output.output.bedset[1]
-    output:
-        chromosome_file = str(tmpMod6/"{batch}"/"chromosomes.txt")
-    run:
-        mqc.extract_chromosomes(input.bim, output.chromosome_file)
+# rule mod6_generate_chromosome_file:
+#     input:
+#         bim = rules.mod5_output.output.bedset[1]
+#     output:
+#         chromosome_file = str(tmpMod6/"{batch}"/"chromosomes.txt")
+#     run:
+#         mqc.extract_chromosomes(input.bim, output.chromosome_file)
 
-tmpMod6str = str(tmpMod6)
-def get_split_output_files(wildcards):
-    chromosomes = mqc.get_chromosome_list(f"{tmpMod6str}/{wildcards.batch}/chromosomes.txt")
-    if wildcards.chr in chromosomes:
-        return [f"{tmpMod6str}/{wildcards.batch}/mod6_split_into_chromosomes.chr{wildcards.chr}.{filetype}" for filetype in [".bed", ".bim", ".fam"]]
-    else:
-        return []
+# tmpMod6str = str(tmpMod6)
+# def get_split_output_files(wildcards):
+#     chromosomes = mqc.get_chromosome_list(f"{tmpMod6str}/{wildcards.batch}/chromosomes.txt")
+#     if wildcards.chr in chromosomes:
+#         return [f"{tmpMod6str}/{wildcards.batch}/mod6_split_into_chromosomes.chr{wildcards.chr}.{filetype}" for filetype in [".bed", ".bim", ".fam"]
+#     else:
+#         return []
     
 
 rule_stem = "mod6_split_into_chromosomes"
 rule mod6_split_into_chromosomes:
     input:
-        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         bedset = rules.mod5_output.output.bedset
     output:
-        bedset =  get_split_output_files #multiext(str(tmpMod6 / "{batch}" / "mod6_split_into_chromosomes.chr{chr}"), ".bed", ".bim", ".fam")
+        bedset = multiext(str(tmpMod6 / "{batch}" / "mod6_split_into_chromosomes.chr{chr}"), ".bed", ".bim", ".fam")
     run:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
-            subprocess.run(
-                [
-                    plink2local,
-                    "--bfile", inTrunk,
-                    "--chr", wildcards.chr,
-                    "--make-bed",
-                    "--out", outTrunk
-                ]
-            )
+            if mqc.contains_variants_for_chromosome(input.bedset[1], wildcards.chr):
+                subprocess.run(
+                    [
+                        plink2local,
+                        "--bfile", inTrunk,
+                        "--chr", wildcards.chr,
+                        "--make-bed",
+                        "--out", outTrunk
+                    ]
+                )
+            else:
+                mqc.create_empty_files(output.bedset)
         except Exception as e:
             print(f"An exception occurred in rule {rule_stem}.")
             print(e)
@@ -79,16 +81,20 @@ rule mod6_split_into_chromosomes:
 rule_stem = "mod6_create_vcf"
 rule mod6_create_vcf:
     input:
+        mod5_bedset = rules.mod5_output.output.bedset
         bedset = rules.mod6_split_into_chromosomes.output.bedset
     output:
         vcf = str(tmpMod6 / "{batch}" / "mod6_create_vcf.chr{chr}.vcf")
     run:
         try:
-            inTrunk = mqc.plinkBase(input.bedset[0])
-            outTrunk = mqc.plinkBase(output.vcf)
-            bim = input.bedset[1]
-            cmd = f"{plink2local} --bfile {inTrunk} --recode vcf-iid --ref-allele {bim} 5 2 --out {outTrunk}"
-            subprocess.run(cmd, shell = True)
+            if mqc.contains_variants_for_chromosome(input.mod5_bedset[1], wildcards.chr):
+                inTrunk = mqc.plinkBase(input.bedset[0])
+                outTrunk = mqc.plinkBase(output.vcf)
+                bim = input.bedset[1]
+                cmd = f"{plink2local} --bfile {inTrunk} --recode vcf-iid --ref-allele {bim} 5 2 --out {outTrunk}"
+                subprocess.run(cmd, shell = True)
+            else:
+                mqc.create_empty_files(output.vcf)
         except Exception as e:
             print(f"An exception occurred in rule {rule_stem}.")
             print(e)
@@ -117,6 +123,9 @@ rule mod6_conform:
     shell:
         """
         echo running mod6_conform for chr {wildcards.chr}
+        if [[ ! -s {input.sorted_vcf} ]]; then
+            echo "Input VCF is empty, bypassing mod6_conform for chr {wildcards.chr}"
+            touch {output.conformed_vcf}
         if [[ {wildcards.chr} == "X" ]]; then
             echo "Bypassing conform for non-PAR X chromosome"
             bgzip -c {input.sorted_vcf} > {output.conformed_vcf}
@@ -136,7 +145,11 @@ rule mod6_index_conform:
         "envs/bcf_tabix.yaml"
     shell:
         """
+        if [[ ! -s {input.vcf} ]]; then
+            touch {output.conformed_vcf}
+        else
             tabix -p vcf {input.vcf}
+        fi
         """
 
 
