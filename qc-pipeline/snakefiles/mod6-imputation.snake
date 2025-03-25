@@ -35,25 +35,43 @@ rule mod6_extend_count_tables:
             {input.bim_files}
         """
 
+rule mod6_generate_chromosome_file:
+    input:
+        bim = rules.mod5_output.output.bedset[1]
+    output:
+        chromosome_file = str(tmpMod6/"{batch}"/"chromosomes.txt")
+    run:
+        mqc.extract_chromosomes(input.bim, output.chromosome_file)
+
+tmpMod6str = str(tmpMod6)
+def get_split_output_files(wildcards):
+    chromosomes = mqc.get_chromosome_list(f"{tmpMod6str}/{wildcards.batch}/chromosomes.txt")
+    if wildcards.chr in chromosomes:
+        return [f"{tmpMod6str}/{wildcards.batch}/mod6_split_into_chromosomes.chr{wildcards.chr}.{filetype}" for filetype in [".bed", ".bim", ".fam"]]
+    else:
+        return []
+    
+
 rule_stem = "mod6_split_into_chromosomes"
 rule mod6_split_into_chromosomes:
     input:
+        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         bedset = rules.mod5_output.output.bedset
     output:
-        bedset = multiext(str(tmpMod6 / "{batch}" / "mod6_split_into_chromosomes.chr{chr}"), ".bed", ".bim", ".fam")
+        bedset =  get_split_output_files #multiext(str(tmpMod6 / "{batch}" / "mod6_split_into_chromosomes.chr{chr}"), ".bed", ".bim", ".fam")
     run:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
-            subprocess.run(
-                [
-                    plink2local,
-                    "--bfile", inTrunk,
-                    "--chr", wildcards.chr,
-                    "--make-bed",
-                    "--out", outTrunk
-                ]
-            )
+                subprocess.run(
+                    [
+                        plink2local,
+                        "--bfile", inTrunk,
+                        "--chr", wildcards.chr,
+                        "--make-bed",
+                        "--out", outTrunk
+                    ]
+                )
         except Exception as e:
             print(f"An exception occurred in rule {rule_stem}.")
             print(e)
@@ -118,7 +136,7 @@ rule mod6_index_conform:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        tabix -p vcf {input.vcf}
+            tabix -p vcf {input.vcf}
         """
 
 

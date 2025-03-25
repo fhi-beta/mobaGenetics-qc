@@ -275,6 +275,41 @@ compOperands = {
 }
 
 
+def create_empty_files(output_files):
+    """
+    Create dummy output files to please snakemake
+    """
+    for file in output_files:
+        Path(file).touch()
+        
+def is_file_empty(file_path):
+    """
+    Checks if the file is empty
+    """
+    return Path(file_path).stat().st_size == 0
+
+def extract_chromosomes(bim_file, output_file):
+    """
+    Writes a list of chromosomes included in a bim file
+    """
+    bim_df = pd.read_csv(bim_file, delim_whitespace=True, header=None)
+    unique_chromosomes = bim_df[0].unique()
+    with open(output_file, 'w') as f:
+        for chromosome in unique_chromosomes:
+            f.write(f"{chromosome}\n")
+            
+def read_chromosomes_list(chromosomes_file):
+    with open(chromosomes_file, 'r') as f:
+        chromosomes = f.read().splitlines()
+    return chromosomes
+
+def contains_variants_for_chromosome(bim_file, chromosome):
+    """
+    Checks if a chromosome is included in a bim file
+    """
+    bim_df = pd.read_csv(bim_file, delim_whitespace=True, header=None)
+    return chromosome in bim_df[0].values
+    
 
 def reformat_phased_dosages(input_file, output_file):
     start_time = time.time()
