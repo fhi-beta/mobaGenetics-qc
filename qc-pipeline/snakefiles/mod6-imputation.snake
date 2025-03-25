@@ -81,7 +81,7 @@ rule mod6_split_into_chromosomes:
 rule_stem = "mod6_create_vcf"
 rule mod6_create_vcf:
     input:
-        mod5_bedset = rules.mod5_output.output.bedset
+        mod5_bedset = rules.mod5_output.output.bedset,
         bedset = rules.mod6_split_into_chromosomes.output.bedset
     output:
         vcf = str(tmpMod6 / "{batch}" / "mod6_create_vcf.chr{chr}.vcf")
