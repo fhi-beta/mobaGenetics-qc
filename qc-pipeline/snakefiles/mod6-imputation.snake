@@ -130,6 +130,12 @@ def get_reference_chr(wildcards):
     else:
         return wildcards.chr
 
+def get_beagle_chr(wildcards):
+    if wildcards.chr == "PAR1" or wildcards.chr == "PAR2":
+        return "X"
+    else:
+        return wildcards.chr
+
 rule mod6_conform:
     input:
         chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
@@ -138,7 +144,8 @@ rule mod6_conform:
         conformed_vcf = str(tmpMod6 / "{batch}" / "mod6_conform.chr{chr}.conformed.vcf.gz")
     threads: config["mod6conform_threads"]
     params:
-        ref_chr=get_reference_chr
+        ref_chr=get_reference_chr,
+        beagle_chr=get_beagle_chr
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -155,7 +162,7 @@ rule mod6_conform:
             reffile=$(echo {hrc_ega}/EGA*/HRC.r1-1.EGA.GRCh37.chr{params.ref_chr}.haplotypes*.vcf.gz)
             output_full={output.conformed_vcf}
             outTrunk="${{output_full%.vcf.gz}}"
-            java -Xmx{config[mod6conform_mem]} -jar {conform_gt} gt={input.sorted_vcf} ref=$reffile out=$outTrunk chrom={wildcards.chr} match=POS
+            java -Xmx{config[mod6conform_mem]} -jar {conform_gt} gt={input.sorted_vcf} ref=$reffile out=$outTrunk chrom={params.beagle_chr} match=POS
         fi
         """
 rule mod6_index_conform:
@@ -224,11 +231,7 @@ def get_map_chr(wildcards):
     else:
         return wildcards.chr
 
-def get_beagle_chr(wildcards):
-    if wildcards.chr == "PAR1" or wildcards.chr == "PAR2":
-        return "X"
-    else:
-        return wildcards.chr
+
 
 tmpMod6str = str(tmpMod6)
 def get_shapeit_fam(wildcards):
