@@ -112,7 +112,7 @@ rule mod6_sort:
     shell:
         """
         mapfile -t chromosomes < {input.chromosome_file}
-        if [[ ! " ${chromosomes[@]} " =~ " {wildcards.chr} " ]]; then
+        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
             echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_sort"
             touch {output.sorted_vcf}
         else
@@ -122,6 +122,7 @@ rule mod6_sort:
 
 rule mod6_conform:
     input:
+        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         sorted_vcf = rules.mod6_sort.output.sorted_vcf
     output:
         conformed_vcf = str(tmpMod6 / "{batch}" / "mod6_conform.chr{chr}.conformed.vcf.gz")
@@ -133,8 +134,9 @@ rule mod6_conform:
     shell:
         """
         echo running mod6_conform for chr {wildcards.chr}
-        if [[ ! -s {input.sorted_vcf} ]]; then
-            echo "Input VCF is empty, bypassing mod6_conform for chr {wildcards.chr}"
+        mapfile -t chromosomes < {input.chromosome_file}
+        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_conform"
             touch {output.conformed_vcf}
         if [[ {wildcards.chr} == "X" ]]; then
             echo "Bypassing conform for non-PAR X chromosome"
