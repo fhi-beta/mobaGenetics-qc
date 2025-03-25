@@ -127,6 +127,8 @@ def get_reference_chr(wildcards):
         return "X_PAR2"
     else if wildcards.chr == "X":
         return "X_nonPAR"
+    else:
+        return wildcards.chr
 
 rule mod6_conform:
     input:
