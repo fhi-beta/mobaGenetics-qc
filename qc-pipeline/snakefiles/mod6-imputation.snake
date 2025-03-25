@@ -103,13 +103,22 @@ rule mod6_create_vcf:
 rule_stem = "mod6_sort"
 rule mod6_sort:
     input:
+        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         vcf = rules.mod6_create_vcf.output.vcf
     output:
         sorted_vcf = str(tmpMod6 / "{batch}" / "mod6_sort.chr{chr}.sorted.vcf")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
-        "bcftools sort {input.vcf} -o {output.sorted_vcf}"
+        """
+        mapfile -t chromosomes < {input.chromosome_file}
+        if [[ ! " ${chromosomes[@]} " =~ " {wildcards.chr} " ]]; then
+            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_sort"
+            touch {output.sorted_vcf}
+        else
+            bcftools sort {input.vcf} -o {output.sorted_vcf}
+        fi
+        """
 
 rule mod6_conform:
     input:

@@ -112,7 +112,7 @@ rule all:
         #expand(tmpMod7 / "{batch}" / "mod7_format.chr{chr}.vcf.gz.tbi", batch = batches, chr = chrs)
         #expand(str(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info"), batch = batches, chr = ['X'])
         #expand(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info", batch = batches, chr = chrs)
-        expand(str(tmpMod6 / "{batch}" / "mod6_create_vcf.chr{chr}.vcf"), batch = batches, chr = ['PAR1', 'PAR2'])
+        expand(str(tmpMod6 / "{batch}" / "mod6_sort.chr{chr}.sorted.vcf"), batch = batches, chr = ['PAR1', 'PAR2'])
         #expand(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.phased.bcf", batch = ["snp001"], chr = ["22"])
         # expand(tmpMod5/ "{batch}" / "all_samples" /"mod5_output.imiss", batch = batches_debug)
 
