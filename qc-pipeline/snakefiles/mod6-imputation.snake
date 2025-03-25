@@ -123,9 +123,9 @@ rule mod6_sort:
 def get_reference_chr(wildcards):
     if wildcards.chr == "PAR1":
         return "X_PAR1"
-    else if wildcards.chr == "PAR2":
+    elif wildcards.chr == "PAR2":
         return "X_PAR2"
-    else if wildcards.chr == "X":
+    elif wildcards.chr == "X":
         return "X_nonPAR"
     else:
         return wildcards.chr
