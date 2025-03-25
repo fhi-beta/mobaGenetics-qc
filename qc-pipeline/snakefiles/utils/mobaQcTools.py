@@ -303,6 +303,10 @@ def read_chromosomes_list(chromosomes_file):
         chromosomes = f.read().splitlines()
     return chromosomes
 
+def chromosome_in_file(chromosome_file, chr):
+    chromosomes = read_chromosomes_list(chromosome_file)
+    return chr in chromosomes    
+
 def contains_variants_for_chromosome(bim_file, chromosome):
     """
     Checks if a chromosome is included in a bim file

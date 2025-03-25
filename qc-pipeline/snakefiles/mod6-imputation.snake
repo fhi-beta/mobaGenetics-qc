@@ -35,13 +35,13 @@ rule mod6_extend_count_tables:
             {input.bim_files}
         """
 
-# rule mod6_generate_chromosome_file:
-#     input:
-#         bim = rules.mod5_output.output.bedset[1]
-#     output:
-#         chromosome_file = str(tmpMod6/"{batch}"/"chromosomes.txt")
-#     run:
-#         mqc.extract_chromosomes(input.bim, output.chromosome_file)
+rule mod6_generate_chromosome_file:
+    input:
+        bim = rules.mod5_output.output.bedset[1]
+    output:
+        chromosome_file = str(tmpMod6/"{batch}"/"chromosomes.txt")
+    run:
+        mqc.extract_chromosomes(input.bim, output.chromosome_file)
 
 # tmpMod6str = str(tmpMod6)
 # def get_split_output_files(wildcards):
@@ -55,6 +55,7 @@ rule mod6_extend_count_tables:
 rule_stem = "mod6_split_into_chromosomes"
 rule mod6_split_into_chromosomes:
     input:
+        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         bedset = rules.mod5_output.output.bedset
     output:
         bedset = multiext(str(tmpMod6 / "{batch}" / "mod6_split_into_chromosomes.chr{chr}"), ".bed", ".bim", ".fam")
@@ -62,7 +63,7 @@ rule mod6_split_into_chromosomes:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
-            if mqc.contains_variants_for_chromosome(input.bedset[1], wildcards.chr):
+            if mqc.chromosome_in_file(input.chromosome_file, wildcards.chr):
                 subprocess.run(
                     [
                         plink2local,
@@ -81,13 +82,13 @@ rule mod6_split_into_chromosomes:
 rule_stem = "mod6_create_vcf"
 rule mod6_create_vcf:
     input:
-        mod5_bedset = rules.mod5_output.output.bedset,
+        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         bedset = rules.mod6_split_into_chromosomes.output.bedset
     output:
         vcf = str(tmpMod6 / "{batch}" / "mod6_create_vcf.chr{chr}.vcf")
     run:
         try:
-            if mqc.contains_variants_for_chromosome(input.mod5_bedset[1], wildcards.chr):
+            if mqc.chromosome_in_file(input.chromosome_file, wildcards.chr):
                 inTrunk = mqc.plinkBase(input.bedset[0])
                 outTrunk = mqc.plinkBase(output.vcf)
                 bim = input.bedset[1]
