@@ -311,7 +311,7 @@ def contains_variants_for_chromosome(bim_file, chromosome):
     """
     Checks if a chromosome is included in a bim file
     """
-    bim_df = pd.read_csv(bim_file, delim_whitespace=True, header=None)
+    bim_df = pd.read_csv(bim_file, sep=r'\s+', header=None)
     return chromosome in bim_df[0].values
     
 

@@ -95,7 +95,7 @@ rule mod6_create_vcf:
                 cmd = f"{plink2local} --bfile {inTrunk} --recode vcf-iid --ref-allele {bim} 5 2 --out {outTrunk}"
                 subprocess.run(cmd, shell = True)
             else:
-                mqc.create_empty_files(output.vcf)
+                mqc.create_empty_files([output.vcf])
         except Exception as e:
             print(f"An exception occurred in rule {rule_stem}.")
             print(e)
