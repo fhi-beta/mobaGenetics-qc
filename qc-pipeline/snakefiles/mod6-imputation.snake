@@ -63,15 +63,15 @@ rule mod6_split_into_chromosomes:
         try:
             inTrunk = mqc.plinkBase(input.bedset[0])
             outTrunk = mqc.plinkBase(output.bedset[0])
-                subprocess.run(
-                    [
-                        plink2local,
-                        "--bfile", inTrunk,
-                        "--chr", wildcards.chr,
-                        "--make-bed",
-                        "--out", outTrunk
-                    ]
-                )
+            subprocess.run(
+                [
+                    plink2local,
+                    "--bfile", inTrunk,
+                    "--chr", wildcards.chr,
+                    "--make-bed",
+                    "--out", outTrunk
+                ]
+            )
         except Exception as e:
             print(f"An exception occurred in rule {rule_stem}.")
             print(e)
