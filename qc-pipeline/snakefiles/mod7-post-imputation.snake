@@ -71,14 +71,25 @@ rule mod7_index_format:
         fi 
         """
 
-
+tmpMod6str = str(tmpMod6)
 tmpMod7str = str(tmpMod7)
+
+def get_batches_with_chromosome(chr):
+    batches_with_chromosome = []
+    for batch in batches:
+        chromosome_file = f"{tmpMod6str}/{batch}/chromosomes.txt"
+        if mqc.chromosome_in_file(chromosome_file, chr):
+            batches_with_chromosome.append(batch)
+    return batches_with_chromosome
+
 def get_vcf_batch_files_to_merge(wildcards):
-    return [f"{tmpMod7str}/{batch}/mod7_format.chr{wildcards.chr}.vcf.gz" for batch in batches]
+    batches_with_chromosome = get_batches_with_chromosome(wildcards.batch)
+    return [f"{tmpMod7str}/{batch}/mod7_format.chr{wildcards.chr}.vcf.gz" for batch in batches_with_chromosome]
 
 tmpMod7str = str(tmpMod7)
 def get_index_batch_files_to_merge(wildcards):
-    return [f"{tmpMod7str}/{batch}/mod7_format.chr{wildcards.chr}.vcf.gz.tbi" for batch in batches]
+    batches_with_chromosome = get_batches_with_chromosome(wildcards.batch)
+    return [f"{tmpMod7str}/{batch}/mod7_format.chr{wildcards.chr}.vcf.gz.tbi" for batch in batches_with_chromosome]
 
 rule mod7_merge_batches:
     input:
