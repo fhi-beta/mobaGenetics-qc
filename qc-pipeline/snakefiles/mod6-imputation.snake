@@ -287,6 +287,7 @@ rule mod6_phase:
 
 rule mod6_convert_to_vcf:
     input:
+        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         bcf = rules.mod6_phase.output.phased_bcf
     output:
         vcf = str(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.phased.vcf")
@@ -294,12 +295,19 @@ rule mod6_convert_to_vcf:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        bcftools convert -Ov -o {output.vcf} {input.bcf}
+        mapfile -t chromosomes < {input.chromosome_file}
+        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_convert_to_vcf"
+            touch {output.vcf}
+        else
+            bcftools convert -Ov -o {output.vcf} {input.bcf}
+        fi 
         """
 
 rule_stem = "mod6_impute"
 rule mod6_impute:
     input:
+        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         vcf = rules.mod6_convert_to_vcf.output.vcf #rules.mod6_conform.output.conformed_vcf
     output:
         imputed_vcf = str(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz")
@@ -311,11 +319,17 @@ rule mod6_impute:
         str(tmpMod6/"{batch}" / "mod6_impute_log_chr{chr}.log")
     shell:
         """
-        reffile={hrc_bref}/HRC_GRCh37.chr{wildcards.chr}.bref3
-        mapfile={mapfiles}/plink.chr{params.map_chr}.GRCh37.map
-        output_full={output.imputed_vcf}
-        outTrunk="${{output_full%.vcf.gz}}"
-        java -Xmx{config[mem]} -jar {beagle} gt={input.vcf} ref=$reffile impute=true out=$outTrunk chrom={params.beagle_chr} nthreads={config[beagle_threads]} ap=true map=$mapfile
+        mapfile -t chromosomes < {input.chromosome_file}
+        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_impute"
+            touch {output.imputed_vcf}
+        else
+            reffile={hrc_bref}/HRC_GRCh37.chr{wildcards.chr}.bref3
+            mapfile={mapfiles}/plink.chr{params.map_chr}.GRCh37.map
+            output_full={output.imputed_vcf}
+            outTrunk="${{output_full%.vcf.gz}}"
+            java -Xmx{config[mem]} -jar {beagle} gt={input.vcf} ref=$reffile impute=true out=$outTrunk chrom={params.beagle_chr} nthreads={config[beagle_threads]} ap=true map=$mapfile
+        fi 
         """
 
 # rule mod6_norm_and_rename:
