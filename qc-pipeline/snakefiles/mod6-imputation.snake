@@ -320,15 +320,25 @@ rule mod6_impute:
     shell:
         """
         mapfile -t chromosomes < {input.chromosome_file}
+        
         if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
             echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_impute"
             touch {output.imputed_vcf}
+        
         else
-            reffile={hrc_bref}/HRC_GRCh37.chr{wildcards.chr}.bref3
-            mapfile={mapfiles}/plink.chr{params.map_chr}.GRCh37.map
-            output_full={output.imputed_vcf}
-            outTrunk="${{output_full%.vcf.gz}}"
-            java -Xmx{config[mem]} -jar {beagle} gt={input.vcf} ref=$reffile impute=true out=$outTrunk chrom={params.beagle_chr} nthreads={config[beagle_threads]} ap=true map=$mapfile
+            # Count the number of variants in the VCF file (excluding header lines)
+            variant_count=$(zgrep -v "^#" {input.vcf} | wc -l)
+            
+            if [[ $variant_count -le 1 ]]; then
+                echo "Less than 2 variants found in input VCF for batch {wildcards.batch}, bypassing imputation for chr {wildcards.chr}"
+                touch {output.imputed_vcf}
+            else
+                reffile={hrc_bref}/HRC_GRCh37.chr{wildcards.chr}.bref3
+                mapfile={mapfiles}/plink.chr{params.map_chr}.GRCh37.map
+                output_full={output.imputed_vcf}
+                outTrunk="${{output_full%.vcf.gz}}"
+                java -Xmx{config[mem]} -jar {beagle} gt={input.vcf} ref=$reffile impute=true out=$outTrunk chrom={params.beagle_chr} nthreads={config[beagle_threads]} ap=true map=$mapfile
+            fi
         fi 
         """
 
@@ -347,6 +357,8 @@ rule mod6_impute:
     
 rule mod6_index:
     input:
+        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
+        pre_impute_vcf = rules.mod6_convert_to_vcf.output.vcf,
         imputed_vcf = rules.mod6_impute.output.imputed_vcf
     output:
         index = str(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.tbi")
@@ -354,7 +366,24 @@ rule mod6_index:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        tabix -p vcf {input.imputed_vcf}
+        mapfile -t chromosomes < {input.chromosome_file}
+        
+        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_index"
+            touch {output.index}
+        
+        else
+            # Count the number of variants in the VCF file (excluding header lines)
+            variant_count=$(zgrep -v "^#" {input.vcf} | wc -l)
+            
+            if [[ $variant_count -le 1 ]]; then
+                echo "Less than 2 variants found in input VCF for batch {wildcards.batch}, bypassing index for chr {wildcards.chr}"
+                touch {output.index}
+            else
+                tabix -p vcf {input.imputed_vcf}
+            fi
+        fi 
+        
         """
 
 rule mod6_query:
