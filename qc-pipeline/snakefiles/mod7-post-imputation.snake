@@ -83,12 +83,12 @@ def get_batches_with_chromosome(chr):
     return batches_with_chromosome
 
 def get_vcf_batch_files_to_merge(wildcards):
-    batches_with_chromosome = get_batches_with_chromosome(wildcards.batch)
+    batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
     return [f"{tmpMod7str}/{batch}/mod7_format.chr{wildcards.chr}.vcf.gz" for batch in batches_with_chromosome]
 
 tmpMod7str = str(tmpMod7)
 def get_index_batch_files_to_merge(wildcards):
-    batches_with_chromosome = get_batches_with_chromosome(wildcards.batch)
+    batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
     return [f"{tmpMod7str}/{batch}/mod7_format.chr{wildcards.chr}.vcf.gz.tbi" for batch in batches_with_chromosome]
 
 rule mod7_merge_batches:
