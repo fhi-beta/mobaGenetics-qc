@@ -167,6 +167,7 @@ rule mod6_conform:
         """
 rule mod6_index_conform:
     input:
+        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         vcf = rules.mod6_conform.output.conformed_vcf
     output:
         index = str(tmpMod6 / "{batch}" / "mod6_conform.chr{chr}.conformed.vcf.gz.tbi")
@@ -174,8 +175,10 @@ rule mod6_index_conform:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        if [[ ! -s {input.vcf} ]]; then
-            touch {output.conformed_vcf}
+        mapfile -t chromosomes < {input.chromosome_file}
+        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_index_conform"
+            touch {output.index}
         else
             tabix -p vcf {input.vcf}
         fi
@@ -184,6 +187,7 @@ rule mod6_index_conform:
 
 rule mod6_fill_ac:
     input:
+        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         vcf = rules.mod6_conform.output.conformed_vcf,
         index = rules.mod6_index_conform.output.index
     output:
@@ -192,7 +196,13 @@ rule mod6_fill_ac:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        bcftools +fill-AN-AC -Ob {input.vcf} -o {output.bcf}
+        mapfile -t chromosomes < {input.chromosome_file}
+        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_fill_ac"
+            touch {output.bcf}
+        else
+            bcftools +fill-AN-AC -Ob {input.vcf} -o {output.bcf}
+        fi
         """
 rule mod6_generate_shapeit_family_files:
     input:
@@ -204,6 +214,7 @@ rule mod6_generate_shapeit_family_files:
 
 rule mod6_index_fill_ac:
     input:
+        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         bcf = rules.mod6_fill_ac.output.bcf
     output:
         index = str(tmpMod6 / "{batch}" / "mod6_fill_ac.chr{chr}.bcf.gz.csi")
@@ -211,7 +222,13 @@ rule mod6_index_fill_ac:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        tabix -p bcf {input.bcf}
+        mapfile -t chromosomes < {input.chromosome_file}
+        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_index_fill_ac"
+            touch {output.index}
+        else
+            tabix -p bcf {input.bcf}
+        fi
         """
 
 
@@ -239,6 +256,7 @@ def get_shapeit_fam(wildcards):
 
 rule mod6_phase:
     input:
+        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         shapeit_fam = get_shapeit_fam,
         bcf = rules.mod6_fill_ac.output.bcf,
         index = rules.mod6_index_fill_ac.output.index
@@ -247,15 +265,22 @@ rule mod6_phase:
         shapeit_log = str(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.phased.log")
     params:
         map_chr=get_map_chr,
-        ref_chr=lambda wildcards: "X_nonPAR" if wildcards.chr == "X" else wildcards.chr
+        ref_chr=get_reference_chr
     conda:
         "envs/shapeit_5.yaml"
     threads: 1
     shell:
         """
-        reffile=$(echo {hrc_vcf}/HRC.r1-1.EGA.GRCh37.chr{params.ref_chr}.haplotypes*.vcf.gz)
-        mapfile={mapfiles}/shapeit/chr{params.map_chr}.b37.gmap.gz
-        SHAPEIT5_phase_common --input {input.bcf} --pedigree {input.shapeit_fam} --region {wildcards.chr} --reference $reffile --map $mapfile --output {output.phased_bcf} --output-format bcf --log {output.shapeit_log} --thread {threads}
+        mapfile -t chromosomes < {input.chromosome_file}
+        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_phase"
+            touch {output.phased_bcf}
+            touch {output.shapeit_log}
+        else
+            reffile=$(echo {hrc_vcf}/HRC.r1-1.EGA.GRCh37.chr{params.ref_chr}.haplotypes*.vcf.gz)
+            mapfile={mapfiles}/shapeit/chr{params.map_chr}.b37.gmap.gz
+            SHAPEIT5_phase_common --input {input.bcf} --pedigree {input.shapeit_fam} --region {wildcards.chr} --reference $reffile --map $mapfile --output {output.phased_bcf} --output-format bcf --log {output.shapeit_log} --thread {threads}
+        fi
         """
 
 
