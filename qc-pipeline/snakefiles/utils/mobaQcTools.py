@@ -300,17 +300,6 @@ def extract_chromosomes(bim_file, output_file, min_variants=2):
         for chromosome in ordered_chromosomes:
             f.write(f"{chromosome}\n")
             
-            
-def extract_chromosomes(bim_file, output_file):
-    """
-    Writes a list of chromosomes included in a bim file
-    """
-    bim_df = pd.read_csv(bim_file, delim_whitespace=True, header=None)
-    unique_chromosomes = bim_df[0].unique()
-    with open(output_file, 'w') as f:
-        for chromosome in unique_chromosomes:
-            f.write(f"{chromosome}\n")
-            
 def read_chromosomes_list(chromosomes_file):
     with open(chromosomes_file, 'r') as f:
         chromosomes = f.read().splitlines()
