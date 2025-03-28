@@ -162,7 +162,7 @@ rule mod7_convert_chrs_to_pgen:
         )
 
 tmpMod7str = str(tmpMod7)
-def chrX_pgens_to_merge:
+def chrX_pgens_to_merge(wildcards):
     return [f"{tmpMod7str}/mod7_convert_chrs_to_pgen.chr{chr}.pgen" for chr in ['PAR1', 'X', 'PAR2']]
 
 rule mod7_merge_X:
