@@ -152,10 +152,10 @@ rule mod7_convert_chrs_to_pgen:
         subprocess.run(
             [
                 plink2local,
-                "--vcf", input.vcf,
-                "dosage=HDS",
+                "--vcf", input.vcf, "dosage=HDS",
                 "--update-sex", input.sex_file,
                 "--memory", config['mod7_convert_chrs_to_pgen_mem'],
+                "--split-par", "b37",
                 "--make-pgen",
                 "--out", outTrunk
             ]
@@ -170,9 +170,10 @@ rule mod7_merge:
         pgens = chr_pgens_to_merge
     output:
         pgenset = multiext(str(tmpMod7 / "mod7_merge"), ".pgen", ".pvar", ".psam")
+    threads: 32
     run:
         out_trunk = mqc.plinkBase(output.pgenset[0])
-        mqc.merge_pgensets(input.pgens, out_trunk, plink2local)
+        mqc.merge_pgensets(input.pgens, out_trunk, plink2local, threads)
 
 def get_info_files(wildcards):
     tmpMod6str = str(tmpMod6)
@@ -186,8 +187,6 @@ rule summarize_dr2:
         # top_snps = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_best_snps.txt")
     threads: 24
     run:
-        batches = batches_debug #remove in prod!
-        chrs = chrs_debug #remove in prod!
         input_base = str(tmpMod6)
         mqc.summarize_dr2(input_base, output.dr2, batches, chrs, threads, n_samples = wildcards.number_of_samples)
 

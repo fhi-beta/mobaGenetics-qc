@@ -1707,7 +1707,7 @@ def create_fam_map(fam_file, map_in_file,  map_out_file):
 
 
 
-def merge_pgensets(pgens, out_trunk, plink2local):
+def merge_pgensets(pgens, out_trunk, plink2local, threads):
     """
     pgen: list of .pgen-files
     merges the pgen-sets associated with the .pgen-files in pgens into a single pgen-set with filebase out_trunk (only works for concatenation-jobs)
@@ -1716,7 +1716,7 @@ def merge_pgensets(pgens, out_trunk, plink2local):
     # Generate list of files to merge
     pgenset_dir=$(dirname "{out_trunk}")
     echo {pgens} | tr ' ' '\\n' | sed 's/\.pgen//' > $pgenset_dir/pgen_list.txt
-    {plink2local} --pmerge-list $pgenset_dir/pgen_list.txt --out {out_trunk}
+    {plink2local} --pmerge-list $pgenset_dir/pgen_list.txt --threads {threads} --out {out_trunk}
     """
     subprocess.run(cmd, shell=True, check=True)
 
