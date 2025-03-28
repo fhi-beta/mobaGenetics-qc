@@ -191,7 +191,9 @@ rule mod7_sort_x:
         ])
 
 def chr_pgens_to_merge(wildcards):
-    return [f"{tmpMod7str}/mod7_convert_chrs_to_pgen.chr{chr}.pgen" for chr in chrs]
+    chrs_to_merge = [f"{tmpMod7str}/mod7_convert_chrs_to_pgen.chr{chr}.pgen" for chr in chrs]
+    chrs_to_merge.append(f"{tmpMod7str}/mod7_sort_X.pgen")
+    return chrs_to_merge
 
 rule mod7_merge:
     input:
