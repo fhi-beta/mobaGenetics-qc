@@ -179,7 +179,7 @@ rule mod7_sort_x:
         pgenset = rules.mod7_merge_x.output.pgenset
     output:
         pgenset = multiext(str(tmpMod7 / "mod7_sort_X"), ".pgen", ".pvar", ".psam")
-    shell:
+    run:
         in_trunk = mqc.plinkBase(input.pgenset[0])
         out_trunk = mqc.plinkBase(output.pgenset[1])
         subprocess.run([
