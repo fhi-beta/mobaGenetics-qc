@@ -325,7 +325,7 @@ rule mod8_merge_Y:
     input:
         beds = get_Y_beds_to_merge
     output:
-        bedset = multiext(str(tmpMod8 / "mod8_merged_Y"),".pgen",".pvar",".psam")
+        bedset = multiext(str(tmpMod8 / "mod8_merged_Y"),".bed",".bim",".fam")
     run:
         out_trunk = mqc.plinkBase(output.bedset[0])
         mqc.merge_bedsets(input.beds, out_trunk, plinklocal)
