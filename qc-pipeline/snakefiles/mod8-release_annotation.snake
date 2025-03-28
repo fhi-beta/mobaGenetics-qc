@@ -317,6 +317,19 @@ rule mod8_generate_best_snps_stats:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
+tmpMod4str = str(tmpMod4)
+def get_Y_beds_to_merge(wildcards):
+    return [f"{tmpMod4str}/{batch}/m4_split_Y.bed" for batch in batches]
+    
+rule mod8_merge_Y:
+    input:
+        beds = get_Y_beds_to_merge
+    output:
+        bedset = multiext(str(tmpMod8 / "mod8_merged_Y"),".pgen",".pvar",".psam")
+    run:
+        out_trunk = mqc.plinkBase(output.bedset[0])
+        mqc.merge_bedsets(input.beds, out_trunk, plinklocal)
+
 rule_stem = 'mod8_check_sex'
 rule mod8_check_sex:
     'Sex imputation. Currently not supported in plink2, running in plink1.'

@@ -1709,7 +1709,7 @@ def create_fam_map(fam_file, map_in_file,  map_out_file):
 
 def merge_pgensets(pgens, out_trunk, plink2local, threads, pgenlist_file = "pgen_list"):
     """
-    pgen: list of .pgen-files
+    pgens: list of .pgen-files
     merges the pgen-sets associated with the .pgen-files in pgens into a single pgen-set with filebase out_trunk (only works for concatenation-jobs)
     """
     cmd = f"""
@@ -1720,6 +1720,19 @@ def merge_pgensets(pgens, out_trunk, plink2local, threads, pgenlist_file = "pgen
     """
     subprocess.run(cmd, shell=True, check=True)
 
+
+def merge_bedsets(beds, out_trunk, plinklocal, bedlist_file = "bed_list"):
+    """
+    beds: list of .bed-files
+    merges the bedsets associated with the .bed-files in beds into a single bedset with filebase out_trunk
+    """
+    cmd = f"""
+    # Generate list of files to merge
+    bedset_dir=$(dirname "{out_trunk}")
+    echo {beds} | tr ' ' '\\n' | sed 's/\.bed//' > $bedset_dir/{bedlist_file}.txt
+    {plinklocal} --merge-list $bedset_dir/{bedlist_file}.txt --make-bed --out {out_trunk}
+    """
+    subprocess.run(cmd, shell=True, check=True)
 
 def main():
     # if you want to test a function
