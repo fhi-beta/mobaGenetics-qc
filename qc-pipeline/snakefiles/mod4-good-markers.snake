@@ -1060,7 +1060,7 @@ rule m4_output_good_markers:
 
 rule m4_split_Y:
     input:
-        rules.m4_output.output.bedset
+        bedset = rules.m4_output.output.bedset
     output:
         m4_split_Y = multiext(os.path.join(tmpMod4, "{batch}", "m4_split_Y"), '.bed', '.bim', '.fam')
     run:
