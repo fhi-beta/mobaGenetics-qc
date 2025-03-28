@@ -1062,17 +1062,17 @@ rule m4_split_Y:
     input:
         bedset = rules.m4_output.output.bedset
     output:
-        m4_split_Y = multiext(os.path.join(tmpMod4, "{batch}", "m4_split_Y"), '.bed', '.bim', '.fam')
+        bedset = multiext(os.path.join(tmpMod4, "{batch}", "m4_split_Y"), '.bed', '.bim', '.fam')
     run:
         inTrunk = mqc.plinkBase(input.bedset[0])
         outTrunk = mqc.plinkBase(output.bedset[0])
-            subprocess.run(
-                [
-                    plink2local,
-                    "--bfile", inTrunk,
-                    "--chr", "24",
-                    "--make-bed",
-                    "--out", outTrunk
-                ]
-            )
+        subprocess.run(
+            [
+                plink2local,
+                "--bfile", inTrunk,
+                "--chr", "24",
+                "--make-bed",
+                "--out", outTrunk
+            ]
+        )
 
