@@ -176,7 +176,7 @@ rule mod7_merge_X:
 
 rule mod7_sort_x:
     input:
-        pgenset = rules.mod7_merge_x.output.pgenset
+        pgenset = rules.mod7_merge_X.output.pgenset
     output:
         pgenset = multiext(str(tmpMod7 / "mod7_sort_X"), ".pgen", ".pvar", ".psam")
     run:
