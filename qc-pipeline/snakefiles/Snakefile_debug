@@ -83,7 +83,7 @@ rule all:
         #expand(tmpMod5/"{batch}"/"all_samples"/ "report" /"pre_imputation_report.md", batch = batches_debug).
        # expand(str(tmpMod7 / f"{n_samples}_samples" / "mod7_merge_batches_chr{chr}.vcf.gz"), chr = chrs_debug)
         # str(tmpMod7 / "all_samples" / "mod7_duplicate_samples.txt")
-        #str(tmpMod7 / "all_samples" / "mod7_rename_missing_ids.pgen")
+        str(tmpMod7 / "mod7_rename_missing_ids.pgen")
         # str(tmpMod7 / "all_samples" / "mod7_rename_missing_ids.pgen")
         #str(tmpMod7 / f"{n_samples}_samples" / "mod7_dr2.txt.gz")
         #str(tmpMod7 / f"{n_samples}_samples" / "mod7_ld.prune.in")
@@ -107,7 +107,7 @@ rule all:
         # expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_output.vcf.gz"), batch = batches_debug)
         # expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_merge_chrs.vcf.gz"), batch = batches_debug)
        # expand(str(tmpMod6Archive / "{batch}" / f"{n_samples}_samples" / "mod6_merge_chrs.vcf.gz"), batch = batches_debug)
-        tmpMod7 / "mod7_merge.pgen"
+        #tmpMod7 / "mod7_merge.pgen"
         #expand(tmpMod7 / "{batch}" / "mod7_filter_and_format_phased_dosage.chr{chr}.vcf.gz", batch = batches, chr = chrs)
         #expand(tmpMod7 / "{batch}" / "mod7_format.chr{chr}.vcf.gz.tbi", batch = batches, chr = ['PAR1', 'PAR2'])
         #tmpMod7 / "mod7_sort_X.pgen"

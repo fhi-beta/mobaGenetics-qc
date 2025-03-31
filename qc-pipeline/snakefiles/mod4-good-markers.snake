@@ -1071,6 +1071,7 @@ rule m4_split_Y:
                 plink2local,
                 "--bfile", inTrunk,
                 "--chr", "24",
+                "--max-alleles 2"
                 "--make-bed",
                 "--out", outTrunk
             ]
