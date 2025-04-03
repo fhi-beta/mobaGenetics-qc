@@ -215,7 +215,7 @@ rule summarize_dr2:
     input:
         info = get_info_files
     output:
-        dr2 = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_dr2.txt.gz")
+        dr2 = str(tmpMod7 / "mod7_dr2.txt.gz")
         # top_snps = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_best_snps.txt")
     threads: 24
     run:
