@@ -1544,7 +1544,7 @@ def load_fam_file(fam_file):
     df = pd.read_csv(fam_file, delim_whitespace=True, header=None, names=['FID', '#IID', 'PID', 'MID', 'SEX', 'Phenotype'])
     return df
 
-def summarize_dr2(base, dr2_df_file, batches, chrs, threads, n_samples = "all", snp_cutoff = 500000):
+def summarize_dr2(base, dr2_df_file, batches, chrs, threads):
     """
     A method for writing a file with the dr2 values after imputation
     """
@@ -1552,7 +1552,7 @@ def summarize_dr2(base, dr2_df_file, batches, chrs, threads, n_samples = "all", 
     dr2_df = None
     for batch in batches:
         print(f"Reading data for batch {batch}...")
-        info_files = [rf'{base}/{batch}/{n_samples}_samples/mod6_impute.chr{chr}.imputed.vcf.gz.info' for chr in chrs]
+        info_files = [rf'{base}/{batch}/mod6_impute.chr{chr}.imputed.vcf.gz.info' for chr in chrs]
         batch_dfs = []
         with mp.Pool(threads) as pool:
             batch_dfs = pool.map(fetch_info_data, info_files)
@@ -1560,7 +1560,7 @@ def summarize_dr2(base, dr2_df_file, batches, chrs, threads, n_samples = "all", 
         if dr2_df is None:
             dr2_df = df_batch[["CHROM", "POS", "ID", "IMP", "REF", "ALT"]]
         dr2_df[batch] = df_batch["DR2"]
-        vcf_file = rf'{base}/{batch}/{n_samples}_samples/mod6_impute.chr{chrs[-1]}.imputed.vcf.gz'
+        vcf_file = rf'{base}/{batch}/mod6_impute.chr{chrs[-1]}.imputed.vcf.gz'
         sample_sizes.append(get_n_samples(vcf_file))
     sample_sizes = np.array(sample_sizes)
     N = sum(sample_sizes)
