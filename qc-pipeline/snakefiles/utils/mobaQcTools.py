@@ -1560,11 +1560,12 @@ def summarize_dr2(base, dr2_df_file, batches, chrs, threads):
         if dr2_df is None:
             dr2_df = df_batch[["CHROM", "POS", "ID", "IMP", "REF", "ALT"]]
         dr2_df[batch] = df_batch["DR2"]
-        vcf_file = rf'{base}/{batch}/mod6_impute.chr{chrs[-1]}.imputed.vcf.gz'
+        vcf_file = rf'{base}/{batch}/mod6_impute.chr1.imputed.vcf.gz'
         sample_sizes.append(get_n_samples(vcf_file))
     sample_sizes = np.array(sample_sizes)
     N = sum(sample_sizes)
-    dr2_df["COMBINED"] = (((np.sqrt(dr2_df[[b for b in batches]])*sample_sizes).sum(axis=1))/N)**2
+    dr2_df.fillna(0, inplace=True)
+    dr2_df["COMBINED"] = ((((np.sqrt(dr2_df[[b for b in batches]])*sample_sizes).sum(axis=1))/N)**2).round(2)
     dr2_df.to_csv(dr2_df_file, sep="\t", index=False)
     # dr2_df_remove_multiallelics = dr2_df.drop_duplicates(subset=['CHROM', 'POS'], keep=False)
     # best_snp_df = dr2_df_remove_multiallelics.nlargest(snp_cutoff, "COMBINED")["ID"]
@@ -1589,6 +1590,7 @@ def get_n_samples(vcf_file):
             if line.startswith('#CHROM'):
                 columns = line.strip().split('\t')
                 return len(columns) - 9  # Subtract the 9 fixed VCF columns
+    print(f"Warning! No samples found for {vcf_file}. Returns 0")
     return 0
 
 def find_high_dr2_variants(dr2_file, counts_file, out, batch_threshold, combined_threshold, counts_threshold):
