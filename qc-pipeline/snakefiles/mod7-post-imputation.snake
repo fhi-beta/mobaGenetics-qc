@@ -207,6 +207,21 @@ rule mod7_merge:
         out_trunk = mqc.plinkBase(output.pgenset[0])
         mqc.merge_pgensets(input.pgens, out_trunk, plink2local, threads)
 
+# def get_info_files(wildcards):
+#     tmpMod6str = str(tmpMod6)
+#     return [rf"{tmpMod6str}/{batch}/{wildcards.number_of_samples}_samples/mod6_impute.chr{chr}.imputed.vcf.gz.info" for batch in batches for chr in chrs]
+
+# rule summarize_dr2:
+#     input:
+#         info = get_info_files
+#     output:
+#         dr2 = str(tmpMod7 / "mod7_dr2.txt.gz")
+#         # top_snps = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_best_snps.txt")
+#     threads: 24
+#     run:
+#         input_base = str(tmpMod6)
+#         mqc.summarize_dr2(input_base, output.dr2, batches, chrs, threads, n_samples = wildcards.number_of_samples)
+
 
 rule mod7_rename_missing_ids:
     input:
@@ -223,218 +238,76 @@ rule mod7_rename_missing_ids:
         {plink2local} --pfile $inTrunk --set-missing-var-ids @_#_\$1:\$2 --make-pgen --out $outTrunk
         """
 
-rule mod7_allele_counts:
-    input:
-        pgenset = rules.mod7_rename_missing_ids.output.pgenset
-    output:
-        counts = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_allele_counts.acount")
-    run:
-        in_trunk = mqc.plinkBase(input.pgenset[0])
-        out_trunk = mqc.plinkBase(mqc.plinkBase(output.counts))
-        subprocess.run(
-            [
-                plink2local,
-                "--pfile", in_trunk,
-                "--freq", "counts",
-                "--out", out_trunk
-            ]
-        )
-    
 
-rule mod7_extract_high_dr2_variants:
-    input:
-        dr2 = rules.summarize_dr2.output.dr2,
-        pgenset = rules.mod7_rename_missing_ids.output.pgenset,
-        counts = rules.mod7_allele_counts.output.counts
-    output:
-        variants = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_high_dr2_variants.txt"),
-        pgenset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_extract_high_dr2_variants"), ".pgen", ".pvar", ".psam")
-    run:
-        mqc.find_high_dr2_variants(input.dr2, input.counts, output.variants, config['batch_dr2_threshold'], config['combined_dr2_threshold'], config['counts_threshold'])
-        in_trunk = mqc.plinkBase(input.pgenset[0])
-        out_trunk = mqc.plinkBase(output.pgenset[0])
-        subprocess.run(
-            [
-                plink2local,
-                "--pfile", in_trunk,
-                "--extract", output.variants,
-                "--make-pgen",
-                "--out", out_trunk
-            ]
-        )
-
-
-rule mod7_ld:
-    input:
-        pgenset = rules.mod7_extract_high_dr2_variants.output.pgenset
-    output:
-        prune_in = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_ld.prune.in")
-    threads: workflow.cores
-    run:
-        in_trunk = mqc.plinkBase(input.pgenset[0])
-        out_trunk = mqc.plinkBase(mqc.plinkBase(output.prune_in))
-        subprocess.run(
-            [
-                plink2local,
-                "--pfile", in_trunk,
-                "--indep-pairwise", "200kb", "0.5",
-                "--out", out_trunk
-            ]
-        )
-
-rule mod7_best_snps_le:
-    input:
-        prune_in = rules.mod7_ld.output.prune_in,
-        dr2 = rules.summarize_dr2.output.dr2
-    output:
-        best_snps = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_best_snps_le.txt")
-    run:
-        mqc.best_snps_of_subset(input.dr2, output.best_snps, 500000, input.prune_in)
-
-
-
-
-# def get_pre_imputation_fam_files(wildcards):
-#     tmpMod5str = str(tmpMod5)
-#     return [f"{tmpMod5str}/{batch}/{wildcards.number_of_samples}_samples/mod5_output.fam" for batch in batches]
-
-# rule mod7_restore_family_information:
+# 
+# rule mod7_allele_counts:
 #     input:
-#         pgenset = rules.mod7_merge.output.pgenset,
-#         fam_files = get_pre_imputation_fam_files
+#         pgenset = rules.mod7_rename_missing_ids.output.pgenset
 #     output:
-#         str(tmpMod7 / "{number_of_samples}_samples" / "mod7_output.original.psam")
+#         counts = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_allele_counts.acount")
 #     run:
 #         in_trunk = mqc.plinkBase(input.pgenset[0])
-#         new_psam = input.pgenset[2]
-#         original_psam = in_trunk + ".original.psam"
-#         os.rename(new_psam, original_psam)
-#         mqc.restore_family_information(input.fam_files, batches, original_psam, new_psam)
-
-
-
-
- #bcftools query -f '%CHROM %POS %ID %IMP %REF %ALT %DR2 %AF\n' mod6_impute.chr21.imputed.vcf.gz -o mod6_impute.chr21.imputed.info2 
-
-
-# chrs = chrs_debug # remove in prod!less 
-# tmpMod7str = str(tmpMod7)
-# def get_chr_vcf_files_to_merge(wildcards):
-#     return [f"{tmpMod7str}/{wildcards.number_of_samples}_samples/mod7_merge_batches_chr{chr}.vcf.gz" for chr in chrs]
-
-# def get_chr_index_files(wildcards):
-#     return [f"{tmpMod7str}/{wildcards.number_of_samples}_samples/mod7_merge_batches_chr{chr}.vcf.gz.tbi" for chr in chrs]
-    
-# rule mod7_merge_chrs:
-#     input:
-#         chr_vcfs = get_chr_vcf_files_to_merge,
-#         index = get_chr_index_files
-#     log:
-#         str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_chrs.log")
-#     output:
-#         merged_vcf = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_chrs.vcf.gz")
-#     conda:
-#         "envs/bcf_tabix.yaml"
-#     shell:
-#         """
-#         echo "Output file: {output.merged_vcf}" > {log}
-#         echo "Merge started $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
-#         bcftools concat {input.chr_vcfs} -o {output.merged_vcf}
-#         echo "Merge finished $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
-#         echo "Merged files:" >> {log}
-#         for file in {input.chr_vcfs}; do echo "$file" >> {log}; done
-#         """
-# batches = batches_debug # remove in prod!
-# def get_pre_imputation_fam_files(wildcards):
-#     tmpMod5str = str(tmpMod5)
-#     return [f"{tmpMod5str}/{batch}/{wildcards.number_of_samples}_samples/mod5_output.fam" for batch in batches]
-
-# rule mod7_output:
-#     input:
-#         merged_vcf = rules.mod7_merge_chrs.output.merged_vcf,
-#         fam_files = get_pre_imputation_fam_files
-#     output:
-#         pgenset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
-#         #pgenset = multiext(str(tmpMergeTest / "{number_of_samples}_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
-#     run:
-#         outTrunk = mqc.plinkBase(output.pgenset[0])
-#         new_psam = output.pgenset[2]
-#         original_psam = outTrunk + ".original.psam"
+#         out_trunk = mqc.plinkBase(mqc.plinkBase(output.counts))
 #         subprocess.run(
 #             [
 #                 plink2local,
-#                 "--vcf", input.merged_vcf,
-#                 "--make-pgen",
-#                 "--out", outTrunk
+#                 "--pfile", in_trunk,
+#                 "--freq", "counts",
+#                 "--out", out_trunk
 #             ]
 #         )
-#         os.rename(new_psam, original_psam)
-#         mqc.restore_family_information(input.fam_files, batches, original_psam, new_psam)
-    # shell:
-    #     """
-    #     output_full={output.pgenset[0]}
-    #     outTrunk="${{output_full%.pgen}}"
-    #     {plink2local} --vcf {input.merged_vcf} --make-pgen --out $outTrunk
-    #     """
+    
 
-
-
-
-# def get_batch_vcf_files_to_merge(wildcards):
-#     # tmpMod6str = str(tmpMod6Archive)
-#     tmpMod6str = str(tmpMergeTest)
-#     return [f"{tmpMod6str}/{batch}/{wildcards.number_of_samples}_samples/mod6_output.vcf.gz" for batch in batches]
-#     #return [f"{tmpMod6str}/{batch}/{wildcards.number_of_samples}_samples/mod6_merge_chrs.vcf.gz" for batch in batches]
-
-# rule mod7_merge_batches:
+# rule mod7_extract_high_dr2_variants:
 #     input:
-#         vcfs = get_batch_vcf_files_to_merge
+#         dr2 = rules.summarize_dr2.output.dr2,
+#         pgenset = rules.mod7_rename_missing_ids.output.pgenset,
+#         counts = rules.mod7_allele_counts.output.counts
 #     output:
-#         # merged_vcf = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches.vcf.gz")
-#         merged_vcf = str(tmpMergeTest / "{number_of_samples}_samples" / "mod7_merge_batches.vcf.gz")
-#     log:
-#         # str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches.log")
-#         str(tmpMergeTest / "{number_of_samples}_samples" / "mod7_merge_batches.log")
-#     conda:
-#         "envs/bcf_tabix.yaml"
-#     shell:
-#         """
-#         echo "Output file: {output.merged_vcf}" > {log}
-#         echo "Merge started $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
-#         bcftools merge {input.vcfs} -o {output.merged_vcf}
-#         echo "Merge finished $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
-#         echo "Merged files:" >> {log}
-#         for file in {input.vcfs}; do echo "$file" >> {log}; done
-#         """
-
-# rule mod7_output:
-#     input:
-#         merged_vcf = rules.mod7_merge_batches.output.merged_vcf
-#     output:
-#         # pgenset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
-#         pgenset = multiext(str(tmpMergeTest / "{number_of_samples}_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
-#     shell:
-#         """
-#         output_full={output.pgenset[0]}
-#         outTrunk="${{output_full%.pgen}}"
-#         {plink2local} --vcf {input.merged_vcf} --make-pgen --out $outTrunk
-#         """
-
-
-
-
-# # merge is not implemented in plink 2 yet, so this rule doesn't work
-# batches = batches_debug
-# def batch_pgens_to_merge(wildcards):
-#     tmpMod6str = str(tmpMod6)
-#     return [f"{tmpMod6str}/{batch}/{n_samples}_samples/mod6_output.pgen" for batch in batches]
-
-# rule mod7_merge:
-#     input:
-#         pgens = batch_pgens_to_merge
-#     output:
-#         pgenset = multiext(str(tmpMod7 / "all_samples" / "mod7_output"), ".pgen", ".pvar", ".psam")
+#         variants = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_high_dr2_variants.txt"),
+#         pgenset = multiext(str(tmpMod7 / "{number_of_samples}_samples" / "mod7_extract_high_dr2_variants"), ".pgen", ".pvar", ".psam")
 #     run:
+#         mqc.find_high_dr2_variants(input.dr2, input.counts, output.variants, config['batch_dr2_threshold'], config['combined_dr2_threshold'], config['counts_threshold'])
+#         in_trunk = mqc.plinkBase(input.pgenset[0])
 #         out_trunk = mqc.plinkBase(output.pgenset[0])
-#         # merge batches:
-#         mqc.merge_pgensets(input.pgens, out_trunk, plink2local)
+#         subprocess.run(
+#             [
+#                 plink2local,
+#                 "--pfile", in_trunk,
+#                 "--extract", output.variants,
+#                 "--make-pgen",
+#                 "--out", out_trunk
+#             ]
+#         )
+
+
+# rule mod7_ld:
+#     input:
+#         pgenset = rules.mod7_extract_high_dr2_variants.output.pgenset
+#     output:
+#         prune_in = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_ld.prune.in")
+#     threads: workflow.cores
+#     run:
+#         in_trunk = mqc.plinkBase(input.pgenset[0])
+#         out_trunk = mqc.plinkBase(mqc.plinkBase(output.prune_in))
+#         subprocess.run(
+#             [
+#                 plink2local,
+#                 "--pfile", in_trunk,
+#                 "--indep-pairwise", "200kb", "0.5",
+#                 "--out", out_trunk
+#             ]
+#         )
+
+# rule mod7_best_snps_le:
+#     input:
+#         prune_in = rules.mod7_ld.output.prune_in,
+#         dr2 = rules.summarize_dr2.output.dr2
+#     output:
+#         best_snps = str(tmpMod7 / "{number_of_samples}_samples" / "mod7_best_snps_le.txt")
+#     run:
+#         mqc.best_snps_of_subset(input.dr2, output.best_snps, 500000, input.prune_in)
+
+
+
+
