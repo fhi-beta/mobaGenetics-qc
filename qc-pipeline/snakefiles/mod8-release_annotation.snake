@@ -79,15 +79,14 @@ rule mod8_split_rare_common:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
-
+chrs_without_par = copy.copy(chrs) # remove PAR since they are not covered in all batches
+if 'PAR1' in chrs_without_par:
+    chrs_without_par.remove('PAR1')
+if 'PAR2' in chrs_without_par:
+    chrs_without_par.remove('PAR2')
 def get_info_files(wildcards):
     tmpMod6str = str(tmpMod6)
-    chrs_without_par = copy.copy(chrs) # remove PAR since they are not covered in all batches
-    if 'PAR1' in chrs_without_par:
-        chrs_without_par.remove('PAR1')
-    if 'PAR2' in chrs_without_par:
-        chrs_without_par.remove('PAR2')
-    return [rf"{tmpMod6str}/{batch}/mod6_impute.chr{chr}.imputed.vcf.gz.info" for batch in batches for chr in chrs]
+    return [rf"{tmpMod6str}/{batch}/mod6_impute.chr{chr}.imputed.vcf.gz.info" for batch in batches for chr in chrs_without_par]
 
 rule summarize_dr2:
     input:
@@ -97,7 +96,7 @@ rule summarize_dr2:
     threads: 24
     run:
         input_base = str(tmpMod6)
-        mqc.summarize_dr2(input_base, output.dr2, batches, chrs, threads)
+        mqc.summarize_dr2(input_base, output.dr2, batches, chrs_without_par, threads)
 
 
 rule_stem = 'mod8_common_snps_filter'
