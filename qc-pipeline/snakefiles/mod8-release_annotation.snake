@@ -6,6 +6,7 @@
 import os
 import gzip
 import shutil
+import copy
 
 # mod7_output = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.23/mod7-post-imputation/all_samples/mod7_rename_missing_ids"
 r2_table = "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.23/mod7-post-imputation/all_samples/mod7_dr2.txt.gz"
@@ -81,7 +82,12 @@ rule mod8_split_rare_common:
 
 def get_info_files(wildcards):
     tmpMod6str = str(tmpMod6)
-    return [rf"{tmpMod6str}/{batch}/mod6_impute.chr{chr}.imputed.vcf.gz.info" for batch in batches for chr in chrs]
+    chrs_without_par = copy.copy(chrs) # remove PARs since they are not covered in all batches
+    if 'PAR1' in chrs_without_par:
+        chrs_without_par.remove('PAR1')
+    if 'PAR2' in chrs_without_par:
+        chrs_without_par.remove('PAR2')
+    return [rf"{tmpMod6str}/{batch}/mod6_impute.chr{chr}.imputed.vcf.gz.info" for batch in batches for chr in chrs_without_par]
 
 rule summarize_dr2:
     input:
@@ -91,7 +97,7 @@ rule summarize_dr2:
     threads: 24
     run:
         input_base = str(tmpMod6)
-        mqc.summarize_dr2(input_base, output.dr2, batches, chrs, threads)
+        mqc.summarize_dr2(input_base, output.dr2, batches, input.info, threads)
 
 
 rule_stem = 'mod8_common_snps_filter'
