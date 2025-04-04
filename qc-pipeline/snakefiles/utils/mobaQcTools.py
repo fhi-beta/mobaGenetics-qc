@@ -17,6 +17,7 @@ import gzip
 import shutil
 import multiprocessing as mp
 import time
+import copy
 matplotlib.use('Agg')
 
 
