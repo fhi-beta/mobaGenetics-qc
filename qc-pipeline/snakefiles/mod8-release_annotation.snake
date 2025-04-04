@@ -82,22 +82,22 @@ rule mod8_split_rare_common:
 
 def get_info_files(wildcards):
     tmpMod6str = str(tmpMod6)
-    chrs_without_par = copy.copy(chrs) # remove PARs since they are not covered in all batches
+    chrs_without_par = copy.copy(chrs) # remove PAR since they are not covered in all batches
     if 'PAR1' in chrs_without_par:
         chrs_without_par.remove('PAR1')
     if 'PAR2' in chrs_without_par:
         chrs_without_par.remove('PAR2')
-    return [rf"{tmpMod6str}/{batch}/mod6_impute.chr{chr}.imputed.vcf.gz.info" for batch in batches for chr in chrs_without_par]
+    return [rf"{tmpMod6str}/{batch}/mod6_impute.chr{chr}.imputed.vcf.gz.info" for batch in batches for chr in chrs]
 
 rule summarize_dr2:
     input:
         info = get_info_files
     output:
         dr2 = str(tmpMod8 / "mod8_dr2.txt.gz")
-    threads: 32
+    threads: 24
     run:
         input_base = str(tmpMod6)
-        mqc.summarize_dr2(input_base, output.dr2, batches, input.info, threads)
+        mqc.summarize_dr2(input_base, output.dr2, batches, chrs, threads)
 
 
 rule_stem = 'mod8_common_snps_filter'

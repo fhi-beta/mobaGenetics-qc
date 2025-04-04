@@ -1544,14 +1544,20 @@ def load_fam_file(fam_file):
     df = pd.read_csv(fam_file, delim_whitespace=True, header=None, names=['FID', '#IID', 'PID', 'MID', 'SEX', 'Phenotype'])
     return df
 
-def summarize_dr2(base, dr2_df_file, batches, info_files, threads):
+def summarize_dr2(base, dr2_df_file, batches, chrs, threads):
     """
     A method for writing a file with the dr2 values after imputation
     """
     sample_sizes = []
     dr2_df = None
+    chrs_without_par = copy.copy(chrs) # remove PARs since they are not covered in all batches
+    if 'PAR1' in chrs_without_par:
+        chrs_without_par.remove('PAR1')
+    if 'PAR2' in chrs_without_par:
+        chrs_without_par.remove('PAR2')
     for batch in batches:
         print(f"Reading data for batch {batch}...")
+        info_files = [rf'{base}/{batch}/mod6_impute.chr{chr}.imputed.vcf.gz.info' for chr in chrs_without_par]
         batch_dfs = []
         with mp.Pool(threads) as pool:
             batch_dfs = pool.map(fetch_info_data, info_files)
