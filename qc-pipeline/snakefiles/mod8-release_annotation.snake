@@ -105,7 +105,7 @@ rule mod8_common_snps_filter:
     input:
         pgenset = rules.mod8_split_rare_common.output.pgenset_common_snps,
         afreq_common_snps = rules.mod8_split_rare_common.output.afreq_common_snps,
-        r2_table = rules.summarize_dr2.output.r2,
+        r2_table = rules.summarize_dr2.output.dr2,
         #best_snps = best_hits_table, # rules.summarize_dr2.output.top_snps
         high_ld_regions_hg19 = high_ld_regions_hg19
     output:
