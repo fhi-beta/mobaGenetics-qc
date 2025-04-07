@@ -29,6 +29,7 @@ tmp_path = Path(config['output_base']) / config['release'] / 'tmp'
 runlog = Path(config['output_base']) / config['release'] / 'runlog.txt'
 base = Path(config['output_base']) / config['release']
 archive_base = Path(config['archive_output_base']) / config['release']
+archive3_base = Path(config['archive3_output_base']) / config['release']
 hrc_ega = Path(config['hrc_ega'])
 hrc_bref = Path(config['hrc_bref'])
 hrc_vcf = Path(config['hrc_vcf'])
@@ -42,7 +43,7 @@ tmpMod4 = base/'mod4-good_markers'
 tmpMod5 = base/'mod5-pre-phasing'
 tmpMod6 = base/'mod6-imputation'
 tmpMod7 = base/'mod7-post-imputation'
-tmpMod8 = base/'mod8-release_annotation'
+tmpMod8 = archive3_base/'mod8-release_annotation'
 #tmpMergeTest = base/'merge_test'
 # use archive for these for now, since /work is full:
 #tmpMod6Archive = archive_base/'mod6-imputation'

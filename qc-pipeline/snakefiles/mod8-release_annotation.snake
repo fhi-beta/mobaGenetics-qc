@@ -110,21 +110,21 @@ rule mod8_common_snps_filter:
         high_ld_regions_hg19 = high_ld_regions_hg19
     output:
         pgenset_common_snps = multiext(str(tmpMod8 / rule_stem),".pgen",".pvar",".psam"),
-        pgenset_best_snps = multiext(str(tmpMod8/rule_stem) + "_best_snps", ".pgen", ".pvar", ".psam"),
-        best_pruned_list = str(tmpMod8/rule_stem) + "_best_snps_pruned.prune.in"
+        #pgenset_best_snps = multiext(str(tmpMod8/rule_stem) + "_best_snps", ".pgen", ".pvar", ".psam"),
+        #best_pruned_list = str(tmpMod8/rule_stem) + "_best_snps_pruned.prune.in"
     params:
-        release_maf_threshold = config['release_maf_thr'],
+        #release_maf_threshold = config['release_maf_thr'],
         release_hw_threshold = config['release_hw_thr'],
         release_sd_het_threshold = config['release_sd_het_thr'],
         mac_threshold = config['merged_set_best_snps_mac_thr'],
-        geno_threshold = config['merged_set_best_snps_geno_thr'],
-        info_threshold = config['merged_set_best_snps_info_thr'],
-        prune_cmd = config["prune_cmd"]
+        #geno_threshold = config['merged_set_best_snps_geno_thr'],
+        #info_threshold = config['merged_set_best_snps_info_thr'],
+        #prune_cmd = config["prune_cmd"]
     run:
         try:
 
             inTrunk =  mqc.plinkBase(input.pgenset[0])
-            outTrunk_best_snps =  mqc.plinkBase(output.pgenset_best_snps[0])
+            #outTrunk_best_snps =  mqc.plinkBase(output.pgenset_best_snps[0])
             outTrunk_common =  mqc.plinkBase(output.pgenset_common_snps[0])
 
             subprocess.run(
@@ -205,72 +205,143 @@ rule mod8_common_snps_filter:
             )
 
 
-            print(f"Best snps.")
+            # print(f"Best snps.")
 
-            id_file = tmpMod8/"ids_best"
-            print(f"Extracting markers with overall r2 >= {params.info_threshold}.")
-            r2_data = pd.read_csv(r2_table, sep = "\t")
-            snp_08 = r2_data[r2_data['COMBINED'] >= params.info_threshold]
-            snp_08['ID'].to_csv(id_file, index = False, header = False)
+            # id_file = tmpMod8/"ids_best"
+            # print(f"Extracting markers with overall r2 >= {params.info_threshold}.")
+            # r2_data = pd.read_csv(r2_table, sep = "\t")
+            # snp_08 = r2_data[r2_data['COMBINED'] >= params.info_threshold]
+            # snp_08['ID'].to_csv(id_file, index = False, header = False)
 
-            # Change to best snps when chrom fixed
-                    # "--pfile", inTrunk,
-                    # "--extract", input.best_snps,
+            # # Change to best snps when chrom fixed
+            #         # "--pfile", inTrunk,
+            #         # "--extract", input.best_snps,
 
-            temp1 = outTrunk_best_snps + "_temp1"
+            # temp1 = outTrunk_best_snps + "_temp1"
 
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", outTrunk_common,
-                    "--extract", id_file,
-                    "--max-alleles", "2",
-                    "--mac", str(params.mac_threshold),
-                    "--geno", str(params.geno_threshold),
-                    "--out", temp1,
-                    "--make-pgen"
-                ],
-                check=True
-            )
+            # subprocess.run(
+            #     [
+            #         plink2local,
+            #         "--pfile", outTrunk_common,
+            #         "--extract", id_file,
+            #         "--max-alleles", "2",
+            #         "--mac", str(params.mac_threshold),
+            #         "--geno", str(params.geno_threshold),
+            #         "--out", temp1,
+            #         "--make-pgen"
+            #     ],
+            #     check=True
+            # )
 
-            temp2 = outTrunk_best_snps + "_pruned"
+            # temp2 = outTrunk_best_snps + "_pruned"
 
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", temp1,
-                    "--autosome",
-                    "--exclude", "range", input.high_ld_regions_hg19
-                ] + params.prune_cmd.split() + [
-                    "--out", temp2
-                ],
-                check = True
-            )
+            # subprocess.run(
+            #     [
+            #         plink2local,
+            #         "--pfile", temp1,
+            #         "--autosome",
+            #         "--exclude", "range", input.high_ld_regions_hg19
+            #     ] + params.prune_cmd.split() + [
+            #         "--out", temp2
+            #     ],
+            #     check = True
+            # )
 
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", temp1,
-                    "--extract", output.best_pruned_list,
-                    "--out", outTrunk_best_snps,
-                    "--make-pgen"
-                ],
-                check = True
-            )
+            # subprocess.run(
+            #     [
+            #         plink2local,
+            #         "--pfile", temp1,
+            #         "--extract", output.best_pruned_list,
+            #         "--out", outTrunk_best_snps,
+            #         "--make-pgen"
+            #     ],
+            #     check = True
+            # )
 
-            mqc.remove_bedset(temp1)
-            mqc.remove_bedset(temp2)
+            # mqc.remove_bedset(temp1)
+            # mqc.remove_bedset(temp2)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
             print(e)
+
+rule mod8_best_snps:
+    input:
+        pgenset = rules.mod8_common_snps_filter.output.pgenset_common_snps,
+        r2_table = rules.summarize_dr2.output.dr2
+    output:
+        pgenset = multiext(str(tmpMod8/"mod8_best_snps"), ".pgen", ".pvar", ".psam")
+    params:
+        release_maf_threshold = config['release_maf_thr'],
+        release_hw_threshold = config['release_hw_thr'],
+        release_sd_het_threshold = config['release_sd_het_thr'],
+        mac_threshold = config['merged_set_best_snps_mac_thr'],
+        geno_threshold = config['merged_set_best_snps_geno_thr'],
+        info_threshold = config['merged_set_best_snps_info_thr'],
+        prune_cmd = config["prune_cmd"]
+    run:
+        inTrunk = mqc.plinkBase(input.pgenset[0])
+        outTrunk =  mqc.plinkBase(output.pgenset[0])
+        id_file = tmpMod8/"ids_best"
+        print(f"Extracting markers with overall r2 >= {params.info_threshold}.")
+        r2_data = pd.read_csv(r2_table, sep = "\t")
+        snp_08 = r2_data[r2_data['COMBINED'] >= params.info_threshold]
+        snp_08['ID'].to_csv(id_file, index = False, header = False)
+
+        # Change to best snps when chrom fixed
+                # "--pfile", inTrunk,
+                # "--extract", input.best_snps,
+
+        temp1 = outTrunk + "_temp1"
+
+        subprocess.run(
+            [
+                plink2local,
+                "--pfile", inTrunk,
+                "--extract", id_file,
+                "--max-alleles", "2",
+                "--mac", str(params.mac_threshold),
+                "--geno", str(params.geno_threshold),
+                "--out", temp1,
+                "--make-pgen"
+            ],
+            check=True
+        )
+
+        temp2 = outTrunk + "_pruned"
+
+        subprocess.run(
+            [
+                plink2local,
+                "--pfile", temp1,
+                "--autosome",
+                "--exclude", "range", input.high_ld_regions_hg19
+            ] + params.prune_cmd.split()   + [
+                "--out", temp2
+            ],
+            check = True
+        )
+
+        subprocess.run(
+            [
+                plink2local,
+                "--pfile", temp1,
+                "--extract", output.best_pruned_list,
+                "--out", outTrunk_best_snps,
+                "--make-pgen"
+            ],
+            check = True
+        )
+
+        mqc.remove_bedset(temp1)
+        mqc.remove_bedset(temp2)
 
 
 rule_stem = 'mod8_generate_best_snps_stats'
 rule mod8_generate_best_snps_stats:
     'Generate statistics on the filtered snps'
     input:
-        pgenset = rules.mod8_common_snps_filter.output.pgenset_best_snps
+        pgenset = rules.mod8_best_snps.output.pgenset
     output:
         het = tmpMod8/'mod8_best_snps.het',
         hardy = tmpMod8/'mod8_best_snps.hardy',

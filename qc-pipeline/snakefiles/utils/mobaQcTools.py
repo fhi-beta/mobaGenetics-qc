@@ -1594,7 +1594,7 @@ def get_n_samples(vcf_file):
     print(f"Warning! No samples found for {vcf_file}. Returns 0")
     return 0
 
-def find_high_dr2_variants(dr2_file, counts_file, out, batch_threshold, combined_threshold, counts_threshold):
+def find_high_dr2_variants(dr2_file, out, batch_threshold, combined_threshold, counts_threshold):
     dr2_df = pd.read_csv(dr2_file, sep=r'\s+')
     counts_df = pd.read_csv(counts_file, sep=r'\s+')
     counts_cleaned = counts_df[~counts_df['ALT_CTS'].str.contains(',')]
