@@ -426,7 +426,7 @@ rule_stem = 'mod8_check_sex'
 rule mod8_check_sex:
     'Sex imputation. Currently not supported in plink2, running in plink1.'
     input:
-        pgenset_best_snps = rules.mod8_common_snps_filter.output.pgenset_best_snps,
+        pgenset_best_snps = rules.mod8_best_snps.output,
     params:
         info_threshold = config['merged_set_best_snps_info_thr']
     output:
@@ -518,7 +518,7 @@ rule_stem = 'mod8_pedigree_ibd_estimate'
 rule mod8_pedigree_ibd_estimate:
     'IBD estimation. Requires conversion to plink1.'
     input:
-        pgenset = rules.mod8_common_snps_filter.output.pgenset_best_snps,
+        pgenset = rules.mod8_best_snps.output.pgenset,
     output:
         king_relatedness = tmpMod8/(rule_stem + ".kin0")
     threads: 24
@@ -606,7 +606,7 @@ rule mod8_exclude_conflictual_relationships:
     input:
         pgenset_common_snps = rules.mod8_common_snps_filter.output.pgenset_common_snps,
         pgenset_rare_snps = rules.mod8_split_rare_common.output.pgenset_rare_snps,
-        pgenset_best_snps = rules.mod8_common_snps_filter.output.pgenset_best_snps,
+        pgenset_best_snps = rules.mod8_best_snps.output.pgenset,
         pedigree_sample_exclusion = rules.mod8_psam_reconstruction.output.pedigree_sample_exclusion,
         updated_psam = rules.mod8_psam_reconstruction.output.updated_psam
     output:
