@@ -1571,6 +1571,7 @@ def summarize_dr2(base, dr2_df_file, batches, info_chrs, threads):
     # dr2_df_remove_multiallelics = dr2_df.drop_duplicates(subset=['CHROM', 'POS'], keep=False)
     # best_snp_df = dr2_df_remove_multiallelics.nlargest(snp_cutoff, "COMBINED")["ID"]
     # best_snp_df.to_csv(top_snp_file, sep="\t", index=False, header=False)
+    
 
 def best_snps_of_subset(dr2_file, out, snp_cutoff, subset):
     dr2_df = pd.read_csv(dr2_file, sep=r'\s+')
@@ -1594,16 +1595,16 @@ def get_n_samples(vcf_file):
     print(f"Warning! No samples found for {vcf_file}. Returns 0")
     return 0
 
-def find_high_dr2_variants(dr2_file, out, batch_threshold, combined_threshold, counts_threshold):
+def find_high_dr2_variants(dr2_file, out, batch_threshold, combined_threshold):
     dr2_df = pd.read_csv(dr2_file, sep=r'\s+')
-    counts_df = pd.read_csv(counts_file, sep=r'\s+')
-    counts_cleaned = counts_df[~counts_df['ALT_CTS'].str.contains(',')]
-    counts_cleaned['ALT_CTS'] = counts_cleaned['ALT_CTS'].astype(int)
-    counts_filtered = counts_cleaned[counts_cleaned['ALT_CTS'] > counts_threshold]
+    # counts_df = pd.read_csv(counts_file, sep=r'\s+')
+    # counts_cleaned = counts_df[~counts_df['ALT_CTS'].str.contains(',')]
+    # counts_cleaned['ALT_CTS'] = counts_cleaned['ALT_CTS'].astype(int)
+    # counts_filtered = counts_cleaned[counts_cleaned['ALT_CTS'] > counts_threshold]
     batch_cols = dr2_df.columns[dr2_df.columns.get_loc('ALT') + 1:-1]
-    dr2_df_high = dr2_df[(dr2_df[batch_cols] > batch_threshold).all(axis=1) & (dr2_df['COMBINED'] > combined_threshold)] #df[df["COMBINED"]>combined_threshold]["ID"]
-    dr2_df_high = dr2_df_high[dr2_df_high["ID"].isin(counts_filtered["ID"])]
-    dr2_df_high["ID"].to_csv(out, sep="\t", index=False, header=False)
+    dr2_df_high = dr2_df[(dr2_df[batch_cols] >= batch_threshold).all(axis=1) & (dr2_df['COMBINED'] >= combined_threshold)] #df[df["COMBINED"]>combined_threshold]["ID"]
+    # dr2_df_high = dr2_df_high[dr2_df_high["ID"].isin(counts_filtered["ID"])]
+    dr2_df_high["ID"].to_csv(out, index=False, header=False)
 
 def filter_fam_table_for_shapeit(input_file_path, output_file_path):
     """

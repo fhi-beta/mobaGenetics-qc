@@ -278,15 +278,17 @@ rule mod8_best_snps:
         mac_threshold = config['merged_set_best_snps_mac_thr'],
         geno_threshold = config['merged_set_best_snps_geno_thr'],
         info_threshold = config['merged_set_best_snps_info_thr'],
+        batch_info_threshold = config['merged_set_best_snps_batch_info_thr'],
         prune_cmd = config["prune_cmd"]
     run:
         inTrunk = mqc.plinkBase(input.pgenset[0])
         outTrunk =  mqc.plinkBase(output.pgenset[0])
         id_file = tmpMod8/"ids_best"
-        print(f"Extracting markers with overall r2 >= {params.info_threshold}.")
-        r2_data = pd.read_csv(r2_table, sep = "\t")
-        snp_08 = r2_data[r2_data['COMBINED'] >= params.info_threshold]
-        snp_08['ID'].to_csv(id_file, index = False, header = False)
+        print(f"Extracting markers with overall r2 >= {params.info_threshold} and all batches r2 >= {params.batch_info_threshold}")
+        mqc.find_high_dr2_variants(input.r2_table, id_file, params.batch_info_threshold, params.info_threshold)
+        # r2_data = pd.read_csv(r2_table, sep = "\t")
+        # snp_08 = r2_data[r2_data['COMBINED'] >= params.info_threshold]
+        # snp_08['ID'].to_csv(id_file, index = False, header = False)
 
         # Change to best snps when chrom fixed
                 # "--pfile", inTrunk,

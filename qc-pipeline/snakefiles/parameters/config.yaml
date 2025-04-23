@@ -70,6 +70,7 @@ merged_set_best_snps_mac_thr: 500
 merged_set_best_snps_geno_thr: 0.05
 # Info score threshold for good markers
 merged_set_best_snps_info_thr: 0.9
+merged_set_best_snps_batch_info_thr: 0.7
 
 # Maf threshold for the release
 release_maf_thr: 0.001
