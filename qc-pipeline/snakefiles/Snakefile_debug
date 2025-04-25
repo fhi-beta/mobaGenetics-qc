@@ -87,7 +87,7 @@ rule all:
         #tmpMod8 / "mod8_split_rare_common.pgen"
         # str(tmpMod7 / "all_samples" / "mod7_rename_missing_ids.pgen")
         #str(tmpMod8 / "mod8_dr2.txt.gz")
-        str(tmpMod8/"mod8_best_snps.pgen")
+        tmpMod8/'mod8_best_snps.vmiss'
         #str(tmpMod7 / f"{n_samples}_samples" / "mod7_ld.prune.in")
         # str(tmpMod7 / f"{n_samples}_samples" / "mod7_best_snps_le.txt")
         #tmpMod8/"clusters"
