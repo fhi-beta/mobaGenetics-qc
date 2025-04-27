@@ -271,7 +271,8 @@ rule mod8_best_snps:
         r2_table = rules.summarize_dr2.output.dr2
     output:
         pgenset = multiext(str(tmpMod8/"mod8_best_snps"), ".pgen", ".pvar", ".psam"),
-        best_pruned_list = str(tmpMod8/rule_stem) + "_best_snps_pruned.prune.in"
+        best_pruned_list = str(tmpMod8/rule_stem) + "_best_snps_pruned.prune.in",
+        high_ld_regions_hg19 = high_ld_regions_hg19
     params:
         release_maf_threshold = config['release_maf_thr'],
         release_hw_threshold = config['release_hw_thr'],
