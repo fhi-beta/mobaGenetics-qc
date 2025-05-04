@@ -272,7 +272,7 @@ rule mod8_best_snps:
         high_ld_regions_hg19 = high_ld_regions_hg19
     output:
         pgenset = multiext(str(tmpMod8/"mod8_best_snps"), ".pgen", ".pvar", ".psam"),
-        best_pruned_list = str(tmpMod8/"mod8_best_snps_pruned.prune.in"
+        best_pruned_list = str(tmpMod8/"mod8_best_snps_pruned.prune.in")
     params:
         release_maf_threshold = config['release_maf_thr'],
         release_hw_threshold = config['release_hw_thr'],
