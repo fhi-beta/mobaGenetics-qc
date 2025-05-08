@@ -337,8 +337,7 @@ rule mod8_best_snps:
             check = True
         )
 
-        mqc.remove_bedset(temp1)
-        mqc.remove_bedset(temp2)
+        mqc.remove_pgenset(temp1)
 
 
 rule_stem = 'mod8_generate_best_snps_stats'
@@ -413,18 +412,18 @@ rule mod8_generate_best_snps_stats:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
-tmpMod4str = str(tmpMod4)
-def get_Y_beds_to_merge(wildcards):
-    return [f"{tmpMod4str}/{batch}/m4_split_Y.bed" for batch in batches]
+# tmpMod4str = str(tmpMod4)
+# def get_Y_beds_to_merge(wildcards):
+#     return [f"{tmpMod4str}/{batch}/m4_split_Y.bed" for batch in batches]
     
-rule mod8_merge_Y:
-    input:
-        beds = get_Y_beds_to_merge
-    output:
-        bedset = multiext(str(tmpMod8 / "mod8_merged_Y"),".bed",".bim",".fam")
-    run:
-        out_trunk = mqc.plinkBase(output.bedset[0])
-        mqc.merge_bedsets(input.beds, out_trunk, plinklocal)
+# rule mod8_merge_Y:
+#     input:
+#         beds = get_Y_beds_to_merge
+#     output:
+#         bedset = multiext(str(tmpMod8 / "mod8_merged_Y"),".bed",".bim",".fam")
+#     run:
+#         out_trunk = mqc.plinkBase(output.bedset[0])
+#         mqc.merge_bedsets(input.beds, out_trunk, plinklocal)
 
 rule_stem = 'mod8_check_sex'
 rule mod8_check_sex:
@@ -436,51 +435,61 @@ rule mod8_check_sex:
     output:
         sex_check = tmpMod8/(rule_stem + ".sexcheck")
     run:
-        try:
+        in_trunk = mqc.plinkBase(input.pgenset_best_snps[0])
+        out_trunk = mqc.plinkBase(output.sex_check)
+        subprocess.run(
+            [
+                "plink2",
+                "--pfile", in_trunk,
+                "--check-sex",
+                "--out", out_trunk
+            ]
+        )
+        # try:
 
-            x_fixed = False # Currently the sex chromosomes are not available, so we take the sex check results prior to imputation
+        #     # x_fixed = False # Currently the sex chromosomes are not available, so we take the sex check results prior to imputation
 
-            if x_fixed:
+        #     # if x_fixed:
 
-                plink_input = mqc.plinkBase(input.pgenset_best_snps[0])
-                plink1_input = plink_input + "_plink1"
-                ouput_file = mqc.plinkBase(output.sex_check)
+        #         plink_input = mqc.plinkBase(input.pgenset_best_snps[0])
+        #         plink1_input = plink_input + "_plink1"
+        #         ouput_file = mqc.plinkBase(output.sex_check)
 
-                subprocess.run(
-                    [
-                        plink2local,
-                        "--pfile", plink_input,
-                        "--extract", id_file,
-                        "--make-bed",
-                        "--out", plink1_input
-                    ],
-                )
+        #         subprocess.run(
+        #             [
+        #                 plink2local,
+        #                 "--pfile", plink_input,
+        #                 "--extract", id_file,
+        #                 "--make-bed",
+        #                 "--out", plink1_input
+        #             ],
+        #         )
 
-                subprocess.run(
-                    [
-                        plinklocal,
-                        "--bfile", plink1_input,
-                        "--check-sex", "ycount",
-                        "--out", ouput_file
-                    ],
-                    check = True
-                )
+        #         subprocess.run(
+        #             [
+        #                 plinklocal,
+        #                 "--bfile", plink1_input,
+        #                 "--check-sex", "ycount",
+        #                 "--out", ouput_file
+        #             ],
+        #             check = True
+        #         )
 
-                mqc.remove_bedset(plink1_input)
+        #         mqc.remove_bedset(plink1_input)
 
-            else:
+        #     # else:
 
-                sex_checks = []
+        #     #     sex_checks = []
 
-                for batch in batches:
-                    print(f"Importing sex_check for batch {batch}.")
-                    file = f"/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod2-genetic-relationship/{batch}/m2_output.sexcheck"
-                    sex_check = pd.read_table(file, delim_whitespace=True)
-                    sex_checks.append(sex_check)
+        #     #     for batch in batches:
+        #     #         print(f"Importing sex_check for batch {batch}.")
+        #     #         file = f"/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod2-genetic-relationship/{batch}/m2_output.sexcheck"
+        #     #         sex_check = pd.read_table(file, delim_whitespace=True)
+        #     #         sex_checks.append(sex_check)
 
-                merged_df = pd.concat(sex_checks, ignore_index = True)
+        #     #     merged_df = pd.concat(sex_checks, ignore_index = True)
 
-                merged_df.to_csv(output.sex_check, sep='\t', index = False)
+        #         merged_df.to_csv(output.sex_check, sep='\t', index = False)
 
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
