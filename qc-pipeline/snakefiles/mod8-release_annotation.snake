@@ -429,20 +429,20 @@ rule_stem = 'mod8_check_sex'
 rule mod8_check_sex:
     'Sex imputation. Currently not supported in plink2, running in plink1.'
     input:
-        pgenset_best_snps = rules.mod8_best_snps.output,
+        pgenset = rules.mod8_common_snps_filter.output.pgenset_common_snps,
     params:
         info_threshold = config['merged_set_best_snps_info_thr']
     output:
         sex_check = tmpMod8/(rule_stem + ".sexcheck")
     run:
         try:
-            in_trunk = mqc.plinkBase(input.pgenset_best_snps[0])
+            in_trunk = mqc.plinkBase(input.pgenset[0])
             out_trunk = mqc.plinkBase(output.sex_check)
             subprocess.run(
                 [
                     "plink2",
                     "--pfile", in_trunk,
-                    "--check-sex",
+                    "--check-sex", "max-female-xf=0.2", "min-male-xf=0.8"
                     "--out", out_trunk
                 ],
                 check=True
