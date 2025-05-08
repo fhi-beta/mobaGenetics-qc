@@ -429,9 +429,9 @@ rule_stem = 'mod8_check_sex'
 rule mod8_check_sex:
     'Sex imputation. Currently not supported in plink2, running in plink1.'
     input:
-        pgenset = rules.mod8_common_snps_filter.output.pgenset_common_snps,
-    params:
-        info_threshold = config['merged_set_best_snps_info_thr']
+        pgenset = rules.mod8_common_snps_filter.output.pgenset_common_snps
+    # params:
+    #     info_threshold = config['merged_set_best_snps_info_thr']
     output:
         sex_check = tmpMod8/(rule_stem + ".sexcheck")
     run:
@@ -442,7 +442,7 @@ rule mod8_check_sex:
                 [
                     "plink2",
                     "--pfile", in_trunk,
-                    "--check-sex", "max-female-xf=0.2", "min-male-xf=0.8"
+                    "--check-sex", "max-female-xf=0.2", "min-male-xf=0.8",
                     "--out", out_trunk
                 ],
                 check=True
