@@ -435,17 +435,18 @@ rule mod8_check_sex:
     output:
         sex_check = tmpMod8/(rule_stem + ".sexcheck")
     run:
-        in_trunk = mqc.plinkBase(input.pgenset_best_snps[0])
-        out_trunk = mqc.plinkBase(output.sex_check)
-        subprocess.run(
-            [
-                "plink2",
-                "--pfile", in_trunk,
-                "--check-sex",
-                "--out", out_trunk
-            ],
-            check=True
-        )
+        try:
+            in_trunk = mqc.plinkBase(input.pgenset_best_snps[0])
+            out_trunk = mqc.plinkBase(output.sex_check)
+            subprocess.run(
+                [
+                    "plink2",
+                    "--pfile", in_trunk,
+                    "--check-sex",
+                    "--out", out_trunk
+                ],
+                check=True
+            )
         # try:
 
         #     # x_fixed = False # Currently the sex chromosomes are not available, so we take the sex check results prior to imputation
