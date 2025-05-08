@@ -443,7 +443,8 @@ rule mod8_check_sex:
                 "--pfile", in_trunk,
                 "--check-sex",
                 "--out", out_trunk
-            ]
+            ],
+            check=True
         )
         # try:
 
