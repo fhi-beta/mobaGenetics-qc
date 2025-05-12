@@ -255,7 +255,7 @@ rule mod6_generate_male_list:
         fam = rules.mod5_output.output.bedset[2]
     output:
         male_list = str(tmpMod6 / "{batch}" / "males.txt"),
-        blank_list = str(tmpMod6 / "blank_list.txt")
+        blank_list = str(tmpMod6 / "{batch}" / "blank_list.txt")
     run:
         mqc.create_male_list(input.fam, output.male_list)
         mqc.create_empty_files([output.blank_list])
