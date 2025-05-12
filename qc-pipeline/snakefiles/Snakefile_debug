@@ -88,7 +88,8 @@ rule all:
         # str(tmpMod7 / "all_samples" / "mod7_rename_missing_ids.pgen")
         #str(tmpMod8 / "mod8_dr2.txt.gz")
         # tmpMod8/'mod8_best_snps.vmiss'
-        tmpMod8/'mod8_check_sex.sexcheck'
+        #tmpMod8/'mod8_check_sex.sexcheck'
+        #tmpMod8/"plink1_sexcheck_test.sexcheck"
         #str(tmpMod7 / f"{n_samples}_samples" / "mod7_ld.prune.in")
         # str(tmpMod7 / f"{n_samples}_samples" / "mod7_best_snps_le.txt")
         #tmpMod8/"clusters"
@@ -115,7 +116,7 @@ rule all:
         #expand(tmpMod7 / "{batch}" / "mod7_format.chr{chr}.vcf.gz.tbi", batch = batches, chr = ['PAR1', 'PAR2'])
         #tmpMod7 / "mod7_sort_X.pgen"
         #expand(str(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info"), batch = batches, chr = ['PAR1', 'PAR2'])
-        #expand(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info", batch = batches, chr = chrs)
+        expand(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info", batch = batches, chr = ['X'])
         #expand(str(tmpMod6 / "{batch}" / "mod6_conform.chr{chr}.conformed.vcf"), batch = batches, chr = ['PAR1', 'PAR2'])
         #expand(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.phased.bcf", batch = batches, chr = ['PAR1', 'PAR2'])
         # expand(tmpMod5/ "{batch}" / "all_samples" /"mod5_output.imiss", batch = batches_debug)

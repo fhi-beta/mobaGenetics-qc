@@ -1537,12 +1537,19 @@ def create_update_sex_file(fam_files, update_sex_file, threads):
     with mp.Pool(threads) as pool:
         batch_dfs = pool.map(load_fam_file, fam_files)
     df_full = pd.concat(batch_dfs, ignore_index=True)
-    df_iid_sex = df_full[["#IID", "SEX"]]
+    df_iid_sex = df_full[["IID", "SEX"]]
     df_iid_sex.to_csv(update_sex_file, sep="\t", index=False)
 
 
+def create_male_list(fam_file, male_list_file):
+    df = load_fam_file(fam_file)
+    male_iids = df[df['SEX'] == 1]['IID']
+    male_iids.to_csv(male_list_file, index=False, header=False)
+    
+    
+
 def load_fam_file(fam_file):
-    df = pd.read_csv(fam_file, delim_whitespace=True, header=None, names=['FID', '#IID', 'PID', 'MID', 'SEX', 'Phenotype'])
+    df = pd.read_csv(fam_file, delim_whitespace=True, header=None, names=['FID', 'IID', 'PID', 'MID', 'SEX', 'Phenotype'])
     return df
 
 def summarize_dr2(base, dr2_df_file, batches, info_chrs, threads):

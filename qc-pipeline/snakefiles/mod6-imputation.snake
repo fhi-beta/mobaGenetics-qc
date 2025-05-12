@@ -204,13 +204,7 @@ rule mod6_fill_ac:
             bcftools +fill-AN-AC -Ob {input.vcf} -o {output.bcf}
         fi
         """
-rule mod6_generate_shapeit_family_files:
-    input:
-        fam = rules.mod5_output.output.bedset[2]
-    output:
-        shapeit_fam = str(tmpMod6 / "{batch}" / "shapeit_fam.fam")
-    run:
-        mqc.filter_fam_table_for_shapeit(input.fam, output.shapeit_fam)
+
 
 rule mod6_index_fill_ac:
     input:
@@ -248,7 +242,25 @@ def get_map_chr(wildcards):
     else:
         return wildcards.chr
 
+rule mod6_generate_shapeit_family_files:
+    input:
+        fam = rules.mod5_output.output.bedset[2]
+    output:
+        shapeit_fam = str(tmpMod6 / "{batch}" / "shapeit_fam.fam")
+    run:
+        mqc.filter_fam_table_for_shapeit(input.fam, output.shapeit_fam)
 
+rule mod6_generate_male_list:
+    input:
+        fam = rules.mod5_output.output.bedset[2]
+    output:
+        male_list = str(tmpMod6 / "{batch}" / "males.txt"),
+        blank_list = str(tmpMod6 / "blank_list.txt")
+    run:
+        mqc.create_male_list(input.fam, output.male_list)
+        mqc.create_empty_files([output.blank_list])
+
+        
 
 tmpMod6str = str(tmpMod6)
 def get_shapeit_fam(wildcards):
@@ -259,7 +271,9 @@ rule mod6_phase:
         chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         shapeit_fam = get_shapeit_fam,
         bcf = rules.mod6_fill_ac.output.bcf,
-        index = rules.mod6_index_fill_ac.output.index
+        index = rules.mod6_index_fill_ac.output.index,
+        male_list = rules.mod6_generate_male_list.output.male_list,
+        blank_list = rules.mod6_generate_male_list.output.blank_list
     output:
         phased_bcf = str(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.phased.bcf"),
         shapeit_log = str(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.phased.log")
@@ -278,9 +292,14 @@ rule mod6_phase:
             touch {output.phased_bcf}
             touch {output.shapeit_log}
         else
+            if [[ "{wildcards.chr}" == "X" ]]; then
+                haploid_file={input.male_list}
+            else
+                haploid_file={input.blank_list}
+            fi
             reffile=$(echo {hrc_vcf}/HRC.r1-1.EGA.GRCh37.chr{params.ref_chr}.haplotypes*.vcf.gz)
             mapfile={mapfiles}/shapeit/chr{params.map_chr}.b37.gmap.gz
-            SHAPEIT5_phase_common --input {input.bcf} --pedigree {input.shapeit_fam} --region {params.region_chr} --reference $reffile --map $mapfile --output {output.phased_bcf} --output-format bcf --log {output.shapeit_log} --thread {threads}
+            SHAPEIT5_phase_common --input {input.bcf} --pedigree {input.shapeit_fam} --region {params.region_chr} --haploids $haploid_file --reference $reffile --map $mapfile --output {output.phased_bcf} --output-format bcf --log {output.shapeit_log} --thread {threads}
         fi
         """
 
