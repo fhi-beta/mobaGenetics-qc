@@ -201,7 +201,7 @@ rule mod6_fill_ac:
             echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_fill_ac"
             touch {output.bcf}
         else
-            bcftools +fill-AN-AC -Ob {input.vcf} -o {output.bcf}
+            bcftools +fill-AN-AC {input.vcf} | bcftools +fixploidy -Ob -o {output.bcf}
         fi
         """
 

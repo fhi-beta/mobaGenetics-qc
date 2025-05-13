@@ -1058,22 +1058,22 @@ rule m4_output_good_markers:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
-rule m4_split_Y:
-    input:
-        bedset = rules.m4_output_good_markers.output.m4_output_good_markers
-    output:
-        bedset = multiext(os.path.join(tmpMod4, "{batch}", "m4_split_Y"), '.bed', '.bim', '.fam')
-    run:
-        inTrunk = mqc.plinkBase(input.bedset[0])
-        outTrunk = mqc.plinkBase(output.bedset[0])
-        subprocess.run(
-            [
-                plink2local,
-                "--bfile", inTrunk,
-                "--chr", "24",
-                "--max-alleles 2"
-                "--make-bed",
-                "--out", outTrunk
-            ]
-        )
+# rule m4_split_Y:
+#     input:
+#         bedset = rules.m4_output_good_markers.output.m4_output_good_markers
+#     output:
+#         bedset = multiext(os.path.join(tmpMod4, "{batch}", "m4_split_Y"), '.bed', '.bim', '.fam')
+#     run:
+#         inTrunk = mqc.plinkBase(input.bedset[0])
+#         outTrunk = mqc.plinkBase(output.bedset[0])
+#         subprocess.run(
+#             [
+#                 plink2local,
+#                 "--bfile", inTrunk,
+#                 "--chr", "24",
+#                 "--max-alleles 2"
+#                 "--make-bed",
+#                 "--out", outTrunk
+#             ]
+#         )
 
