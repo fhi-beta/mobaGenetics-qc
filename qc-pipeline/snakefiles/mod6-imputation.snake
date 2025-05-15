@@ -342,7 +342,7 @@ rule mod6_reset_male_x_ploidy:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        bcftools +fixploidy {input.vcf} -o {output.vcf_fixploidy} -- -p {haploid_x_file} -s {input.sex_list}
+        bcftools +fixploidy {input.vcf} -o {output.vcf} -- -p {haploid_x_file} -s {input.sex_list}
         """
 
 rule_stem = "mod6_impute"
