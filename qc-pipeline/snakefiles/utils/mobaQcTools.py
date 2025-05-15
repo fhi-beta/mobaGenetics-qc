@@ -1548,7 +1548,7 @@ def create_male_list(fam_file, male_list_file):
     
 def create_sex_list_for_bcftools(fam_file, sex_list_file):
     df = load_fam_file(fam_file)
-    df['SEX'] = df['SEX'].map({1: 'M', 2: 'F'})
+    df['SEX'] = df['SEX'].map({1: 'M', 2: 'F', 0:'F'})
     output_df = df[['IID', 'SEX']]
     output_df.to_csv(sex_list_file, index=False, header=False, sep='\t')
 
