@@ -339,7 +339,7 @@ rule mod6_reset_male_x_ploidy:
     output:
         vcf_fixploidy = str(tmpMod6 / "{batch}" / "mod6_reset_male_x_ploidy.chr{chr}.vcf")
     conda:
-        "envs/bcf_tabix"
+        "envs/bcf_tabix.yaml"
     shell:
         """
         bcftools +fixploidy {input.vcf} -p {haploid_x_file} -s {input.sex_list} -o {output.vcf_fixploidy}
