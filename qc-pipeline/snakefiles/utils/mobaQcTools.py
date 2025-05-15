@@ -1546,7 +1546,13 @@ def create_male_list(fam_file, male_list_file):
     male_iids = df[df['SEX'] == 1]['IID']
     male_iids.to_csv(male_list_file, index=False, header=False)
     
-    
+def create_sex_list_for_bcftools(fam_file, sex_list_file):
+    df = load_fam_file(fam_file)
+    df['SEX'] = df['SEX'].map({1: 'M', 2: 'F'})
+    output_df = df[['IID', 'SEX']]
+    output_df.to_csv(sex_list_file, index=False, header=False, sep='\t')
+
+
 
 def load_fam_file(fam_file):
     df = pd.read_csv(fam_file, delim_whitespace=True, header=None, names=['FID', 'IID', 'PID', 'MID', 'SEX', 'Phenotype'])

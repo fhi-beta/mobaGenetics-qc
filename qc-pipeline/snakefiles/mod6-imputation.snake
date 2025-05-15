@@ -185,6 +185,7 @@ rule mod6_index_conform:
         """
 
 
+# Note the fixploidy plugin: male haploid chr X samples must be recoded as diploid homozygotes before phasing due to a bug in shapeit
 rule mod6_fill_ac:
     input:
         chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
@@ -258,9 +259,8 @@ rule mod6_generate_male_list:
         blank_list = str(tmpMod6 / "{batch}" / "blank_list.txt")
     run:
         mqc.create_male_list(input.fam, output.male_list)
-        mqc.create_empty_files([output.blank_list])
+        mqc.create_empty_files([output.blank_list])   
 
-        
 
 tmpMod6str = str(tmpMod6)
 def get_shapeit_fam(wildcards):
@@ -320,7 +320,31 @@ rule mod6_convert_to_vcf:
             touch {output.vcf}
         else
             bcftools convert -Ov -o {output.vcf} {input.bcf}
-        fi 
+        fi
+        tabix -p vcf {output.vcf}
+        """
+
+rule mod6_generate_bcftools_sex_files:
+    input:
+        fam = rules.mod5_output.output.bedset[2]
+    output:
+        sex_list = str(tmpMod6 / "{batch}" / "sex_list.txt")
+    run:
+        mqc.create_sex_list_for_bcfto(input.fam, output.sex_list) 
+
+# convert male X variants back to haploid before imputation
+rule mod6_reset_male_x_ploidy:
+    input:
+        vcf = rules.mod6_convert_to_vcf.vcf,
+        sex_list = rules.mod6_generate_bcftools_sex_files.output.sex_list
+    output:
+        vcf_fixploidy = str(tmpMod6 / "{batch}" / "mod6_reset_male_x_ploidy.chr{chr}.vcf")
+    conda:
+        "envs/bcf_tabix"
+    shell:
+        """
+        bcftools +fixploidy {input.vcf} -p {haploid_x_file} -s {input.sex_list} -o {output.vcf_fixploidy}
+        tabix -p vcf {output.vcf_fix_ploidy}
         """
 
 rule_stem = "mod6_impute"
