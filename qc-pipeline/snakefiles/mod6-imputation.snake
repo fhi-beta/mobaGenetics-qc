@@ -321,7 +321,6 @@ rule mod6_convert_to_vcf:
         else
             bcftools convert -Ov -o {output.vcf} {input.bcf}
         fi
-        tabix -p vcf {output.vcf}
         """
 
 rule mod6_generate_bcftools_sex_files:
@@ -344,7 +343,6 @@ rule mod6_reset_male_x_ploidy:
     shell:
         """
         bcftools +fixploidy {input.vcf} -p {haploid_x_file} -s {input.sex_list} -o {output.vcf_fixploidy}
-        tabix -p vcf {output.vcf_fix_ploidy}
         """
 
 rule_stem = "mod6_impute"
