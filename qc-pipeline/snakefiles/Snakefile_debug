@@ -114,7 +114,9 @@ rule all:
         #tmpMod7 / "mod7_merge.pgen"
         #expand(tmpMod7 / "{batch}" / "mod7_filter_and_format_phased_dosage.chr{chr}.vcf.gz", batch = batches, chr = chrs)
         #expand(tmpMod7 / "{batch}" / "mod7_format.chr{chr}.vcf.gz.tbi", batch = ['snp007'], chr = ['X'])
-        str(tmpMod7 / "mod7_convert_chrs_to_pgen.chrX.pgen")
+        #str(tmpMod7 / "mod7_convert_chrs_to_pgen.chrX.pgen")
+        tmpMod8/"mod8_batch_table_batch",
+        tmpMod8/"mod8_pedigree_ibd_estimate.kin0"
         #tmpMod7 / "mod7_sort_X.pgen"
         #expand(str(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info"), batch = batches, chr = ['PAR1', 'PAR2'])
         #expand(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info", batch = batches, chr = ['X'])

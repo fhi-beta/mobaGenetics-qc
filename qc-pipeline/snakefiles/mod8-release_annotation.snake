@@ -426,34 +426,34 @@ rule mod8_generate_best_snps_stats:
 #         mqc.merge_bedsets(input.beds, out_trunk, plinklocal)
 
 
-rule plink1_sex_check_test:
-    input:
-        pgenset = "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_best_snps_temp1.pgen"
-    output:
-        sexcheck = tmpMod8/"plink1_sexcheck_test.sexcheck"
-    run:
-        plink_input = mqc.plinkBase(input.pgenset[0])
-        plink1_input = plink_input + "_plink1"
-        ouput_file = mqc.plinkBase(output.sexcheck)
+# rule plink1_sex_check_test:
+#     input:
+#         pgenset = "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_best_snps_temp1.pgen"
+#     output:
+#         sexcheck = tmpMod8/"plink1_sexcheck_test.sexcheck"
+#     run:
+#         plink_input = mqc.plinkBase(input.pgenset[0])
+#         plink1_input = plink_input + "_plink1"
+#         ouput_file = mqc.plinkBase(output.sexcheck)
 
-        subprocess.run(
-            [
-                plink2local,
-                "--pfile", plink_input,
-                "--make-bed",
-                "--out", plink1_input
-            ],
-        )
+#         subprocess.run(
+#             [
+#                 plink2local,
+#                 "--pfile", plink_input,
+#                 "--make-bed",
+#                 "--out", plink1_input
+#             ],
+#         )
 
-        subprocess.run(
-            [
-                plinklocal,
-                "--bfile", plink1_input,
-                "--check-sex",
-                "--out", ouput_file
-            ],
-            check = True
-        )
+#         subprocess.run(
+#             [
+#                 plinklocal,
+#                 "--bfile", plink1_input,
+#                 "--check-sex",
+#                 "--out", ouput_file
+#             ],
+#             check = True
+#         )
 
 
 rule_stem = 'mod8_check_sex'
@@ -563,7 +563,7 @@ rule_stem = 'mod8_pedigree_ibd_estimate'
 rule mod8_pedigree_ibd_estimate:
     'IBD estimation. Requires conversion to plink1.'
     input:
-        pgenset = rules.mod8_best_snps.output.pgenset,
+        pgenset = multiext("/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_best_snps.pgen", ".pgen", ".pvar", ".psam") #rules.mod8_best_snps.output.pgenset,
     output:
         king_relatedness = tmpMod8/(rule_stem + ".kin0")
     threads: 24
