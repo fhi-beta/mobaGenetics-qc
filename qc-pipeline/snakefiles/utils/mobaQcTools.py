@@ -1724,16 +1724,20 @@ def create_fam_map(fam_file, map_in_file,  map_out_file):
 
 
 
-def merge_pgensets(pgens, out_trunk, plink2local, threads, pgenlist_file = "pgen_list"):
+def merge_pgensets(pgens, out_trunk, plink2local, threads, pgenlist_file = "pgen_list", rename_missing = True):
     """
     pgens: list of .pgen-files
     merges the pgen-sets associated with the .pgen-files in pgens into a single pgen-set with filebase out_trunk (only works for concatenation-jobs)
     """
+    if rename_missing:
+        missing_flag = "--set-missing-var-ids @_#_\$1:\$2 "
+    else:
+        missing_flag = ""
     cmd = f"""
     # Generate list of files to merge
     pgenset_dir=$(dirname "{out_trunk}")
     echo {pgens} | tr ' ' '\\n' | sed 's/\.pgen//' > $pgenset_dir/{pgenlist_file}.txt
-    {plink2local} --pmerge-list $pgenset_dir/{pgenlist_file}.txt --threads {threads} --out {out_trunk}
+    {plink2local} --pmerge-list $pgenset_dir/{pgenlist_file}.txt {missing_flag}--threads {threads} --out {out_trunk}
     """
     subprocess.run(cmd, shell=True, check=True)
 
