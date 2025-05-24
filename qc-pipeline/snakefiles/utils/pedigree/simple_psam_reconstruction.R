@@ -9,8 +9,8 @@ set.seed(11111)
 
 
 # Command line arguments
-debug <- F
-debug_plink_version <- 1
+debug <- T
+debug_plink_version <- 2
 debug_batch <- "snp010"
 if (debug) {
   if(debug_plink_version == 1){
@@ -31,12 +31,12 @@ if (debug) {
   )
   } else if(debug_plink_version == 2){
     args <- c(
-    "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_pedigree_ibd_estimate.kin0", 
-    "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_check_sex.sexcheck",
-    "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz",
-    "/mnt/archive/snpQc/phenotypes/birth_year_24.04.12.gz",
-    "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
-    "/mnt/work/qc_genotypes/pipeOut_dev/2024.09.04/mod7-post-imputation/all_samples/mod7_rename_missing_ids.psam",
+    "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_pedigree_ibd_estimate.kin0", 
+    "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_import_ycounts.sexcheck",
+    "/mnt/archive2/moba_genotypes_resources/phenotypes/expected_relationship_24.04.12.gz",
+    "/mnt/archive2/moba_genotypes_resources/phenotypes/birth_year_24.04.12.gz",
+    "/mnt/archive2/moba_genotypes_resources/phenotypes/ids_24.08.07.gz",
+    "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_common_snps_filter.psam",
     "/mnt/work/oystein/tmp/fam_reconstruction/plink2/mod8_psam_reconstruction.psam",
     "/mnt/work/oystein/tmp/fam_reconstruction/plink2/exclusion",
     "/mnt/work/oystein/tmp/fam_reconstruction/plink2/mismatch_information.gz",
@@ -143,7 +143,8 @@ genomic_relatedness_table <- read.table(
 print("Read sex check file")
 sex_check_data <- read.table(
   file = sex_check_file,
-  header = T,
+  header = F,
+  col.names = c("IID", "PEDSEX", "SNPSEX", "STATUS", "F", "YCOUNT"),
   stringsAsFactors = F
 )
 
