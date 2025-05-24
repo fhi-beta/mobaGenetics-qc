@@ -543,7 +543,7 @@ rule mod8_import_ycounts:
         sex_check_df = pd.read_table(input.sex_check, dtype={'PEDSEX': 'str', 'SNPSEX': 'str'}, delim_whitespace = True)
         merged_df = pd.merge(sex_check_df, ycounts_df[['IID', 'YCOUNT']], left_on='#IID', right_on='IID', how='left')
         merged_df.drop(columns=['IID'], inplace=True)
-        merged_df.to_csv(output.sex_check)
+        merged_df.to_csv(output.sex_check, sep = "\t", na_rep = "NA", index = False)
 
 def get_fam_per_batch():
     return [f"{tmpMod2}/{batch}/m2_output.fam" for batch in batches]
@@ -631,7 +631,7 @@ rule mod8_psam_reconstruction:
     input:
         psam_all_markers = rules.mod8_common_snps_filter.output.pgenset_common_snps[2],
         king_relatedness = rules.mod8_pedigree_ibd_estimate.output.king_relatedness,
-        sex_check = rules.mod8_check_sex.output.sex_check,
+        sex_check = rules.mod8_import_ycounts.output.sex_check,
         expected_relationships = config['expected_relationships'],
         birth_year = config['birth_year'],
         id_mapping = config['id_mapping']
