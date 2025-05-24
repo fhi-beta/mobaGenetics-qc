@@ -527,6 +527,24 @@ rule mod8_check_sex:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
+# import ycounts from pre-imputation
+rule mod8_import_ycounts:
+    input:
+        sex_check =  rules.mod8_check_sex.output.sex_check
+    output:
+        sex_check = tmpMod8/"mod8_import_ycounts.sexcheck"
+    run:
+        ycounts = []
+        for batch in batches:
+            ycount_file =  f"{tmpMod2}/{batch}/m2_output.sexcheck"
+            ycount = pd.read_table(ycount_file, delim_whitespace = True)
+            ycounts.append(ycount)
+        ycounts_df = pd.concat(ycounts, ignore_index = True)
+        sex_check_df = pd.read_table(input.sex_check, dtype={'PEDSEX': 'str', 'SNPSEX': 'str'}, delim_whitespace = True)
+        merged_df = pd.merge(sex_check_df, ycounts_df[['IID', 'YCOUNT']], left_on='#IID', right_on='IID', how='left')
+        merged_df.drop(columns=['IID'], inplace=True)
+        merged_df.to_csv(output.sex_check)
+
 def get_fam_per_batch():
     return [f"{tmpMod2}/{batch}/m2_output.fam" for batch in batches]
 

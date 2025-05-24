@@ -27,7 +27,7 @@ if (debug) {
     paste0("/mnt/work/oystein/tmp/fam_reconstruction/plink1/", debug_batch, "/mismatch_relationship.gz"),
     paste0("/mnt/work/oystein/tmp/fam_reconstruction/plink1/", debug_batch, "/fam_reconstruction_debug.md"),
     "debug",
-    1
+    "1"
   )
   } else if(debug_plink_version == 2){
     args <- c(
@@ -43,7 +43,7 @@ if (debug) {
     "/mnt/work/oystein/tmp/fam_reconstruction/plink2/mismatch_relationship.gz",
     "/mnt/work/oystein/tmp/fam_reconstruction/plink2/fam_reconstruction_debug.md",
     "debug",
-    2
+    "2"
   )
   }
   
@@ -163,7 +163,7 @@ id_data  <- read.table(
   stringsAsFactors = F
 )
 
-if(plink_version == 1){
+if(plink_version == "1"){
  psam_data_raw  <- read.table(
   file = psam_file,
   header = F,
@@ -172,7 +172,7 @@ if(plink_version == 1){
 )
 psam_data <- psam_data_raw[,c("IID", "SEX")]
 
-} else if(plink_version == 2){
+} else if(plink_version == "2"){
   psam_data  <- read.table(
   file = psam_file,
   header = F,
@@ -1033,7 +1033,7 @@ if (!identical(psam_data$IID, restored_psam_data$IID)){
   stop("Restored psam IIDs do not match original")
 }
 
-if(plink_version == 1){
+if(plink_version == "1"){
   restored_psam_data$PHE <- -9
   write.table(
   x = restored_psam_data,
@@ -1044,7 +1044,7 @@ if(plink_version == 1){
   quote = F,
   na = "0"
 )
-} else if(plink_version == 2){
+} else if(plink_version == "2"){
   write.table(
   x = restored_psam_data,
   file = destination_file,
