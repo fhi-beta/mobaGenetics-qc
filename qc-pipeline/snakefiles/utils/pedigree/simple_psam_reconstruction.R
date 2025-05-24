@@ -132,23 +132,30 @@ theme_set(theme_bw(base_size = 24))
 
 
 # Load data
+print("Read genome file")
 
 genomic_relatedness_table <- read.table(
   file = genome_file,
   header = T,
   stringsAsFactors = F
 )
+
+print("Read sex check file")
 sex_check_data <- read.table(
   file = sex_check_file,
   header = T,
   stringsAsFactors = F
 )
+
+print("Read relationship file")
 expected_relationships_data <- read.table(
   file = expected_relationships_file,
   header = T,
   sep = "\t",
   stringsAsFactors = F
 )
+
+print("Read birth year file")
 birth_year_data  <- read.table(
   file = birth_year_file,
   header = T,
@@ -156,6 +163,7 @@ birth_year_data  <- read.table(
   stringsAsFactors = F
 )
 
+print("Read id file")
 id_data  <- read.table(
   file = id_file,
   header = T,
@@ -164,6 +172,7 @@ id_data  <- read.table(
 )
 
 if(plink_version == "1"){
+print("Read fam file")
  psam_data_raw  <- read.table(
   file = psam_file,
   header = F,
@@ -173,6 +182,7 @@ if(plink_version == "1"){
 psam_data <- psam_data_raw[,c("IID", "SEX")]
 
 } else if(plink_version == "2"){
+  print("Read psam file")
   psam_data  <- read.table(
   file = psam_file,
   header = F,
@@ -182,7 +192,7 @@ psam_data <- psam_data_raw[,c("IID", "SEX")]
 )
 }
 
-
+print("Done reading")
 sample_ids <- psam_data[, 1]
 
 genomic_relatedness_table$relationship <- factor(genomic_relatedness_table$InfType, levels = c("Dup/MZ", "PO", "FS", "2nd", "3rd", "4th", "UN"))
