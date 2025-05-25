@@ -891,7 +891,6 @@ rule mod8_pca_only_moba:
     input:
         bedset = rules.mod8_common_markers_moba_ref.output.bedset_only_moba
     output:
-        bedset = multiext(str(tmpMod8/rule_stem), '.bed', '.bim', '.fam'),
         pcs = tmpMod8/(rule_stem + ".pcs"),
         eigenvector = tmpMod8/(rule_stem + ".vec"),
         snp_loadings = tmpMod8/(rule_stem + ".load"),
