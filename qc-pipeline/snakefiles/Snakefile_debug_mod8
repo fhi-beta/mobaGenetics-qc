@@ -1,0 +1,132 @@
+##
+#
+# This snakefile executes the QC pipeline. The different parts of the pipeline are organized in modules represented in different snake files.
+# The pipeline is expected to run in the conda environment named 'snpQc' built using `auxiliaries/environment/snpQc-env.txt`.
+#
+# Commands to execute from the qc-pipeline folder:
+# conda activate snp_qc
+# snakemake --snakefile Snakefile_debug_mod5 --cores 16 --use-conda --rerun-incomplete
+#
+##
+
+# External libraries
+from pathlib import Path
+from shutil import copyfile
+import pandas as pd
+import numpy as np
+import plotnine as p9
+import matplotlib
+import math
+import sys
+import yaml
+import io
+import shutil
+import os
+matplotlib.use('Agg')
+from shutil import copyfile
+
+
+# Local libraries
+sys.path.append('utils')  # in order to find our local packages
+import mobaQcTools as mqc
+import batch_report
+
+
+# Config file
+configfile: "parameters/config.yaml"
+
+# Pipeline variables and setup
+include: "parameters/variables.py"
+include: "parameters/batch_details.py"
+
+# Ensure bash as shell
+shell.executable("/bin/bash")
+
+# A file with rule properties and ordering
+with open("parameters/rules.yaml", 'r') as stream:
+    rule_info = yaml.safe_load(stream)
+
+# A bit of sanity check
+for batch in batches:
+    if batch not in batch_genotyping_chip:
+        raise Exception(f"Batch '{batch}' not in 'batch_genotyping_chip', please edit 'batch_details.py' accordingly.")
+    if batch not in batch_name:
+        raise Exception(f"Batch '{batch}' not in 'batch_mobagenetics_10_name', please edit 'batch_details.py' accordingly.")
+
+# Report (top level)
+report: "report/qc.rst"
+
+# The different modules
+include: "mod1-data-conversion.snake"
+include: "mod2-genetic-relationship.snake"
+include: "mod3-population-clustering.snake"
+include: "mod4-good-markers.snake"
+include: "mod5-pre-phasing.snake"
+include: "mod6-imputation.snake"
+include: "mod7-post-imputation.snake"
+include: "mod8-release_annotation.snake"
+
+# Debug code
+
+# rule all, lists the output of every module
+rule all:
+    input:
+        # expand(tmpMod4/ "{batch}" / "{number_of_samples}" / ("mod5_output.bed"), batch = batches_debug, number_of_samples = samples)
+        # expand(tmpMod4point5/ "{batch}" / ("mod4point5_cull_samples.bed"), batch = batches_debug)
+        #expand(tmpMod6/ "{batch}" / f"{n_samples}_samples" / ("mod6_conform.chr{chr}.conformed.vcf.gz"), batch = batches_debug, chr = chrs)
+        # expand(tmpMod6/ "{batch}" / f"{n_samples}_samples" / ("mod6_output.chr{chr}.pgen"), batch = batches_debug, chr = chrs_debug)
+        # expand(tmpMod6/ "{batch}" / f"{n_samples}_samples" / ("mod6_output.pgen"), batch = batches_debug)
+        # expand(tmpMod6/"{batch}"/f"{n_samples}_samples" / "mod6_merge_chrs.vcf.gz", batch = batches_debug)
+        # expand(tmpMod4/ "{batch}" / "m4_output_good_markers.bed", batch = batches_debug)
+        # expand(tmpMod3/"{batch}"/"clusters", batch = batches),
+        #expand(tmpMod5 / "{batch}" / ("ID-mod5_missingness_and_hwe-HRC.txt"), batch = batches),
+        #expand(tmpMod5/"{batch}"/"all_samples"/ "report" /"pre_imputation_report.md", batch = batches_debug).
+       # expand(str(tmpMod7 / f"{n_samples}_samples" / "mod7_merge_batches_chr{chr}.vcf.gz"), chr = chrs_debug)
+        # str(tmpMod7 / "all_samples" / "mod7_duplicate_samples.txt")
+        # str(tmpMod7 / "mod7_rename_missing_ids.pgen")
+        #tmpMod8 / "mod8_split_rare_common.pgen"
+        # str(tmpMod7 / "all_samples" / "mod7_rename_missing_ids.pgen")
+        #str(tmpMod8 / "mod8_dr2.txt.gz")
+        # tmpMod8/'mod8_best_snps.vmiss'
+        #tmpMod8/'mod8_check_sex.sexcheck'
+        #tmpMod8/"plink1_sexcheck_test.sexcheck"
+        #str(tmpMod7 / f"{n_samples}_samples" / "mod7_ld.prune.in")
+        # str(tmpMod7 / f"{n_samples}_samples" / "mod7_best_snps_le.txt")
+        #tmpMod8/"clusters"
+        #expand(tmpMod1/"{batch}"/"remove_chr0.bed", batch = batches)
+        #resultPath / "count_tables" / "mod6_variants"
+        #tmpMod8/'mod8_best_snps.smiss'
+        #release_folder/"readme.md"
+        #str(tmpMod8/"mod8_psam_reconstruction.psam")
+        #expand(tmpMod7 / f"{n_samples}_samples" / "mod7_convert_chrs_to_pgen.chr{chr}.pgen", chr = ["X"])
+        #str(tmpMod72 / "all_samples" / "mod7_best_snps_le.txt")
+        #str(tmpMod7 / "all_samples" / "mod7_allele_counts.frq.counts")
+        #str(tmpMod7 / "all_samples" / "mod7_update_sex_file.txt")
+        #expand(tmpMod5 / "{batch}" / "all_samples" / "mod5_merge_x.bed", batch = batches_debug)
+        #expand(tmpMod5 / "{batch}" / "all_samples" / "mod5_output.bed", batch = batches_debug)
+        #expand(str(tmpMod5 / "{batch}" / f"{n_samples}_samples" / "mod5_split_par.bed"), batch=batches_debug)
+        # str(tmpMergeTest / "all_samples" / "mod7_output.pgen")
+        #expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_impute.chrX.imputed.vcf.gz"), batch = batches_debug)
+        # expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_sorted.vcf.gz"), batch = batches_debug)
+        # expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_output.vcf.gz"), batch = batches_debug)
+        # expand(str(tmpMod6 / "{batch}" / f"{n_samples}_samples" / "mod6_merge_chrs.vcf.gz"), batch = batches_debug)
+       # expand(str(tmpMod6Archive / "{batch}" / f"{n_samples}_samples" / "mod6_merge_chrs.vcf.gz"), batch = batches_debug)
+        #tmpMod7 / "mod7_merge.pgen"
+        #expand(tmpMod7 / "{batch}" / "mod7_filter_and_format_phased_dosage.chr{chr}.vcf.gz", batch = batches, chr = chrs)
+        #expand(tmpMod7 / "{batch}" / "mod7_format.chr{chr}.vcf.gz.tbi", batch = ['snp007'], chr = ['X'])
+        #str(tmpMod7 / "mod7_convert_chrs_to_pgen.chrX.pgen")
+        #tmpMod8/"mod8_batch_table_batch",
+        #tmpMod8/"mod8_pedigree_ibd_estimate.kin0"
+        #tmpMod7 / "mod7_sort_X.pgen"
+        tmpMod8/"pca_moba.bed"
+        #expand(str(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info"), batch = batches, chr = ['PAR1', 'PAR2'])
+        #expand(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info", batch = batches, chr = ['X'])
+        #expand(tmpMod6 / "{batch}" / "mod6_reset_male_x_ploidy.chrX.vcf", batch = ['snp007'])
+        #expand(str(tmpMod6 / "{batch}" / "mod6_conform.chr{chr}.conformed.vcf"), batch = batches, chr = ['PAR1', 'PAR2'])
+        #expand(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.phased.bcf", batch = batches, chr = ['PAR1', 'PAR2'])
+        # expand(tmpMod5/ "{batch}" / "all_samples" /"mod5_output.imiss", batch = batches_debug)
+
+
+
+
+
