@@ -148,6 +148,9 @@ sex_check_data <- read.table(
   stringsAsFactors = F
 )
 
+sex_check_data$SNPSEX[is.na(sex_check_data$SNPSEX)] <- 0
+sex_check_data$PEDSEX[is.na(sex_check_data$PEDSEX)] <- 0
+
 print("Read relationship file")
 expected_relationships_data <- read.table(
   file = expected_relationships_file,
@@ -383,17 +386,17 @@ write(
   append = T
 )
 write(
-  x = paste0("| Unknown | ", sum(mother_sex$SNPSEX == 0), " |"),
+  x = paste0("| Unknown | ", nrow(subset(mother_sex, SNPSEX == 0)), " |"),
   file = md_file,
   append = T
 )
 write(
-  x = paste0("| Male | ", sum(mother_sex$SNPSEX == 1), " |"),
+  x = paste0("| Male | ", nrow(subset(mother_sex, SNPSEX == 1)), " |"),
   file = md_file,
   append = T
 )
 write(
-  x = paste0("| Female | ", sum(mother_sex$SNPSEX == 2), " |\n"),
+  x = paste0("| Female | ", nrow(subset(mother_sex, SNPSEX == 2)), " |\n"),
   file = md_file,
   append = T
 )
@@ -486,17 +489,17 @@ write(
   append = T
 )
 write(
-  x = paste0("| Unknown | ", sum(father_sex$SNPSEX == 0), " |"),
+  x = paste0("| Unknown | ", nrow(subset(father_sex, SNPSEX == 0)), " |"),
   file = md_file,
   append = T
 )
 write(
-  x = paste0("| Male | ", sum(father_sex$SNPSEX == 1), " |"),
+  x = paste0("| Male | ", nrow(subset(father_sex, SNPSEX == 1)), " |"),
   file = md_file,
   append = T
 )
 write(
-  x = paste0("| Female | ", sum(father_sex$SNPSEX == 2), " |\n"),
+  x = paste0("| Female | ", nrow(subset(father_sex, SNPSEX == 2)), " |\n"),
   file = md_file,
   append = T
 )
