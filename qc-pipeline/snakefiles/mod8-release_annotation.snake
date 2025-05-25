@@ -745,7 +745,7 @@ rule_stem = 'mod8_common_markers_moba_ref'
 rule mod8_common_markers_moba_ref:
     input:
         bedset_ref = multiext(config["1000_genomes_stem"], '.bed', '.bim', '.fam'),
-        pgenset_moba = multiext("/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_exclude_conflictual_relationships_best_snps", ".pgen", ".pvar", .".psam") # rules.mod8_exclude_conflictual_relationships.output.pgenset_best_snps
+        pgenset_moba = multiext("/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_exclude_conflictual_relationships_best_snps", ".pgen", ".pvar", ".psam") # rules.mod8_exclude_conflictual_relationships.output.pgenset_best_snps
     output:
         bedset_ref = multiext(str(tmpMod8/"pca_ref") ,'.bed','.bim','.fam'),
         bedset_moba = multiext(str(tmpMod8/"pca_moba") ,'.bed','.bim','.fam'),
