@@ -745,10 +745,11 @@ rule_stem = 'mod8_common_markers_moba_ref'
 rule mod8_common_markers_moba_ref:
     input:
         bedset_ref = multiext(config["1000_genomes_stem"], '.bed', '.bim', '.fam'),
-        pgenset_moba = multiext("/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_exclude_conflictual_relationships_best_snps", ".pgen", ".pvar", ".psam") # rules.mod8_exclude_conflictual_relationships.output.pgenset_best_snps
+        pgenset_moba = rules.mod8_exclude_conflictual_relationships.output.pgenset_best_snps
     output:
         bedset_ref = multiext(str(tmpMod8/"pca_ref") ,'.bed','.bim','.fam'),
         bedset_moba = multiext(str(tmpMod8/"pca_moba") ,'.bed','.bim','.fam'),
+        bedset_only_moba = multiext(str(tmpMod8/"pca_only_moba") ,'.bed','.bim','.fam'),
         tri_alleles = tmpMod8/(rule_stem + "_tri_alleles.missnp"),
         marker_list = tmpMod8/(rule_stem + ".txt")
     benchmark:
@@ -759,7 +760,8 @@ rule mod8_common_markers_moba_ref:
         inTrunk_moba =  mqc.plinkBase(input.pgenset_moba[0])
         outTrunk_ref =  mqc.plinkBase(output.bedset_ref[0])
         outTrunk_moba =  mqc.plinkBase(output.bedset_moba[0])
-        inTrunk_moba_1 = mqc.plinkBase(input.pgenset_moba[0]) + "_plink1"
+        outTrunk_only_moba = mqc.plinkBase(output.bedset_only_moba[0])
+        #inTrunk_moba_1 = mqc.plinkBase(input.pgenset_moba[0]) + "_plink1"
         outTrunk_ref_temp = outTrunk_ref + "_temp"
         outTrunk_moba_temp = outTrunk_moba + "_temp"
         triallelesTrunk =  mqc.plinkBase(output.tri_alleles)
@@ -770,13 +772,13 @@ rule mod8_common_markers_moba_ref:
                 plink2local,
                 "--pfile", inTrunk_moba,
                 "--make-bed",
-                "--out", inTrunk_moba_1
+                "--out", outTrunk_only_moba # inTrunk_moba_1
             ],
         )
 
 
         # Common markers found in marker_list
-        mqc.intersect_rsid(inTrunk_moba_1 + ".bim", inTrunk_ref + ".bim",  output.marker_list)
+        mqc.intersect_rsid(outTrunk_only_moba + ".bim", inTrunk_ref + ".bim",  output.marker_list)
 
         # Reduce both sets to the common markers
         subprocess.run(
@@ -794,7 +796,7 @@ rule mod8_common_markers_moba_ref:
         subprocess.run(
             [
                 plinklocal,
-                "--bfile", inTrunk_moba_1,
+                "--bfile", outTrunk_only_moba,
                 "--extract", output.marker_list,
                 "--out", outTrunk_moba_temp,
                 "--make-bed"
@@ -838,7 +840,6 @@ rule mod8_common_markers_moba_ref:
             check = True
         )
 
-        mqc.remove_bedset(inTrunk_moba_1)
         mqc.remove_bedset(outTrunk_moba_temp)
         mqc.remove_bedset(outTrunk_ref_temp)
 
@@ -885,6 +886,34 @@ rule mod8_pca_both:
             ],
             check = True
         )
+rule_stem = "mod8_pca_only_moba"
+rule mod8_pca_only_moba:
+    input:
+        bedset = rules.mod8_common_markers_moba_ref.output.bedset_only_moba
+    output:
+        bedset = multiext(str(tmpMod8/rule_stem), '.bed', '.bim', '.fam'),
+        pcs = tmpMod8/(rule_stem + ".pcs"),
+        eigenvector = tmpMod8/(rule_stem + ".vec"),
+        snp_loadings = tmpMod8/(rule_stem + ".load"),
+        eigenvalues = tmpMod8/(rule_stem + ".val"),
+        variance_explained = tmpMod8/(rule_stem + ".pve")
+    run:
+        inTrunk = mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
+
+        subprocess.run(
+            [
+                flashpca,
+                "--bfile", inTrunk,
+                "--outpc", output.pcs,
+                "--outvec", output.eigenvector,
+                "--outload", output.snp_loadings,
+                "--outval", output.eigenvalues,
+                "--outpve", output.variance_explained,
+            ],
+            check = True
+        )
+
 
 rule_stem = "mod8_plot_pca_both"
 rule mod8_plot_pca_both:
