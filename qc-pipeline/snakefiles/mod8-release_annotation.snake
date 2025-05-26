@@ -898,8 +898,6 @@ rule mod8_pca_only_moba:
         variance_explained = tmpMod8/(rule_stem + ".pve")
     run:
         inTrunk = mqc.plinkBase(input.bedset[0])
-        outTrunk = mqc.plinkBase(output.bedset[0])
-
         subprocess.run(
             [
                 flashpca,
