@@ -472,7 +472,7 @@ rule mod8_check_sex:
                 [
                     "plink2",
                     "--pfile", in_trunk,
-                    "--check-sex", "max-female-xf=0.2", "min-male-xf=0.8",
+                    "--check-sex", "max-female-xf=0.6", "min-male-xf=0.8",
                     "--out", out_trunk
                 ],
                 check=True
