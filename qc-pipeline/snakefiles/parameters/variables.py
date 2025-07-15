@@ -21,6 +21,7 @@ resources_folder = Path(os.path.dirname(workflow.basedir))/'resources'
 high_ld_regions_hg19 = resources_folder/'high-ld-regions-hg19.txt'
 haploid_x_file = resources_folder/'haploid_x.txt'
 hrc_sites = Path(config['hrc_sites'])
+sites_1000g = Path(config['1000g_sites'])
 mapfiles = Path(config['mapfiles'])
 exclude_variants = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'resources/exclude_variants.txt')) # used to exclude variants with missing IDs
 blacklisted_variants = os.path.abspath(os.path.join(os.path.dirname(workflow.basedir), 'resources/variant_blacklist.txt'))

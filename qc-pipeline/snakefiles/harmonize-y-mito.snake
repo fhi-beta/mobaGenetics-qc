@@ -1,19 +1,7 @@
-rule_stem = "extract_Y_mito"
-rule mod5_extract_Y_mito:
+rule_stem = "mod5_extract_Y_mito"
+rule mod5_perl_Y_mito:
     input:
-        bedset = rules.mod5_missingness_and_hwe.output.bedset,
-    output:
-        bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
-    run:
-        inTrunk = mqc.plinkBase(input.bedset[0])
-        outTrunk = mqc.plinkBase(output.bedset[0])
-        subprocess.run([plinklocal, "--bfile", inTrunk, "--chr", "24", "26", "--make-bed", outTrunk])
-
-
-
-rule mod5_hrc1000:
-    input:
-        bedset = rules.extract_Y_mito.output.bedset,
+        bedset = rules.mod5_extract_Y_mito.bedset,
         frq = rules.mod5_compute_allele_frequencies.output.frq
     output:
         exclude = tmpMod5 / "{batch}"  / ("Exclude-" + rule_stem + "-1000G.txt"),
@@ -29,8 +17,8 @@ rule mod5_hrc1000:
                     "perl", hrc1000g, 
                     "-b", input.bedset[1],
                     "-f", input.frq,
-                    "-r", hrc_sites,
-                    "-h"
+                    "-r", sites_1000g,
+                    "-g"
                 ]
             )
             

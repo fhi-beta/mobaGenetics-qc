@@ -263,6 +263,8 @@ rule mod5_extract_Y_mito:
         outTrunk = mqc.plinkBase(output.bedset[0])
         subprocess.run([plinklocal, "--bfile", inTrunk, "--chr", "24", "26", "--make-bed", "--out", outTrunk])
 
+rule_stem_extract_y_mito = "mod5_extract_Y_mito"
+
 
 # rule_stem must be same as for input bim file
 rule mod5_hrc1000:
@@ -285,6 +287,34 @@ rule mod5_hrc1000:
                     "-f", input.frq,
                     "-r", hrc_sites,
                     "-h"
+                ]
+            )
+            
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+rule_stem = rule_stem_extract_y_mito
+rule mod5_perl_Y_mito:
+    input:
+        bedset = rules.mod5_extract_Y_mito.bedset,
+        frq = rules.mod5_compute_allele_frequencies.output.frq
+    output:
+        exclude = tmpMod5 / "{batch}"  / ("Exclude-" + rule_stem + "-1000G.txt"),
+        chromosome = tmpMod5 / "{batch}" / ("Chromosome-" + rule_stem + "-1000G.txt"),
+        position = tmpMod5 / "{batch}" / ("Position-" + rule_stem + "-1000G.txt"),
+        strand_flip = tmpMod5 / "{batch}" / ("Strand-Flip-" + rule_stem + "-1000G.txt"),
+        force = tmpMod5 / "{batch}" / ("Force-Allele1-" + rule_stem + "-1000G.txt"),
+        id = tmpMod5 / "{batch}" / ("ID-" + rule_stem + "-1000G.txt")
+    run:
+        try:
+            subprocess.run(
+                [
+                    "perl", hrc1000g, 
+                    "-b", input.bedset[1],
+                    "-f", input.frq,
+                    "-r", sites_1000g,
+                    "-g"
                 ]
             )
             
