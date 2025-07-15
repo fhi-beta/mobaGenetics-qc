@@ -297,7 +297,7 @@ rule mod5_hrc1000:
 rule_stem = rule_stem_extract_y_mito
 rule mod5_perl_Y_mito:
     input:
-        bedset = rules.mod5_extract_Y_mito.bedset,
+        bedset = rules.mod5_extract_Y_mito.output.bedset,
         frq = rules.mod5_compute_allele_frequencies.output.frq
     output:
         exclude = tmpMod5 / "{batch}"  / ("Exclude-" + rule_stem + "-1000G.txt"),
