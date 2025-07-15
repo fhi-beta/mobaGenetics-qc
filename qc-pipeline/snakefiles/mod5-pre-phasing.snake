@@ -268,20 +268,21 @@ rule mod5_Y_mito_allele_freq:
         bedset = rules.mod5_extract_Y_mito.output.bedset|
     output:
         frq = tmpMod5 / "{batch}" / ("od5_Y_mito_allele_freq.frq")
-    try:
-        inTrunk = mqc.plinkBase(input.bedset[0])
-        outTrunk = mqc.plinkBase(output.frq)
-        subprocess.run(
-            [
-                plinklocal,
-                "--bfile", inTrunk,
-                "--freq",
-                "--out", outTrunk
-            ]
-        )
-    except Exception as e:
-        print(f"An exception occurred in rule {rule_stem}.")
-        print(e)
+    run:
+        try:
+            inTrunk = mqc.plinkBase(input.bedset[0])
+            outTrunk = mqc.plinkBase(output.frq)
+            subprocess.run(
+                [
+                    plinklocal,
+                    "--bfile", inTrunk,
+                    "--freq",
+                    "--out", outTrunk
+                ]
+            )
+        except Exception as e:
+            print(f"An exception occurred in rule {rule_stem}.")
+            print(e)
 
 rule_stem_extract_y_mito = "mod5_extract_Y_mito"
 
