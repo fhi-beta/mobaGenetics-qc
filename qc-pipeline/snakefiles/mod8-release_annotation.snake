@@ -945,9 +945,6 @@ rule mod8_plot_pca_both:
             {input.psam} \
             2
         """
-
-rule generate_top_snps_list;
-    input:
         
 
 rule_stem = "release_md"
