@@ -265,7 +265,7 @@ rule mod5_extract_Y_mito:
 
 rule mod5_Y_mito_allele_freq:
     input:
-        bedset = rules.mod5_extract_Y_mito.output.bedset|
+        bedset = rules.mod5_extract_Y_mito.output.bedset
     output:
         frq = tmpMod5 / "{batch}" / ("od5_Y_mito_allele_freq.frq")
     run:
