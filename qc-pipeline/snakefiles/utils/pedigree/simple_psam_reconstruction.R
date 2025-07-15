@@ -9,7 +9,7 @@ set.seed(11111)
 
 
 # Command line arguments
-debug <- F
+debug <- T
 debug_plink_version <- 2
 debug_batch <- "snp010"
 if (debug) {
@@ -32,16 +32,16 @@ if (debug) {
   } else if(debug_plink_version == 2){
     args <- c(
     "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_pedigree_ibd_estimate.kin0", 
-    "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_import_ycounts.sexcheck",
+    "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_check_sex_common_filter_X_ycounts.sexcheck",
     "/mnt/archive2/moba_genotypes_resources/phenotypes/expected_relationship_24.04.12.gz",
     "/mnt/archive2/moba_genotypes_resources/phenotypes/birth_year_24.04.12.gz",
     "/mnt/archive2/moba_genotypes_resources/phenotypes/ids_24.08.07.gz",
     "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_common_snps_filter.psam",
-    "/mnt/work/oystein/tmp/fam_reconstruction/plink2/mod8_psam_reconstruction.psam",
-    "/mnt/work/oystein/tmp/fam_reconstruction/plink2/exclusion",
-    "/mnt/work/oystein/tmp/fam_reconstruction/plink2/mismatch_information.gz",
-    "/mnt/work/oystein/tmp/fam_reconstruction/plink2/mismatch_relationship.gz",
-    "/mnt/work/oystein/tmp/fam_reconstruction/plink2/fam_reconstruction_debug.md",
+    "/mnt/work/oystein/tmp/fam_reconstruction/plink2/debug/mod8_psam_reconstruction.psam",
+    "/mnt/work/oystein/tmp/fam_reconstruction/plink2/debug/exclusion",
+    "/mnt/work/oystein/tmp/fam_reconstruction/plink2/debug/mismatch_information.gz",
+    "/mnt/work/oystein/tmp/fam_reconstruction/plink2/debug/mismatch_relationship.gz",
+    "/mnt/work/oystein/tmp/fam_reconstruction/plink2/debug/fam_reconstruction_debug.md",
     "debug",
     "2"
   )

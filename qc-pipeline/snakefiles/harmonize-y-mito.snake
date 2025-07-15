@@ -1,0 +1,39 @@
+rule_stem = "extract_Y_mito"
+rule mod5_extract_Y_mito:
+    input:
+        bedset = rules.mod5_missingness_and_hwe.output.bedset,
+    output:
+        bedset = multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
+    run:
+        inTrunk = mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
+        subprocess.run([plinklocal, "--bfile", inTrunk, "--chr", "24", "26", "--make-bed", outTrunk])
+
+
+
+rule mod5_hrc1000:
+    input:
+        bedset = rules.extract_Y_mito.output.bedset,
+        frq = rules.mod5_compute_allele_frequencies.output.frq
+    output:
+        exclude = tmpMod5 / "{batch}"  / ("Exclude-" + rule_stem + "-1000G.txt"),
+        chromosome = tmpMod5 / "{batch}" / ("Chromosome-" + rule_stem + "-1000G.txt"),
+        position = tmpMod5 / "{batch}" / ("Position-" + rule_stem + "-1000G.txt"),
+        strand_flip = tmpMod5 / "{batch}" / ("Strand-Flip-" + rule_stem + "-1000G.txt"),
+        force = tmpMod5 / "{batch}" / ("Force-Allele1-" + rule_stem + "-1000G.txt"),
+        id = tmpMod5 / "{batch}" / ("ID-" + rule_stem + "-1000G.txt")
+    run:
+        try:
+            subprocess.run(
+                [
+                    "perl", hrc1000g, 
+                    "-b", input.bedset[1],
+                    "-f", input.frq,
+                    "-r", hrc_sites,
+                    "-h"
+                ]
+            )
+            
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)

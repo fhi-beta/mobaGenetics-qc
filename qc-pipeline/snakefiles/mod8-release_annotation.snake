@@ -472,6 +472,7 @@ rule mod8_check_sex:
                 [
                     "plink2",
                     "--pfile", in_trunk,
+                    "--chr", "X",
                     "--check-sex", "max-female-xf=0.6", "min-male-xf=0.8",
                     "--out", out_trunk
                 ],
@@ -944,6 +945,10 @@ rule mod8_plot_pca_both:
             {input.psam} \
             2
         """
+
+rule generate_top_snps_list;
+    input:
+        
 
 rule_stem = "release_md"
 rule release_md:

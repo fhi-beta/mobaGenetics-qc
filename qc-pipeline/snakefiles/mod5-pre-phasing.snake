@@ -251,6 +251,19 @@ rule mod5_compute_allele_frequencies:
             print(f"An exception occurred in rule {rule_stem}.")
             print(e)
 
+
+
+rule mod5_extract_Y_mito:
+    input:
+        bedset = rules.mod5_missingness_and_hwe.output.bedset,
+    output:
+        bedset = multiext(str(tmpMod5 / "{batch}" / "mod5_extract_Y_mito"), ".bed", ".bim", ".fam")
+    run:
+        inTrunk = mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
+        subprocess.run([plinklocal, "--bfile", inTrunk, "--chr", "24", "26", "--make-bed", "--out", outTrunk])
+
+
 # rule_stem must be same as for input bim file
 rule mod5_hrc1000:
     input:

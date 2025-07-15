@@ -9,8 +9,8 @@
 
 set.seed(20240112)
 
-debug <- F
-debug_plink_version <- 1
+debug <- T
+debug_plink_version <- 2
 
 if (debug) {
   if(debug_plink_version == 1){
@@ -29,15 +29,17 @@ if (debug) {
 
   } else if(debug_plink_version == 2){
         args <- c(
-    "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_pca_both.pcs",
-    "/mnt/archive/snpQc/1000Genomes/all_phase3.psam",
+    "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_pca_both.pcs",
+    "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_pca_only_moba.pcs",
+    "/mnt/archive2/moba_genotypes_resources/1000Genomes/all_phase3.psam",
+    "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_best_snps.het",
     "/mnt/work/oystein/tmp/pca_1kg_moba.md",
     "\"Principal Component Analysys (PCA) vs. 1 KG\"",
     "/mnt/work/oystein/tmp/clusters",
     "/mnt/work/oystein/tmp/ceu_core_ids",
-    "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
+    "/mnt/archive2/moba_genotypes_resources/phenotypes/ids_24.08.07.gz",
     "/mnt/archive/moba_genotypes_releases/2024.12.03/batch/moba_genotypes_2024.12.03_batches",
-    "/mnt/work/qc_genotypes/pipeOut_dev/2024.12.03/mod8-release_annotation/mod8_psam_reconstruction.psam",
+    "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_psam_reconstruction.psam",
     2
   )
   }
@@ -55,7 +57,15 @@ if (!file.exists(pcs_file)) {
   
 }
 
-thousand_genomes_populations_file <- args[2]
+moba_pcs_file <- args[2]
+
+if (!file.exists(pcs_file)) {
+  
+  stop("MoBa PCs file not found")
+  
+}
+
+thousand_genomes_populations_file <- args[3]
 
 if (!file.exists(thousand_genomes_populations_file)) {
   
@@ -63,8 +73,16 @@ if (!file.exists(thousand_genomes_populations_file)) {
   
 }
 
+het_file <- args[4]
 
-md_file <- args[3]
+if (!file.exists(het_file)) {
+  
+  stop("Heterozygosity file not found")
+  
+}
+
+
+md_file <- args[5]
 docs_folder <- dirname(md_file)
 
 if (!dir.exists(docs_folder)) {
@@ -81,19 +99,19 @@ if (!dir.exists(plot_folder)) {
   
 }
 
-md_title <- args[4]
+md_title <- args[6]
 
-cluster_file <- args[5]
+cluster_file <- args[7]
 
-ceu_ids_file <- args[6]
+ceu_ids_file <- args[8]
 
-id_file <- args[7]
+id_file <- args[9]
 
-batches_file <- args[8]
+batches_file <- args[10]
 
-psam_file <- args[9]
+psam_file <- args[11]
 
-plink_version <- args[10]
+plink_version <- args[12]
 
 
 # Libraries
@@ -134,6 +152,21 @@ pcs <- read.table(
 ) %>% 
   clean_names()
 
+moba_pcs <- read.table(
+  file = moba_pcs_file,
+  header = T,
+  sep = "\t",
+  stringsAsFactors = F
+) %>% 
+  clean_names()
+
+
+het <- read.table(
+  het_file, 
+  header = F, 
+  col.names = c("iid", "o_hom", "e_hom", "obs_ct", "f")
+  )
+
 # het <- read.table(
 #   het_file, 
 #   header = F, 
@@ -171,13 +204,38 @@ if(plink_version == 2){
 )
 }
 
+
+mysterious <- subset(pcs, pc2>0 & pc3>0)
+mysterious["mysterious"] <- "yes"
+moba_pcs_mysterious <- moba_pcs %>% left_join(mysterious %>% select(iid, mysterious), by = "iid")
+moba_pcs_mysterious <- moba_pcs_mysterious %>% mutate(mysterious = replace_na(mysterious, "no"))
+
+
+
+
 psam_data <- psam_data %>% mutate(pat = as.character(pat),
          mat = as.character(mat))
+het$het_rate <- (het$obs_ct - het$o_hom)/het$obs_ct
+mean_het_rate <- mean(het$het_rate)
+std_het_rate <- sd(het$het_rate)
+het$stds_het_rate <- "<0"
+het$stds_het_rate[het$het_rate > mean_het_rate] <- "0-0.5"
+het$stds_het_rate[het$het_rate > mean_het_rate+0.5*std_het_rate] <- "0.5-1"
+het$stds_het_rate[het$het_rate > mean_het_rate+std_het_rate] <- "1-1.5"
+het$stds_het_rate[het$het_rate > mean_het_rate+1.5*std_het_rate] <- "1.5-2"
+het$stds_het_rate[het$het_rate > mean_het_rate+2*std_het_rate] <- ">2"
+
+# for (std2 in 1:(2*(std_cutoff-2))){
+#   het$stds_het_rate[het$het_rate > mean_het_rate + 0.5*std2*std_het_rate] <- paste0(0.5*std2"-",0.5*std2+0.5) 
+# }
 
 
+het$stds_het_rate <- factor(het$stds_het_rate, levels=c("<0", "0-0.5", "0.5-1", "1-1.5", "1.5-2", ">2"))
 
 
 batches_data$batch <- as.factor(batches_data$batch)
+
+
 
 populations_order <- c(sort(unique(thousand_genomes_populations$super_pop)), "MoBa")
 
@@ -201,6 +259,13 @@ merged_pcs <- pcs %>%
     by = "iid"
   ) %>%
   left_join(
+    het %>% 
+      select(
+        iid, het_rate, stds_het_rate, f
+      ),
+    by = "iid"
+  ) %>%
+  left_join(
     batches_data,
     by = "iid"
   ) %>%
@@ -214,6 +279,95 @@ merged_pcs <- pcs %>%
   arrange(
     desc(pop_factor)
   )
+
+
+moba_pcs_mysterious <- moba_pcs_mysterious %>% left_join(het %>% 
+      select(
+        iid, het_rate, stds_het_rate, f
+      ),
+    by = "iid")
+
+
+for (pc_i in 1:9) {
+  
+  pc_name_x <- paste0("pc", pc_i)
+  pc_name_y <- paste0("pc", pc_i + 1)
+  moba_pcs_mysterious$x <- moba_pcs_mysterious[[pc_name_x]]
+  moba_pcs_mysterious$y <- moba_pcs_mysterious[[pc_name_y]]
+  
+  
+  write(
+    x = paste0("### ", pc_name_y, " vs. ", pc_name_x),
+    file = md_file,
+    append = T
+  )
+  
+  plot <- ggplot() +
+    theme_bw(
+      base_size = 24
+    ) +
+    geom_point(
+      data = moba_pcs_mysterious,
+      mapping = aes(
+        x = x,
+        y = y,
+        col = stds_het_rate
+      ),
+      alpha = 0.2
+    ) +
+    geom_xsidedensity(
+      data = moba_pcs_mysterious,
+      mapping = aes(
+        x = x,
+        y = after_stat(density),
+        fill= stds_het_rate
+      ),
+      alpha = 0.8
+    ) +
+    geom_ysidedensity(
+      data = moba_pcs_mysterious,
+      mapping = aes(
+        x = after_stat(density),
+        y = y,
+        fill=stds_het_rate
+      ),
+      alpha = 0.8
+    ) +
+    scale_x_continuous(
+      name = pc_name_x
+    ) +
+    scale_y_continuous(
+      name = pc_name_y
+    ) +
+    theme(
+      ggside.panel.scale = 0.15,
+      ggside.axis.ticks = element_blank(),
+      ggside.axis.text = element_blank(),
+      ggside.panel.grid = element_blank(),
+      ggside.panel.background = element_blank(),
+      ggside.panel.spacing = unit(0, "pt"),
+      panel.border = element_blank()
+    )
+  
+  file_name <- paste0("only_moba_het_", pc_name_x, "_", pc_name_y, ".png")
+  
+  print(paste0("Plotting to ", plot_folder, "/", file_name))
+  
+  png(
+    filename = file.path(plot_folder, file_name),
+    width = 800,
+    height = 600
+  )
+  grid.draw(plot)
+  device <- dev.off()
+  
+  write(
+    x = paste0("![](plot/", file_name, ")"),
+    file = md_file,
+    append = T
+  )
+  
+}
 
 trios <- subset(merged_pcs, !is.na(pat) & pat !="0" & !is.na(mat) & mat !="0")
 
@@ -243,6 +397,89 @@ trios_plot_data <- child_data %>%
 }
 
 
+
+for (pc_i in 1:9) {
+  
+  pc_name_x <- paste0("pc", pc_i)
+  pc_name_y <- paste0("pc", pc_i + 1)
+  moba_pcs_mysterious$x <- moba_pcs_mysterious[[pc_name_x]]
+  moba_pcs_mysterious$y <- moba_pcs_mysterious[[pc_name_y]]
+  
+  
+  write(
+    x = paste0("### ", pc_name_y, " vs. ", pc_name_x),
+    file = md_file,
+    append = T
+  )
+  
+  plot <- ggplot() +
+    theme_bw(
+      base_size = 24
+    ) +
+    geom_point(
+      data = moba_pcs_mysterious,
+      mapping = aes(
+        x = x,
+        y = y,
+        col = mysterious
+      ),
+      alpha = 0.2
+    ) +
+    geom_xsidedensity(
+      data = moba_pcs_mysterious,
+      mapping = aes(
+        x = x,
+        y = after_stat(density),
+        fill= mysterious
+      ),
+      alpha = 0.8
+    ) +
+    geom_ysidedensity(
+      data = moba_pcs_mysterious,
+      mapping = aes(
+        x = after_stat(density),
+        y = y,
+        fill= mysterious
+      ),
+      alpha = 0.8
+    ) +
+    scale_x_continuous(
+      name = pc_name_x
+    ) +
+    scale_y_continuous(
+      name = pc_name_y
+    ) +
+    scale_color_manual(values = c("blue", "red")) +
+    scale_fill_manual(values = c("blue", "red")) +
+    theme(
+      ggside.panel.scale = 0.15,
+      ggside.axis.ticks = element_blank(),
+      ggside.axis.text = element_blank(),
+      ggside.panel.grid = element_blank(),
+      ggside.panel.background = element_blank(),
+      ggside.panel.spacing = unit(0, "pt"),
+      panel.border = element_blank()
+    )
+  
+  file_name <- paste0("only_moba_", pc_name_x, "_", pc_name_y, ".png")
+  
+  print(paste0("Plotting to ", plot_folder, "/", file_name))
+  
+  png(
+    filename = file.path(plot_folder, file_name),
+    width = 800,
+    height = 600
+  )
+  grid.draw(plot)
+  device <- dev.off()
+  
+  write(
+    x = paste0("![](plot/", file_name, ")"),
+    file = md_file,
+    append = T
+  )
+  
+}
 
 write(
   x = paste0("Principal component analysis of the MoBa samples merged with the thousand genomes."),
@@ -516,101 +753,101 @@ for (pc_i in 1:num_pcs){
 
 
 
-# plot_trios <-function(plot_data, plot_suffix, top_pc){
-#  for (pc_i in 1:(top_pc-1)){
-#   pc_name_x <- paste0("pc", pc_i)
-#   pc_name_y <- paste0("pc", pc_i + 1)
+plot_trios <-function(plot_data, plot_suffix, top_pc){
+ for (pc_i in 1:(top_pc-1)){
+  pc_name_x <- paste0("pc", pc_i)
+  pc_name_y <- paste0("pc", pc_i + 1)
 
-#   child_pc_name_x <- paste0("pc", pc_i, "_child")
-#   child_pc_name_y <- paste0("pc", pc_i+1, "_child")
+  child_pc_name_x <- paste0("pc", pc_i, "_child")
+  child_pc_name_y <- paste0("pc", pc_i+1, "_child")
 
-#   father_pc_name_x <- paste0("pc", pc_i, "_father")
-#   father_pc_name_y <- paste0("pc", pc_i+1, "_father")
-
-  
-#   mother_pc_name_x <- paste0("pc", pc_i, "_mother")
-#   mother_pc_name_y <- paste0("pc", pc_i+1, "_mother")
+  father_pc_name_x <- paste0("pc", pc_i, "_father")
+  father_pc_name_y <- paste0("pc", pc_i+1, "_father")
 
   
-#   plot_data$child_x <- plot_data[[child_pc_name_x]]
-#   plot_data$child_y <- plot_data[[child_pc_name_y]]
-#   plot_data$father_x <- plot_data[[father_pc_name_x]]
-#   plot_data$father_y <- plot_data[[father_pc_name_y]]
-#   plot_data$mother_x <- plot_data[[mother_pc_name_x]]
-#   plot_data$mother_y <- plot_data[[mother_pc_name_y]]
+  mother_pc_name_x <- paste0("pc", pc_i, "_mother")
+  mother_pc_name_y <- paste0("pc", pc_i+1, "_mother")
+
+  
+  plot_data$child_x <- plot_data[[child_pc_name_x]]
+  plot_data$child_y <- plot_data[[child_pc_name_y]]
+  plot_data$father_x <- plot_data[[father_pc_name_x]]
+  plot_data$father_y <- plot_data[[father_pc_name_y]]
+  plot_data$mother_x <- plot_data[[mother_pc_name_x]]
+  plot_data$mother_y <- plot_data[[mother_pc_name_y]]
 
 
 
-# plot <- ggplot() +
-#     theme_bw(
-#       base_size = 24
-#     ) +
+plot <- ggplot() +
+    theme_bw(
+      base_size = 24
+    ) +
     
-#     geom_point(
-#       data = plot_data,
-#       mapping = aes(
-#         x = father_x,
-#         y = father_y
-#       ),
-#       alpha = 0.3,
-#       color = "red"
-#     ) +
-#     geom_point(
-#       data = plot_data,
-#       mapping = aes(
-#         x = mother_x,
-#         y = mother_y
-#       ),
-#       alpha = 0.3,
-#       color = "blue"
-#     ) +
+    geom_point(
+      data = plot_data,
+      mapping = aes(
+        x = father_x,
+        y = father_y
+      ),
+      alpha = 0.3,
+      color = "red"
+    ) +
+    geom_point(
+      data = plot_data,
+      mapping = aes(
+        x = mother_x,
+        y = mother_y
+      ),
+      alpha = 0.3,
+      color = "blue"
+    ) +
     
-#      geom_segment(data = plot_data, aes(x = child_x, y = child_y, xend = father_x, yend = father_y), linetype = "dashed", color = "red", alpha = 0.2) +
-#     geom_segment(data = plot_data, aes(x = child_x, y = child_y, xend = mother_x, yend = mother_y), linetype = "dashed", color = "blue", alpha = 0.2) +
-#     geom_point(
-#       data = plot_data,
-#       mapping = aes(
-#         x = child_x,
-#         y = child_y
-#       ),
-#       alpha = 0.5
-#     ) +
+     geom_segment(data = plot_data, aes(x = child_x, y = child_y, xend = father_x, yend = father_y), linetype = "dashed", color = "red", alpha = 0.2) +
+    geom_segment(data = plot_data, aes(x = child_x, y = child_y, xend = mother_x, yend = mother_y), linetype = "dashed", color = "blue", alpha = 0.2) +
+    geom_point(
+      data = plot_data,
+      mapping = aes(
+        x = child_x,
+        y = child_y
+      ),
+      alpha = 0.5
+    ) +
     
-#     scale_x_continuous(
-#       name = pc_name_x
-#     ) +
-#     scale_y_continuous(
-#       name = pc_name_y
-#     ) +
-#     theme(
-#       ggside.panel.scale = 0.15,
-#       ggside.axis.ticks = element_blank(),
-#       ggside.axis.text = element_blank(),
-#       ggside.panel.grid = element_blank(),
-#       ggside.panel.background = element_blank(),
-#       ggside.panel.spacing = unit(0, "pt"),
-#       panel.border = element_blank()
-#     )
+    scale_x_continuous(
+      name = pc_name_x
+    ) +
+    scale_y_continuous(
+      name = pc_name_y
+    ) +
+    theme(
+      ggside.panel.scale = 0.15,
+      ggside.axis.ticks = element_blank(),
+      ggside.axis.text = element_blank(),
+      ggside.panel.grid = element_blank(),
+      ggside.panel.background = element_blank(),
+      ggside.panel.spacing = unit(0, "pt"),
+      panel.border = element_blank()
+    )
   
-#   file_name <- paste0("children_parents_pc", pc_i, "_pc", pc_i + 1, "_", plot_suffix, ".png")
+  file_name <- paste0("children_parents_pc", pc_i, "_pc", pc_i + 1, "_", plot_suffix, ".png")
   
-#    print(paste0("Plotting to ", plot_folder, "/", file_name))
+   print(paste0("Plotting to ", plot_folder, "/", file_name))
   
-#   png(
-#     filename = file.path(plot_folder, file_name),
-#     width = 800,
-#     height = 600
-#   )
-#   grid.draw(plot)
-#   device <- dev.off()
-#   write(
-#     x = paste0("![](plot/", file_name, ")"),
-#     file = md_file,
-#     append = T
-#   )
+  png(
+    filename = file.path(plot_folder, file_name),
+    width = 800,
+    height = 600
+  )
+  grid.draw(plot)
+  device <- dev.off()
+  write(
+    x = paste0("![](plot/", file_name, ")"),
+    file = md_file,
+    append = T
+  )
 
-# }
-#}
+}
+}
 
 
 plot_discrete <- function(column, plot_data, top_pc, file_suffix){
@@ -713,9 +950,10 @@ plot_discrete <- function(column, plot_data, top_pc, file_suffix){
 
 }
 
-#plot_trios(trios_plot_data, "trios", 10)
+plot_trios(trios_plot_data, "trios", 10)
+plot_discrete("pop_factor", merged_pcs, 3, "pop_factor")
+plot_discrete("stds_het_rate", merged_pcs, 10, "stds_het_rate")
 
-#plot_discrete("pop_factor", merged_pcs, 3, "pop_factor")
 if(plink_version == 2){
 write(
   x = "## PCs with batches marked",

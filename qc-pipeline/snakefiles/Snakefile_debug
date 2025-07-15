@@ -84,7 +84,7 @@ rule all:
        # expand(str(tmpMod7 / f"{n_samples}_samples" / "mod7_merge_batches_chr{chr}.vcf.gz"), chr = chrs_debug)
         # str(tmpMod7 / "all_samples" / "mod7_duplicate_samples.txt")
         # str(tmpMod7 / "mod7_rename_missing_ids.pgen")
-        #tmpMod8 / "mod8_split_rare_common.pgen"
+        #tmpMod8 / "mod8_common_snps_filter.pgen"
         # str(tmpMod7 / "all_samples" / "mod7_rename_missing_ids.pgen")
         #str(tmpMod8 / "mod8_dr2.txt.gz")
         # tmpMod8/'mod8_best_snps.vmiss'
@@ -119,7 +119,7 @@ rule all:
         #tmpMod8/"mod8_pedigree_ibd_estimate.kin0"
         #tmpMod7 / "mod7_sort_X.pgen"
         #expand(str(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info"), batch = batches, chr = ['PAR1', 'PAR2'])
-        #expand(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info", batch = batches, chr = ['X'])
+        expand(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz", batch = batches, chr = chrs)
         #expand(tmpMod6 / "{batch}" / "mod6_reset_male_x_ploidy.chrX.vcf", batch = ['snp007'])
         #expand(str(tmpMod6 / "{batch}" / "mod6_conform.chr{chr}.conformed.vcf"), batch = batches, chr = ['PAR1', 'PAR2'])
         #expand(tmpMod6 / "{batch}" / "mod6_phase.chr{chr}.phased.bcf", batch = batches, chr = ['PAR1', 'PAR2'])
