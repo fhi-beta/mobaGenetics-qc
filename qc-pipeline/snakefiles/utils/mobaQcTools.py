@@ -1586,10 +1586,10 @@ def summarize_dr2(base, dr2_df_file, batches, info_chrs, threads):
     # best_snp_df.to_csv(top_snp_file, sep="\t", index=False, header=False)
     
 
-def best_snps_of_subset(dr2_file, out, snp_cutoff, subset):
+def best_snps_of_subset(dr2_file, out, snp_cutoff, pvar_file):
     dr2_df = pd.read_csv(dr2_file, sep=r'\s+')
-    sub_df = pd.read_csv(subset, sep=r'\s+', header=None, names=["ID"])
-    dr2_sub_df = dr2_df[dr2_df["ID"].isin(sub_df["ID"])]
+    pvar_df = pd.read_csv(pvar_file, sep=r'\s+', header=None, comment="#", names = ["CHROM", "POS", "ID", "REF", "ALT", "FILTER", "INFO"])
+    dr2_sub_df = dr2_df[dr2_df["ID"].isin(pvar_df["ID"])]
     dr2_sub_df = dr2_sub_df.drop_duplicates(subset=['CHROM', 'POS'], keep=False)
     best_snps_df = dr2_sub_df.nlargest(snp_cutoff, "COMBINED")["ID"]
     best_snps_df.to_csv(out, sep="\t", index=False, header=False)

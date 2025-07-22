@@ -340,6 +340,16 @@ rule mod8_best_snps:
         mqc.remove_pgenset(temp1)
 
 
+rule mod8_top_snps_list:
+    input:
+        dr2 = rules.summarize_dr2.output.dr2
+        pgenset = rules.mod8_best_snps.output.pgenset
+    output:
+        best_snps_list = tmpMod8/'mod8_top_snps_list.txt'
+    run:
+        mqc.best_snps_of_subset(input.dr2, output.best_snps_list, 500000, input.pgenset[1])
+
+
 rule_stem = 'mod8_generate_best_snps_stats'
 rule mod8_generate_best_snps_stats:
     'Generate statistics on the filtered snps'
