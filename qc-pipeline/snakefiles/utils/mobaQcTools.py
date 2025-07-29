@@ -1628,6 +1628,31 @@ def filter_fam_table_for_shapeit(input_file_path, output_file_path):
     filtered_df = selected_columns_df[(selected_columns_df.iloc[:, 1] != "0") | (selected_columns_df.iloc[:, 2] != "0")]
     filtered_df.replace("0", 'NA', inplace=True)
     filtered_df.to_csv(output_file_path, header=False, sep="\t", index=False)
+    
+def make_duplicates_table(psam_file, batches_file, ids_file, miss_file, output_file):
+    """
+    Make a table of duplicate samples.
+    """
+    psam = pd.read_csv(psam_file, sep="\t")
+    psam = psam[["IID", "PAT", "MAT"]].rename(columns={'IID': 'iid', 'PAT': 'pat', 'MAT': 'mat'})
+    batches = pd.read_csv(batches_file, sep="\t")
+    ids = pd.read_csv(ids_file, sep="\t")
+    miss = pd.read_csv(miss_file, sep="\t")
+    miss = miss.rename(columns={'#IID': 'iid'})
+    miss["call_rate"] = 1- miss["F_MISS"]
+    psam = psam.merge(batches.rename(columns={'batch': 'iid_batch'}), left_on='iid', right_on='iid', how='left')
+    psam = psam.merge(batches.rename(columns={'iid': 'pat', 'batch': 'pat_batch'}), left_on='pat', right_on='pat', how='left')
+    psam = psam.merge(batches.rename(columns={'iid': 'mat', 'batch': 'mat_batch'}), left_on='mat', right_on='mat', how='left')
+    psam = psam.merge(ids.rename(columns={'sentrix_id': 'iid', 'id': 'reg_id'}), left_on='iid', right_on='iid', how='left')
+    psam['parents_in_batch'] = ((psam['iid_batch'] == psam['pat_batch']).astype(int) + (psam['iid_batch'] == psam['mat_batch']).astype(int))
+    psam = psam.merge(miss[["iid", "call_rate"]], on="iid", how="left")
+    duplicates = psam[psam['reg_id'].duplicated(keep=False)]
+    duplicates = duplicates.dropna(subset=["reg_id"])
+    duplicates = duplicates.sort_values(by='reg_id')
+    columns_order = ['reg_id', 'iid', 'pat', 'mat', 'iid_batch', 'pat_batch', 'mat_batch', 'role', 'parents_in_batch', 'call_rate']
+    duplicates = duplicates[columns_order]
+    duplicates.to_csv(output_file, index=False, sep="\t")
+    
 #
 # def find_moba_pca_outlier(df):
 #     """NOT IN USE/WORKING!

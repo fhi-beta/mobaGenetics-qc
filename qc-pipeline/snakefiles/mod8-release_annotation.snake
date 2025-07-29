@@ -466,6 +466,8 @@ rule mod8_generate_best_snps_stats:
 #         )
 
 
+
+
 rule_stem = 'mod8_check_sex'
 rule mod8_check_sex:
     input:
@@ -749,6 +751,20 @@ rule mod8_exclude_conflictual_relationships:
         except Exception as e:
                     print(f"An exception occurred in rule {rule}.")
                     print(e)
+
+
+rule mod8_make_duplicates_table:
+    input:
+        pgenset = rules.mod8_exclude_conflictual_relationships.output.pgenset_best_snps,
+        batches = rules.mod8_batch_table.output.batch_table,
+        ids = config['id_mapping'],
+        smiss = rules.mod8_generate_best_snps_stats.output.smiss,
+    output:
+        duplicates = tmpMod8/'mod8_make_duplicates_table.txt'
+    run:
+        psam_file = input.pgenset[2]
+        mqc.make_duplicates_table(psam_file, input.batches, input.ids, input.smiss, output.duplicates)
+
 
 
 # Reduce 1000 genome markers to the intersection with pruned markers
@@ -1039,7 +1055,8 @@ rule release_additional_files:
         ceu_id_file = rules.mod8_plot_pca_both.output.ceu_id_file,
         king_relatedness = rules.mod8_pedigree_ibd_estimate.output.king_relatedness,
         sex_check = rules.mod8_check_sex.output.sex_check,
-        batch_table = rules.mod8_batch_table.output.batch_table
+        batch_table = rules.mod8_batch_table.output.batch_table,
+        duplicates_table = rules.mod8_make_duplicates_table.output.duplicates
     params:
         version = config['release']
     output:
@@ -1055,6 +1072,7 @@ rule release_additional_files:
         king_relatedness = release_folder/"kinship"/(release_base_name + ".kin0"),
         sex_check = release_folder/"sex_check"/(release_base_name + ".sexcheck"),
         batch_table = release_folder/"batch"/(release_base_name + "_batches"),
+        duplicates_table = release_folder/"batch"/(release_base_name + "_duplicates"),
         readme = release_folder/"readme.md"
     run:
         try:
@@ -1098,9 +1116,9 @@ rule release_additional_files:
                 file.write(f"- pca/{os.path.basename(output.cluster_file)}: Sample clustering in the PCA with superpopulations from the 1000 genomes project.\n")
                 file.write(f"- pca/{os.path.basename(output.ceu_id_file)}: Identifiers of samples of short distance in the PCA to the CEU cluster.\n")
                 file.write(f"- kinship/{os.path.basename(output.king_relatedness)}: Kinship analysis as computed by king using high quality pruned autosomal markers.\n")
-                file.write(f"- sex_check/{os.path.basename(output.sex_check)}: Sex check computed by plink on sex markers prior to imputation. Warning: the presence of variants on the sex chromosomes varies between genotyping batches.\n")
-                file.write(f"- {os.path.basename(output.readme)}: Description of the folder content.\n\n")
-
+                file.write(f"- sex_check/{os.path.basename(output.sex_check)}: Sex check computed by plink on sex markers after imputation.\n")
+                file.write(f"- batch/{os.path.basename(output.batch_table)}: Batch table\n")
+                file.write(f"- batch/{os.path.basename(output.duplicates_table_table)}: Table of duplicate samples with batch, parents' sentrix ids, parents' batches, number of parents in same batch (for children), and call rate\n")                file.write(f"- {os.path.basename(output.readme)}: Description of the folder content.\n\n")
                 file.write(f"### Help and troubleshooting\n")
                 file.write(f"For more information, help, and troubleshooting, please consult our [repository](https://github.com/fhi-beta/mobaGenetics-qc).\n")
                 file.write(f"We hope that this release will be useful to you. All our wishes of success in your research.\n")
@@ -1122,6 +1140,7 @@ rule release_additional_files:
             copyfile(input.variance_explained, output.variance_explained)
             copyfile(input.cluster_file, output.cluster_file)
             copyfile(input.ceu_id_file, output.ceu_id_file)
+            
 
             # Kinship files
             copyfile(input.king_relatedness, output.king_relatedness)
@@ -1131,6 +1150,7 @@ rule release_additional_files:
 
             # Sex batch table
             copyfile(input.batch_table, output.batch_table)
+            copyfile(input.duplicates_table, output.duplicates_table)
 
 
         except Exception as e:
