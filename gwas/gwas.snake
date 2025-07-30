@@ -27,14 +27,14 @@ mode = "pc_covar"
 pc_filter = ""
 
 # Phenotypes
-raw_pheno_table = "/mnt/archive/snpQc/phenotypes/kvalitetssikring_vekt_hoyde_ny_24.09.06.csv"
-ids_table = "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz"
-relationship_table = "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz"
-pc_file = "/mnt/archive/moba_genotypes_releases/2024.07.01/pca/moba_genotypes_2024.07.01_clusters"
+raw_pheno_table = "/mnt/archive2/moba_genotypes_resources/phenotypes/kvalitetssikring_vekt_hoyde_ny_24.09.06.csv"
+ids_table = "/mnt/archive2/moba_genotypes_resources/phenotypes/ids_24.08.07.gz"
+relationship_table = "/mnt/archive2/moba_genotypes_resources/phenotypes/expected_relationship_24.04.12.gz"
+pc_file = "/mnt/archive3/moba_genotypes_releases/2025.01.30/pca/moba_genotypes_2025.01.30_clusters"
 pheno_folder = os.path.join(work_folder, 'pheno', mode)
 
 # Genotype files
-moba_release_folder = os.path.join('/mnt/archive/moba_genotypes_releases', release)
+moba_release_folder = os.path.join('/mnt/archive3/moba_genotypes_releases', release)
 plink_release_stem = os.path.join(moba_release_folder, 'moba_genotypes_' + release + '_common')
 
 best_snps = os.path.join(moba_release_folder, 'snp', 'moba_genotypes_' + release + '_reference_500k_snps')
@@ -265,7 +265,7 @@ rule all:
         parents_id_file = get_sample_id_file(f"parents{pc_filter}"),
         # The association results
         association_results = get_regenie_output(),
-        cojo_results = get_cojo_output(),
+        # cojo_results = get_cojo_output(),
         # # The documentation
         # documentation_no_cojo = get_md_no_cojo(),
         # documentation_with_cojo = get_md_cojo(),
@@ -300,6 +300,8 @@ rule pheno_file:
         Rscript gwas/prepare_phenotype_files.R {input.raw_pheno_table} {input.ids_mapping_file} {params.pheno_folder} {input.plink_psam} {input.relationship_table} {input.batch_table} {input.pc_file}
         """
 
+
+# Plink set should be already filtered for bialleleic variants, so this rule is no longer needed.
 rule filter_multiallelic_variants:
     'Filter our multiallelic variants'
     input:
@@ -324,7 +326,7 @@ rule filter_multiallelic_variants:
 rule regenie_step1:
     'Step 1 of Regenie'
     input:
-        plink_regenie_stem = rules.filter_multiallelic_variants.output.plink_regenie,
+        plink_regenie_stem = multiext(plink_release_stem, ".pgen", ".pvar", ".psam"),
         pheno_file = lambda wildcards: get_pheno_file(wildcards.population),
         samples_list = lambda wildcards: get_sample_id_file(wildcards.population),
         variant_list = best_snps
