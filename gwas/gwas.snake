@@ -302,26 +302,26 @@ rule pheno_file:
 
 
 # Plink set should be already filtered for bialleleic variants, so this rule is no longer needed.
-rule filter_multiallelic_variants:
-    'Filter our multiallelic variants'
-    input:
-        plink_release = multiext(plink_release_stem, ".pgen", ".pvar", ".psam")
-    params:
-        plink_release_stem = plink_release_stem,
-        plink_regenie_stem = plink_regenie_stem,
-    output:
-        plink_regenie = multiext(plink_regenie_stem, ".pgen", ".pvar", ".psam")
-    conda:
-        "envs/plink_2.yaml"
-    threads: 1
-    shell:
-        """
-        plink2 \
-        --pfile {params.plink_release_stem} \
-        --max-alleles 2 \
-        --make-pgen \
-        --out {params.plink_regenie_stem}
-        """
+# rule filter_multiallelic_variants:
+#     'Filter our multiallelic variants'
+#     input:
+#         plink_release = multiext(plink_release_stem, ".pgen", ".pvar", ".psam")
+#     params:
+#         plink_release_stem = plink_release_stem,
+#         plink_regenie_stem = plink_regenie_stem,
+#     output:
+#         plink_regenie = multiext(plink_regenie_stem, ".pgen", ".pvar", ".psam")
+#     conda:
+#         "envs/plink_2.yaml"
+#     threads: 1
+#     shell:
+#         """
+#         plink2 \
+#         --pfile {params.plink_release_stem} \
+#         --max-alleles 2 \
+#         --make-pgen \
+#         --out {params.plink_regenie_stem}
+#         """
 
 rule regenie_step1:
     'Step 1 of Regenie'
@@ -365,7 +365,7 @@ rule regenie_step1:
 rule REGENIE_step2:
     'Step 2 of Regenie'
     input:
-        plink_regenie_stem = rules.filter_multiallelic_variants.output.plink_regenie,
+        plink_regenie_stem = multiext(plink_release_stem, ".pgen", ".pvar", ".psam"),
         pheno_file = lambda wildcards: get_pheno_file(wildcards.population),
         step1_file = os.path.join(regenie_step1_folder, '{analysis}', 'step1_pop_{population}_pheno_{phenotype}_pred.list')
     output:
