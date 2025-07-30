@@ -45,7 +45,7 @@ id_folder = os.path.join(pheno_folder, 'id')
 
 # Output folders
 temp_files_folder = os.path.join(scratch_folder, 'temp')
-plink_regenie_stem = temp_files_folder + "/regenie"
+# plink_regenie_stem = temp_files_folder + "/regenie"
 regenie_step1_folder = os.path.join(scratch_folder, 'regenie', 'step_1', mode)
 cojo_temp_folder = os.path.join(scratch_folder, 'cojo_temp')
 results_folder = os.path.join(work_folder, 'results', mode)
@@ -326,14 +326,14 @@ rule pheno_file:
 rule regenie_step1:
     'Step 1 of Regenie'
     input:
-        plink_regenie_stem = multiext(plink_release_stem, ".pgen", ".pvar", ".psam"),
+        plink_release_pgenset = multiext(plink_release_stem, ".pgen", ".pvar", ".psam"),
         pheno_file = lambda wildcards: get_pheno_file(wildcards.population),
         samples_list = lambda wildcards: get_sample_id_file(wildcards.population),
         variant_list = best_snps
     output:
         output_file = os.path.join(regenie_step1_folder, '{analysis}', 'step1_pop_{population}_pheno_{phenotype}_pred.list')
     params:
-        plink_regenie_stem = plink_regenie_stem,
+        plink_release_stem = input.plink_release_pgenset[0],
         temp_output_file = temp(os.path.join(regenie_step1_folder, '{analysis}', 'step1_{population}_{phenotype}_temp')),
         pheno_column = lambda wildcards: get_pheno_column(wildcards.analysis),
         pheno_binary = lambda wildcards: get_binary_option_step1(wildcards.analysis),
@@ -348,7 +348,7 @@ rule regenie_step1:
         --step 1 \
         --threads {threads} \
         --gz \
-        --pgen {params.plink_regenie_stem} \
+        --pgen {params.plink_release_stem} \
         --phenoFile {input.pheno_file} \
         --phenoCol {params.pheno_column} \
         --covarFile {input.pheno_file} \
@@ -365,13 +365,13 @@ rule regenie_step1:
 rule REGENIE_step2:
     'Step 2 of Regenie'
     input:
-        plink_regenie_stem = multiext(plink_release_stem, ".pgen", ".pvar", ".psam"),
+        plink_release_pgenset = multiext(plink_release_stem, ".pgen", ".pvar", ".psam"),
         pheno_file = lambda wildcards: get_pheno_file(wildcards.population),
         step1_file = os.path.join(regenie_step1_folder, '{analysis}', 'step1_pop_{population}_pheno_{phenotype}_pred.list')
     output:
         output_file = os.path.join(results_folder, '{analysis}', 'step2_pop_{population}_pheno_{phenotype}.regenie.gz'),
     params:
-        plink_regenie_stem = plink_regenie_stem,
+        plink_release_stem = input.plink_release_pgenset[0],
         pheno_column = lambda wildcards: get_pheno_column(wildcards.analysis),
         pheno_binary = lambda wildcards: get_binary_option_step2(wildcards.analysis),
         pheno_covariates = lambda wildcards: get_covariates(wildcards.analysis, wildcards.population),
@@ -385,7 +385,7 @@ rule REGENIE_step2:
         regenie \
         --step 2 \
         --threads {threads} \
-        --pgen {params.plink_regenie_stem} \
+        --pgen {params.plink_release_stem} \
         --phenoFile {input.pheno_file} \
         --phenoCol {params.pheno_column} \
         --covarFile {input.pheno_file} \
