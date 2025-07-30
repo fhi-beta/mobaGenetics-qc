@@ -1,5 +1,6 @@
 name: regenie_3.2
 channels:
  - bioconda
+ - conda-forge
 dependencies:
  - regenie=3.2
