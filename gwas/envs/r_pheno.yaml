@@ -14,3 +14,4 @@ dependencies:
   - r-ggplot2=3.4.0
   - r-ggrepel=0.9.3
   - r-scico=1.4.0
+  - icu=58.2 
