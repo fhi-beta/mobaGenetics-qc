@@ -444,7 +444,7 @@ rule cojo:
     params:
         input_file = os.path.join(cojo_temp_folder, '{analysis}','cojo','tmp','step2_pop_{population}_pheno_{phenotype}.regenie.chr{chr}.ma'),
         snp_list_file = os.path.join(cojo_temp_folder, '{analysis}','cojo','tmp','step2_pop_{population}_pheno_{phenotype}.regenie.chr{chr}.snpList'),
-        plink_regenie_stem = plink_regenie_stem,
+        plink_release_stem = plink_release_stem,
         regenie_file = os.path.join(results_folder, '{analysis}', 'step2_pop_{population}_pheno_{phenotype}.regenie.gz'),
         samples_list = lambda wildcards: get_unrelated_sample_id_file(wildcards.population),
         cojo_output_file = os.path.join(cojo_temp_folder, '{analysis}','cojo','tmp','step2_pop_{population}_pheno_{phenotype}.regenie.chr{chr}'),
@@ -464,7 +464,7 @@ rule cojo:
         else
             echo "run COJO: $NO_SNP_FILE"
             gcta64 \
-                --pfile {params.plink_regenie_stem} \
+                --pfile {params.plink_release_stem} \
                 --cojo-file {params.input_file} \
                 --keep {params.samples_list} \
                 --chr {wildcards.chr} \
