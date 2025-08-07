@@ -56,7 +56,7 @@ For technical questions, feedback, and assistance regarding the release please c
 To reach out to the community working on genetics in MoBa, please join our [Slack](https://join.slack.com/t/mobagen/shared_invite/zt-2r90hzo82-HNllFHDugSxJeknpJ9jT0w).
 
 ### Credits
-This repository is maintained by the [Genetics and Bioinformatics department of the Norwegian Institute of Public Health](https://www.fhi.no/om/organisasjon/genetikk-og-bioinformatikk/), and notably Øystein Kapperud, Ellen Røyrvik, Dana Kristjansson, Ragnhild Valen, Even Birkeland, and Marc Vaudel. The department is deeply grateful for the contribution of its former members Gutorm Thomas Høgåsen and Ronny Myhre. We are grateful for the outstanding contribution of our alpha and beta testers.    
+This repository is maintained by the [Genetics and Bioinformatics department of the Norwegian Institute of Public Health](https://www.fhi.no/om/organisasjon/genetikk-og-bioinformatikk/), and notably Øystein Kapperud, Ellen Røyrvik, Dana Kristjansson, Ragnhild Valen, Even Birkeland, and Marc Vaudel. The department is deeply grateful for the contribution of its former members Øyvind Helgeland, Jonas Juodakis, Julius Bacelis, Gutorm Thomas Høgåsen, Ronny Myhre, and Kishan Kumar Chudasama. We are grateful for the outstanding contribution of our alpha and beta testers, and for the support of the scientific community.    
 
 The pipeline is built on work for the [MoBaGenetics v.1.0](https://github.com/folkehelseinstituttet/mobagen/wiki/MoBaGenetics1.0) release, led by Øyvind Helgeland, Julius Juodakis, Jonas Bacelis, and Ronny Myhre.
 
