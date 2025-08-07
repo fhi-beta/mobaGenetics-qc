@@ -267,9 +267,9 @@ rule all:
         association_results = get_regenie_output(),
         # cojo_results = get_cojo_output(),
         # # The documentation
-        # documentation_no_cojo = get_md_no_cojo(),
+        documentation_no_cojo = get_md_no_cojo(),
         # documentation_with_cojo = get_md_cojo(),
-        readme_file = "gwas/README.md", # The readme file
+        # readme_file = "gwas/README.md", # The readme file
 
 
 rule pheno_file:
