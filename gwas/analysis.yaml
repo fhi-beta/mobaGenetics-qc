@@ -29,6 +29,6 @@ analyses:
         - pc10
       populations:
         - children
-        # - mothers
-        # - fathers
+        - mothers
+        - fathers
 

@@ -6,7 +6,7 @@ import os
 #
 # Commands to execute from the repository folder:
 # conda activate snakemake
-# snakemake --snakefile gwas/gwas.snake --cores 24 --use-conda --rerun-incomplete
+# snakemake --snakefile gwas/gwas.snake --cores 28 --use-conda --rerun-incomplete
 ##
 
 config_file = 'gwas/analysis.yaml'
@@ -269,7 +269,7 @@ rule all:
         # # The documentation
         # documentation_no_cojo = get_md_no_cojo(),
         # documentation_with_cojo = get_md_cojo(),
-        # readme_file = "gwas/README.md", # The readme file
+        readme_file = "gwas/README.md", # The readme file
 
 
 rule pheno_file:
