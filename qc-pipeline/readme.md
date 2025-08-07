@@ -20,7 +20,3 @@ To execute the pipeline, navigate to the [snakefiles](snakefiles) folder and run
 - [General configuration](snakefiles/parameters/config.yaml) contains general parameters and paths.
 - [Rules](snakefiles/parameters/rules.yaml) lists all the rules implemented in the different modules.
 - [Variables](snakefiles/paraeters/variables) general variables used in the pipelines including paths and the list of batches to process. 
-
-### Deprecated
-> For HRC verification tool install ReadKey for perl
-sudo apt install libterm-readkey-perl
