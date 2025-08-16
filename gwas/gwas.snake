@@ -30,7 +30,7 @@ pc_filter = ""
 raw_pheno_table = "/mnt/archive2/moba_genotypes_resources/phenotypes/kvalitetssikring_vekt_hoyde_ny_24.09.06.csv"
 ids_table = "/mnt/archive2/moba_genotypes_resources/phenotypes/ids_24.08.07.gz"
 relationship_table = "/mnt/archive2/moba_genotypes_resources/phenotypes/expected_relationship_24.04.12.gz"
-pc_file = "/mnt/archive3/moba_genotypes_releases/2025.01.30/pca/moba_genotypes_2025.01.30_clusters" # TODO: change to MoBa only
+pc_file = "/mnt/archive3/moba_genotypes_releases/2025.01.30/pca/moba_genotypes_2025.01.30_only_moba.pcs"
 pheno_folder = os.path.join(work_folder, 'pheno', mode)
 
 # Genotype files
