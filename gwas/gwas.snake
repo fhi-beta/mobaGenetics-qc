@@ -23,15 +23,12 @@ scratch_folder = os.path.join(config["scratch_folder"], release, name)
 
 cojo_threshold = 5e-8
 
-mode = "pc_covar"
-pc_filter = ""
-
 # Phenotypes
 raw_pheno_table = "/mnt/archive2/moba_genotypes_resources/phenotypes/kvalitetssikring_vekt_hoyde_ny_24.09.06.csv"
 ids_table = "/mnt/archive2/moba_genotypes_resources/phenotypes/ids_24.08.07.gz"
 relationship_table = "/mnt/archive2/moba_genotypes_resources/phenotypes/expected_relationship_24.04.12.gz"
 pc_file = "/mnt/archive3/moba_genotypes_releases/2025.01.30/pca/moba_genotypes_2025.01.30_only_moba.pcs"
-pheno_folder = os.path.join(work_folder, 'pheno', mode)
+pheno_folder = os.path.join(work_folder, 'pheno')
 
 # Genotype files
 moba_release_folder = os.path.join('/mnt/archive3/moba_genotypes_releases', release)
@@ -46,11 +43,11 @@ id_folder = os.path.join(pheno_folder, 'id')
 # Output folders
 temp_files_folder = os.path.join(scratch_folder, 'temp')
 # plink_regenie_stem = temp_files_folder + "/regenie"
-regenie_step1_folder = os.path.join(scratch_folder, 'regenie', 'step_1', mode)
+regenie_step1_folder = os.path.join(scratch_folder, 'regenie', 'step_1')
 cojo_temp_folder = os.path.join(scratch_folder, 'cojo_temp')
-results_folder = os.path.join(work_folder, 'results', mode)
+results_folder = os.path.join(work_folder, 'results')
 docs_folder_relative = os.path.join('docs', release)
-docs_folder = os.path.join('gwas', docs_folder_relative, mode)
+docs_folder = os.path.join('gwas', docs_folder_relative)
 
 
 ####################### Housekeeping #########################################
@@ -156,43 +153,14 @@ def get_binary_option_step2(analysis):
 # Function to get the pheno file corresponding to the given population
 def get_pheno_file(population):
     return os.path.join(pheno_folder, f"pheno_{population}")
-    # if population == "children":
-    #     return os.path.join(pheno_folder, "pheno_child")
-    # elif population == "mothers":
-    #     return os.path.join(pheno_folder, "pheno_mother")
-    # elif population == "fathers":
-    #     return os.path.join(pheno_folder, "pheno_father")
-    # elif population == "parents":
-    #     return os.path.join(pheno_folder, "pheno_parent")
-    # else:
-    #     raise Exception(f"No pheno file implemented for population: '{population}'.")
 
 # Function to get an unrelated sample id file corresponding to the given population in the plink format
 def get_unrelated_sample_id_file(population):
-    if population == "children":
-        return os.path.join(id_folder, "children_id_unrelated_30k_plink")
-    elif population == "mothers":
-        return os.path.join(id_folder, "mothers_id_unrelated_30k_plink")
-    elif population == "fathers":
-        return os.path.join(id_folder, "fathers_id_unrelated_30k_plink")
-    elif population == "parents":
-        return os.path.join(id_folder, "parents_id_unrelated_30k_plink")
-    else:
-        raise Exception(f"No id file implemented for population: '{population}'.")
+    return os.path.join(id_folder, f"{population}_unrelated_30k_plink")
 
 # Function to get the sample id file corresponding to the given population
 def get_sample_id_file(population):
     return os.path.join(id_folder, f"{population}_id_plink")
-    # if population == "children" :
-    #     return os.path.join(id_folder, "children_id_plink")
-    # elif population == "mothers":
-    #     return os.path.join(id_folder, "mothers_id_plink")
-    # elif population == "fathers":
-    #     return os.path.join(id_folder, "fathers_id_plink")
-    # elif population == "parents":
-    #     return os.path.join(id_folder, "parents_id_plink")
-    # else:
-    #     raise Exception(f"No id file implemented for population: '{population}'.")
 
 # Function returning the cojo files expected for a given association study
 def get_cojo_chr_files(path):
@@ -220,7 +188,7 @@ def get_cojo_output():
         phenotype = analyses[analysis]["phenotype"]
         for population in analyses[analysis]["populations"]:
             output_files.append(
-                os.path.join(results_folder, analysis,"cojo",f"step2_pop_{population}_pheno_{phenotype}.jma.cojo")
+                os.path.join(results_folder, analysis, "cojo", f"step2_pop_{population}_pheno_{phenotype}.jma.cojo")
             )
     return output_files
 
@@ -255,14 +223,14 @@ rule all:
     'The final output rule'
     input:
         # The phenotype files
-        child_pheno_file = get_pheno_file(f"children{pc_filter}"),
-        mother_pheno_file = get_pheno_file(f"mothers{pc_filter}"),
-        father_pheno_file = get_pheno_file(f"fathers{pc_filter}"),
-        parents_pheno_file = get_pheno_file(f"parents{pc_filter}"),
-        child_id_file = get_sample_id_file(f"children{pc_filter}"),
-        mother_id_file = get_sample_id_file(f"mothers{pc_filter}"),
-        father_id_file = get_sample_id_file(f"fathers{pc_filter}"),
-        parents_id_file = get_sample_id_file(f"parents{pc_filter}"),
+        child_pheno_file = get_pheno_file(f"children"),
+        mother_pheno_file = get_pheno_file(f"mothers"),
+        father_pheno_file = get_pheno_file(f"fathers"),
+        parents_pheno_file = get_pheno_file(f"parents"),
+        child_id_file = get_sample_id_file(f"children"),
+        mother_id_file = get_sample_id_file(f"mothers"),
+        father_id_file = get_sample_id_file(f"fathers"),
+        parents_id_file = get_sample_id_file(f"parents"),
         # The association results
         association_results = get_regenie_output(),
         # cojo_results = get_cojo_output(),
@@ -284,14 +252,14 @@ rule pheno_file:
     params:
         pheno_folder = pheno_folder
     output:
-        child_pheno_file = get_pheno_file(f"children{pc_filter}"),
-        mother_pheno_file = get_pheno_file(f"mothers{pc_filter}"),
-        father_pheno_file = get_pheno_file(f"fathers{pc_filter}"),
-        parents_pheno_file = get_pheno_file(f"parents{pc_filter}"),
-        child_id_file = get_sample_id_file(f"children{pc_filter}"),
-        mother_id_file = get_sample_id_file(f"mothers{pc_filter}"),
-        father_id_file = get_sample_id_file(f"fathers{pc_filter}"),
-        parents_id_file = get_sample_id_file(f"parents{pc_filter}")
+        child_pheno_file = get_pheno_file(f"children"),
+        mother_pheno_file = get_pheno_file(f"mothers"),
+        father_pheno_file = get_pheno_file(f"fathers"),
+        parents_pheno_file = get_pheno_file(f"parents"),
+        child_id_file = get_sample_id_file(f"children"),
+        mother_id_file = get_sample_id_file(f"mothers"),
+        father_id_file = get_sample_id_file(f"fathers"),
+        parents_id_file = get_sample_id_file(f"parents")
     conda:
         "envs/r_pheno.yaml"
     threads: 1
