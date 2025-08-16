@@ -149,7 +149,9 @@ pc_table <- read.table(
   file = pc_file,
   header = T,
   sep = "\t"
-)
+) %>%
+    clean_names()
+
 names(pc_table)[names(pc_table) == 'iid'] <- 'IID'
 pc_table$fid <- NULL
 
