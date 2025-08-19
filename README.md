@@ -11,7 +11,7 @@ The current release is a beta release available for public use. Please consult t
 ### General information on the genotypes
 
 #### Batch effects
-Samples in MoBa have been genoptyped in different batches on different genotyping platforms. Variants are not excluded based on batch effects, we recommend to account for batch effects in your own analyses. A table listing the batch for each sample is available with the data release. Information on batches is available at the [mobagen repository](https://github.com/folkehelseinstituttet/mobagen/wiki/MoBaGenetics1.5).
+Samples in MoBa have been genoptyped in different batches on different genotyping platforms. Variants are not excluded based on batch effects, we recommend to account for batch effects in your own analyses. A table listing the batch for each sample is available with the data release. Information on batches is available at the [mobagen repository](https://github.com/folkehelseinstituttet/mobagen/wiki/MoBaGenetics1.5). Please note that due to failing QC or missing annotation files, not all batches listed on this page could be included in the present pipeline and release.
 
 #### Population substructure
 We invite users to carefully inspect the data for population structure. Please consult the [documentation on the release that you are using](qc-pipeline/docs/release_notes.md) for PCAs merged with the [1000 genomes project](https://en.wikipedia.org/wiki/1000_Genomes_Project). As you will see, the population in MoBa contains population structrure that is not captured by common superpopulations, represented by an _arm_ particulary prominent on PC2 and PC3. As far as we could test, this _arm_ in the PCA represents a gradient North-South population gradient and is not a technical artefact.    
