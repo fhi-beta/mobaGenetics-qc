@@ -43,9 +43,9 @@ getMh <- function(
   
   # Chromosome labels
   
-  xLabels <- 1:23
+  xLabels <- 1:22
   xLabels[xLabels %% 2 == 0 & xLabels > 17] <- ""
-  # xLabels <- c(xLabels, "X")
+  xLabels <- c(xLabels, "X")
   
   # y axis
   
