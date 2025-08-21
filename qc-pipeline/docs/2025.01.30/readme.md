@@ -2,7 +2,7 @@
 Documentation of the quality control of the genotypes from the [Norwegian Mother, Father and Child Cohort Study (MoBa)](https://www.fhi.no/en/studies/moba/), release 2025.30.01.
 
 ### Test GWAS
-- [Test GWAS](../../../gwas/docs/2025.30.01/readme.md): Results of a test GWAS conducted on this release.
+- [Test GWAS](../../../gwas/docs/2025.01.30/readme.md): Results of a test GWAS conducted on this release.
 
 ### Post-imputation
 Quality control conducted post-imputation on the entire release
