@@ -35,47 +35,6 @@ rule mod5_extend_count_tables:
             {input.bim_files}
         """
 
-# cull samples for faster debug. bypass by passing number_of_samples = 'all'
-# rule_stem = "mod5_cull_samples"
-# rule mod5_cull_samples:
-#     input:
-#         # bedset=multiext("/mnt/work/marc/qc/test_mod5_24.05.02/{batch}/m4_output_good_markers", ".bed", ".bim", ".fam")
-#         bedset=rules.m4_output_good_markers.output.m4_output_good_markers
-#     output:
-#         bedset=multiext(str(tmpMod5 / "{batch}" / "mod5_input_{number_of_samples}_samples"), ".bed", ".bim", ".fam")
-#     run:
-#         try:
-#             inTrunk = mqc.plinkBase(input.bedset[0])
-#             outTrunk = mqc.plinkBase(output.bedset[0])
-#             if wildcards.number_of_samples.lower() == "all":
-#                 subprocess.run(
-#                     [
-#                         plinklocal,
-#                         "--bfile", inTrunk,
-#                         "--make-bed",
-#                         "--out", outTrunk
-#                     ]
-#                 )
-#             elif wildcards.number_of_samples.isdigit():
-#                 samples_txt = f"{outTrunk}.first{wildcards.number_of_samples}samples.txt"
-#                 input_bed = input.bedset[2]
-#                 cmd = f"head -n {wildcards.number_of_samples} {input_bed}  > {samples_txt}"
-#                 subprocess.run(cmd, shell=True, check=True)
-#                 subprocess.run(
-#                     [
-#                         plinklocal,
-#                         "--bfile", inTrunk,
-#                         "--keep", samples_txt,
-#                         "--make-bed",
-#                         "--out", outTrunk
-#                     ]
-#                 )
-#             else:
-#                 raise Exception("number_of_samples must either be a digit or 'all'")
-#         except Exception as e:
-#             print(f"An exception occurred in rule {rule}.")
-#             print(e)
-
 rule_stem = 'mod5_merge_x'
 rule mod5_merge_x:
     input:
@@ -99,9 +58,6 @@ rule mod5_merge_x:
 rule_stem = 'mod5_exclude_duplicates'
 rule mod5_exclude_duplicates:
     input:
-        # bedset=multiext("/mnt/work/marc/qc/test_mod5_24.05.02/{batch}/m4_output_good_markers", ".bed", ".bim", ".fam")
-        # bedset=rules.mod4point5_cull_samples.output.bedset # culled bedset for faster debug
-        #bedset=rules.mod5_cull_samples.output.bedset # culled bedset for faster debug
         bedset=rules.mod5_merge_x.output.bedset
     output:
         bedset=multiext(str(tmpMod5 / "{batch}" / rule_stem), ".bed", ".bim", ".fam")
@@ -503,31 +459,6 @@ rule mod5_rename_missing_ids:
         {plink2local} --bfile $inTrunk --set-missing-var-ids @_#_\$1:\$2 --make-bed --out $outTrunk
         """
 
-
-
-# rule_stem = "mod5_remove_variants_with_missing_IDs"
-# rule mod5_remove_variants_with_missing_IDs:
-#     input:
-#         bedset = rules.mod5_update_name.output.bedset
-#     output:
-#         bedset = multiext(str(tmpMod5 / "{batch}" / "{number_of_samples}_samples" / rule_stem), ".bed", ".bim", ".fam")
-#     run:
-#         try:
-#             inTrunk = mqc.plinkBase(input.bedset[0])
-#             outTrunk = mqc.plinkBase(output.bedset[0])
-#             subprocess.run(
-#                 [
-#                     plinklocal,
-#                     "--bfile", inTrunk,
-#                     "--exclude", exclude_variants,
-#                     "--make-bed",
-#                     "--out", outTrunk
-#                 ]
-#             )
-#         except Exception as e:
-#             print(f"An exception occurred in rule {rule_stem}.")
-#             print(e)
-
 rule mod5_split_par:
     input:
         bedset = rules.mod5_rename_missing_ids.output.bedset
@@ -585,9 +516,6 @@ rule mod5_sort_vars:
 rule_stem = "mod5_output"
 rule mod5_output:
     input:
-        # bedset = rules.mod5_remove_variants_with_missing_IDs.output.bedset,
-        # bedset = rules.mod5_rename_missing_ids.output.bedset,
-        #bedset = rules.mod5_set_hh_missing.output.bedset,
         pgenset = rules.mod5_sort_vars.output.pgenset,
         sexcheck = rules.m4_output_good_markers.output.sexcheck
     output:
@@ -611,13 +539,6 @@ rule mod5_output:
                     "--out", outTrunk
                 ]
             )
-            # # keep full original .psam file for later
-            # subprocess.run([
-            #     plink2local,
-            #     "--bfile", outTrunk,
-            #     "--make-just-psam",
-            #     "--out", outTrunk
-            # ])
             subprocess.run([
                 plink2local,
                 "--bfile", outTrunk,
