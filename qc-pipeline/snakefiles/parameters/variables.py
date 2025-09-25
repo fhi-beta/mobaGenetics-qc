@@ -31,6 +31,7 @@ tmp_path = Path(config['output_base']) / config['release'] / 'tmp'
 runlog = Path(config['output_base']) / config['release'] / 'runlog.txt'
 base = Path(config['output_base']) / config['release']
 archive_base = Path(config['archive_output_base']) / config['release']
+archive3_base = Path(config['archive3_output_base']) / config['release']
 archive3_base_2 = Path(config['archive3_output_base']) / config['release2']
 hrc_ega = Path(config['hrc_ega'])
 hrc_bref = Path(config['hrc_bref'])
