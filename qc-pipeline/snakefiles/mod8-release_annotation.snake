@@ -183,12 +183,12 @@ rule mod8_common_snps_filter:
 
 rule mod8_best_snps:
     input:
-        pgenset = rules.mod8_common_snps_filter.output.pgenset_common_snps,
+        pgenset = rules.mod8_split_rare_common.pgenset_common_snps #rules.mod8_common_snps_filter.output.pgenset_common_snps,
         r2_table = rules.summarize_dr2.output.dr2,
         high_ld_regions_hg19 = high_ld_regions_hg19
     output:
-        pgenset = multiext(str(tmpMod8/"mod8_best_snps"), ".pgen", ".pvar", ".psam"),
-        best_pruned_list = str(tmpMod8/"mod8_best_snps_pruned.prune.in")
+        pgenset = multiext(str(tmpMod8_2/"mod8_best_snps"), ".pgen", ".pvar", ".psam"),
+        best_pruned_list = str(tmpMod8_2/"mod8_best_snps_pruned.prune.in")
     params:
         release_maf_threshold = config['release_maf_thr'],
         release_hw_threshold = config['release_hw_thr'],
@@ -201,7 +201,7 @@ rule mod8_best_snps:
     run:
         inTrunk = mqc.plinkBase(input.pgenset[0])
         outTrunk =  mqc.plinkBase(output.pgenset[0])
-        id_file = tmpMod8/"ids_best"
+        id_file = tmpMod8_2/"ids_best"
         print(f"Extracting markers with overall r2 >= {params.info_threshold} and all batches r2 >= {params.batch_info_threshold}")
         mqc.find_high_dr2_variants(input.r2_table, id_file, params.batch_info_threshold, params.info_threshold)
 
@@ -254,7 +254,7 @@ rule mod8_best_snps_list:
         dr2 = rules.summarize_dr2.output.dr2,
         pgenset = rules.mod8_best_snps.output.pgenset
     output:
-        best_snps_list = tmpMod8/'mod8_best_snps_list.txt'
+        best_snps_list = tmpMod8_2/'mod8_best_snps_list.txt'
     run:
         mqc.best_snps_of_subset(input.dr2, output.best_snps_list, 500000, input.pgenset[1])
 
@@ -265,11 +265,11 @@ rule mod8_generate_best_snps_stats:
     input:
         pgenset = rules.mod8_best_snps.output.pgenset
     output:
-        het = tmpMod8/'mod8_best_snps.het',
-        hardy = tmpMod8/'mod8_best_snps.hardy',
-        afreq = tmpMod8/'mod8_best_snps.afreq',
-        smiss = tmpMod8/'mod8_best_snps.smiss',
-        vmiss = tmpMod8/'mod8_best_snps.vmiss',
+        het = tmpMod8_2/'mod8_best_snps.het',
+        hardy = tmpMod8_2/'mod8_best_snps.hardy',
+        afreq = tmpMod8_2/'mod8_best_snps.afreq',
+        smiss = tmpMod8_2/'mod8_best_snps.smiss',
+        vmiss = tmpMod8_2/'mod8_best_snps.vmiss',
     threads: 1
     run:
         try:
@@ -337,9 +337,9 @@ rule mod8_generate_best_snps_stats:
 rule_stem = 'mod8_check_sex'
 rule mod8_check_sex:
     input:
-        pgenset = rules.mod8_common_snps_filter.output.pgenset_common_snps
+        pgenset = rules.mod8_split_rare_common.pgenset_common_snps #rules.mod8_common_snps_filter.output.pgenset_common_snps
     output:
-        sex_check = tmpMod8/(rule_stem + ".sexcheck")
+        sex_check = tmpMod8_2/(rule_stem + ".sexcheck")
     run:
         try:
             in_trunk = mqc.plinkBase(input.pgenset[0])
@@ -364,7 +364,7 @@ rule mod8_import_ycounts:
     input:
         sex_check =  rules.mod8_check_sex.output.sex_check
     output:
-        sex_check = tmpMod8/"mod8_import_ycounts.sexcheck"
+        sex_check = tmpMod8_2/"mod8_import_ycounts.sexcheck"
     run:
         ycounts = []
         for batch in batches:
@@ -386,7 +386,7 @@ rule mod8_batch_table:
     input:
         batch_fam = get_fam_per_batch()
     output:
-        batch_table = tmpMod8/(rule_stem + "_batch")
+        batch_table = tmpMod8_2/(rule_stem + "_batch")
     run:
         try:
 
@@ -413,9 +413,9 @@ rule_stem = 'mod8_pedigree_ibd_estimate'
 rule mod8_pedigree_ibd_estimate:
     'IBD estimation. Requires conversion to plink1.'
     input:
-        pgenset = multiext("/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_best_snps", ".pgen", ".pvar", ".psam") #rules.mod8_best_snps.output.pgenset,
+        pgenset = rules.mod8_best_snps.output.pgenset,
     output:
-        king_relatedness = tmpMod8/(rule_stem + ".kin0")
+        king_relatedness = tmpMod8_2/(rule_stem + ".kin0")
     threads: 24
     run:
         try:
@@ -461,7 +461,7 @@ rule mod8_pedigree_ibd_estimate:
 rule_stem = 'mod8_psam_reconstruction'
 rule mod8_psam_reconstruction:
     input:
-        psam_all_markers = rules.mod8_common_snps_filter.output.pgenset_common_snps[2],
+        psam_all_markers = rules.mod8_split_rare_common.pgenset_common_snps # rules.mod8_common_snps_filter.output.pgenset_common_snps[2],
         king_relatedness = rules.mod8_pedigree_ibd_estimate.output.king_relatedness,
         sex_check = rules.mod8_import_ycounts.output.sex_check,
         expected_relationships = config['expected_relationships'],
@@ -470,11 +470,11 @@ rule mod8_psam_reconstruction:
     params:
         title = "\"Psam file reconstruction\""
     output:
-        updated_psam = tmpMod8/(rule_stem + ".psam"),
-        pedigree_sample_exclusion = tmpMod8/(rule_stem + "_pedigree_sample_exclusion"),
-        mismatch_information = tmpMod8/"mismatch_information.gz",
-        mismatch_relationship = tmpMod8/"mismatch_relationship.gz",
-        md_file = github_docs/(rule_stem + ".md")
+        updated_psam = tmpMod8_2/(rule_stem + ".psam"),
+        pedigree_sample_exclusion = tmpMod8_2/(rule_stem + "_pedigree_sample_exclusion"),
+        mismatch_information = tmpMod8_2/"mismatch_information.gz",
+        mismatch_relationship = tmpMod8_2/"mismatch_relationship.gz",
+        md_file = github_docs_2/(rule_stem + ".md")
     conda:
         "envs/r_4.2.yaml"
     threads: 1
@@ -499,15 +499,15 @@ rule mod8_psam_reconstruction:
 rule_stem = 'mod8_exclude_conflictual_relationships'
 rule mod8_exclude_conflictual_relationships:
     input:
-        pgenset_common_snps = rules.mod8_common_snps_filter.output.pgenset_common_snps,
+        pgenset_common_snps = rules.mod8_split_rare_common.pgenset_common_snps # rules.mod8_common_snps_filter.output.pgenset_common_snps,
         pgenset_rare_snps = rules.mod8_split_rare_common.output.pgenset_rare_snps,
         pgenset_best_snps = rules.mod8_best_snps.output.pgenset,
         pedigree_sample_exclusion = rules.mod8_psam_reconstruction.output.pedigree_sample_exclusion,
         updated_psam = rules.mod8_psam_reconstruction.output.updated_psam
     output:
-        pgenset_common_snps =  multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
-        pgenset_rare_snps = multiext(str(tmpMod8/(rule_stem + "_rare")), ".pgen", ".pvar", ".psam"),
-        pgenset_best_snps = multiext(str(tmpMod8/(rule_stem + "_best_snps")), ".pgen", ".pvar", ".psam")
+        pgenset_common_snps =  multiext(str(tmpMod8_2/rule_stem), ".pgen", ".pvar", ".psam"),
+        pgenset_rare_snps = multiext(str(tmpMod8_2/(rule_stem + "_rare")), ".pgen", ".pvar", ".psam"),
+        pgenset_best_snps = multiext(str(tmpMod8_2/(rule_stem + "_best_snps")), ".pgen", ".pvar", ".psam")
     run:
         try:
             inTrunk_common_markers = mqc.plinkBase(input.pgenset_common_snps[0])
@@ -579,7 +579,7 @@ rule mod8_make_duplicates_table:
         ids = config['id_mapping'],
         smiss = rules.mod8_generate_best_snps_stats.output.smiss,
     output:
-        duplicates = tmpMod8/'mod8_make_duplicates_table.txt'
+        duplicates = tmpMod8_2/'mod8_make_duplicates_table.txt'
     run:
         psam_file = input.pgenset[2]
         mqc.make_duplicates_table(psam_file, input.batches, input.ids, input.smiss, output.duplicates)
@@ -593,13 +593,13 @@ rule mod8_common_markers_moba_ref:
         bedset_ref = multiext(config["1000_genomes_stem"], '.bed', '.bim', '.fam'),
         pgenset_moba = rules.mod8_exclude_conflictual_relationships.output.pgenset_best_snps
     output:
-        bedset_ref = multiext(str(tmpMod8/"pca_ref") ,'.bed','.bim','.fam'),
-        bedset_moba = multiext(str(tmpMod8/"pca_moba") ,'.bed','.bim','.fam'),
-        bedset_only_moba = multiext(str(tmpMod8/"pca_only_moba") ,'.bed','.bim','.fam'),
-        tri_alleles = tmpMod8/(rule_stem + "_tri_alleles.missnp"),
-        marker_list = tmpMod8/(rule_stem + ".txt")
+        bedset_ref = multiext(str(tmpMod8_2/"pca_ref") ,'.bed','.bim','.fam'),
+        bedset_moba = multiext(str(tmpMod8_2/"pca_moba") ,'.bed','.bim','.fam'),
+        bedset_only_moba = multiext(str(tmpMod8_2/"pca_only_moba") ,'.bed','.bim','.fam'),
+        tri_alleles = tmpMod8_2/(rule_stem + "_tri_alleles.missnp"),
+        marker_list = tmpMod8_2/(rule_stem + ".txt")
     benchmark:
-        tmpMod8/(rule_stem + ".benchmark")
+        tmpMod8_2/(rule_stem + ".benchmark")
 
     run:
         inTrunk_ref =  mqc.plinkBase(input.bedset_ref[0])
@@ -696,14 +696,14 @@ rule mod8_pca_both:
         bedset_ref = rules.mod8_common_markers_moba_ref.output.bedset_ref,
         bedset_moba = rules.mod8_common_markers_moba_ref.output.bedset_moba,
     output:
-        bedset = multiext(str(tmpMod8/rule_stem), '.bed', '.bim', '.fam'),
-        pcs = tmpMod8/(rule_stem + ".pcs"),
-        eigenvector = tmpMod8/(rule_stem + ".vec"),
-        snp_loadings = tmpMod8/(rule_stem + ".load"),
-        eigenvalues = tmpMod8/(rule_stem + ".val"),
-        variance_explained = tmpMod8/(rule_stem + ".pve"),
+        bedset = multiext(str(tmpMod8_2/rule_stem), '.bed', '.bim', '.fam'),
+        pcs = tmpMod8_2/(rule_stem + ".pcs"),
+        eigenvector = tmpMod8_2/(rule_stem + ".vec"),
+        snp_loadings = tmpMod8_2/(rule_stem + ".load"),
+        eigenvalues = tmpMod8_2/(rule_stem + ".val"),
+        variance_explained = tmpMod8_2/(rule_stem + ".pve"),
     benchmark:
-        tmpMod8/(rule_stem + ".benchmark")
+        tmpMod8_2/(rule_stem + ".benchmark")
     run:
         inTrunk_ref = mqc.plinkBase(input.bedset_ref[0])
         inTrunk_moba = mqc.plinkBase(input.bedset_moba[0])
@@ -737,11 +737,11 @@ rule mod8_pca_only_moba:
     input:
         bedset = rules.mod8_common_markers_moba_ref.output.bedset_only_moba
     output:
-        pcs = tmpMod8/(rule_stem + ".pcs"),
-        eigenvector = tmpMod8/(rule_stem + ".vec"),
-        snp_loadings = tmpMod8/(rule_stem + ".load"),
-        eigenvalues = tmpMod8/(rule_stem + ".val"),
-        variance_explained = tmpMod8/(rule_stem + ".pve")
+        pcs = tmpMod8_2/(rule_stem + ".pcs"),
+        eigenvector = tmpMod8_2/(rule_stem + ".vec"),
+        snp_loadings = tmpMod8_2/(rule_stem + ".load"),
+        eigenvalues = tmpMod8_2/(rule_stem + ".val"),
+        variance_explained = tmpMod8_2/(rule_stem + ".pve")
     run:
         inTrunk = mqc.plinkBase(input.bedset[0])
         subprocess.run(
@@ -770,9 +770,9 @@ rule mod8_plot_pca_both:
         title = "\"Principal Component Analysys (PCA) vs. 1 KG\"",
         std_het_cutoff = config["release_sd_het_thr"]
     output:
-        md_file = github_docs/"pca_1kg_moba.md",
-        cluster_file = tmpMod8/"clusters",
-        ceu_id_file = tmpMod8/"ceu_core_ids"
+        md_file = github_docs_2/"pca_1kg_moba.md",
+        cluster_file = tmpMod8_2/"clusters",
+        ceu_id_file = tmpMod8_2/"ceu_core_ids"
     conda:
         "envs/plot_pca_both.yaml"
     threads: 1

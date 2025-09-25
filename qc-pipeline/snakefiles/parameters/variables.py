@@ -31,13 +31,13 @@ tmp_path = Path(config['output_base']) / config['release'] / 'tmp'
 runlog = Path(config['output_base']) / config['release'] / 'runlog.txt'
 base = Path(config['output_base']) / config['release']
 archive_base = Path(config['archive_output_base']) / config['release']
-archive3_base = Path(config['archive3_output_base']) / config['release']
+archive3_base_2 = Path(config['archive3_output_base']) / config['release2']
 hrc_ega = Path(config['hrc_ega'])
 hrc_bref = Path(config['hrc_bref'])
 hrc_vcf = Path(config['hrc_vcf'])
 github_docs = Path(os.path.dirname(workflow.basedir)) / 'docs' / config['release']
 
-#github_docs2 = Path(os.path.dirname(workflow.basedir)) / 'docs' / config['release2']
+github_docs2 = Path(os.path.dirname(workflow.basedir)) / 'docs' / config['release2']
 tmpMod1 = base/'mod1-data-preparation'
 tmpMod2 = base/'mod2-genetic-relationship'
 tmpMod3 = base/'mod3-population-clustering'
@@ -46,6 +46,7 @@ tmpMod5 = base/'mod5-pre-phasing'
 tmpMod6 = base/'mod6-imputation'
 tmpMod7 = base/'mod7-post-imputation'
 tmpMod8 = archive3_base/'mod8-release_annotation'
+tmpMod8_2 = archive3_base_2/'mod8-release_annotation'
 #tmpMergeTest = base/'merge_test'
 # use archive for these for now, since /work is full:
 #tmpMod6Archive = archive_base/'mod6-imputation'
