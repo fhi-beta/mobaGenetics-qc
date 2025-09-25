@@ -38,7 +38,7 @@ hrc_bref = Path(config['hrc_bref'])
 hrc_vcf = Path(config['hrc_vcf'])
 github_docs = Path(os.path.dirname(workflow.basedir)) / 'docs' / config['release']
 
-github_docs2 = Path(os.path.dirname(workflow.basedir)) / 'docs' / config['release2']
+github_docs_2 = Path(os.path.dirname(workflow.basedir)) / 'docs' / config['release2']
 tmpMod1 = base/'mod1-data-preparation'
 tmpMod2 = base/'mod2-genetic-relationship'
 tmpMod3 = base/'mod3-population-clustering'
@@ -56,6 +56,7 @@ tmpMod8_2 = archive3_base_2/'mod8-release_annotation'
 # tmpMod72 = Path(config['output_base']) / '2024.09.23' / 'mod7-post-imputation'
 #tmpMod8 = Path(config['output_base']) / config['release2'] / 'mod8-release_annotation'
 release_folder = Path(config['release_base']) / config['release'] # Path(config['release_base']) / config['release']
+release_folder_2 = Path(config['release_base']) / config['release2'] # Path(config['release_base']) / config['release']
 release_base_name = "moba_genotypes_" + config['release'] # "moba_genotypes_" + config['release']
 
 n_samples = config['n_samples']

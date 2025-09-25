@@ -795,13 +795,13 @@ rule mod8_plot_pca_both:
 rule_stem = "release_md"
 rule release_md:
     input:
-        pca_md_file = github_docs/"pca_1kg_moba.md",
-        relatedness_md_file = github_docs/"mod8_psam_reconstruction.md"
+        pca_md_file = github_docs_2/"pca_1kg_moba.md",
+        relatedness_md_file = github_docs_2/"mod8_psam_reconstruction.md"
     params:
-        docs_folder = github_docs,
-        version = config['release']
+        docs_folder = github_docs_2,
+        version = config['release2']
     output:
-        release_md_file = github_docs/"readme.md"
+        release_md_file = github_docs_2/"readme.md"
     conda:
         "envs/plot_pca_both.yaml"
     threads: 1
@@ -821,15 +821,15 @@ rule release_genotypes:
         pgenset_common_snps = rules.mod8_exclude_conflictual_relationships.output.pgenset_common_snps,
         pgenset_best_snps = rules.mod8_exclude_conflictual_relationships.output.pgenset_best_snps
     params:
-        version = config['release']
+        version = config['release2']
     output:
-        pgenset_rare_snps =  multiext(str(release_folder / (release_base_name + "_rare")), ".pgen", ".pvar", ".psam"),
-        pgenset_common_snps =  multiext(str(release_folder / (release_base_name + "_common")), ".pgen", ".pvar", ".psam"),
-        pgenset_best_snps =  multiext(str(release_folder / (release_base_name + "_common_best_pruned")), ".pgen", ".pvar", ".psam")
+        pgenset_rare_snps =  multiext(str(release_folder_2 / (release_base_name + "_rare")), ".pgen", ".pvar", ".psam"),
+        pgenset_common_snps =  multiext(str(release_folder_2 / (release_base_name + "_common")), ".pgen", ".pvar", ".psam"),
+        pgenset_best_snps =  multiext(str(release_folder_2 / (release_base_name + "_common_best_pruned")), ".pgen", ".pvar", ".psam")
     run:
         try:
 
-            print(f"Writing release genotypes {release_base_name} to {release_folder}.")
+            print(f"Writing release genotypes {release_base_name} to {release_folder_2}.")
 
             # rare SNPs
             inTrunk =  mqc.plinkBase(input.pgenset_rare_snps[0])
@@ -879,42 +879,42 @@ rule release_additional_files:
     params:
         version = config['release']
     output:
-        r2_table = release_folder/"snp"/(release_base_name + "_snp_r2.gz"),
-        best_snps = release_folder/"snp"/(release_base_name + "_reference_500k_snps"),
-        pcs = release_folder/"pca"/(release_base_name + ".pcs"),
-        eigenvector = release_folder/"pca"/(release_base_name + ".vec"),
-        snp_loadings = release_folder/"pca"/(release_base_name + ".load"),
-        eigenvalues = release_folder/"pca"/(release_base_name + ".val"),
-        variance_explained = release_folder/"pca"/(release_base_name + ".pve"),
-        cluster_file = release_folder/"pca"/(release_base_name + "_clusters"),
-        ceu_id_file = release_folder/"pca"/(release_base_name + "_ceu_core_ids"),
-        king_relatedness = release_folder/"kinship"/(release_base_name + ".kin0"),
-        sex_check = release_folder/"sex_check"/(release_base_name + ".sexcheck"),
-        batch_table = release_folder/"batch"/(release_base_name + "_batches"),
-        duplicates_table = release_folder/"batch"/(release_base_name + "_duplicates"),
-        readme = release_folder/"readme.md"
+        r2_table = release_folder_2/"snp"/(release_base_name + "_snp_r2.gz"),
+        best_snps = release_folder_2/"snp"/(release_base_name + "_reference_500k_snps"),
+        pcs = release_folder_2/"pca"/(release_base_name + ".pcs"),
+        eigenvector = release_folder_2/"pca"/(release_base_name + ".vec"),
+        snp_loadings = release_folder_2/"pca"/(release_base_name + ".load"),
+        eigenvalues = release_folder_2/"pca"/(release_base_name + ".val"),
+        variance_explained = release_folder_2/"pca"/(release_base_name + ".pve"),
+        cluster_file = release_folder_2/"pca"/(release_base_name + "_clusters"),
+        ceu_id_file = release_folder_2/"pca"/(release_base_name + "_ceu_core_ids"),
+        king_relatedness = release_folder_2/"kinship"/(release_base_name + ".kin0"),
+        sex_check = release_folder_2/"sex_check"/(release_base_name + ".sexcheck"),
+        batch_table = release_folder_2/"batch"/(release_base_name + "_batches"),
+        duplicates_table = release_folder_2/"batch"/(release_base_name + "_duplicates"),
+        readme = release_folder_2/"readme.md"
     run:
         try:
 
-            print(f"Writing release additional files {release_base_name} to {release_folder}.")
+            print(f"Writing release additional files {release_base_name} to {release_folder_2}.")
 
             releaseTrunk =  mqc.plinkBase(input.release_genotypes[0])
 
             # Housekeeping
-            if not os.path.exists(release_folder/"snp"):
-                os.makedirs(release_folder/"snp")
+            if not os.path.exists(release_folder_2/"snp"):
+                os.makedirs(release_folder_2/"snp")
 
-            if not os.path.exists(release_folder/"pca"):
-                os.makedirs(release_folder/"pca")
+            if not os.path.exists(release_folder_2/"pca"):
+                os.makedirs(release_folder_2/"pca")
 
-            if not os.path.exists(release_folder/"kinship"):
-                os.makedirs(release_folder/"kinship")
+            if not os.path.exists(release_folder_2/"kinship"):
+                os.makedirs(release_folder_2/"kinship")
 
-            if not os.path.exists(release_folder/"sex_check"):
-                os.makedirs(release_folder/"sex_check")
+            if not os.path.exists(release_folder_2/"sex_check"):
+                os.makedirs(release_folder_2/"sex_check")
 
-            if not os.path.exists(release_folder/"batch"):
-                os.makedirs(release_folder/"batch")
+            if not os.path.exists(release_folder_2/"batch"):
+                os.makedirs(release_folder_2/"batch")
 
             # Readme
             with open(output.readme, 'w') as file:
