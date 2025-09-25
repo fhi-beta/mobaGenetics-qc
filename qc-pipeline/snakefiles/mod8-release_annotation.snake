@@ -461,7 +461,7 @@ rule mod8_pedigree_ibd_estimate:
 rule_stem = 'mod8_psam_reconstruction'
 rule mod8_psam_reconstruction:
     input:
-        psam_all_markers = rules.mod8_split_rare_common.pgenset_common_snps # rules.mod8_common_snps_filter.output.pgenset_common_snps[2],
+        psam_all_markers = rules.mod8_split_rare_common.pgenset_common_snps, # rules.mod8_common_snps_filter.output.pgenset_common_snps[2],
         king_relatedness = rules.mod8_pedigree_ibd_estimate.output.king_relatedness,
         sex_check = rules.mod8_import_ycounts.output.sex_check,
         expected_relationships = config['expected_relationships'],
@@ -499,7 +499,7 @@ rule mod8_psam_reconstruction:
 rule_stem = 'mod8_exclude_conflictual_relationships'
 rule mod8_exclude_conflictual_relationships:
     input:
-        pgenset_common_snps = rules.mod8_split_rare_common.pgenset_common_snps # rules.mod8_common_snps_filter.output.pgenset_common_snps,
+        pgenset_common_snps = rules.mod8_split_rare_common.pgenset_common_snps, # rules.mod8_common_snps_filter.output.pgenset_common_snps,
         pgenset_rare_snps = rules.mod8_split_rare_common.output.pgenset_rare_snps,
         pgenset_best_snps = rules.mod8_best_snps.output.pgenset,
         pedigree_sample_exclusion = rules.mod8_psam_reconstruction.output.pedigree_sample_exclusion,
