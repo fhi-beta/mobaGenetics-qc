@@ -184,7 +184,7 @@ rule mod8_common_snps_filter:
 rule mod8_best_snps:
     input:
         pgenset = multiext("/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_split_rare_common", ".pgen", ".pvar", ".psam"), # rules.mod8_split_rare_common.output.pgenset_common_snps, #rules.mod8_common_snps_filter.output.pgenset_common_snps,
-        r2_table = multiext("/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_dr2.txt.gz") #rules.summarize_dr2.output.dr2,
+        r2_table = "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_dr2.txt.gz" #rules.summarize_dr2.output.dr2,
         high_ld_regions_hg19 = high_ld_regions_hg19
     output:
         pgenset = multiext(str(tmpMod8_2/"mod8_best_snps"), ".pgen", ".pvar", ".psam"),
