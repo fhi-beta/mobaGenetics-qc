@@ -183,7 +183,7 @@ rule mod8_common_snps_filter:
 
 rule mod8_best_snps:
     input:
-        pgenset = rules.mod8_split_rare_common.pgenset_common_snps #rules.mod8_common_snps_filter.output.pgenset_common_snps,
+        pgenset = rules.mod8_split_rare_common.pgenset_common_snps, #rules.mod8_common_snps_filter.output.pgenset_common_snps,
         r2_table = rules.summarize_dr2.output.dr2,
         high_ld_regions_hg19 = high_ld_regions_hg19
     output:
