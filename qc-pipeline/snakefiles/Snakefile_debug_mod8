@@ -117,7 +117,10 @@ rule all:
        # expand(tmpMod5 / "{batch}" / "mod5_extract_Y_mito.bed", batch=batches)
         #str(tmpMod7 / "mod7_convert_chrs_to_pgen.chrX.pgen")
         #expand(tmpMod5 / "{batch}" / ("Chromosome-mod5_extract_Y_mito-1000G.txt"), batch = batches)
-        str(tmpMod8_2/"mod8_best_snps.pgen")
+        #str(tmpMod8_2/"mod8_best_snps.pgen")
+        tmpMod8_2/"mod8_pca_only_mob.pcs",
+        tmpMod8_2/"mod8_pca_both.pcs"
+
         #tmpMod8/"mod8_batch_table_batch",
         #tmpMod8/"mod8_pedigree_ibd_estimate.kin0"
         #tmpMod7 / "mod7_sort_X.pgen"
