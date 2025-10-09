@@ -764,7 +764,7 @@ rule mod8_plot_pca_both:
         pcs = rules.mod8_pca_both.output.pcs,
         pop_map = config["1000_genomes_pop"],
         ids = config["id_mapping"],
-        batches = config["batch_files"],
+        batches = rules.mod8_batch_table.output.batch_table,
         psam = rules.mod8_exclude_conflictual_relationships.output.pgenset_best_snps[2]
     params:
         title = "\"Principal Component Analysys (PCA) vs. 1 KG\"",
