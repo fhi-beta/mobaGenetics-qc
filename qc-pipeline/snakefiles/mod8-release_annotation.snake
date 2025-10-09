@@ -259,81 +259,6 @@ rule mod8_best_snps_list:
         mqc.best_snps_of_subset(input.dr2, output.best_snps_list, 500000, input.pgenset[1])
 
 
-rule_stem = 'mod8_generate_best_snps_stats'
-rule mod8_generate_best_snps_stats:
-    'Generate statistics on the filtered snps'
-    input:
-        pgenset = rules.mod8_best_snps.output.pgenset
-    output:
-        het = tmpMod8_2/'mod8_best_snps.het',
-        hardy = tmpMod8_2/'mod8_best_snps.hardy',
-        afreq = tmpMod8_2/'mod8_best_snps.afreq',
-        smiss = tmpMod8_2/'mod8_best_snps.smiss',
-        vmiss = tmpMod8_2/'mod8_best_snps.vmiss',
-    threads: 1
-    run:
-        try:
-            # Plink base paths
-            plink_input = mqc.plinkBase(input.pgenset[0])
-            plink_het_output = mqc.plinkBase(output.het)
-            plink_hwe_output = mqc.plinkBase(output.hardy)
-            plink_freq_output = mqc.plinkBase(output.afreq)
-            plink_miss_output = mqc.plinkBase(output.smiss)
-
-            # Frequencies
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", plink_input,
-                    "--freq",
-                    "--out", plink_freq_output
-                ],
-                check=True
-            )
-
-            # Heterozygocity rate
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", plink_input,
-                    "--read-freq", output.afreq,
-                    "--het",
-                    "--out", plink_het_output
-                ],
-                check=True
-            )
-
-            # HWE
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", plink_input,
-                    "--hardy", "midp",
-                    "--read-freq", output.afreq,
-                    "--out", plink_hwe_output
-                ],
-                check=True
-            )
-
-            # Missingness
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", plink_input,
-                    "--read-freq", output.afreq,
-                    "--missing",
-                    "--out", plink_miss_output
-                ],
-                check=True
-            )
-
-        except Exception as e:
-            print(f"An exception occurred in rule {rule}.")
-            print(e)
-
-
-
-
 rule_stem = 'mod8_check_sex'
 rule mod8_check_sex:
     input:
@@ -570,6 +495,83 @@ rule mod8_exclude_conflictual_relationships:
         except Exception as e:
                     print(f"An exception occurred in rule {rule}.")
                     print(e)
+
+
+
+rule_stem = 'mod8_generate_best_snps_stats'
+rule mod8_generate_best_snps_stats:
+    'Generate statistics on the filtered snps'
+    input:
+        pgenset = rules.mod8_exclude_conflictual_relationships.output.pgenset_best_snps
+    output:
+        het = tmpMod8_2/'mod8_best_snps.het',
+        hardy = tmpMod8_2/'mod8_best_snps.hardy',
+        afreq = tmpMod8_2/'mod8_best_snps.afreq',
+        smiss = tmpMod8_2/'mod8_best_snps.smiss',
+        vmiss = tmpMod8_2/'mod8_best_snps.vmiss',
+    threads: 1
+    run:
+        try:
+            # Plink base paths
+            plink_input = mqc.plinkBase(input.pgenset[0])
+            plink_het_output = mqc.plinkBase(output.het)
+            plink_hwe_output = mqc.plinkBase(output.hardy)
+            plink_freq_output = mqc.plinkBase(output.afreq)
+            plink_miss_output = mqc.plinkBase(output.smiss)
+
+            # Frequencies
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--freq",
+                    "--out", plink_freq_output
+                ],
+                check=True
+            )
+
+            # Heterozygocity rate
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--read-freq", output.afreq,
+                    "--het",
+                    "--out", plink_het_output
+                ],
+                check=True
+            )
+
+            # HWE
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--hardy", "midp",
+                    "--read-freq", output.afreq,
+                    "--out", plink_hwe_output
+                ],
+                check=True
+            )
+
+            # Missingness
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--read-freq", output.afreq,
+                    "--missing",
+                    "--out", plink_miss_output
+                ],
+                check=True
+            )
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+
+
 
 
 rule mod8_make_duplicates_table:
