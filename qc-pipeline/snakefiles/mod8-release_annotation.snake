@@ -762,6 +762,7 @@ rule_stem = "mod8_plot_pca_both"
 rule mod8_plot_pca_both:
     input:
         pcs = rules.mod8_pca_both.output.pcs,
+        pcs_only_moba = rules.mod8_pca_only_moba.output.pcs,
         pop_map = config["1000_genomes_pop"],
         ids = config["id_mapping"],
         batches = rules.mod8_batch_table.output.batch_table,
@@ -780,6 +781,7 @@ rule mod8_plot_pca_both:
         """
         Rscript utils/pca/plot_pca_population_cluster_1kg.R \
             {input.pcs} \
+            {input.pcs_only_moba} \
             {input.pop_map} \
             {output.md_file} \
             {params.title} \
