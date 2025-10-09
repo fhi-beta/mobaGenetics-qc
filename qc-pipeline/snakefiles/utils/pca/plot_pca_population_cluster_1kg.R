@@ -164,7 +164,7 @@ moba_pcs <- read.table(
 het <- read.table(
   het_file, 
   header = F, 
-  col.names = c("iid", "o_hom", "e_hom", "obs_ct", "f")
+  col.names = c("fid", "iid", "o_hom", "e_hom", "obs_ct", "f")
   )
 
 # het <- read.table(
