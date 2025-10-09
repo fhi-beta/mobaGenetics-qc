@@ -766,6 +766,7 @@ rule mod8_plot_pca_both:
         pop_map = config["1000_genomes_pop"],
         ids = config["id_mapping"],
         batches = rules.mod8_batch_table.output.batch_table,
+        het = rules. mod8_generate_best_snps_stats.output.het,
         psam = rules.mod8_exclude_conflictual_relationships.output.pgenset_best_snps[2]
     params:
         title = "\"Principal Component Analysys (PCA) vs. 1 KG\"",
@@ -783,6 +784,7 @@ rule mod8_plot_pca_both:
             {input.pcs} \
             {input.pcs_only_moba} \
             {input.pop_map} \
+            {input.het} \
             {output.md_file} \
             {params.title} \
             {output.cluster_file} \
@@ -867,11 +869,16 @@ rule release_additional_files:
         release_genotypes = rules.release_genotypes.output.pgenset_common_snps,
         r2_table = rules.summarize_dr2.output.dr2,
         best_snps = rules.mod8_best_snps_list.output.best_snps_list, # rules.summarize_dr2.output.top_snps
-        pcs = rules.mod8_pca_both.output.pcs,
-        eigenvector = rules.mod8_pca_both.output.eigenvector,
-        snp_loadings = rules.mod8_pca_both.output.snp_loadings,
-        eigenvalues = rules.mod8_pca_both.output.eigenvalues,
-        variance_explained = rules.mod8_pca_both.output.variance_explained,
+        pcs_with_1000G = rules.mod8_pca_both.output.pcs,
+        eigenvector_with_1000G = rules.mod8_pca_both.output.eigenvector,
+        snp_loadings_with_1000G = rules.mod8_pca_both.output.snp_loadings,
+        eigenvalues_with_1000G = rules.mod8_pca_both.output.eigenvalues,
+        variance_explained_with_1000G = rules.mod8_pca_both.output.variance_explained,
+        pcs_only_moba = rules.mod8_pca_only_moba.output.pcs,
+        eigenvector_only_moba = rules.mod8_pca_only_moba.output.eigenvector,
+        snp_loadings_only_moba = rules.mod8_pca_only_moba.output.snp_loadings,
+        eigenvalues_only_moba = rules.mod8_pca_only_moba.output.eigenvalues,
+        variance_explained_only_moba = rules.mod8_pca_only_moba.output.variance_explained,
         cluster_file = rules.mod8_plot_pca_both.output.cluster_file,
         ceu_id_file = rules.mod8_plot_pca_both.output.ceu_id_file,
         king_relatedness = rules.mod8_pedigree_ibd_estimate.output.king_relatedness,
@@ -883,11 +890,16 @@ rule release_additional_files:
     output:
         r2_table = release_folder_2/"snp"/(release_base_name + "_snp_r2.gz"),
         best_snps = release_folder_2/"snp"/(release_base_name + "_reference_500k_snps"),
-        pcs = release_folder_2/"pca"/(release_base_name + ".pcs"),
-        eigenvector = release_folder_2/"pca"/(release_base_name + ".vec"),
-        snp_loadings = release_folder_2/"pca"/(release_base_name + ".load"),
-        eigenvalues = release_folder_2/"pca"/(release_base_name + ".val"),
-        variance_explained = release_folder_2/"pca"/(release_base_name + ".pve"),
+        pcs_with_1000G = release_folder_2/"pca_with_1000G"/(release_base_name + ".pcs"),
+        eigenvector_with_1000G = release_folder_2/"pca_with_1000G"/(release_base_name + ".vec"),
+        snp_loadings_with_1000G = release_folder_2/"pca_with_1000G"/(release_base_name + ".load"),
+        eigenvalues_with_1000G = release_folder_2/"pca_with_1000G"/(release_base_name + ".val"),
+        variance_explained_with_1000G = release_folder_2/"pca_with_1000G"/(release_base_name + ".pve"),
+        pcs_only_moba = release_folder_2/"pca_only_moba"/(release_base_name + ".pcs"),
+        eigenvector_only_moba = release_folder_2/"pca_only_moba"/(release_base_name + ".vec"),
+        snp_loadings_only_moba = release_folder_2/"pca_only_moba"/(release_base_name + ".load"),
+        eigenvalues_only_moba = release_folder_2/"pca_only_moba"/(release_base_name + ".val"),
+        variance_explained_only_moba = release_folder_2/"pca_only_moba"/(release_base_name + ".pve"),
         cluster_file = release_folder_2/"pca"/(release_base_name + "_clusters"),
         ceu_id_file = release_folder_2/"pca"/(release_base_name + "_ceu_core_ids"),
         king_relatedness = release_folder_2/"kinship"/(release_base_name + ".kin0"),
@@ -906,8 +918,12 @@ rule release_additional_files:
             if not os.path.exists(release_folder_2/"snp"):
                 os.makedirs(release_folder_2/"snp")
 
-            if not os.path.exists(release_folder_2/"pca"):
-                os.makedirs(release_folder_2/"pca")
+            if not os.path.exists(release_folder_2/"pca_with_1000G"):
+                os.makedirs(release_folder_2/"pca_with_1000G")
+
+            
+            if not os.path.exists(release_folder_2/"pca_only_moba"):
+                os.makedirs(release_folder_2/"pca_only_moba")
 
             if not os.path.exists(release_folder_2/"kinship"):
                 os.makedirs(release_folder_2/"kinship")
@@ -931,13 +947,18 @@ rule release_additional_files:
                 file.write(f"- {os.path.basename(releaseTrunk)}_common_best_pruned(.pgen, .pvar, .psam): Phased and imputed genotypes filtered to retain a high quality set of common autosomal variants with LD pruning in plink2 format. These variants are the ones used to compute PCs, adjust for relatedness and population structure.\n")
                 file.write(f"- snp/{os.path.basename(output.best_snps)}: List of variants making the high quality set of common autosomal variants with LD pruning used to generate the common_best_pruned fileset.\n")
                 file.write(f"- snp/{os.path.basename(output.r2_table)}: Table of imputation r2.\n")
-                file.write(f"- pca/{os.path.basename(output.pcs)}: PCs as computed by flashPCA using high quality pruned autosomal markers.\n")
-                file.write(f"- pca/{os.path.basename(output.eigenvector)}: Eigen vectoes as computed by flashPCA using high quality pruned autosomal markers.\n")
-                file.write(f"- pca/{os.path.basename(output.snp_loadings)}: SNP loadings as computed by flashPCA using high quality pruned autosomal markers.\n")
-                file.write(f"- pca/{os.path.basename(output.eigenvalues)}: Eigen values as computed by flashPCA using high quality pruned autosomal markers.\n")
-                file.write(f"- pca/{os.path.basename(output.variance_explained)}: Variance explained as computed by flashPCA using high quality pruned autosomal markers.\n")
-                file.write(f"- pca/{os.path.basename(output.cluster_file)}: Sample clustering in the PCA with superpopulations from the 1000 genomes project.\n")
-                file.write(f"- pca/{os.path.basename(output.ceu_id_file)}: Identifiers of samples of short distance in the PCA to the CEU cluster.\n")
+                file.write(f"- pca_with_1000G/{os.path.basename(output.pcs)}: PCs as computed by flashPCA using high quality pruned autosomal markers (with 1000 genomes).\n")
+                file.write(f"- pca_with_1000G/{os.path.basename(output.eigenvector)}: Eigen vectors as computed by flashPCA using high quality pruned autosomal markers (with 1000 genomes).\n")
+                file.write(f"- pca_with_1000G/{os.path.basename(output.snp_loadings)}: SNP loadings as computed by flashPCA using high quality pruned autosomal markers (with 1000 genomes).\n")
+                file.write(f"- pca_with_1000G/{os.path.basename(output.eigenvalues)}: Eigen values as computed by flashPCA using high quality pruned autosomal markers (with 1000 genomes).\n")
+                file.write(f"- pca_with_1000G/{os.path.basename(output.variance_explained)}: Variance explained as computed by flashPCA using high quality pruned autosomal markers (with 1000 genomes).\n")
+                file.write(f"- pca_only_moba/{os.path.basename(output.pcs)}: PCs as computed by flashPCA using high quality pruned autosomal markers (only MoBa).\n")
+                file.write(f"- pca_only_moba/{os.path.basename(output.eigenvector)}: Eigen vectors as computed by flashPCA using high quality pruned autosomal markers (only MoBa).\n")
+                file.write(f"- pca_only_moba/{os.path.basename(output.snp_loadings)}: SNP loadings as computed by flashPCA using high quality pruned autosomal markers (only MoBa).\n")
+                file.write(f"- pca_only_moba/{os.path.basename(output.eigenvalues)}: Eigen values as computed by flashPCA using high quality pruned autosomal markers (only MoBa).\n")
+                file.write(f"- pca_only_moba/{os.path.basename(output.variance_explained)}: Variance explained as computed by flashPCA using high quality pruned autosomal markers (only MoBa).\n")
+                file.write(f"- pca_with_1000G/{os.path.basename(output.cluster_file)}: Sample clustering in the PCA with superpopulations from the 1000 genomes project.\n")
+                file.write(f"- pca_with_1000G/{os.path.basename(output.ceu_id_file)}: Identifiers of samples of short distance in the PCA to the CEU cluster.\n")
                 file.write(f"- kinship/{os.path.basename(output.king_relatedness)}: Kinship analysis as computed by king using high quality pruned autosomal markers.\n")
                 file.write(f"- sex_check/{os.path.basename(output.sex_check)}: Sex check computed by plink on sex markers after imputation.\n")
                 file.write(f"- batch/{os.path.basename(output.batch_table)}: Batch table\n")
@@ -957,11 +978,18 @@ rule release_additional_files:
             copyfile(input.best_snps, output.best_snps)
 
             # PCA files
-            copyfile(input.pcs, output.pcs)
-            copyfile(input.eigenvector, output.eigenvector)
-            copyfile(input.snp_loadings, output.snp_loadings)
-            copyfile(input.eigenvalues, output.eigenvalues)
-            copyfile(input.variance_explained, output.variance_explained)
+            copyfile(input.pcs_with_1000G, output.pcs_with_1000G)
+            copyfile(input.eigenvector_with_1000G, output.eigenvector_with_1000G)
+            copyfile(input.snp_loadings_with_1000G, output.snp_loadings_with_1000G)
+            copyfile(input.eigenvalues_with_1000G, output.eigenvalues_with_1000G)
+            copyfile(input.variance_explained_with_1000G, output.variance_explained_with_1000G)
+
+            copyfile(input.pcs_only_moba, output.pcs_only_moba)
+            copyfile(input.eigenvector_only_moba, output.eigenvector_only_moba)
+            copyfile(input.snp_loadings_only_moba, output.snp_loadings_only_moba)
+            copyfile(input.eigenvalues_only_moba, output.eigenvalues_only_moba)
+            copyfile(input.variance_explained_only_moba, output.variance_explained_only_moba)
+
             copyfile(input.cluster_file, output.cluster_file)
             copyfile(input.ceu_id_file, output.ceu_id_file)
             
