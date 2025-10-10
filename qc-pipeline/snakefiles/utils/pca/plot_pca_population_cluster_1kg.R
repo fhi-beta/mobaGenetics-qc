@@ -1478,14 +1478,14 @@ core_ids <- moba_df %>%
 #     fid, iid
 #   )
 
-# write.table(
-#   core_ids,
-#   file = ceu_ids_file,
-#   col.names = F,
-#   row.names = F,
-#   sep = " ",
-#   quote = F
-# )
+write.table(
+  core_ids,
+  file = ceu_ids_file,
+  col.names = F,
+  row.names = F,
+  sep = " ",
+  quote = F
+)
 
 # write.table(
 #   very_mysterious_samples,
