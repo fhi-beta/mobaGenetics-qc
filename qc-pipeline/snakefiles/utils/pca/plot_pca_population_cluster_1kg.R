@@ -29,17 +29,17 @@ if (debug) {
 
   } else if(debug_plink_version == 2){
         args <- c(
-    "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_pca_both.pcs",
-    "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_pca_only_moba.pcs",
+    "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_pca_both.pcs",
+    "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_pca_only_moba.pcs",
     "/mnt/archive2/moba_genotypes_resources/1000Genomes/all_phase3.psam",
-    "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_best_snps.het",
+    "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_best_snps.het",
     "/mnt/work/oystein/tmp/pca_1kg_moba.md",
     "\"Principal Component Analysys (PCA) vs. 1 KG\"",
     "/mnt/work/oystein/tmp/clusters",
     "/mnt/work/oystein/tmp/ceu_core_ids",
     "/mnt/archive2/moba_genotypes_resources/phenotypes/ids_24.08.07.gz",
-    "/mnt/archive/moba_genotypes_releases/2024.12.03/batch/moba_genotypes_2024.12.03_batches",
-    "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_psam_reconstruction.psam",
+    "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_batch_table_batch",
+    "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_psam_reconstruction.psam",
     2
   )
   }
@@ -205,10 +205,10 @@ if(plink_version == 2){
 }
 
 
-mysterious <- subset(pcs, pc2>0 & pc3>0)
-mysterious["mysterious"] <- "yes"
-moba_pcs_mysterious <- moba_pcs %>% left_join(mysterious %>% select(iid, mysterious), by = "iid")
-moba_pcs_mysterious <- moba_pcs_mysterious %>% mutate(mysterious = replace_na(mysterious, "no"))
+# mysterious <- subset(pcs, pc2>0 & pc3>0)
+# mysterious["mysterious"] <- "yes"
+# moba_pcs_mysterious <- moba_pcs %>% left_join(mysterious %>% select(iid, mysterious), by = "iid")
+# moba_pcs_mysterious <- moba_pcs_mysterious %>% mutate(mysterious = replace_na(mysterious, "no"))
 
 
 
@@ -223,14 +223,16 @@ het$stds_het_rate[het$het_rate > mean_het_rate] <- "0-0.5"
 het$stds_het_rate[het$het_rate > mean_het_rate+0.5*std_het_rate] <- "0.5-1"
 het$stds_het_rate[het$het_rate > mean_het_rate+std_het_rate] <- "1-1.5"
 het$stds_het_rate[het$het_rate > mean_het_rate+1.5*std_het_rate] <- "1.5-2"
-het$stds_het_rate[het$het_rate > mean_het_rate+2*std_het_rate] <- ">2"
+het$stds_het_rate[het$het_rate > mean_het_rate+2*std_het_rate] <- "2-2.5"
+het$stds_het_rate[het$het_rate > mean_het_rate+2.5*std_het_rate] <- "2.5-3"
+het$stds_het_rate[het$het_rate > mean_het_rate+3*std_het_rate] <- ">3"
 
 # for (std2 in 1:(2*(std_cutoff-2))){
 #   het$stds_het_rate[het$het_rate > mean_het_rate + 0.5*std2*std_het_rate] <- paste0(0.5*std2"-",0.5*std2+0.5) 
 # }
 
 
-het$stds_het_rate <- factor(het$stds_het_rate, levels=c("<0", "0-0.5", "0.5-1", "1-1.5", "1.5-2", ">2"))
+het$stds_het_rate <- factor(het$stds_het_rate, levels=c("<0", "0-0.5", "0.5-1", "1-1.5", "1.5-2", "2-2.5", "2.5-3", ">3"))
 
 
 batches_data$batch <- as.factor(batches_data$batch)
@@ -281,93 +283,93 @@ merged_pcs <- pcs %>%
   )
 
 
-moba_pcs_mysterious <- moba_pcs_mysterious %>% left_join(het %>% 
-      select(
-        iid, het_rate, stds_het_rate, f
-      ),
-    by = "iid")
+# moba_pcs_mysterious <- moba_pcs_mysterious %>% left_join(het %>% 
+#       select(
+#         iid, het_rate, stds_het_rate, f
+#       ),
+#     by = "iid")
 
 
-for (pc_i in 1:9) {
+# for (pc_i in 1:9) {
   
-  pc_name_x <- paste0("pc", pc_i)
-  pc_name_y <- paste0("pc", pc_i + 1)
-  moba_pcs_mysterious$x <- moba_pcs_mysterious[[pc_name_x]]
-  moba_pcs_mysterious$y <- moba_pcs_mysterious[[pc_name_y]]
+#   pc_name_x <- paste0("pc", pc_i)
+#   pc_name_y <- paste0("pc", pc_i + 1)
+#   moba_pcs_mysterious$x <- moba_pcs_mysterious[[pc_name_x]]
+#   moba_pcs_mysterious$y <- moba_pcs_mysterious[[pc_name_y]]
   
   
-  write(
-    x = paste0("### ", pc_name_y, " vs. ", pc_name_x),
-    file = md_file,
-    append = T
-  )
+#   write(
+#     x = paste0("### ", pc_name_y, " vs. ", pc_name_x),
+#     file = md_file,
+#     append = T
+#   )
   
-  plot <- ggplot() +
-    theme_bw(
-      base_size = 24
-    ) +
-    geom_point(
-      data = moba_pcs_mysterious,
-      mapping = aes(
-        x = x,
-        y = y,
-        col = stds_het_rate
-      ),
-      alpha = 0.2
-    ) +
-    geom_xsidedensity(
-      data = moba_pcs_mysterious,
-      mapping = aes(
-        x = x,
-        y = after_stat(density),
-        fill= stds_het_rate
-      ),
-      alpha = 0.8
-    ) +
-    geom_ysidedensity(
-      data = moba_pcs_mysterious,
-      mapping = aes(
-        x = after_stat(density),
-        y = y,
-        fill=stds_het_rate
-      ),
-      alpha = 0.8
-    ) +
-    scale_x_continuous(
-      name = pc_name_x
-    ) +
-    scale_y_continuous(
-      name = pc_name_y
-    ) +
-    theme(
-      ggside.panel.scale = 0.15,
-      ggside.axis.ticks = element_blank(),
-      ggside.axis.text = element_blank(),
-      ggside.panel.grid = element_blank(),
-      ggside.panel.background = element_blank(),
-      ggside.panel.spacing = unit(0, "pt"),
-      panel.border = element_blank()
-    )
+#   plot <- ggplot() +
+#     theme_bw(
+#       base_size = 24
+#     ) +
+#     geom_point(
+#       data = moba_pcs_mysterious,
+#       mapping = aes(
+#         x = x,
+#         y = y,
+#         col = stds_het_rate
+#       ),
+#       alpha = 0.2
+#     ) +
+#     geom_xsidedensity(
+#       data = moba_pcs_mysterious,
+#       mapping = aes(
+#         x = x,
+#         y = after_stat(density),
+#         fill= stds_het_rate
+#       ),
+#       alpha = 0.8
+#     ) +
+#     geom_ysidedensity(
+#       data = moba_pcs_mysterious,
+#       mapping = aes(
+#         x = after_stat(density),
+#         y = y,
+#         fill=stds_het_rate
+#       ),
+#       alpha = 0.8
+#     ) +
+#     scale_x_continuous(
+#       name = pc_name_x
+#     ) +
+#     scale_y_continuous(
+#       name = pc_name_y
+#     ) +
+#     theme(
+#       ggside.panel.scale = 0.15,
+#       ggside.axis.ticks = element_blank(),
+#       ggside.axis.text = element_blank(),
+#       ggside.panel.grid = element_blank(),
+#       ggside.panel.background = element_blank(),
+#       ggside.panel.spacing = unit(0, "pt"),
+#       panel.border = element_blank()
+#     )
   
-  file_name <- paste0("only_moba_het_", pc_name_x, "_", pc_name_y, ".png")
+#   file_name <- paste0("only_moba_het_", pc_name_x, "_", pc_name_y, ".png")
   
-  print(paste0("Plotting to ", plot_folder, "/", file_name))
+#   print(paste0("Plotting to ", plot_folder, "/", file_name))
   
-  png(
-    filename = file.path(plot_folder, file_name),
-    width = 800,
-    height = 600
-  )
-  grid.draw(plot)
-  device <- dev.off()
+#   png(
+#     filename = file.path(plot_folder, file_name),
+#     width = 800,
+#     height = 600
+#   )
+#   grid.draw(plot)
+#   device <- dev.off()
   
-  write(
-    x = paste0("![](plot/", file_name, ")"),
-    file = md_file,
-    append = T
-  )
+#   write(
+#     x = paste0("![](plot/", file_name, ")"),
+#     file = md_file,
+#     append = T
+#   )
   
-}
+# }
 
 trios <- subset(merged_pcs, !is.na(pat) & pat !="0" & !is.na(mat) & mat !="0")
 
@@ -398,88 +400,88 @@ trios_plot_data <- child_data %>%
 
 
 
-for (pc_i in 1:9) {
+# for (pc_i in 1:9) {
   
-  pc_name_x <- paste0("pc", pc_i)
-  pc_name_y <- paste0("pc", pc_i + 1)
-  moba_pcs_mysterious$x <- moba_pcs_mysterious[[pc_name_x]]
-  moba_pcs_mysterious$y <- moba_pcs_mysterious[[pc_name_y]]
+#   pc_name_x <- paste0("pc", pc_i)
+#   pc_name_y <- paste0("pc", pc_i + 1)
+#   moba_pcs_mysterious$x <- moba_pcs_mysterious[[pc_name_x]]
+#   moba_pcs_mysterious$y <- moba_pcs_mysterious[[pc_name_y]]
   
   
-  write(
-    x = paste0("### ", pc_name_y, " vs. ", pc_name_x),
-    file = md_file,
-    append = T
-  )
+#   write(
+#     x = paste0("### ", pc_name_y, " vs. ", pc_name_x),
+#     file = md_file,
+#     append = T
+#   )
   
-  plot <- ggplot() +
-    theme_bw(
-      base_size = 24
-    ) +
-    geom_point(
-      data = moba_pcs_mysterious,
-      mapping = aes(
-        x = x,
-        y = y,
-        col = mysterious
-      ),
-      alpha = 0.2
-    ) +
-    geom_xsidedensity(
-      data = moba_pcs_mysterious,
-      mapping = aes(
-        x = x,
-        y = after_stat(density),
-        fill= mysterious
-      ),
-      alpha = 0.8
-    ) +
-    geom_ysidedensity(
-      data = moba_pcs_mysterious,
-      mapping = aes(
-        x = after_stat(density),
-        y = y,
-        fill= mysterious
-      ),
-      alpha = 0.8
-    ) +
-    scale_x_continuous(
-      name = pc_name_x
-    ) +
-    scale_y_continuous(
-      name = pc_name_y
-    ) +
-    scale_color_manual(values = c("blue", "red")) +
-    scale_fill_manual(values = c("blue", "red")) +
-    theme(
-      ggside.panel.scale = 0.15,
-      ggside.axis.ticks = element_blank(),
-      ggside.axis.text = element_blank(),
-      ggside.panel.grid = element_blank(),
-      ggside.panel.background = element_blank(),
-      ggside.panel.spacing = unit(0, "pt"),
-      panel.border = element_blank()
-    )
+#   plot <- ggplot() +
+#     theme_bw(
+#       base_size = 24
+#     ) +
+#     geom_point(
+#       data = moba_pcs_mysterious,
+#       mapping = aes(
+#         x = x,
+#         y = y,
+#         col = mysterious
+#       ),
+#       alpha = 0.2
+#     ) +
+#     geom_xsidedensity(
+#       data = moba_pcs_mysterious,
+#       mapping = aes(
+#         x = x,
+#         y = after_stat(density),
+#         fill= mysterious
+#       ),
+#       alpha = 0.8
+#     ) +
+#     geom_ysidedensity(
+#       data = moba_pcs_mysterious,
+#       mapping = aes(
+#         x = after_stat(density),
+#         y = y,
+#         fill= mysterious
+#       ),
+#       alpha = 0.8
+#     ) +
+#     scale_x_continuous(
+#       name = pc_name_x
+#     ) +
+#     scale_y_continuous(
+#       name = pc_name_y
+#     ) +
+#     scale_color_manual(values = c("blue", "red")) +
+#     scale_fill_manual(values = c("blue", "red")) +
+#     theme(
+#       ggside.panel.scale = 0.15,
+#       ggside.axis.ticks = element_blank(),
+#       ggside.axis.text = element_blank(),
+#       ggside.panel.grid = element_blank(),
+#       ggside.panel.background = element_blank(),
+#       ggside.panel.spacing = unit(0, "pt"),
+#       panel.border = element_blank()
+#     )
   
-  file_name <- paste0("only_moba_", pc_name_x, "_", pc_name_y, ".png")
+#   file_name <- paste0("only_moba_", pc_name_x, "_", pc_name_y, ".png")
   
-  print(paste0("Plotting to ", plot_folder, "/", file_name))
+#   print(paste0("Plotting to ", plot_folder, "/", file_name))
   
-  png(
-    filename = file.path(plot_folder, file_name),
-    width = 800,
-    height = 600
-  )
-  grid.draw(plot)
-  device <- dev.off()
+#   png(
+#     filename = file.path(plot_folder, file_name),
+#     width = 800,
+#     height = 600
+#   )
+#   grid.draw(plot)
+#   device <- dev.off()
   
-  write(
-    x = paste0("![](plot/", file_name, ")"),
-    file = md_file,
-    append = T
-  )
+#   write(
+#     x = paste0("![](plot/", file_name, ")"),
+#     file = md_file,
+#     append = T
+#   )
   
-}
+# }
 
 write(
   x = paste0("Principal component analysis of the MoBa samples merged with the thousand genomes."),
@@ -606,6 +608,7 @@ for (pc_i in 1:9) {
     ) +
     geom_density2d(
       data = kg_data,
+      bins = 50,
       mapping = aes(
         x = x,
         y = y,
@@ -951,8 +954,13 @@ plot_discrete <- function(column, plot_data, top_pc, file_suffix){
 }
 
 plot_trios(trios_plot_data, "trios", 10)
-plot_discrete("pop_factor", merged_pcs, 3, "pop_factor")
 plot_discrete("stds_het_rate", merged_pcs, 10, "stds_het_rate")
+
+write(
+  x = "## Heterozygosity rate",
+  file = md_file,
+  append = T
+)
 
 if(plink_version == 2){
 write(
@@ -1307,12 +1315,6 @@ populations_colors <- scico(
   palette = "hawaii"
 )
 
-write(
-  x = paste0("### Principal components with F statistics"),
-  file = md_file,
-  append = T
-)
-
 plot_folder <- file.path(docs_folder, "plot")
 
 
@@ -1468,28 +1470,28 @@ core_ids <- moba_df %>%
   )
 
 
-very_mysterious_samples <- merged_pcs %>% 
-  filter(
-    pop == "MoBa_Very_Mysterious"
-  ) %>% 
-  select(
-    fid, iid
-  )
+# very_mysterious_samples <- merged_pcs %>% 
+#   filter(
+#     pop == "MoBa_Very_Mysterious"
+#   ) %>% 
+#   select(
+#     fid, iid
+#   )
 
-write.table(
-  core_ids,
-  file = ceu_ids_file,
-  col.names = F,
-  row.names = F,
-  sep = " ",
-  quote = F
-)
+# write.table(
+#   core_ids,
+#   file = ceu_ids_file,
+#   col.names = F,
+#   row.names = F,
+#   sep = " ",
+#   quote = F
+# )
 
-write.table(
-  very_mysterious_samples,
-  file = "/mnt/work/oystein/tmp/very_mysterious_samples.txt",
-  col.names = F,
-  row.names = F,
-  sep = " ",
-  quote = F
-)
+# write.table(
+#   very_mysterious_samples,
+#   file = "/mnt/work/oystein/tmp/very_mysterious_samples.txt",
+#   col.names = F,
+#   row.names = F,
+#   sep = " ",
+#   quote = F
+# )
