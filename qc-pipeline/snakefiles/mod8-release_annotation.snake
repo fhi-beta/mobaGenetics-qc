@@ -883,7 +883,7 @@ rule release_additional_files:
         cluster_file = rules.mod8_plot_pca_both.output.cluster_file,
         ceu_id_file = rules.mod8_plot_pca_both.output.ceu_id_file,
         king_relatedness = rules.mod8_pedigree_ibd_estimate.output.king_relatedness,
-        sex_check = rules.mod8_check_sex.output.sex_check,
+        sex_check = rules.mod8_import_ycounts.output.sex_check,
         batch_table = rules.mod8_batch_table.output.batch_table,
         duplicates_table = rules.mod8_make_duplicates_table.output.duplicates
     params:
