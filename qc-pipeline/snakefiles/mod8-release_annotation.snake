@@ -331,6 +331,50 @@ rule mod8_pedigree_ibd_estimate:
             print(e)
 
 
+rule_stem = 'mod8_check_sex'
+rule mod8_check_sex:
+    input:
+        pgenset = rules.mod8_split_rare_common.output.pgenset_common_snps #rules.mod8_common_snps_filter.output.pgenset_common_snps
+    output:
+        sex_check = tmpMod8_2/(rule_stem + ".sexcheck")
+    run:
+        try:
+            in_trunk = mqc.plinkBase(input.pgenset[0])
+            out_trunk = mqc.plinkBase(output.sex_check)
+            subprocess.run(
+                [
+                    "plink2",
+                    "--pfile", in_trunk,
+                    "--chr", "X",
+                    "--check-sex", "max-female-xf=0.6", "min-male-xf=0.8",
+                    "--out", out_trunk
+                ],
+                check=True
+            )
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+# import ycounts from pre-imputation
+rule mod8_import_ycounts:
+    input:
+        sex_check =  rules.mod8_check_sex.output.sex_check
+    output:
+        sex_check = tmpMod8_2/"mod8_import_ycounts.sexcheck"
+    run:
+        ycounts = []
+        for batch in batches:
+            ycount_file =  f"{tmpMod2}/{batch}/m2_output.sexcheck"
+            ycount = pd.read_table(ycount_file, delim_whitespace = True)
+            ycounts.append(ycount)
+        ycounts_df = pd.concat(ycounts, ignore_index = True)
+        sex_check_df = pd.read_table(input.sex_check, dtype={'PEDSEX': 'str', 'SNPSEX': 'str'}, delim_whitespace = True)
+        merged_df = pd.merge(sex_check_df, ycounts_df[['IID', 'YCOUNT']], left_on='#IID', right_on='IID', how='left')
+        merged_df.drop(columns=['IID'], inplace=True)
+        merged_df.to_csv(output.sex_check, sep = "\t", na_rep = "NA", index = False)
+
+
 rule_stem = 'mod8_psam_reconstruction'
 rule mod8_psam_reconstruction:
     input:
@@ -451,50 +495,6 @@ rule mod8_best_snps_list:
     run:
         mqc.best_snps_of_subset(input.dr2, output.best_snps_list, 500000, input.pgenset[1])
 
-
-
-rule_stem = 'mod8_check_sex'
-rule mod8_check_sex:
-    input:
-        pgenset = rules.mod8_exclude_conflictual_relationships.output.pgenset_common_snps # rules.mod8_split_rare_common.output.pgenset_common_snps #rules.mod8_common_snps_filter.output.pgenset_common_snps
-    output:
-        sex_check = tmpMod8_2/(rule_stem + ".sexcheck")
-    run:
-        try:
-            in_trunk = mqc.plinkBase(input.pgenset[0])
-            out_trunk = mqc.plinkBase(output.sex_check)
-            subprocess.run(
-                [
-                    "plink2",
-                    "--pfile", in_trunk,
-                    "--chr", "X",
-                    "--check-sex", "max-female-xf=0.6", "min-male-xf=0.8",
-                    "--out", out_trunk
-                ],
-                check=True
-            )
-
-        except Exception as e:
-            print(f"An exception occurred in rule {rule}.")
-            print(e)
-
-# import ycounts from pre-imputation
-rule mod8_import_ycounts:
-    input:
-        sex_check =  rules.mod8_check_sex.output.sex_check
-    output:
-        sex_check = tmpMod8_2/"mod8_import_ycounts.sexcheck"
-    run:
-        ycounts = []
-        for batch in batches:
-            ycount_file =  f"{tmpMod2}/{batch}/m2_output.sexcheck"
-            ycount = pd.read_table(ycount_file, delim_whitespace = True)
-            ycounts.append(ycount)
-        ycounts_df = pd.concat(ycounts, ignore_index = True)
-        sex_check_df = pd.read_table(input.sex_check, dtype={'PEDSEX': 'str', 'SNPSEX': 'str'}, delim_whitespace = True)
-        merged_df = pd.merge(sex_check_df, ycounts_df[['IID', 'YCOUNT']], left_on='#IID', right_on='IID', how='left')
-        merged_df.drop(columns=['IID'], inplace=True)
-        merged_df.to_csv(output.sex_check, sep = "\t", na_rep = "NA", index = False)
 
 
 rule_stem = 'mod8_generate_best_snps_stats'
