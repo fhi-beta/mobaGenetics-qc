@@ -1638,7 +1638,7 @@ def make_duplicates_table(psam_file, batches_file, ids_file, miss_file, output_f
     batches = pd.read_csv(batches_file, sep="\t")
     ids = pd.read_csv(ids_file, sep="\t")
     miss = pd.read_csv(miss_file, sep="\t")
-    miss = miss.rename(columns={'#IID': 'iid'})
+    miss = miss.rename(columns={'IID': 'iid'})
     miss["call_rate"] = 1- miss["F_MISS"]
     psam = psam.merge(batches.rename(columns={'batch': 'iid_batch'}), left_on='iid', right_on='iid', how='left')
     psam = psam.merge(batches.rename(columns={'iid': 'pat', 'batch': 'pat_batch'}), left_on='pat', right_on='pat', how='left')
