@@ -130,88 +130,89 @@ rule mod7_remove_multiallelic_variants:
         bcftools norm -m + {input.merged_vcf} | bcftools view -m2 -M2 -o {output.vcf}
         """
 
-# Post-imputation phasing
+# Post-imputation phasing (work in progress...)
 
-rule mod7_fill_ac:
-    input:
-        vcf = rules.mod7_remove_multiallelic_variants.output.vcf
-    output:
-        bcf = str(tmpMod7 / "mod7_fill_ac.chr{chr}.bcf)
-    conda:
-        "envs/bcf_tabix.yaml"
-    shell:
-        """
-        bcftools +fill-AN-AC {input.vcf} -o {output.bcf}
-        tabix {output.bcf}
-        """
+# rule mod7_fill_ac:
+#     input:
+#         vcf = rules.mod7_remove_multiallelic_variants.output.vcf
+#     output:
+#         bcf = str(tmpMod7 / "mod7_fill_ac.chr{chr}.bcf)
+#     conda:
+#         "envs/bcf_tabix.yaml"
+#     shell:
+#         """
+#         bcftools +fill-AN-AC {input.vcf} -o {output.bcf}
+#         tabix {output.bcf}
+#         """
 
-def get_map_chr(wildcards):
-    if wildcards.chr == "PAR1":
-        return "X_par1"
-    elif wildcards.chr == "PAR2":
-        return "X_par2"
-    else:
-        return wildcards.chr
+# def get_map_chr(wildcards):
+#     if wildcards.chr == "PAR1":
+#         return "X_par1"
+#     elif wildcards.chr == "PAR2":
+#         return "X_par2"
+#     else:
+#         return wildcards.chr
 
 
-rule mod7_chunks:
-    input:
-        bcf = rules.mod7_fill_ac.output.bcf
-    output:
-        chunks_file = str(tmpMod7 / "mod7_chunks.chr{chr})
-    params:
-        map_chr=get_map_chr
-    conda:
-        "envs/glimpse.yaml"
-    threads: 1
-    shell:
-        """
-        mapfile={mapfiles}/shapeit/chr{params.map_chr}.b37.gmap.gz
-        GLIMPSE2_chunk --input {input.bcf} --map $mapfile --region {params.map_chr} --sequential --threads {threads} --output {output.chunks}
-        """
+# rule mod7_chunks:
+#     input:
+#         bcf = rules.mod7_fill_ac.output.bcf
+#     output:
+#         chunks_file = str(tmpMod7 / "mod7_chunks.chr{chr})
+#     params:
+#         map_chr=get_map_chr
+#     conda:
+#         "envs/glimpse.yaml"
+#     threads: 1
+#     shell:
+#         """
+#         mapfile={mapfiles}/shapeit/chr{params.map_chr}.b37.gmap.gz
+#         GLIMPSE2_chunk --input {input.bcf} --map $mapfile --region {params.map_chr} --sequential --threads {threads} --output {output.chunks}
+#         """
 
-rule mod7_expected_relationships_shapeit:
-    input:
-        expected_relationships = config['expected_relationships']
-    output:
-        shapeit_fam = str(tmpMod7 / "mod7_expected_relationships_shapeit.fam")
-    shell:
-        """
-        awk 'NR>1 {print $1 "\t" $3 "\t" $2}' {input.expected_relationships} > {output.shapeit_fam}
-        """
+# rule mod7_expected_relationships_shapeit:
+#     input:
+#         expected_relationships = config['expected_relationships']
+#     output:
+#         shapeit_fam = str(tmpMod7 / "mod7_expected_relationships_shapeit.fam")
+#     shell:
+#         """
+#         awk 'NR>1 {print $1 "\t" $3 "\t" $2}' {input.expected_relationships} > {output.shapeit_fam}
+#         """
     
 
 
-def get_chunks(chunk_file):
-    chunks = []
-    with open(chunk_file) as f:
-        for line in f:
-            cols = line.split("\t")
-            chunks.append(cols[2])
-    return chunks
+# def get_chunks(chunk_file):
+#     chunks = []
+#     with open(chunk_file) as f:
+#         for line in f:
+#             cols = line.split("\t")
+#             chunks.append(cols[2])
+#     return chunks
 
-rule mod7_phasing:
-    input:
-        bcf = rules.mod7_fill_ac.output.bcf,
-        chunks_file = rules.mod7_chunks.output.chunks_file
-    output:
-        phased = str(tmpMod7 / "mod7_phasing.chr{chr}.phased.bcf)
-    conda:
-        "envs/shapeit_5.yaml"
-    run:
-        chunks = get_chunks(input.chunks_file)
-        phased_chunks = []
-        for i in range(len(chunks)):
-            chunk = chunks[i]
-            phased_chunk = str(tmpMod7 / f"mod7_phasing.chr{wildcards.chr}.chunk{i}.bcf)
-            phased_chunks.append(phased_chunk)
-            subprocess.run(["SHAPEIT5_phase_common", "--input", input.bcf, ])
-
-
+# rule mod7_phasing:
+#     input:
+#         bcf = rules.mod7_fill_ac.output.bcf,
+#         chunks_file = rules.mod7_chunks.output.chunks_file
+#     output:
+#         phased = str(tmpMod7 / "mod7_phasing.chr{chr}.phased.bcf)
+#     conda:
+#         "envs/shapeit_5.yaml"
+#     run:
+#         chunks = get_chunks(input.chunks_file)
+#         phased_chunks = []
+#         for i in range(len(chunks)):
+#             chunk = chunks[i]
+#             phased_chunk = str(tmpMod7 / f"mod7_phasing.chr{wildcards.chr}.chunk{i}.bcf)
+#             phased_chunks.append(phased_chunk)
+#             subprocess.run(["SHAPEIT5_phase_common", "--input", input.bcf, ])
 
 
 
 
+
+
+# Convert to pgen
 
 def get_pre_imputation_fam_files(wildcards):
     tmpMod5str = str(tmpMod5)
