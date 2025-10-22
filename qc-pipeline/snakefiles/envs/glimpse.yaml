@@ -1,0 +1,6 @@
+name: glimpse
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - glimpse-bio
