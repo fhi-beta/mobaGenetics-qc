@@ -216,7 +216,6 @@ rule mod7_phasing:
         bcf = rules.mod7_fill_ac.output.bcf,
         chunks_file = rules.mod7_chunks.output.chunks_file
     output:
-        phased_chunks_files=get_phased_chunks_files,
         phased_chunks_list=str(tmpMod7 / "mod7_phasing_phased_chunks_list.chr{chr}")
     params:
         map_chr=get_map_chr
