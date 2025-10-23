@@ -136,7 +136,7 @@ rule mod7_fill_ac:
     input:
         vcf = rules.mod7_remove_multiallelic_variants.output.vcf
     output:
-        bcf = str(tmpMod7 / "mod7_fill_ac.chr{chr}.bcf)
+        bcf = str(tmpMod7 / "mod7_fill_ac.chr{chr}.bcf")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -158,7 +158,7 @@ rule mod7_chunks:
     input:
         bcf = rules.mod7_fill_ac.output.bcf
     output:
-        chunks_file = str(tmpMod7 / "mod7_chunks.chr{chr})
+        chunks_file = str(tmpMod7 / "mod7_chunks.chr{chr}")
     params:
         map_chr=get_map_chr
     conda:
