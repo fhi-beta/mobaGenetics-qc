@@ -185,7 +185,7 @@ rule mod7_expected_relationships_shapeit:
     input:
         expected_relationships = config['expected_relationships']
     output:
-        shapeit_fam = str(tmpMod7 / "shapeit_fam"))
+        shapeit_fam = str(tmpMod7 / "shapeit_fam")
     shell:
         """
         awk 'NR>1 {print $1 "\t" $3 "\t" $2}' {input.expected_relationships} > {output.shapeit_fam}
