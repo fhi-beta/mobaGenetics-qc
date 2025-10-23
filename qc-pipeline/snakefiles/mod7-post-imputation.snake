@@ -188,7 +188,7 @@ rule mod7_expected_relationships_shapeit:
         shapeit_fam = str(tmpMod7 / "shapeit_fam")
     shell:
         """
-        awk 'NR>1 {{print $1 "\t" $3 "\t" $2}}' {input.expected_relationships} > {output.shapeit_fam}
+        zcat {input.expected_relationships} | awk 'NR>1 {{print $1 "\t" $3 "\t" $2}}' > {output.shapeit_fam}
         """
     
 
