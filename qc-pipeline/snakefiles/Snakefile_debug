@@ -121,7 +121,8 @@ rule all:
         #expand(str(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info"), batch = batches, chr = ['PAR1', 'PAR2'])
         # expand(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz", batch = batches, chr = chrs)
         # str(release_folder_2 / (release_base_name + "_common.pgen")),
-        release_folder_2/"snp"/(release_base_name + "_snp_r2.gz")
+        #release_folder_2/"snp"/(release_base_name + "_snp_r2.gz")
+        expand(str(tmpMod7 / "mod7_ligate.chr{chr}.bcf"), chr=["21", "22"])
         # tmpMod8_2/"clusters"
         # tmpMod8_2/"mod8_pca_only_moba.pcs",
         # tmpMod8_2/"mod8_pca_both.pcs"
