@@ -202,7 +202,7 @@ def get_chunks(chunk_file):
     return chunks
 
 def get_phased_chunks_files(wildcards):
-    chunks = get_chunks(str(tmpMod7 / "mod7_chunks.chr{wildcards.chr}))
+    chunks = get_chunks(str(tmpMod7 / f"mod7_chunks.chr{wildcards.chr}"))
     phased_chunks = []
     for i in range(len(chunks)):
         phased_chunk = str(tmpMod7 / f"mod7_phasing.chr{wildcards.chr}.chunk{i}.bcf")
