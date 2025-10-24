@@ -223,7 +223,7 @@ rule mod7_phasing:
         map_chr=get_map_chr
     conda:
         "envs/shapeit_5.yaml"
-    threads: 15 #30
+    threads: 15 #16
     run:
         # if not os.path.exists(shapeit_fam):
         #     create_shapeit_fam_file(config['expected_relationships'], shapeit_fam)
