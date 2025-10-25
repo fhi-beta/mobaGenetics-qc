@@ -1,4 +1,4 @@
-name: bcf_tabix
+name: plink2_tabix
 channels:
   - conda-forge
   - bioconda
