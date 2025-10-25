@@ -1629,7 +1629,7 @@ def filter_fam_table_for_shapeit(input_file_path, output_file_path):
     filtered_df.replace("0", 'NA', inplace=True)
     filtered_df.to_csv(output_file_path, header=False, sep="\t", index=False)
     
-def make_duplicates_table(psam_file, batches_file, ids_file, miss_file, output_file):
+def make_duplicates_table(psam_file, batches_file, ids_file, miss_file, output_duplicates, output_trios):
     """
     Make a table of duplicate samples.
     """
@@ -1646,13 +1646,21 @@ def make_duplicates_table(psam_file, batches_file, ids_file, miss_file, output_f
     psam = psam.merge(ids.rename(columns={'sentrix_id': 'iid', 'id': 'reg_id'}), left_on='iid', right_on='iid', how='left')
     psam['parents_in_batch'] = ((psam['iid_batch'] == psam['pat_batch']).astype(int) + (psam['iid_batch'] == psam['mat_batch']).astype(int))
     psam = psam.merge(miss[["iid", "call_rate"]], on="iid", how="left")
+    trios = psam[(psam['pat'] != "0") & (psam['pat'].notna()) & (psam['mat'] != "0") & (psam['mat'].notna())]
     duplicates = psam[psam['reg_id'].duplicated(keep=False)]
     duplicates = duplicates.dropna(subset=["reg_id"])
     duplicates = duplicates.sort_values(by='reg_id')
     columns_order = ['reg_id', 'iid', 'pat', 'mat', 'iid_batch', 'pat_batch', 'mat_batch', 'role', 'parents_in_batch', 'call_rate']
     duplicates = duplicates[columns_order]
-    duplicates.to_csv(output_file, index=False, sep="\t")
-    
+    duplicates.to_csv(output_duplicates, index=False, sep="\t")
+    trios.to_csv(output_trios, index=False, sep="\t")
+
+
+def make_trios_table(psam_file, batches_file, ids_file):
+    psam = pd.read_csv(psam_file, sep="\t")
+    psam = psam[["IID", "PAT", "MAT"]].rename(columns={'IID': 'iid', 'PAT': 'pat', 'MAT': 'mat'})
+    batches = pd.read_csv(batches_file, sep="\t")
+    ids = pd.read_csv(ids_file, sep="\t")
 #
 # def find_moba_pca_outlier(df):
 #     """NOT IN USE/WORKING!

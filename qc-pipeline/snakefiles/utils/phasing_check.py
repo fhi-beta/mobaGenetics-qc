@@ -1,80 +1,117 @@
-# preparing for phasing check (work in progress)
+# script for checking phasing and Mendelian errors for trios
 
+import argparse
 import pysam
 from datetime import datetime
 
+def main(args):
+    trios_file = args.trios
+    bcf_file = args.bcf
+    output = args.output
+    trios = []
+    with open(trios_file) as f:
+        next(f)
+        for line in f:
+            child, father, mother, iid_batch, pat_batch, mat_batch, reg_id, role, parents_in_batch, call_rate = line.strip().split()
+            if child != "NA" and father != "NA" and mother != "NA":
+                trios.append({'child':child, 'father': father, 'mother': mother, "reg_id": reg_id, "parents_in_batch":parents_in_batch, "call_rate": call_rate, "e_phasing":0, "n_phasing":0, "e_phasing_hom":0, "n_phasing_hom":0, "e_child_missing":0, "e_father_missing":0, "e_mother_missing":0, "n_missing":0, "e_mendel":0, "n_mendel":0})
 
-chr = "22"
-best_snps = "/mnt/archive3/phasing_test/best_snps"
-expected_relationships_file = "/mnt/archive3/phasing_test/shapeit_fam"
-bcf_file = "/mnt/archive3/phasing_test/chr22.ac.bcf"
-children = []
-family_relations = {}
-n = 500
-
-variant_positions = []
-with open(best_snps, 'r') as f:
-    for line in f:
-        chrom, pos, id = line.strip().split('\t')
-        pos = int(pos)
-        if chrom == chr:
-            variant_positions.append((chrom, pos, id))
-
-with open(expected_relationships_file) as f:
-    for line in f:
-        child, father, mother = line.strip().split()
-        if child != "NA" and father != "NA" and mother != "NA":
-            children.append(child)
-            family_relations[child] = {'father': father, 'mother': mother}
-
-children_data = {}
-for child in children:
-    children_data[child] = {"e":0, "n":0}
-
-vcf_in = pysam.VariantFile(bcf_file)
-
-def prune_list(original_list, n):
-    """
-    Prunes the original list to a size of n by removing elements equally spaced apart.
-    """
-    if n > len(original_list):
-        return original_list
-    step = len(original_list) / n
-    pruned_list = [original_list[int(i * step)] for i in range(n)]
-    return pruned_list
-
-variant_positions_pruned = prune_list(variant_positions, n)
-
-
-
-for variant in variant_positions_pruned:
-    chrom = variant[0]
-    pos = variant[1]
-    id = variant[2]
+    vcf_in = pysam.VariantFile(bcf_file)
+    counter = 0
     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-    for record in vcf_in.fetch(chrom, pos - 1, pos):
-        for child_id in children:
+    print(current_time)
+    for record in vcf_in:
+        if counter % 100 == 0:
+            id = record.id
+            chrom = record.chrom
+            pos = record.pos
+            current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+            print(f"Time: {current_time} Count: {counter} Chrom: {chrom}, Pos: {pos}, ID: {id}")
+        counter+=1
+        for f in trios:
+            f['n_missing']+=1
+            child_id = f['child']
             child_genotype = record.samples.get(child_id, {}).get('GT')
-            if (child_genotype in [(0, 1), (1, 0)]):
-                father_id = family_relations[child_id]['father']
-                father_genotype = record.samples.get(father_id, {}).get('GT')
-                if father_genotype in [(0, 0), (1, 1)]:
-                    mother_id = family_relations[child_id]['mother']          
-                    mother_genotype = record.samples.get(mother_id, {}).get('GT')
-                    if mother_genotype in [(0, 0), (1, 1)]:
-                        if father_genotype != mother_genotype:
-                            children_data[child_id]['n'] += 1
+            father_id = f['father']
+            father_genotype = record.samples.get(father_id, {}).get('GT')
+            mother_id = f['mother']          
+            mother_genotype = record.samples.get(mother_id, {}).get('GT')
+            proceed = True
+            if (child_genotype is None or child_genotype[0] is None or child_genotype[1] is None):
+                f['e_child_missing']+=1
+                proceed = False
+            if (father_genotype is None or father_genotype[0] is None or father_genotype[1] is None):
+                f['e_father_missing']+=1
+                proceed = False
+            if mother_genotype is None or mother_genotype[0] is None or mother_genotype[1] is None:
+                f['e_mother_missing']+=1
+                proceed = False
+            if proceed:
+                f['n_mendel']+=1  
+                if not ((child_genotype[0] in father_genotype and child_genotype[1] in mother_genotype) or (child_genotype[1] in father_genotype and child_genotype[0] in mother_genotype)):
+                    f['e_mendel']+=1
+                else:
+                    if child_genotype in [(0, 1), (1, 0)]:
+                        if (father_genotype in [(0, 0), (1, 1)] or mother_genotype in [(0, 0), (1, 1)]):
+                            f['n_phasing'] += 1
+                            if (child_genotype[0] == 0 and father_genotype == (1,1)) or (child_genotype[0] == 1 and father_genotype == (0,0)) or (child_genotype[1] == 0 and mother_genotype == (1,1)) or (child_genotype[1] == 1 and mother_genotype == (0,0) ):
+                                f['e_phasing'] += 1
+                        if (father_genotype in [(0, 0), (1, 1)] and mother_genotype in [(0, 0), (1, 1)] and mother_genotype != father_genotype):
+                            f['n_phasing_hom'] += 1
                             if (child_genotype[0] == 0 and father_genotype != (0,0)) or (child_genotype[0] == 1 and father_genotype != (1,1)):
-                                children_data[child_id]['e'] += 1
+                                f['e_phasing_hom'] += 1
 
-output_file_path = "/mnt/archive3/phasing_test/phasing_check_test2" 
-with open(output_file_path, 'w') as output_file:
-    for child in children:
-        n = children_data[child]['n']
-        e = children_data[child]['e']
-        if n > 0:
-            r = e/n
-        else:
-            r = "NA"
-        output_line = f"{child}\t{e}\n{n}\tr"
-                    
+    with open(output, 'w') as output_file:
+        output_line = "iid\tpat\tmat\treg_id\tparents_in_batch\te_phasing\tn_phasing\tr_phasing\te_phasing_hom\tn_phasing_hom\tr_phasing_hom\te_mendel\tn_mendel\tr_mendel\te_child_missing\te_father_missing\te_mother_missing\tn_missing\tr_child_missing\tr_father_missing\tr_mother_missing\n"
+        output_file.write(output_line)
+        for f in trios:
+            child = f['child']
+            father = f['father']
+            mother = f['mother']
+            reg_id = f['reg_id']
+            parents_in_batch = f['parents_in_batch']
+            call_rate = f['call_rate']
+            e_phasing = f['e_phasing']
+            n_phasing = f['n_phasing']
+            e_phasing_hom = f['e_phasing_hom']
+            n_phasing_hom = f['n_phasing_hom']
+            e_child_missing = f['e_child_missing']
+            e_father_missing = f['e_father_missing']
+            e_mother_missing = f['e_mother_missing']
+            n_missing = f['n_missing']
+            e_mendel = f['e_mendel']
+            n_mendel = f['n_mendel']
+            if n_phasing > 0:
+                r_phasing = e_phasing/n_phasing
+            else:
+                r_phasing = "NA"
+            if n_phasing_hom > 0:
+                r_phasing_hom = e_phasing_hom/n_phasing_hom
+            else:
+                r_phasing_hom = "NA"
+            if n_mendel > 0:
+                r_mendel = e_mendel/n_mendel
+            else:
+                r_mendel = "NA"
+            if n_missing > 0:
+                r_child_missing = e_child_missing/n_missing
+                r_father_missing = e_father_missing/n_missing
+                r_mother_missing = e_mother_missing/n_missing
+            else:
+                r_child_missing = "NA"
+                r_father_missing = "NA"
+                r_mother_missing = "NA"
+            output_line = f"{child}\t{father}\t{mother}\t{reg_id}\t{parents_in_batch}\t{e_phasing}\t{n_phasing}\t{r_phasing}\t{e_phasing_hom}\t{n_phasing_hom}\t{r_phasing_hom}\t{e_mendel}\t{n_mendel}\t{r_mendel}\t{e_child_missing}\t{e_father_missing}\t{e_mother_missing}\t{n_missing}\t{r_child_missing}\t{r_father_missing}\t{r_mother_missing}\n"
+            output_file.write(output_line)
+
+    current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+    print(current_time)
+    
+
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description='Phasing check')
+    parser.add_argument('--trios', type=str, required=True, help='Path to trios file')
+    parser.add_argument('--bcf', type=str, required=True, help='Path to BCF file')
+    parser.add_argument('--output', type=str, required=True, help='Output file path')
+    args = parser.parse_args()
+    main(args)

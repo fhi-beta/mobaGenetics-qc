@@ -1,0 +1,7 @@
+name: bcf_tabix
+channels:
+  - conda-forge
+  - bioconda
+dependencies:
+  - plink2
+  - tabix
