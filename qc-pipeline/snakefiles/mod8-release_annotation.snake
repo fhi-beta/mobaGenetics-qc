@@ -620,7 +620,7 @@ rule mod8_make_best_snp_bcf:
         out_trunk = mqc.plinkBase(output.bcf)
         cmd = f"plink2 --pfile {in_trunk} --chr {wildcards.phasing_chr} --export bcf id-paste=iid vcf-dosage=HDS-force --out {out_trunk}"
         shell(cmd)
-        cmd = f'tabix {bcf_trunk}.bcf'
+        cmd = f'tabix {out_trunk}.bcf'
         shell(cmd)
 
 
