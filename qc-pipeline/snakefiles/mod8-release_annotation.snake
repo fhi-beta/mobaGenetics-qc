@@ -589,22 +589,40 @@ rule mod8_make_duplicates_table:
 
 # prepare files for phasing report
 
+# rule mod8_make_best_snp_bcf:
+#     input:
+#         pgenset = multiext("/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_exclude_conflictual_relationships_best_snps", ".pgen", ".pvar", ".psam") # hook into pipeline later
+#     output:
+#         bcf_files = expand(str(tmpMod8/"best.chr{chr}.bcf"), chr =[str(i) for i in range(1,23)])
+#     conda:
+#         "envs/plink2_tabix.yaml"
+#     threads: 24
+#     run:
+#         in_trunk = mqc.plinkBase(input.pgenset[0])
+#         for chr in range(1,23):
+#             bcf_trunk = str(tmpMod8 / "best.chr{chr}")
+#             cmd = f"plink2 --pfile {in_trunk} --chr {chr} --export bcf id-paste=iid vcf-dosage=HDS-force --threads {threads} --out {bcf_trunk}"
+#             shell(cmd)
+#             cmd = f'tabix {bcf_trunk}.bcf'
+#             shell(cmd)
+
+
+
 rule mod8_make_best_snp_bcf:
     input:
         pgenset = multiext("/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_exclude_conflictual_relationships_best_snps", ".pgen", ".pvar", ".psam") # hook into pipeline later
     output:
-        bcf_files = expand(str(tmpMod8/"best.chr{chr}.bcf"), chr =[str(i) for i in range(1,23)])
+        bcf = str(tmpMod8_2/"mod8_make_best_snps_bcf.chr{phasing_chr}.bcf")
     conda:
         "envs/plink2_tabix.yaml"
-    threads: 24
     run:
         in_trunk = mqc.plinkBase(input.pgenset[0])
-        for chr in range(1,23):
-            bcf_trunk = str(tmpMod8 / "best.chr{chr}")
-            cmd = f"plink2 --pfile {in_trunk} --chr {chr} --export bcf id-paste=iid vcf-dosage=HDS-force --threads {threads} --out {bcf_trunk}"
-            shell(cmd)
-            cmd = f'tabix {bcf_trunk}.bcf'
-            shell(cmd)
+        out_trunk = mqc.plinkBase(output.bcf)
+        cmd = f"plink2 --pfile {in_trunk} --chr {wildcards.phasing_chr} --export bcf id-paste=iid vcf-dosage=HDS-force --out {out_trunk}"
+        shell(cmd)
+        cmd = f'tabix {bcf_trunk}.bcf'
+        shell(cmd)
+
 
 
 
