@@ -608,7 +608,7 @@ rule mod8_make_duplicates_table:
 
 
 
-rule mod8_make_best_snp_bcf:
+rule mod8_make_best_snps_bcf:
     input:
         pgenset = multiext("/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_exclude_conflictual_relationships_best_snps", ".pgen", ".pvar", ".psam") # hook into pipeline later
     output:
