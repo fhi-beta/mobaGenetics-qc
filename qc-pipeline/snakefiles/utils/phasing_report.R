@@ -34,7 +34,7 @@ write(
 
 
 rates <- list(
-  c("phasing_hom", "error rates"),
+  c("phasing_hom", "Phasing error rates"),
   c("mendel", "Mendelian error rates")
 )
 
