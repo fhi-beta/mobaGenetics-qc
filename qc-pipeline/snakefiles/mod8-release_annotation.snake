@@ -623,7 +623,20 @@ rule mod8_make_best_snp_bcf:
         cmd = f'tabix {out_trunk}.bcf'
         shell(cmd)
 
-
+rule mod8_make_phasing_tables:
+    input:
+        bcf = rules.mod8_make_best_snps_bcf.output.bcf,
+        trios = "/mnt/archive3/phasing_test/trios"
+    output:
+        phasing_table = str(tmpMod8_2 / "mod8_make_phasing_tables.best.chr{phasing_chr}")
+    params:
+        phasing_script = "utils/phasing_check.py"
+    conda:
+        "envs/pysam.yaml"
+    shell:
+        """
+        python {params.phasing_script} --bcf {input.bcf} --trios {input.trios} --output {output.phasing_table}
+        """
 
 
 
