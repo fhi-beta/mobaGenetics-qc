@@ -94,6 +94,29 @@ for (rate in rates){
             append = T
         )
         write(
+            x = paste0("#### Combined error rates\n - Trios = Number of trios\n - Sites = Total number of sites where error can occur (summed over all trios)\n - Errors = Total number of errors"),
+            file = md_file,
+            append = T
+        )
+        
+        write(
+            x = "| Parents in batch | Trios | Sites | Errors | Error rate |\n|:----|:----|:----|:----|:----|",
+            file = md_file,
+            append = T
+        )
+        for (p in 0:2){
+            tab_p <- subset(tab, parents_in_batch == p)
+            trios <- nrow(tab_p)
+            sites <- sum(tab_p[[paste0("n_",rate[1])]])
+            errors <- sum(tab_p[[paste0("e_",rate[1])]])
+            write_combined_rates_table_row(p, trios, sites, errors)
+        }
+        write(
+            x = "\n",
+            file = md_file,
+            append = T
+        )
+        write(
             x = paste0("#### Individual error rates"),
             file = md_file,
             append = T
@@ -112,30 +135,7 @@ for (rate in rates){
             file = md_file,
             append = T
         )
-        write(
-            x = paste0("#### Combined error rates\n - Trios = Number of trios\n - Sites = Total number of sites where error can occur (summed over all trios)\n - Errors = Total number of errors"),
-            file = md_file,
-            append = T
-        )
         
-
-        write(
-            x = "| Parents in batch | Trios | Sites | Errors | Error rate |\n|:----|:----|:----|:----|:----|",
-            file = md_file,
-            append = T
-        )
-        for (p in 0:2){
-            tab_p <- subset(tab, parents_in_batch == p)
-            trios <- nrow(tab_p)
-            sites <- sum(tab_p[[paste0("n_",rate[1])]])
-            errors <- sum(tab_p[[paste0("e_",rate[1])]])
-            write_combined_rates_table_row(p, trios, sites, errors)
-        }
-        write(
-            x = "\n",
-            file = md_file,
-            append = T
-        )
         write(
             x = paste0("#### Histogram of individual error rates"),
             file = md_file,
