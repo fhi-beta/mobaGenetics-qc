@@ -612,7 +612,7 @@ rule mod8_make_bcf:
     input:
         pgenset = multiext("/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_exclude_conflictual_relationships", ".pgen", ".pvar", ".psam") # hook into pipeline later
     output:
-        bcf = str(tmpMod8_2/"mod8_make_common_snps_bcf.chr{phasing_chr}.bcf")
+        bcf = str(tmpMod8_2/"mod8_make_bcf.common.chr{phasing_chr}.bcf")
     conda:
         "envs/plink2_tabix.yaml"
     run:
