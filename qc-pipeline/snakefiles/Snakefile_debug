@@ -116,7 +116,7 @@ rule all:
         #expand(tmpMod7 / "{batch}" / "mod7_format.chr{chr}.vcf.gz.tbi", batch = ['snp007'], chr = ['X'])
         #str(tmpMod7 / "mod7_convert_chrs_to_pgen.chrX.pgen")
         #tmpMod8/"mod8_batch_table_batch",
-        expand(str(tmpMod8_2/"mod8_make_common_snps_bcf.chr{chr}.bcf"), chr =[str(i) for i in range(1,23)])
+        expand(str(tmpMod8_2/"mod8_make_bcf.common.chr{chr}.bcf"), chr =[str(i) for i in range(1,23)])
         #expand(str(tmpMod8_2 / "mod8_make_phasing_tables.best.chr{chr}"), chr = [str(i) for i in range(1,23)])
         #tmpMod8/"mod8_pedigree_ibd_estimate.kin0"
         #tmpMod7 / "mod7_sort_X.pgen"
