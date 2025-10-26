@@ -1,7 +1,7 @@
 # Phasing report for best SNPs 2025.09.25
 ## Phasing error rates per chromosome and number of parents in same batch as child
 ### Phasing error rates, chromosome 1
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -13,7 +13,7 @@
 | 2 | 26935 | 12606684 | 8 | 6.3e-07 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 1 | 0.5 | 0.49 |
@@ -21,12 +21,12 @@
 | 2 | 0 | 0.0029 | 0 | 6.5e-07 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/phasing_error_rates_chr1_0parents.png)
 ![](phasing_plots/phasing_error_rates_chr1_1parents.png)
 ![](phasing_plots/phasing_error_rates_chr1_2parents.png)
 ### Phasing error rates, chromosome 2
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -38,7 +38,7 @@
 | 2 | 26935 | 13194801 | 8 | 6.1e-07 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 1 | 0.49 | 0.49 |
@@ -46,12 +46,12 @@
 | 2 | 0 | 0.0087 | 0 | 9.1e-07 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/phasing_error_rates_chr2_0parents.png)
 ![](phasing_plots/phasing_error_rates_chr2_1parents.png)
 ![](phasing_plots/phasing_error_rates_chr2_2parents.png)
 ### Phasing error rates, chromosome 3
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -63,7 +63,7 @@
 | 2 | 26935 | 11544220 | 8 | 6.9e-07 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 1 | 0.49 | 0.49 |
@@ -71,12 +71,12 @@
 | 2 | 0 | 0.0029 | 0 | 7.2e-07 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/phasing_error_rates_chr3_0parents.png)
 ![](phasing_plots/phasing_error_rates_chr3_1parents.png)
 ![](phasing_plots/phasing_error_rates_chr3_2parents.png)
 ### Phasing error rates, chromosome 4
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -88,7 +88,7 @@
 | 2 | 26935 | 11417841 | 6 | 5.3e-07 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 1 | 0.49 | 0.49 |
@@ -96,12 +96,12 @@
 | 2 | 0 | 0.0093 | 0 | 7.7e-07 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/phasing_error_rates_chr4_0parents.png)
 ![](phasing_plots/phasing_error_rates_chr4_1parents.png)
 ![](phasing_plots/phasing_error_rates_chr4_2parents.png)
 ### Phasing error rates, chromosome 5
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -113,7 +113,7 @@
 | 2 | 26935 | 10580959 | 6 | 5.7e-07 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 1 | 0.5 | 0.49 |
@@ -121,12 +121,12 @@
 | 2 | 0 | 0.0027 | 0 | 5.4e-07 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/phasing_error_rates_chr5_0parents.png)
 ![](phasing_plots/phasing_error_rates_chr5_1parents.png)
 ![](phasing_plots/phasing_error_rates_chr5_2parents.png)
 ### Phasing error rates, chromosome 6
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -138,7 +138,7 @@
 | 2 | 26935 | 10113533 | 6 | 5.9e-07 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 1 | 0.49 | 0.49 |
@@ -146,12 +146,12 @@
 | 2 | 0 | 0.0029 | 0 | 5.9e-07 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/phasing_error_rates_chr6_0parents.png)
 ![](phasing_plots/phasing_error_rates_chr6_1parents.png)
 ![](phasing_plots/phasing_error_rates_chr6_2parents.png)
 ### Phasing error rates, chromosome 7
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -163,7 +163,7 @@
 | 2 | 26935 | 9293082 | 6 | 6.5e-07 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 1 | 0.49 | 0.49 |
@@ -171,12 +171,12 @@
 | 2 | 0 | 0.0031 | 0 | 6.2e-07 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/phasing_error_rates_chr7_0parents.png)
 ![](phasing_plots/phasing_error_rates_chr7_1parents.png)
 ![](phasing_plots/phasing_error_rates_chr7_2parents.png)
 ### Phasing error rates, chromosome 8
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -188,7 +188,7 @@
 | 2 | 26935 | 8215894 | 6 | 7.3e-07 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 1 | 0.49 | 0.49 |
@@ -196,12 +196,12 @@
 | 2 | 0 | 0.02 | 0 | 1.4e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/phasing_error_rates_chr8_0parents.png)
 ![](phasing_plots/phasing_error_rates_chr8_1parents.png)
 ![](phasing_plots/phasing_error_rates_chr8_2parents.png)
 ### Phasing error rates, chromosome 9
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -213,7 +213,7 @@
 | 2 | 26935 | 3305878 | 2 | 6e-07 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 1 | 0.5 | 0.49 |
@@ -221,12 +221,12 @@
 | 2 | 0 | 0.0093 | 0 | 6e-07 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/phasing_error_rates_chr9_0parents.png)
 ![](phasing_plots/phasing_error_rates_chr9_1parents.png)
 ![](phasing_plots/phasing_error_rates_chr9_2parents.png)
 ### Phasing error rates, chromosome 10
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -238,7 +238,7 @@
 | 2 | 26935 | 8589492 | 6 | 7e-07 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 1 | 0.5 | 0.49 |
@@ -246,12 +246,12 @@
 | 2 | 0 | 0.0064 | 0 | 7.2e-07 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/phasing_error_rates_chr10_0parents.png)
 ![](phasing_plots/phasing_error_rates_chr10_1parents.png)
 ![](phasing_plots/phasing_error_rates_chr10_2parents.png)
 ### Phasing error rates, chromosome 11
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -263,7 +263,7 @@
 | 2 | 26935 | 8464711 | 3 | 3.5e-07 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 1 | 0.49 | 0.49 |
@@ -271,12 +271,12 @@
 | 2 | 0 | 0.004 | 0 | 3.3e-07 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/phasing_error_rates_chr11_0parents.png)
 ![](phasing_plots/phasing_error_rates_chr11_1parents.png)
 ![](phasing_plots/phasing_error_rates_chr11_2parents.png)
 ### Phasing error rates, chromosome 12
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -288,7 +288,7 @@
 | 2 | 26935 | 8153440 | 1 | 1.2e-07 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 1 | 0.49 | 0.49 |
@@ -296,12 +296,12 @@
 | 2 | 0 | 0.0038 | 0 | 1.4e-07 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/phasing_error_rates_chr12_0parents.png)
 ![](phasing_plots/phasing_error_rates_chr12_1parents.png)
 ![](phasing_plots/phasing_error_rates_chr12_2parents.png)
 ### Phasing error rates, chromosome 13
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -313,7 +313,7 @@
 | 2 | 26935 | 6401557 | 3 | 4.7e-07 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 1 | 0.49 | 0.49 |
@@ -321,12 +321,12 @@
 | 2 | 0 | 0.083 | 0 | 3.3e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/phasing_error_rates_chr13_0parents.png)
 ![](phasing_plots/phasing_error_rates_chr13_1parents.png)
 ![](phasing_plots/phasing_error_rates_chr13_2parents.png)
 ### Phasing error rates, chromosome 14
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -338,7 +338,7 @@
 | 2 | 26935 | 5725210 | 5 | 8.7e-07 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 1 | 0.5 | 0.49 |
@@ -346,12 +346,12 @@
 | 2 | 0 | 0.0054 | 0 | 8.8e-07 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/phasing_error_rates_chr14_0parents.png)
 ![](phasing_plots/phasing_error_rates_chr14_1parents.png)
 ![](phasing_plots/phasing_error_rates_chr14_2parents.png)
 ### Phasing error rates, chromosome 15
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -363,7 +363,7 @@
 | 2 | 26935 | 4979684 | 5 | 1e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 1 | 0.49 | 0.49 |
@@ -371,12 +371,12 @@
 | 2 | 0 | 0.0064 | 0 | 1.1e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/phasing_error_rates_chr15_0parents.png)
 ![](phasing_plots/phasing_error_rates_chr15_1parents.png)
 ![](phasing_plots/phasing_error_rates_chr15_2parents.png)
 ### Phasing error rates, chromosome 16
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -388,7 +388,7 @@
 | 2 | 26935 | 5349400 | 11 | 2.1e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 1 | 0.5 | 0.49 |
@@ -396,12 +396,12 @@
 | 2 | 0 | 0.022 | 0 | 3.1e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/phasing_error_rates_chr16_0parents.png)
 ![](phasing_plots/phasing_error_rates_chr16_1parents.png)
 ![](phasing_plots/phasing_error_rates_chr16_2parents.png)
 ### Phasing error rates, chromosome 17
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -413,7 +413,7 @@
 | 2 | 26935 | 4538665 | 7 | 1.5e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 1 | 0.49 | 0.49 |
@@ -421,12 +421,12 @@
 | 2 | 0 | 0.013 | 0 | 1.6e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/phasing_error_rates_chr17_0parents.png)
 ![](phasing_plots/phasing_error_rates_chr17_1parents.png)
 ![](phasing_plots/phasing_error_rates_chr17_2parents.png)
 ### Phasing error rates, chromosome 18
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -438,7 +438,7 @@
 | 2 | 26935 | 5046796 | 6 | 1.2e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 1 | 0.49 | 0.49 |
@@ -446,12 +446,12 @@
 | 2 | 0 | 0.0065 | 0 | 1.3e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/phasing_error_rates_chr18_0parents.png)
 ![](phasing_plots/phasing_error_rates_chr18_1parents.png)
 ![](phasing_plots/phasing_error_rates_chr18_2parents.png)
 ### Phasing error rates, chromosome 19
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -463,7 +463,7 @@
 | 2 | 26935 | 3678613 | 3 | 8.2e-07 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 1 | 0.49 | 0.49 |
@@ -471,12 +471,12 @@
 | 2 | 0 | 0.0078 | 0 | 8e-07 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/phasing_error_rates_chr19_0parents.png)
 ![](phasing_plots/phasing_error_rates_chr19_1parents.png)
 ![](phasing_plots/phasing_error_rates_chr19_2parents.png)
 ### Phasing error rates, chromosome 20
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -488,7 +488,7 @@
 | 2 | 26935 | 3970466 | 2 | 5e-07 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 1 | 0.49 | 0.49 |
@@ -496,12 +496,12 @@
 | 2 | 0 | 0.0078 | 0 | 5e-07 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/phasing_error_rates_chr20_0parents.png)
 ![](phasing_plots/phasing_error_rates_chr20_1parents.png)
 ![](phasing_plots/phasing_error_rates_chr20_2parents.png)
 ### Phasing error rates, chromosome 21
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -513,7 +513,7 @@
 | 2 | 26935 | 2413258 | 0 | 0 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 1 | 0.48 | 0.49 |
@@ -521,12 +521,12 @@
 | 2 | 0 | 0 | 0 | 0 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/phasing_error_rates_chr21_0parents.png)
 ![](phasing_plots/phasing_error_rates_chr21_1parents.png)
 ![](phasing_plots/phasing_error_rates_chr21_2parents.png)
 ### Phasing error rates, chromosome 22
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -538,7 +538,7 @@
 | 2 | 26935 | 2454593 | 2 | 8.1e-07 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 1 | 0.48 | 0.49 |
@@ -546,13 +546,13 @@
 | 2 | 0 | 0.011 | 0 | 7.8e-07 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/phasing_error_rates_chr22_0parents.png)
 ![](phasing_plots/phasing_error_rates_chr22_1parents.png)
 ![](phasing_plots/phasing_error_rates_chr22_2parents.png)
 ## Mendelian error rates per chromosome and number of parents in same batch as child
 ### Mendelian error rates, chromosome 1
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -564,7 +564,7 @@
 | 2 | 26935 | 1381482092 | 9251 | 6.7e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 0.028 | 0.00014 | 2e-04 |
@@ -572,12 +572,12 @@
 | 2 | 0 | 0.00057 | 0 | 6.7e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/mendelian_error_rates_chr1_0parents.png)
 ![](phasing_plots/mendelian_error_rates_chr1_1parents.png)
 ![](phasing_plots/mendelian_error_rates_chr1_2parents.png)
 ### Mendelian error rates, chromosome 2
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -589,7 +589,7 @@
 | 2 | 26935 | 1568236607 | 11474 | 7.3e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 0.027 | 1e-04 | 0.00018 |
@@ -597,12 +597,12 @@
 | 2 | 0 | 0.011 | 0 | 7.3e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/mendelian_error_rates_chr2_0parents.png)
 ![](phasing_plots/mendelian_error_rates_chr2_1parents.png)
 ![](phasing_plots/mendelian_error_rates_chr2_2parents.png)
 ### Mendelian error rates, chromosome 3
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -614,7 +614,7 @@
 | 2 | 26935 | 1327788755 | 9157 | 6.9e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 0.027 | 1e-04 | 0.00018 |
@@ -622,12 +622,12 @@
 | 2 | 0 | 0.00064 | 0 | 6.9e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/mendelian_error_rates_chr3_0parents.png)
 ![](phasing_plots/mendelian_error_rates_chr3_1parents.png)
 ![](phasing_plots/mendelian_error_rates_chr3_2parents.png)
 ### Mendelian error rates, chromosome 4
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -639,7 +639,7 @@
 | 2 | 26935 | 1307307131 | 10629 | 8.1e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 0.026 | 1e-04 | 0.00018 |
@@ -647,12 +647,12 @@
 | 2 | 0 | 0.011 | 0 | 8.2e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/mendelian_error_rates_chr4_0parents.png)
 ![](phasing_plots/mendelian_error_rates_chr4_1parents.png)
 ![](phasing_plots/mendelian_error_rates_chr4_2parents.png)
 ### Mendelian error rates, chromosome 5
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -664,7 +664,7 @@
 | 2 | 26935 | 1196516391 | 8590 | 7.2e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 0.028 | 0.00011 | 0.00018 |
@@ -672,12 +672,12 @@
 | 2 | 0 | 0.0034 | 0 | 7.2e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/mendelian_error_rates_chr5_0parents.png)
 ![](phasing_plots/mendelian_error_rates_chr5_1parents.png)
 ![](phasing_plots/mendelian_error_rates_chr5_2parents.png)
 ### Mendelian error rates, chromosome 6
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -689,7 +689,7 @@
 | 2 | 26935 | 1140771882 | 7785 | 6.8e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 0.028 | 9.4e-05 | 0.00016 |
@@ -697,12 +697,12 @@
 | 2 | 0 | 0.00045 | 0 | 6.8e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/mendelian_error_rates_chr6_0parents.png)
 ![](phasing_plots/mendelian_error_rates_chr6_1parents.png)
 ![](phasing_plots/mendelian_error_rates_chr6_2parents.png)
 ### Mendelian error rates, chromosome 7
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -714,7 +714,7 @@
 | 2 | 26935 | 1028602409 | 7380 | 7.2e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 0.029 | 0.00011 | 0.00019 |
@@ -722,12 +722,12 @@
 | 2 | 0 | 0.00058 | 0 | 7.2e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/mendelian_error_rates_chr7_0parents.png)
 ![](phasing_plots/mendelian_error_rates_chr7_1parents.png)
 ![](phasing_plots/mendelian_error_rates_chr7_2parents.png)
 ### Mendelian error rates, chromosome 8
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -739,7 +739,7 @@
 | 2 | 26935 | 956817077 | 6923 | 7.2e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 0.028 | 0.00011 | 0.00019 |
@@ -747,12 +747,12 @@
 | 2 | 0 | 0.0098 | 0 | 7.3e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/mendelian_error_rates_chr8_0parents.png)
 ![](phasing_plots/mendelian_error_rates_chr8_1parents.png)
 ![](phasing_plots/mendelian_error_rates_chr8_2parents.png)
 ### Mendelian error rates, chromosome 9
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -764,7 +764,7 @@
 | 2 | 26935 | 199674978 | 2237 | 1.1e-05 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 0.046 | 0.00041 | 0.00063 |
@@ -772,12 +772,12 @@
 | 2 | 0 | 0.0087 | 0 | 1.1e-05 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/mendelian_error_rates_chr9_0parents.png)
 ![](phasing_plots/mendelian_error_rates_chr9_1parents.png)
 ![](phasing_plots/mendelian_error_rates_chr9_2parents.png)
 ### Mendelian error rates, chromosome 10
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -789,7 +789,7 @@
 | 2 | 26935 | 910523656 | 6834 | 7.5e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 0.029 | 0.00012 | 0.00019 |
@@ -797,12 +797,12 @@
 | 2 | 0 | 0.01 | 0 | 7.5e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/mendelian_error_rates_chr10_0parents.png)
 ![](phasing_plots/mendelian_error_rates_chr10_1parents.png)
 ![](phasing_plots/mendelian_error_rates_chr10_2parents.png)
 ### Mendelian error rates, chromosome 11
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -814,7 +814,7 @@
 | 2 | 26935 | 1001000112 | 7032 | 7e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 0.026 | 0.00011 | 0.00018 |
@@ -822,12 +822,12 @@
 | 2 | 0 | 0.00084 | 0 | 7e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/mendelian_error_rates_chr11_0parents.png)
 ![](phasing_plots/mendelian_error_rates_chr11_1parents.png)
 ![](phasing_plots/mendelian_error_rates_chr11_2parents.png)
 ### Mendelian error rates, chromosome 12
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -839,7 +839,7 @@
 | 2 | 26935 | 864152324 | 6371 | 7.4e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 0.029 | 0.00012 | 0.00019 |
@@ -847,12 +847,12 @@
 | 2 | 0 | 0.00069 | 0 | 7.4e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/mendelian_error_rates_chr12_0parents.png)
 ![](phasing_plots/mendelian_error_rates_chr12_1parents.png)
 ![](phasing_plots/mendelian_error_rates_chr12_2parents.png)
 ### Mendelian error rates, chromosome 13
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -864,7 +864,7 @@
 | 2 | 26935 | 704855342 | 5646 | 8e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 0.028 | 0.00011 | 0.00018 |
@@ -872,12 +872,12 @@
 | 2 | 0 | 0.0056 | 0 | 8e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/mendelian_error_rates_chr13_0parents.png)
 ![](phasing_plots/mendelian_error_rates_chr13_1parents.png)
 ![](phasing_plots/mendelian_error_rates_chr13_2parents.png)
 ### Mendelian error rates, chromosome 14
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -889,7 +889,7 @@
 | 2 | 26935 | 588718145 | 4270 | 7.3e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 0.031 | 9.2e-05 | 0.00018 |
@@ -897,12 +897,12 @@
 | 2 | 0 | 0.0094 | 0 | 7.3e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/mendelian_error_rates_chr14_0parents.png)
 ![](phasing_plots/mendelian_error_rates_chr14_1parents.png)
 ![](phasing_plots/mendelian_error_rates_chr14_2parents.png)
 ### Mendelian error rates, chromosome 15
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -914,7 +914,7 @@
 | 2 | 26935 | 501323301 | 4116 | 8.2e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 0.028 | 0.00011 | 0.00022 |
@@ -922,12 +922,12 @@
 | 2 | 0 | 0.00076 | 0 | 8.2e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/mendelian_error_rates_chr15_0parents.png)
 ![](phasing_plots/mendelian_error_rates_chr15_1parents.png)
 ![](phasing_plots/mendelian_error_rates_chr15_2parents.png)
 ### Mendelian error rates, chromosome 16
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -939,7 +939,7 @@
 | 2 | 26935 | 533412751 | 4938 | 9.3e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 0.028 | 0.00015 | 0.00023 |
@@ -947,12 +947,12 @@
 | 2 | 0 | 0.0074 | 0 | 9.3e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/mendelian_error_rates_chr16_0parents.png)
 ![](phasing_plots/mendelian_error_rates_chr16_1parents.png)
 ![](phasing_plots/mendelian_error_rates_chr16_2parents.png)
 ### Mendelian error rates, chromosome 17
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -964,7 +964,7 @@
 | 2 | 26935 | 391631201 | 3521 | 9e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 0.035 | 0.00014 | 0.00026 |
@@ -972,12 +972,12 @@
 | 2 | 0 | 0.00062 | 0 | 9e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/mendelian_error_rates_chr17_0parents.png)
 ![](phasing_plots/mendelian_error_rates_chr17_1parents.png)
 ![](phasing_plots/mendelian_error_rates_chr17_2parents.png)
 ### Mendelian error rates, chromosome 18
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -989,7 +989,7 @@
 | 2 | 26935 | 490914271 | 4240 | 8.6e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 0.027 | 0.00011 | 0.00021 |
@@ -997,12 +997,12 @@
 | 2 | 0 | 0.0089 | 0 | 8.7e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/mendelian_error_rates_chr18_0parents.png)
 ![](phasing_plots/mendelian_error_rates_chr18_1parents.png)
 ![](phasing_plots/mendelian_error_rates_chr18_2parents.png)
 ### Mendelian error rates, chromosome 19
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -1014,7 +1014,7 @@
 | 2 | 26935 | 283162389 | 2709 | 9.6e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 0.038 | 0.00019 | 0.00029 |
@@ -1022,12 +1022,12 @@
 | 2 | 0 | 0.00076 | 0 | 9.6e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/mendelian_error_rates_chr19_0parents.png)
 ![](phasing_plots/mendelian_error_rates_chr19_1parents.png)
 ![](phasing_plots/mendelian_error_rates_chr19_2parents.png)
 ### Mendelian error rates, chromosome 20
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -1039,7 +1039,7 @@
 | 2 | 26935 | 340037850 | 2886 | 8.5e-06 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 0.035 | 0.00016 | 0.00024 |
@@ -1047,12 +1047,12 @@
 | 2 | 0 | 0.00088 | 0 | 8.5e-06 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/mendelian_error_rates_chr20_0parents.png)
 ![](phasing_plots/mendelian_error_rates_chr20_1parents.png)
 ![](phasing_plots/mendelian_error_rates_chr20_2parents.png)
 ### Mendelian error rates, chromosome 21
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -1064,7 +1064,7 @@
 | 2 | 26935 | 197824865 | 2203 | 1.1e-05 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 0.035 | 0.00014 | 0.00026 |
@@ -1072,12 +1072,12 @@
 | 2 | 0 | 0.0037 | 0 | 1.1e-05 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/mendelian_error_rates_chr21_0parents.png)
 ![](phasing_plots/mendelian_error_rates_chr21_1parents.png)
 ![](phasing_plots/mendelian_error_rates_chr21_2parents.png)
 ### Mendelian error rates, chromosome 22
-#### Combined error rates
+#### Combined error rates:
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
@@ -1089,7 +1089,7 @@
 | 2 | 26935 | 200117550 | 2026 | 1e-05 |
 
 
-#### Individual error rates
+#### Individual error rates:
 | Parents in batch | min | max | median | mean |
 |:----|:----|:----|:----|:----|
 | 0 | 0 | 0.04 | 0.00013 | 0.00026 |
@@ -1097,7 +1097,7 @@
 | 2 | 0 | 0.013 | 0 | 1e-05 |
 
 
-#### Histogram of individual error rates
+#### Histogram of individual error rates:
 ![](phasing_plots/mendelian_error_rates_chr22_0parents.png)
 ![](phasing_plots/mendelian_error_rates_chr22_1parents.png)
 ![](phasing_plots/mendelian_error_rates_chr22_2parents.png)
