@@ -1,4 +1,4 @@
-debug <- F
+debug <- T
 
 if (debug){
     args <- c(
@@ -33,10 +33,9 @@ write(
 )
 
 
-
 rates <- list(
-  c("r_phasing_hom", "Phasing error rates"),
-  c("r_mendel", "Mendelian error rates")
+  c("phasing_hom", "error rates"),
+  c("mendel", "Mendelian error rates")
 )
 
 plot_density <- function(numbers, title, xlab, absolute_filepath, relative_filepath) {
@@ -71,7 +70,17 @@ write_rates_table_row <- function(p, rates){
     )
 }
 
+write_combined_rates_table_row <- function(p, trios, sites, errors){
+    rates <- na.omit(rates)
+    write(
+        x = paste("|", p,"|", trios, "|", sites, "|", errors, "|", signif(errors/sites, digits=2), "|"),
+        file = md_file,
+        append = T
+    )
+}
+
 for (rate in rates){
+
     write(
         x = paste0("## ", rate[2], " per chromosome and number of parents in same batch as child"),
         file = md_file,
@@ -85,16 +94,50 @@ for (rate in rates){
             append = T
         )
         write(
-            x = "| Parents in batch | min | max | median | mean |\n| --- | --- | --- | --- | --- |",
+            x = paste0("#### Individual error rates"),
+            file = md_file,
+            append = T
+        )
+        write(
+            x = "| Parents in batch | min | max | median | mean |\n|:----|:----|:----|:----|:----|",
             file = md_file,
             append = T
         )
         for (p in 0:2){
             tab_p <- subset(tab, parents_in_batch == p)
-            write_rates_table_row(p, tab_p[[rate[1]]])
+            write_rates_table_row(p, tab_p[[paste0("r_",rate[1])]])
         }
         write(
             x = "\n",
+            file = md_file,
+            append = T
+        )
+        write(
+            x = paste0("#### Combined error rates\n - Trios = Number of trios\n - Sites = Total number of sites where error can occur (summed over all trios)\n - Errors = Total number of errors"),
+            file = md_file,
+            append = T
+        )
+        
+
+        write(
+            x = "| Parents in batch | Trios | Sites | Errors | Error rate |\n|:----|:----|:----|:----|:----|",
+            file = md_file,
+            append = T
+        )
+        for (p in 0:2){
+            tab_p <- subset(tab, parents_in_batch == p)
+            trios <- nrow(tab_p)
+            sites <- sum(tab_p[[paste0("n_",rate[1])]])
+            errors <- sum(tab_p[[paste0("e_",rate[1])]])
+            write_combined_rates_table_row(p, trios, sites, errors)
+        }
+        write(
+            x = "\n",
+            file = md_file,
+            append = T
+        )
+        write(
+            x = paste0("#### Histogram of individual error rates"),
             file = md_file,
             append = T
         )
@@ -108,7 +151,7 @@ for (rate in rates){
             title <- paste0("Chromosome ", chr,", ",p, " parent", plur, " in batch")
             aboslute_path <- paste0(plots_folder, filename)
             relative_path <- paste0("phasing_plots/", filename)
-            plot_density(tab_p[[rate[1]]], title, rate[2], aboslute_path, relative_path)
+            plot_density(tab_p[[paste0("r_",rate[1])]], title, rate[2], aboslute_path, relative_path)
 
         }
     }
