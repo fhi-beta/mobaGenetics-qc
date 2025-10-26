@@ -608,11 +608,11 @@ rule mod8_make_duplicates_table:
 
 
 
-rule mod8_make_best_snps_bcf:
+rule mod8_make_bcf:
     input:
-        pgenset = multiext("/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_exclude_conflictual_relationships_best_snps", ".pgen", ".pvar", ".psam") # hook into pipeline later
+        pgenset = multiext("/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_exclude_conflictual_relationships", ".pgen", ".pvar", ".psam") # hook into pipeline later
     output:
-        bcf = str(tmpMod8_2/"mod8_make_best_snps_bcf.chr{phasing_chr}.bcf")
+        bcf = str(tmpMod8_2/"mod8_make_common_snps_bcf.chr{phasing_chr}.bcf")
     conda:
         "envs/plink2_tabix.yaml"
     run:
@@ -625,10 +625,10 @@ rule mod8_make_best_snps_bcf:
 
 rule mod8_make_phasing_tables:
     input:
-        bcf = rules.mod8_make_best_snps_bcf.output.bcf,
+        bcf = rules.mod8_make_bcf.output.bcf,
         trios = "/mnt/archive3/phasing_test/trios"
     output:
-        phasing_table = str(tmpMod8_2 / "mod8_make_phasing_tables.best.chr{phasing_chr}")
+        phasing_table = str(tmpMod8_2 / "mod8_make_phasing_tables.common.chr{phasing_chr}")
     params:
         phasing_script = "utils/phasing_check.py"
     conda:
