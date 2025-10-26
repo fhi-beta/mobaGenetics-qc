@@ -94,7 +94,7 @@ for (rate in rates){
             append = T
         )
         write(
-            x = paste0("#### Combined error rates\n - Trios = Number of trios\n - Sites = Total number of sites where error can occur (summed over all trios)\n - Errors = Total number of errors"),
+            x = paste0("#### Combined error rates\n - Trios = Number of trios\n - Sites = Total number of sites where error can occur (summed over all trios)\n - Errors = Total number of errors\n"),
             file = md_file,
             append = T
         )
