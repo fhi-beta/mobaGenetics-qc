@@ -14,7 +14,7 @@ input_files <- sapply(1:22, function(i) paste0(args[1],".chr", i))
 md_file <- args[2]
 title <- args[3]
 docs_folder <- dirname(md_file)
-plots_folder <- paste0(docs_folder, "/plots/")
+plots_folder <- paste0(docs_folder, "/plot/")
 
 
 if(!dir.exists(docs_folder)){
