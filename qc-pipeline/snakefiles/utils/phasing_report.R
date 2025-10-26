@@ -107,7 +107,7 @@ for (rate in rates){
             filename <- paste0(gsub(" ", "_", tolower(rate[2])),"_chr",chr,"_",p,"parents.png")
             title <- paste0("Chromosome ", chr,", ",p, " parent", plur, " in batch")
             aboslute_path <- paste0(plots_folder, filename)
-            relative_path <- paste0("plots/", filename)
+            relative_path <- paste0("phasing_plots/", filename)
             plot_density(tab_p[[rate[1]]], title, rate[2], aboslute_path, relative_path)
 
         }
