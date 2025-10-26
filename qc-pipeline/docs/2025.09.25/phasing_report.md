@@ -5,6 +5,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 9664417 | 4762093 | 0.49 |
@@ -29,6 +30,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 10179215 | 5028575 | 0.49 |
@@ -53,6 +55,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 8930645 | 4370892 | 0.49 |
@@ -77,6 +80,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 8803480 | 4296304 | 0.49 |
@@ -101,6 +105,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 8163793 | 4018643 | 0.49 |
@@ -125,6 +130,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 7826775 | 3834379 | 0.49 |
@@ -149,6 +155,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 7173156 | 3532739 | 0.49 |
@@ -173,6 +180,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 6339081 | 3113672 | 0.49 |
@@ -197,6 +205,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 2558683 | 1260419 | 0.49 |
@@ -221,6 +230,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 6642196 | 3272678 | 0.49 |
@@ -245,6 +255,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 6550710 | 3216052 | 0.49 |
@@ -269,6 +280,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 6328086 | 3116082 | 0.49 |
@@ -293,6 +305,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 4969172 | 2430513 | 0.49 |
@@ -317,6 +330,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 4437507 | 2191815 | 0.49 |
@@ -341,6 +355,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 3873262 | 1905573 | 0.49 |
@@ -365,6 +380,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 4144771 | 2047224 | 0.49 |
@@ -389,6 +405,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 3524700 | 1732698 | 0.49 |
@@ -413,6 +430,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 3919820 | 1924186 | 0.49 |
@@ -437,6 +455,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 2852406 | 1395299 | 0.49 |
@@ -461,6 +480,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 3080524 | 1513426 | 0.49 |
@@ -485,6 +505,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 1873286 | 916350 | 0.49 |
@@ -509,6 +530,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 1903684 | 931433 | 0.49 |
@@ -534,6 +556,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 1071863005 | 217026 | 2e-04 |
@@ -558,6 +581,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 1218610794 | 218218 | 0.00018 |
@@ -582,6 +606,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 1031816377 | 186723 | 0.00018 |
@@ -606,6 +631,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 1015508311 | 180800 | 0.00018 |
@@ -630,6 +656,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 929638898 | 164592 | 0.00018 |
@@ -654,6 +681,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 886532951 | 143678 | 0.00016 |
@@ -678,6 +706,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 799179449 | 148280 | 0.00019 |
@@ -702,6 +731,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 743414369 | 141313 | 0.00019 |
@@ -726,6 +756,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 155167109 | 98063 | 0.00063 |
@@ -750,6 +781,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 707561700 | 131459 | 0.00019 |
@@ -774,6 +806,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 778159420 | 136436 | 0.00018 |
@@ -798,6 +831,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 671845644 | 125920 | 0.00019 |
@@ -822,6 +856,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 548037258 | 98066 | 0.00018 |
@@ -846,6 +881,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 457688432 | 81708 | 0.00018 |
@@ -870,6 +906,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 389919812 | 83848 | 0.00022 |
@@ -894,6 +931,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 414762539 | 94512 | 0.00023 |
@@ -918,6 +956,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 304489849 | 79571 | 0.00026 |
@@ -942,6 +981,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 381800436 | 78320 | 0.00021 |
@@ -966,6 +1006,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 220104512 | 63185 | 0.00029 |
@@ -990,6 +1031,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 264358812 | 63950 | 0.00024 |
@@ -1014,6 +1056,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 153812430 | 39833 | 0.00026 |
@@ -1038,6 +1081,7 @@
  - Trios = Number of trios
  - Sites = Total number of sites where error can occur (summed over all trios)
  - Errors = Total number of errors
+
 | Parents in batch | Trios | Sites | Errors | Error rate |
 |:----|:----|:----|:----|:----|
 | 0 | 20984 | 155603361 | 39500 | 0.00025 |
