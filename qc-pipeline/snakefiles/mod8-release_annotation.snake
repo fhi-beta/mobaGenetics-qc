@@ -628,7 +628,7 @@ rule mod8_make_phasing_tables:
         bcf = rules.mod8_make_bcf.output.bcf,
         trios = "/mnt/archive3/phasing_test/trios"
     output:
-        phasing_table = str(tmpMod8_2 / "phase_check" / mod8_make_phasing_tables.common.chr{phasing_chr}")
+        phasing_table = str(tmpMod8_2 / "phase_check" / "mod8_make_phasing_tables.common.chr{phasing_chr}")
     params:
         phasing_script = "utils/phasing_check.py"
     conda:
