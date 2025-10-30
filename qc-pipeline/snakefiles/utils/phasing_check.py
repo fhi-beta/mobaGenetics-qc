@@ -86,10 +86,10 @@ def main(args):
         counter+=1
         if optimize:
             for f in trios:
-                check_phasing_hom(f)
+                check_phasing_hom(record, f)
         else:
             for f in trios:
-                check_all(f)
+                check_all(record, f)
 
     with open(output, 'w') as output_file:
         if optimize:
