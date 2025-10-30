@@ -3,11 +3,71 @@
 import argparse
 import pysam
 from datetime import datetime
+from multiprocessing import Pool
+import copy
+
+
+def check_all(record, f):
+    f['n_missing'] += 1
+    child_id = f['child']
+    child_genotype = record.samples.get(child_id, {}).get('GT')
+    father_id = f['father']
+    father_genotype = record.samples.get(father_id, {}).get('GT')
+    mother_id = f['mother']          
+    mother_genotype = record.samples.get(mother_id, {}).get('GT')
+    proceed = True
+
+    if child_genotype is None or child_genotype[0] is None or child_genotype[1] is None:
+        f['e_child_missing'] += 1
+        proceed = False
+    if father_genotype is None or father_genotype[0] is None or father_genotype[1] is None:
+        f['e_father_missing'] += 1
+        proceed = False
+    if mother_genotype is None or mother_genotype[0] is None or mother_genotype[1] is None:
+        f['e_mother_missing'] += 1
+        proceed = False
+
+    if proceed:
+        f['n_mendel'] += 1  
+        if not ((child_genotype[0] in father_genotype and child_genotype[1] in mother_genotype) or (child_genotype[1] in father_genotype and child_genotype[0] in mother_genotype)):
+            f['e_mendel'] += 1
+        else:
+            if child_genotype in [(0, 1), (1, 0)]:
+                if (father_genotype in [(0, 0), (1, 1)] or mother_genotype in [(0, 0), (1, 1)]):
+                    f['n_phasing'] += 1
+                    if (child_genotype[0] == 0 and father_genotype == (1, 1)) or (child_genotype[0] == 1 and father_genotype == (0, 0)) or \
+                       (child_genotype[1] == 0 and mother_genotype == (1, 1)) or (child_genotype[1] == 1 and mother_genotype == (0, 0)):
+                        f['e_phasing'] += 1
+                if (father_genotype in [(0, 0), (1, 1)] and mother_genotype in [(0, 0), (1, 1)] and mother_genotype != father_genotype):
+                    f['n_phasing_hom'] += 1
+                    if (child_genotype[0] == 0 and father_genotype != (0, 0)) or (child_genotype[0] == 1 and father_genotype != (1, 1)):
+                        f['e_phasing_hom'] += 1
+    
+def check_phasing(record, f):
+    child_id = f['child']
+    child_genotype = record.samples.get(child_id, {}).get('GT')
+    if child_genotype is not None and child_genotype[0] is not None and child_genotype[1] is not None:
+        if child_genotype in [(0, 1), (1, 0)]:
+            father_id = f['father']
+            father_genotype = record.samples.get(father_id, {}).get('GT')
+            mother_id = f['mother']          
+            mother_genotype = record.samples.get(mother_id, {}).get('GT')
+            if (father_genotype in [(0, 0), (1, 1)] or mother_genotype in [(0, 0), (1, 1)]):
+                f['n_phasing'] += 1
+                if (child_genotype[0] == 0 and father_genotype == (1, 1)) or (child_genotype[0] == 1 and father_genotype == (0, 0)) or (child_genotype[1] == 0 and mother_genotype == (1, 1)) or (child_genotype[1] == 1 and mother_genotype == (0, 0)):
+                    f['e_phasing'] += 1
+                if (father_genotype in [(0, 0), (1, 1)] and mother_genotype in [(0, 0), (1, 1)] and mother_genotype != father_genotype):
+                    f['n_phasing_hom'] += 1
+                    if (child_genotype[0] == 0 and father_genotype != (0, 0)) or (child_genotype[0] == 1 and father_genotype != (1, 1)):
+                        f['e_phasing_hom'] += 1
 
 def main(args):
     trios_file = args.trios
     bcf_file = args.bcf
     output = args.output
+    optimize = args.optimize
+    threads = args.threads
+    pf = args.pf
     trios = []
     with open(trios_file) as f:
         next(f)
@@ -20,46 +80,19 @@ def main(args):
     counter = 0
     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
     print(current_time)
-    for record in vcf_in:
-        if counter % 100 == 0:
-            id = record.id
-            chrom = record.chrom
-            pos = record.pos
-            current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-            print(f"Time: {current_time} Count: {counter} Chrom: {chrom}, Pos: {pos}, ID: {id}")
-        counter+=1
-        for f in trios:
-            f['n_missing']+=1
-            child_id = f['child']
-            child_genotype = record.samples.get(child_id, {}).get('GT')
-            father_id = f['father']
-            father_genotype = record.samples.get(father_id, {}).get('GT')
-            mother_id = f['mother']          
-            mother_genotype = record.samples.get(mother_id, {}).get('GT')
-            proceed = True
-            if (child_genotype is None or child_genotype[0] is None or child_genotype[1] is None):
-                f['e_child_missing']+=1
-                proceed = False
-            if (father_genotype is None or father_genotype[0] is None or father_genotype[1] is None):
-                f['e_father_missing']+=1
-                proceed = False
-            if mother_genotype is None or mother_genotype[0] is None or mother_genotype[1] is None:
-                f['e_mother_missing']+=1
-                proceed = False
-            if proceed:
-                f['n_mendel']+=1  
-                if not ((child_genotype[0] in father_genotype and child_genotype[1] in mother_genotype) or (child_genotype[1] in father_genotype and child_genotype[0] in mother_genotype)):
-                    f['e_mendel']+=1
-                else:
-                    if child_genotype in [(0, 1), (1, 0)]:
-                        if (father_genotype in [(0, 0), (1, 1)] or mother_genotype in [(0, 0), (1, 1)]):
-                            f['n_phasing'] += 1
-                            if (child_genotype[0] == 0 and father_genotype == (1,1)) or (child_genotype[0] == 1 and father_genotype == (0,0)) or (child_genotype[1] == 0 and mother_genotype == (1,1)) or (child_genotype[1] == 1 and mother_genotype == (0,0) ):
-                                f['e_phasing'] += 1
-                        if (father_genotype in [(0, 0), (1, 1)] and mother_genotype in [(0, 0), (1, 1)] and mother_genotype != father_genotype):
-                            f['n_phasing_hom'] += 1
-                            if (child_genotype[0] == 0 and father_genotype != (0,0)) or (child_genotype[0] == 1 and father_genotype != (1,1)):
-                                f['e_phasing_hom'] += 1
+    with Pool(threads) as pool:
+        for record in vcf_in:
+            if counter % pf == 0:
+                id = record.id
+                chrom = record.chrom
+                pos = record.pos
+                current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+                print(f"Time: {current_time} Count: {counter} Chrom: {chrom}, Pos: {pos}, ID: {id}")
+            counter+=1
+            if optimize:
+                pool.starmap(check_phasing, [(record, f) for f in trios])
+            else:
+                pool.starmap(check_all, [(record, f) for f in trios])
 
     with open(output, 'w') as output_file:
         output_line = "iid\tpat\tmat\treg_id\tparents_in_batch\te_phasing\tn_phasing\tr_phasing\te_phasing_hom\tn_phasing_hom\tr_phasing_hom\te_mendel\tn_mendel\tr_mendel\te_child_missing\te_father_missing\te_mother_missing\tn_missing\tr_child_missing\tr_father_missing\tr_mother_missing\n"
@@ -113,5 +146,8 @@ if __name__ == "__main__":
     parser.add_argument('--trios', type=str, required=True, help='Path to trios file')
     parser.add_argument('--bcf', type=str, required=True, help='Path to BCF file')
     parser.add_argument('--output', type=str, required=True, help='Output file path')
+    parser.add_argument('--threads', type=int, required=False, default=1, help='Number of threads to use (defaults to 1)')
+    parser.add_argument('--optimize', action='store_true', help='Check only phasing')
+    parser.add_argument('--pf', type=int, required=False, default=1000, help='Print frequency (defaults to 1000)')
     args = parser.parse_args()
     main(args)
