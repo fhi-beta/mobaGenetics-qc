@@ -94,7 +94,7 @@ def main(args):
 
     with open(output, 'w') as output_file:
         if optimize:
-            output_line = "iid\tpat\tmat\treg_id\tparents_in_batch\te_phasing\tn_phasing\tr_phasing\te_phasing_hom\tn_phasing_hom\tr_phasing_hom\n"
+            output_line = "iid\tpat\tmat\treg_id\tparents_in_batch\te_phasing_hom\tn_phasing_hom\tr_phasing_hom\n"
         else:
             output_line = "iid\tpat\tmat\treg_id\tparents_in_batch\te_phasing\tn_phasing\tr_phasing\te_phasing_hom\tn_phasing_hom\tr_phasing_hom\te_mendel\tn_mendel\tr_mendel\te_child_missing\te_father_missing\te_mother_missing\tn_missing\tr_child_missing\tr_father_missing\tr_mother_missing\n"
         output_file.write(output_line)
@@ -104,19 +104,19 @@ def main(args):
             mother = f['mother']
             reg_id = f['reg_id']
             parents_in_batch = f['parents_in_batch']
-            e_phasing = f['e_phasing']
-            n_phasing = f['n_phasing']
             e_phasing_hom = f['e_phasing_hom']
             n_phasing_hom = f['n_phasing_hom']
-            if n_phasing > 0:
-                r_phasing = e_phasing/n_phasing
-            else:
-                r_phasing = "NA"
             if n_phasing_hom > 0:
                 r_phasing_hom = e_phasing_hom/n_phasing_hom
             else:
                 r_phasing_hom = "NA"
             if not optimize:
+                e_phasing = f['e_phasing']
+                n_phasing = f['n_phasing']
+                if n_phasing > 0:
+                    r_phasing = e_phasing/n_phasing
+                else:
+                    r_phasing = "NA"
                 e_child_missing = f['e_child_missing']
                 e_father_missing = f['e_father_missing']
                 e_mother_missing = f['e_mother_missing']
@@ -136,7 +136,7 @@ def main(args):
                     r_father_missing = "NA"
                     r_mother_missing = "NA"
             if optimize:
-                output_line = f"{child}\t{father}\t{mother}\t{reg_id}\t{parents_in_batch}\t{e_phasing}\t{n_phasing}\t{r_phasing}\t{e_phasing_hom}\t{n_phasing_hom}\t{r_phasing_hom}\n"
+                output_line = f"{child}\t{father}\t{mother}\t{reg_id}\t{parents_in_batch}\t{e_phasing_hom}\t{n_phasing_hom}\t{r_phasing_hom}\n"
             else:
                 output_line = f"{child}\t{father}\t{mother}\t{reg_id}\t{parents_in_batch}\t{e_phasing}\t{n_phasing}\t{r_phasing}\t{e_phasing_hom}\t{n_phasing_hom}\t{r_phasing_hom}\t{e_mendel}\t{n_mendel}\t{r_mendel}\t{e_child_missing}\t{e_father_missing}\t{e_mother_missing}\t{n_missing}\t{r_child_missing}\t{r_father_missing}\t{r_mother_missing}\n"
             output_file.write(output_line)
