@@ -63,7 +63,6 @@ def main(args):
     bcf_file = args.bcf
     output = args.output
     optimize = args.optimize
-    threads = args.threads
     pf = args.pf
     trios = []
     with open(trios_file) as f:
