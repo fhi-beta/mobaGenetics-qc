@@ -53,10 +53,10 @@ def check_phasing_hom(record, f):
                 mother_id = f['mother']          
                 mother_genotype = record.samples.get(mother_id, {}).get('GT')
                 if mother_genotype is not None and mother_genotype[0] is not None and mother_genotype[1] is not None:
-                        if (father_genotype in [(0, 0), (1, 1)] and mother_genotype in [(0, 0), (1, 1)] and mother_genotype != father_genotype):
-                            f['n_phasing_hom'] += 1
-                            if (child_genotype[0] == 0 and father_genotype != (0, 0)) or (child_genotype[0] == 1 and father_genotype != (1, 1)):
-                                f['e_phasing_hom'] += 1
+                    if (father_genotype in [(0, 0), (1, 1)] and mother_genotype in [(0, 0), (1, 1)] and mother_genotype != father_genotype):
+                        f['n_phasing_hom'] += 1
+                        if (child_genotype[0] == 0 and father_genotype != (0, 0)) or (child_genotype[0] == 1 and father_genotype != (1, 1)):
+                            f['e_phasing_hom'] += 1
 
 def main(args):
     trios_file = args.trios
