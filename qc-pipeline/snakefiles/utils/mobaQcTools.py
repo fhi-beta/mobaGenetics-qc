@@ -1629,7 +1629,7 @@ def filter_fam_table_for_shapeit(input_file_path, output_file_path):
     filtered_df.replace("0", 'NA', inplace=True)
     filtered_df.to_csv(output_file_path, header=False, sep="\t", index=False)
     
-def make_duplicates_table(psam_file, batches_file, ids_file, miss_file, output_duplicates, output_trios):
+def make_duplicates_table(psam_file, batches_file, ids_file, miss_file, output_duplicates, output_trios, output_all):
     """
     Make a table of duplicate samples.
     """
@@ -1646,6 +1646,7 @@ def make_duplicates_table(psam_file, batches_file, ids_file, miss_file, output_d
     psam = psam.merge(ids.rename(columns={'sentrix_id': 'iid', 'id': 'reg_id'}), left_on='iid', right_on='iid', how='left')
     psam['parents_in_batch'] = ((psam['iid_batch'] == psam['pat_batch']).astype(int) + (psam['iid_batch'] == psam['mat_batch']).astype(int))
     psam = psam.merge(miss[["iid", "call_rate"]], on="iid", how="left")
+    psam.to_csv(output_all, index=False, sep ="\t", na_rep="NA")
     trios = psam[(psam['pat'] != "0") & (psam['pat'].notna()) & (psam['mat'] != "0") & (psam['mat'].notna())]
     duplicates = psam[psam['reg_id'].duplicated(keep=False)]
     duplicates = duplicates.dropna(subset=["reg_id"])

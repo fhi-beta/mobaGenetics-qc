@@ -581,10 +581,11 @@ rule mod8_make_duplicates_table:
         smiss = rules.mod8_generate_best_snps_stats.output.smiss,
     output:
         duplicates = tmpMod8_2/'mod8_duplicates_table.txt',
-        trios = tmpMod8_2/'mod8_trios_table.txt'
+        trios = tmpMod8_2/'mod8_trios_table.txt',
+        all_relations = tmpMod8_2/'mod8_all_relations_table.txt',
     run:
         psam_file = input.pgenset[2]
-        mqc.make_duplicates_table(psam_file, input.batches, input.ids, input.smiss, output.duplicates, output.trios)
+        mqc.make_duplicates_table(psam_file, input.batches, input.ids, input.smiss, output.duplicates, output.trios, output.all_relations)
 
 
 # prepare files for phasing report

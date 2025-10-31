@@ -1,13 +1,16 @@
 import pysam
 import pandas as pd
+from pathlib import Path
 from collections import defaultdict
 
 def process_vcf_files(batch_genotyping_chip, chromosomes, tmpMod6_path, output_file):
     with open(output_file, 'w') as f:
         for chromosome in chromosomes:
+            print(f"Processing chromosome {chromosome}...")
             variants_by_batch = defaultdict(set)
             for batch in batch_genotyping_chip.keys():
-                vcf_path = tmpMod6_path / batch / f"mod6_create_vcf.chr{chromosome}.vcf"
+                print(f"Reading batch {batch}...")
+                vcf_path = tmpMod6_path / batch / f"mod6_conform.chr{chromosome}.conformed.bcf"
                 with pysam.VariantFile(str(vcf_path), 'r') as vcf:
                     for record in vcf:
                         variants_by_batch[batch].add((record.chrom, record.pos, record.ref, record.alts))
@@ -37,7 +40,6 @@ batch_genotyping_chip = {
     "snp010": "Illumina Global Screening Array MD v1.0", # Needs to be checked
     "snp011": "Illumina Infinium Omni Express 24 v.1.2",
     "snp012": "Illumina Global Screening Array MD v1.0",
-    "snp013": "DeCodeGenetics V1_v2", # Needs to be checked
     "snp014": "Illumina Global Screening Array MD v1.0",
     "snp015a": "DeCodeGenetics 1_v2",
     "snp015b": "DeCodeGenetics v3 1_v2",
@@ -51,9 +53,7 @@ batch_genotyping_chip = {
     "snp017f": "DeCodeGenetics v3 1_v2",
     "snp018a": "DeCodeGenetics v3 1_v2",
     "snp018b": "DeCodeGenetics v3 1_v2",
-    "snp018c": "DeCodeGenetics v3 1_v2",
-    "snp018de": "DeCodeGenetics v3 1_v2",
-    "snp019": "GSAMD-24v2-0_20024620_B1"
+    "snp018de": "DeCodeGenetics v3 1_v2"
 }
 chromosomes = range(1, 23)
 tmpMod6_path = Path("/mnt/work/qc_genotypes/pipeOut_dev/2025.01.30/mod6-imputation/")
