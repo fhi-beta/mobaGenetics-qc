@@ -12,4 +12,6 @@ dependencies:
   - r-ldlinkr=1.2.3
   - r-dbplyr=2.3.0
   - r-stringi
+  - r-stringr
+  - r-knitr
   - icu=58.*

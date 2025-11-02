@@ -10,7 +10,7 @@ debug <- T
 
 if (debug) {
   
-  args <- c("/mnt/archive3/phasing_test/all_relations", "/mnt/work/oystein/tmp/batch_shuffle.md")
+  args <- c("/mnt/archive3/phasing_test/all_relations", "/mnt/archive3/phasing_test", "/mnt/work/oystein/tmp/batch_shuffle.md")
   
 } else {
   args <- commandArgs(TRUE)
@@ -18,7 +18,8 @@ if (debug) {
 
 
 rel_file <- args[1]
-md_file <- args[2]
+output_folder <- args[2]
+md_file <- args[3]
 
 rel <- read.table(rel_file, header = T)
 rel$orig_batch <- rel$iid_batch
@@ -43,6 +44,27 @@ updated_rel <- updated_rel %>%
       0
     )
   ))
+
+
+batches <- unique(updated_rel$iid_batch)
+batch_samples_dict <- list()
+for (batch in batches) {
+  samples <- subset(updated_rel, iid_batch == batch)$iid
+  batch_samples_dict[[batch]] <- samples
+}
+
+for (chr in 20:21){
+  output_file <- paste0(output_folder, "/new_batches.chr", chr)
+  cat(NULL, file = output_file)
+  for (batch in names(batch_samples_dict)) {
+    samples_str <- paste0(batch_samples_dict[["snp001"]], collapse = ",")
+    f <- paste0(output_folder,"/batch_",batch,".chr",chr,".reshuffled.bcf")
+    line<- paste0(samples_str, "\t-\t", f)
+    write(x = line, file=output_file, append=T)
+}
+}
+
+
 
 
 # Calculate Movement Matrix
