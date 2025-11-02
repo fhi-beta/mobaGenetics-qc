@@ -220,34 +220,33 @@ rule mod6_find_new_batches:
     input:
         relations_file = "/mnt/archive3/phasing_test/all_relations" # hook later
     output:
-        md = "/mnt/work/oystein/tmp/batch_shuffle.md",
-        chr_shuffle_files = expand("/mnt/archive3/phasing_test/new_batches.chr{chr}", chr = chrs)
+        md = "/mnt/archive3/phasing_test/batch_shuffle.md",
+        new_batches = "/mnt/archive3/phasing_test/new_batches"
     params:
         r_script = "utils/shuffle_batches.R"
     conda:
         "envs/r_4.2.yaml"
     run:
-        output_folder = os.path.dirname(output.chr_shuffle_files[0])
-        shell(f"Rscript {params.r_script} {input.relations_file} {output_folder} {output.md_file}")
+        shell(f"Rscript {params.r_script} {input.relations_file} {output.new_batches} {output.md_file}")
 
 
-def get_chr_shuffle_file(wildcards):
-    return f"/mnt/archive3/phasing_test/new_batches.chr{wildcards.chr}"
+# def get_chr_shuffle_file(wildcards):
+#     return f"/mnt/archive3/phasing_test/new_batches.chr{wildcards.chr}"
 
 def get_merged_chr_file(wildcards):
     return f"/mnt/archive3/phasing_test/mod6_merge_batches_chr{wildcards.chr}.bcf"
 
 rule mod6_split_new_batches:
     input:
-        chr_shuffle_file = get_chr_shuffle_file,
+        new_batches = rules.mod6_find_new_batches.output.new_batches,
         merged_chr_file = get_merged_chr_file
     output:
-        bcf = "/mnt/archive3/phasing_test/mod6_split_new_batches.batch{batch}.chr{chr}"
+        bcf = "/mnt/archive3/phasing_test/chr{chr}/mod6_split_new_batches.batch_{batch}.bcf"
     conda:
         "envs/bcf_tabix.yaml"
     run:
         output_folder = os.path.dirname(output.bcf)
-        shell(f"bcftools +split {input.merged_chr_file} --o {output_folder} --samples-file {input.chr_shuffle_file}")
+        shell(f"bcftools +split {input.merged_chr_file} --o {output_folder} --samples-file {input.new_batches}")
     
 
 # Note the fixploidy plugin: male haploid chr X samples must be recoded as diploid homozygotes before phasing due to a bug in shapeit
