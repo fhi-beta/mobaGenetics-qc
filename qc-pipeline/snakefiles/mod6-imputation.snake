@@ -177,6 +177,38 @@ rule mod6_index_conform:
         fi
         """
 
+# Reshuffle batches (work in progress...)
+tmpMod6str = str(tmpMod6)
+def get_index_conform_files_to_merge(wildcards):
+    #batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
+    return [f"{tmpMod6str}/{batch}/mod6_conform.chr{wildcards.chr}.conformed.vcf.gz.tbi" for batch in batches]
+
+
+def get_conform_files_to_merge(wildcards):
+    #batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
+    return [f"{tmpMod6str}/{batch}/mod6_conform.chr{wildcards.chr}.conformed.vcf.gz" for batch in batches]
+
+rule mod6_merge_batches:
+    input:
+        vcfs = get_conform_files_to_merge,
+        index = get_index_conform_files_to_merge
+    output:
+        merged_bcf = "/mnt/archive3/phasing_test/mod6_merge_batches_chr{chr}.bcf"
+    log:
+        # str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches.log")
+        "/mnt/archive3/phasing_test/mod6_merge_batches_chr{chr}.log"
+    conda:
+        "envs/bcf_tabix.yaml"
+    shell:
+        """
+        echo "Output file: {output.merged_bcf}" > {log}
+        echo "Merge started $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
+        bcftools merge {input.vcfs} -o {output.merged_bcf}
+        echo "Merge finished $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
+        echo "Merged files:" >> {log}
+        for file in {input.vcfs}; do echo "$file" >> {log}; done
+        """
+
 
 # Note the fixploidy plugin: male haploid chr X samples must be recoded as diploid homozygotes before phasing due to a bug in shapeit
 rule mod6_fill_ac:
