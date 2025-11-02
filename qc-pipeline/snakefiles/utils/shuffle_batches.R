@@ -10,7 +10,7 @@ debug <- F
 
 if (debug) {
   
-  args <- c("/mnt/archive3/phasing_test/all_relations", "/mnt/archive3/phasing_test", "/mnt/work/oystein/tmp/batch_shuffle.md")
+  args <- c("/mnt/archive3/phasing_test/all_relations", "/mnt/archive3/phasing_test/new_batches", "/mnt/archive3/phasing_test/batch_shuffle.md")
   
 } else {
   args <- commandArgs(TRUE)
@@ -18,7 +18,7 @@ if (debug) {
 
 
 rel_file <- args[1]
-output_folder <- args[2]
+new_batches_file <- args[2]
 md_file <- args[3]
 
 rel <- read.table(rel_file, header = T)
@@ -53,16 +53,16 @@ for (batch in batches) {
   batch_samples_dict[[batch]] <- samples
 }
 
-for (chr in 20:21){
-  output_file <- paste0(output_folder, "/new_batches.chr", chr)
-  cat(NULL, file = output_file)
+
+  cat(NULL, file = new_batches_file)
   for (batch in names(batch_samples_dict)) {
     samples_str <- paste0(batch_samples_dict[["snp001"]], collapse = ",")
-    f <- paste0("batch_",batch,".chr",chr,".reshuffled.bcf")
+    f <- paste0("mod6_split_new_batches.batch_", batch,".bcf")
     line<- paste0(samples_str, "\t-\t", f)
-    write(x = line, file=output_file, append=T)
+    write(x = line, file=new_batches_file, append=T)
 }
-}
+
+
 
 
 
