@@ -199,12 +199,11 @@ rule mod6_merge_batches:
         "/mnt/archive3/phasing_test/mod6_merge_batches_chr{chr}.log"
     conda:
         "envs/bcf_tabix.yaml"
-    threads: 16
     shell:
         """
         echo "Output file: {output.merged_bcf}" > {log}
         echo "Merge started $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
-        bcftools merge {input.vcfs} -o {output.merged_bcf} --threads {threads} --write-index
+        bcftools merge {input.vcfs} -o {output.merged_bcf} --write-index
         echo "Merge finished $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
         echo "Merged files:" >> {log}
         for file in {input.vcfs}; do echo "$file" >> {log}; done
