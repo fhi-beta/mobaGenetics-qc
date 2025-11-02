@@ -249,7 +249,7 @@ rule mod6_split_new_batches:
     conda:
         "envs/bcf_tabix.yaml"
     run:
-        shell(f"bcftools {input.merged_chr_file} --samples-file {input.samples_file} -o {output.bcf} --write-index")
+        shell(f"bcftools view {input.merged_chr_file} --samples-file {input.samples_file} -o {output.bcf} --write-index")
         # shell(f"bcftools +split {input.merged_chr_file} -o {output_folder} --samples-file {input.new_batches}")
     
 
