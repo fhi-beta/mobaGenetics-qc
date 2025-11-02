@@ -220,7 +220,7 @@ rule mod6_find_new_batches:
     input:
         relations_file = "/mnt/archive3/phasing_test/all_relations" # hook later
     output:
-        md = "/mnt/archive3/phasing_test/batch_shuffle.md",
+        md_file = "/mnt/archive3/phasing_test/batch_shuffle.md",
         new_batches = expand("/mnt/archive3/phasing_test/new_batches.batch_{batch}", batch = batches)
     params:
         r_script = "utils/shuffle_batches.R"
