@@ -221,13 +221,14 @@ rule mod6_find_new_batches:
         relations_file = "/mnt/archive3/phasing_test/all_relations" # hook later
     output:
         md = "/mnt/archive3/phasing_test/batch_shuffle.md",
-        new_batches = "/mnt/archive3/phasing_test/new_batches"
+        new_batches = expand("/mnt/archive3/phasing_test/new_batches.batch_{batch}", batch = batches)
     params:
         r_script = "utils/shuffle_batches.R"
     conda:
         "envs/r_4.2.yaml"
     run:
-        shell(f"Rscript {params.r_script} {input.relations_file} {output.new_batches} {output.md_file}")
+        out_trunk = mqc.plinkBase(output.new_batches[0])
+        shell(f"Rscript {params.r_script} {input.relations_file} {out_trunk} {output.md_file}")
 
 
 # def get_chr_shuffle_file(wildcards):
@@ -236,17 +237,20 @@ rule mod6_find_new_batches:
 def get_merged_chr_file(wildcards):
     return f"/mnt/archive3/phasing_test/mod6_merge_batches_chr{wildcards.chr}.bcf"
 
+def get_samples_file(wildcards):
+    return f"/mnt/archive3/phasing_test/new_batches.batch_{wildcards.batch}"
+
 rule mod6_split_new_batches:
     input:
-        new_batches = rules.mod6_find_new_batches.output.new_batches,
-        merged_chr_file = get_merged_chr_file
+        samples_file = get_samples_file,
+        merged_chr_file = rules.mod6_merge_batches.output.merged_bcf
     output:
-        bcf = expand("/mnt/archive3/phasing_test/chr{chr}/mod6_split_new_batches.batch_{batch}.bcf", batch = batches)
+        bcf = "/mnt/archive3/phasing_test/{batch}/mod6_split_new_batches.chr{chr}.bcf"
     conda:
         "envs/bcf_tabix.yaml"
     run:
-        output_folder = os.path.dirname(output.bcf)
-        shell(f"bcftools +split {input.merged_chr_file} -o {output_folder} --samples-file {input.new_batches}")
+        shell(f"bcftools {input.merged_chr_file} --samples-file {input.samples_file} -o {output.bcf} --write-index")
+        # shell(f"bcftools +split {input.merged_chr_file} -o {output_folder} --samples-file {input.new_batches}")
     
 
 # Note the fixploidy plugin: male haploid chr X samples must be recoded as diploid homozygotes before phasing due to a bug in shapeit

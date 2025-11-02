@@ -18,7 +18,7 @@ if (debug) {
 
 
 rel_file <- args[1]
-new_batches_file <- args[2]
+new_batches_trunk <- args[2]
 md_file <- args[3]
 
 rel <- read.table(rel_file, header = T)
@@ -47,23 +47,11 @@ updated_rel <- updated_rel %>%
 
 
 batches <- unique(updated_rel$iid_batch)
-batch_samples_dict <- list()
 for (batch in batches) {
-  samples <- subset(updated_rel, iid_batch == batch)$iid
-  batch_samples_dict[[batch]] <- samples
+  samples_file <- paste0(new_batches_trunk, ".batch_", batch)
+  samples <- subset(updated_rel, iid_batch == batch) %>% select(iid)
+  write.table(samples, samples_file, row.names = F, col.names = F, quote=F)
 }
-
-
-  cat(NULL, file = new_batches_file)
-  for (batch in names(batch_samples_dict)) {
-    samples_str <- paste0(batch_samples_dict[["snp001"]], collapse = ",")
-    f <- paste0("mod6_split_new_batches.batch_", batch,".bcf")
-    line<- paste0(samples_str, "\t-\t", f)
-    write(x = line, file=new_batches_file, append=T)
-}
-
-
-
 
 
 
