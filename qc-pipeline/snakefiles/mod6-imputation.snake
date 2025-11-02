@@ -241,12 +241,12 @@ rule mod6_split_new_batches:
         new_batches = rules.mod6_find_new_batches.output.new_batches,
         merged_chr_file = get_merged_chr_file
     output:
-        bcf = "/mnt/archive3/phasing_test/chr{chr}/mod6_split_new_batches.batch_{batch}.bcf"
+        bcf = expand("/mnt/archive3/phasing_test/chr{chr}/mod6_split_new_batches.batch_{batch}.bcf", batch = batches)
     conda:
         "envs/bcf_tabix.yaml"
     run:
         output_folder = os.path.dirname(output.bcf)
-        shell(f"bcftools +split {input.merged_chr_file} --o {output_folder} --samples-file {input.new_batches}")
+        shell(f"bcftools +split {input.merged_chr_file} -o {output_folder} --samples-file {input.new_batches}")
     
 
 # Note the fixploidy plugin: male haploid chr X samples must be recoded as diploid homozygotes before phasing due to a bug in shapeit
