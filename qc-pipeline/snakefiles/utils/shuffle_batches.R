@@ -58,7 +58,7 @@ for (chr in 20:21){
   cat(NULL, file = output_file)
   for (batch in names(batch_samples_dict)) {
     samples_str <- paste0(batch_samples_dict[["snp001"]], collapse = ",")
-    f <- paste0(output_folder,"/batch_",batch,".chr",chr,".reshuffled.bcf")
+    f <- paste0("batch_",batch,".chr",chr,".reshuffled.bcf")
     line<- paste0(samples_str, "\t-\t", f)
     write(x = line, file=output_file, append=T)
 }
