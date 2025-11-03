@@ -110,6 +110,7 @@ n_samples: "all"
 # memory and thread allocation
 mem: "112g"
 beagle_window: "30.0"
+beagle_window_markers: "250000"
 mod6conform_threads: 2
 mod6conform_mem: "7g"
 mod7_convert_chrs_to_pgen_threads: 8
