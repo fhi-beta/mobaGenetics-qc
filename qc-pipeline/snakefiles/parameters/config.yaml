@@ -109,10 +109,8 @@ n_samples: "all"
 
 # memory and thread allocation
 mem: "100g"
-beagle_threads: 32
 mod6conform_threads: 2
 mod6conform_mem: "7g"
-mod6impute_threads: 32
 mod7_convert_chrs_to_pgen_threads: 8
 mod7_convert_chrs_to_pgen_mem: "12500"
 
