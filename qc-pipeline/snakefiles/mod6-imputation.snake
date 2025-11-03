@@ -434,7 +434,7 @@ rule mod6_impute:
             mapfile={mapfiles}/plink.chr{params.map_chr}.GRCh37.map
             output_full={output.imputed_vcf}
             outTrunk="${{output_full%.vcf.gz}}"
-            java -Xmx{config[mem]} -jar {beagle} gt={input.vcf} ref=$reffile impute=true out=$outTrunk window-markers={config[beagle_window_markers]} chrom={params.beagle_chr} nthreads={threads} ap=true map=$mapfile
+            java -Xmx{config[mem]} -jar {beagle} gt={input.vcf} ref=$reffile impute=true out=$outTrunk window={config[beagle_window]} chrom={params.beagle_chr} nthreads={threads} ap=true map=$mapfile
         fi 
         """
 
