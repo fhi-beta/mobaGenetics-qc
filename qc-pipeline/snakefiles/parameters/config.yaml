@@ -108,7 +108,7 @@ xmarkers_clean: 0.000001
 n_samples: "all"
 
 # memory and thread allocation
-mem: "110g"
+mem: "121g"
 mod6conform_threads: 2
 mod6conform_mem: "7g"
 mod7_convert_chrs_to_pgen_threads: 8
