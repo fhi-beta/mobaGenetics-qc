@@ -420,7 +420,7 @@ rule mod6_impute:
         beagle_chr=get_beagle_chr
     threads: 32
     log:
-        str(tmpMod6/"{batch}" / "mod6_impute_log_chr{chr}.log")
+        str(tmpMod6_phasing_test/"{batch}" / "mod6_impute_log_chr{chr}.log")
     shell:
         """
         mapfile -t chromosomes < {input.chromosome_file}
