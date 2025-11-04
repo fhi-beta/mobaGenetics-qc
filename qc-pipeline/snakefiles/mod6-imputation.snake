@@ -464,6 +464,7 @@ rule mod6_index:
 rule mod6_query:
     input:
         chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
+        index = rules.mod6_index.output.index,
         imputed_vcf = rules.mod6_impute.output.imputed_vcf
     output:
         info = str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info")
