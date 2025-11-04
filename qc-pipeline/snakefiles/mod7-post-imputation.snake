@@ -94,9 +94,8 @@ def get_vcf_batch_files_to_merge(wildcards):
 
 tmpMod7str = str(tmpMod7)
 def get_index_batch_files_to_merge(wildcards):
-    # REVERT THIS!
-    # batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
-    # return [f"{tmpMod7str}/{batch}/mod7_format.chr{wildcards.chr}.vcf.gz.tbi" for batch in batches_with_chromosome]
+    batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
+    return [f"{tmpMod7str}/{batch}/mod7_format.chr{wildcards.chr}.vcf.gz.tbi" for batch in batches_with_chromosome]
 
 rule mod7_merge_batches:
     input:
