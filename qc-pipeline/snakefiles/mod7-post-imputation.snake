@@ -86,23 +86,27 @@ def get_batches_with_chromosome(chr):
     return batches_with_chromosome
 
 def get_vcf_batch_files_to_merge(wildcards):
-    batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
-    return [f"{tmpMod7str}/{batch}/mod7_format.chr{wildcards.chr}.vcf.gz" for batch in batches_with_chromosome]
+    return [f"{tmpMod6_phasing_test}/{batch}/mod7_filter.chr{wildcards.chr}.vcf.gz" for batch in batches]
+
+    # REVERT THIS!
+    # batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
+    # return [f"{tmpMod7str}/{batch}/mod7_format.chr{wildcards.chr}.vcf.gz" for batch in batches_with_chromosome]
 
 tmpMod7str = str(tmpMod7)
 def get_index_batch_files_to_merge(wildcards):
-    batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
-    return [f"{tmpMod7str}/{batch}/mod7_format.chr{wildcards.chr}.vcf.gz.tbi" for batch in batches_with_chromosome]
+    # REVERT THIS!
+    # batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
+    # return [f"{tmpMod7str}/{batch}/mod7_format.chr{wildcards.chr}.vcf.gz.tbi" for batch in batches_with_chromosome]
 
 rule mod7_merge_batches:
     input:
         vcfs = get_vcf_batch_files_to_merge,
-        index = get_index_batch_files_to_merge
+        # index = get_index_batch_files_to_merge # REVERT THIS!
     output:
-        merged_vcf = str(tmpMod7 / "mod7_merge_batches_chr{chr}.vcf.gz")
+        merged_vcf = str(tmpMod6_phasing_test / "mod7_merge_batches_chr{chr}.bcf")
     log:
         # str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches.log")
-        str(tmpMod7  / "mod7_merge_batches_chr{chr}.log")
+        str(tmpMod6_phasing_test  / "mod7_merge_batches_chr{chr}.log")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
