@@ -276,9 +276,16 @@ def split_samples(input_file, output_file_base, batch):
         with open(output_file_base, "w") as f:
             f.writelines("\n".join(second_column) + "\n")
 
+def get_input_fam_file(wildcards):
+    if wildcards.split_batch[0:-2] in batches_to_split:
+        b = wildcards.split_batch[0:-2]
+    else:
+        b = wildcards.split_batch
+    return str(tmpMod5 / b / "mod5_output.fam" ),
+
 rule mod6_make_samples_list:
     input:
-        fam = rules.mod5_output.output.bedset[2]
+        fam = get_input_fam_file
     output:
         samples = str(tmpMod6_phasing_test / "mod6_make_split_samples_list.batch_{split_batch}")
     run:
