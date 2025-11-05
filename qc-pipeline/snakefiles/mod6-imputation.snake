@@ -317,10 +317,23 @@ def get_samples_file(wildcards):
 def get_phased_bcf(wildcards):
     return str(tmpMod6_phasing_test / f"mod6_phase_merged.chr{wildcards.chr}.phased.bcf"),
 
-rule mod6_split_merged_phased:
+rule mod6_split_merged_samples:
     input:
         samples = get_samples_file,
-        bcf = get_phased_bcf,
+        bcf = get_phased_bcf
+    output:
+        vcf = str(tmpMod6_phase_merged / "{batch}" / "mod6_split_merged_phased.chr{chr}.vcf.gz")
+    conda:
+        "envs/bcf_tabix.yaml"
+    shell:
+        """
+        bcftools view {input.bcf} --samples-file {input.samples} -Oz -o {output.vcf} --write-index
+        """
+        
+
+rule mod6_split_merged_variants:
+    input:
+        vcf = rules.mod6_split_merged_samples.output.vcf,
         conform = rules.mod6_conform.output.conformed_vcf
     output:
         vcf = str(tmpMod6_phase_merged / "{batch}" / "mod6_split_merged_phased.chr{chr}.vcf")
@@ -328,9 +341,8 @@ rule mod6_split_merged_phased:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        bcftools view {input.bcf} --samples-file {input.samples} | bcftools view --regions-file {input.conform} | bcftools +fill-AN-AC -Ov -o {output.vcf}
+        bcftools view {input.vcf} --regions-file {input.conform} -Ov -o {output.vcf}
         """
-        
 # rule mod6_impute_split_phased:
 #     input:
 #         vcf = rules.mod6_split_merged_phased.out.vcf
@@ -383,7 +395,7 @@ rule_stem = "mod6_impute"
 rule mod6_impute:
     input:
         chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
-        vcf = rules.mod6_split_merged_phased.output.vcf #rules.mod6_reset_male_x_ploidy.output.vcf #rules.mod6_conform.output.conformed_vcf
+        vcf = rules.mod6_split_merged_variants.output.vcf #rules.mod6_reset_male_x_ploidy.output.vcf #rules.mod6_conform.output.conformed_vcf
     output:
         imputed_vcf = str(tmpMod6_phase_merged / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz")
     params:
