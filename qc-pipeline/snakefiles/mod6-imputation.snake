@@ -312,7 +312,7 @@ rule mod6_make_samples_list:
 #         """
 
 def get_samples_file(wildcards):
-    return str(tmpMod6_phasing_test / f"mod6_make_samples_list.batch_{wildcards.batch}")
+    return str(tmpMod6_phasing_test / f"mod6_make_split_samples_list.batch_{wildcards.batch}")
 
 def get_phased_bcf(wildcards):
     return str(tmpMod6_phasing_test / f"mod6_phase_merged.chr{wildcards.chr}.phased.bcf"),
@@ -352,37 +352,37 @@ rule mod6_split_merged_phased:
 
 
 
-rule mod6_generate_bcftools_sex_files:
-    input:
-        fam = rules.mod5_output.output.bedset[2]
-    output:
-        sex_list = str(tmpMod6_phasing_test / "{batch}" / "sex_list.txt")
-    run:
-        mqc.create_sex_list_for_bcftools(input.fam, output.sex_list) 
+# rule mod6_generate_bcftools_sex_files:
+#     input:
+#         fam = rules.mod5_output.output.bedset[2]
+#     output:
+#         sex_list = str(tmpMod6_phasing_test / "{batch}" / "sex_list.txt")
+#     run:
+#         mqc.create_sex_list_for_bcftools(input.fam, output.sex_list) 
 
-# convert male X variants back to haploid before imputation
-rule mod6_reset_male_x_ploidy:
-    input:
-        vcf = rules.mod6_split_merged_phased.output.vcf,
-        sex_list = rules.mod6_generate_bcftools_sex_files.output.sex_list
-    output:
-        vcf = str(tmpMod6_phase_merged / "{batch}" / "mod6_reset_male_x_ploidy.chr{chr}.vcf")
-    conda:
-        "envs/bcf_tabix.yaml"
-    shell:
-        """
-        if [[ {wildcards.chr} == "X" ]]; then
-            bcftools +fixploidy {input.vcf} -o {output.vcf} -- -p {haploid_x_file} -s {input.sex_list}
-        else
-            cp {input.vcf} {output.vcf}
-        fi
-        """
+# # convert male X variants back to haploid before imputation
+# rule mod6_reset_male_x_ploidy:
+#     input:
+#         vcf = rules.mod6_split_merged_phased.output.vcf,
+#         sex_list = rules.mod6_generate_bcftools_sex_files.output.sex_list
+#     output:
+#         vcf = str(tmpMod6_phase_merged / "{batch}" / "mod6_reset_male_x_ploidy.chr{chr}.vcf")
+#     conda:
+#         "envs/bcf_tabix.yaml"
+#     shell:
+#         """
+#         if [[ {wildcards.chr} == "X" ]]; then
+#             bcftools +fixploidy {input.vcf} -o {output.vcf} -- -p {haploid_x_file} -s {input.sex_list}
+#         else
+#             cp {input.vcf} {output.vcf}
+#         fi
+#         """
 
 rule_stem = "mod6_impute"
 rule mod6_impute:
     input:
         chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
-        vcf = rules.mod6_reset_male_x_ploidy.output.vcf #rules.mod6_conform.output.conformed_vcf
+        vcf = rules.mod6_split_merged_phased.output.vcf #rules.mod6_reset_male_x_ploidy.output.vcf #rules.mod6_conform.output.conformed_vcf
     output:
         imputed_vcf = str(tmpMod6_phase_merged / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz")
     params:
