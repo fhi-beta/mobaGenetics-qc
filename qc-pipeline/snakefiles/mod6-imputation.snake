@@ -257,6 +257,35 @@ rule mod6_phase_merged:
         """
 
 
+rule mod6_make_samples_list:
+    input:
+        fam = rules.mod5_output.output.bedset[2]
+    output:
+        samples = str(tmpMod6_phasing_test / "mod6_make_samples_list.batch_{batch}")
+    shell:
+        """
+        cut -f2 {input.fam} > {output.samples}
+        """
+
+def get_samples_file(wildcards):
+    return str(tmpMod6_phasing_test / f"mod6_make_samples_list.batch_{wildcards.batch}")
+
+def get_phased_bcf(wildcards):
+    return str(tmpMod6_phasing_test / f"mod6_phase_merged.chr{wildcards.chr}.phased.bcf"),
+
+rule mod6_split_merged_phased:
+    input:
+        samples = get_samples_file,
+        bcf = get_phased_bcf
+    output:
+        bcf = str(tmpMod6_phasing_test / {batch} / "mod6_split_merged_phased.chr{chr}.bcf")
+    conda:
+        "envs/bcf_tabix.yaml"
+    shell:
+        """
+        bcftools view {input.bcf} --samples-file {input.samples} | bcftools view -g ^miss | bcftools +fill-AN-AC -Ob -o {output.bcf} --write-index
+        """
+        
 
 
 
