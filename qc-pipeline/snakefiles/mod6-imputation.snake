@@ -322,7 +322,7 @@ rule mod6_split_merged_samples:
         samples = get_samples_file,
         bcf = get_phased_bcf
     output:
-        vcf = str(tmpMod6_phase_merged / "{batch}" / "mod6_split_merged_phased.chr{chr}.vcf.gz")
+        vcf = str(tmpMod6_phase_merged / "{batch}" / "mod6_split_merged_samples.chr{chr}.vcf.gz")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -336,7 +336,7 @@ rule mod6_split_merged_variants:
         vcf = rules.mod6_split_merged_samples.output.vcf,
         conform = rules.mod6_conform.output.conformed_vcf
     output:
-        vcf = str(tmpMod6_phase_merged / "{batch}" / "mod6_split_merged_phased.chr{chr}.vcf")
+        vcf = str(tmpMod6_phase_merged / "{batch}" / "mod6_split_merged_variants.chr{chr}.vcf")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
