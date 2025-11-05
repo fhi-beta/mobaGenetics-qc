@@ -35,6 +35,14 @@ rule mod6_extend_count_tables:
             {input.bim_files}
         """
 
+def get_input_bim_file(wildcards):
+    if wildcards.batch[0:-2] in batches_to_split:
+        b = wildcards.batch[0:-2]
+    else:
+        b = wildcards.batch
+    return str(tmpMod5 / b / "mod5_output.bim")
+
+
 rule mod6_generate_chromosome_file:
     input:
         bim = rules.mod5_output.output.bedset[1]
