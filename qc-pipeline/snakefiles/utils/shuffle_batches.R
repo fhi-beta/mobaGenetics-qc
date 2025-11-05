@@ -6,11 +6,11 @@ library(stringr)
 library(knitr)
 
 
-debug <- F
+debug <- T
 
 if (debug) {
   
-  args <- c("/mnt/archive3/phasing_test/all_relations", "/mnt/archive3/phasing_test/new_batches", "/mnt/archive3/phasing_test/batch_shuffle.md")
+  args <- c("/mnt/archive3/phasing_test/all_relations", "/mnt/work/oystein/github/mobaGenetics-qc/qc-pipeline/snakefiles/parameters/batch_chip", "/mnt/archive3/phasing_test/new_batches", "/mnt/archive3/phasing_test/batch_shuffle.md")
   
 } else {
   args <- commandArgs(TRUE)
@@ -18,20 +18,26 @@ if (debug) {
 
 
 rel_file <- args[1]
-new_batches_trunk <- args[2]
-md_file <- args[3]
+chip_file <- args[2]
+new_batches_trunk <- args[3]
+md_file <- args[4]
 
 rel <- read.table(rel_file, header = T)
 rel$orig_batch <- rel$iid_batch
 rel$orig_parents_in_batch <- rel$parents_in_batch
 
+chip <- read.table(chip_file, header=T)
+
+rel <- rel %>% left_join(chip %>% select(iid_batch = batch, iid_chip = chip), by = "iid_batch") %>% left_join(chip %>% select(pat_batch = batch, pat_chip = chip), by = "pat_batch") %>% left_join(chip %>% select(mat_batch = batch, mat_chip = chip), by = "mat_batch")
 
 
 problem_children <- subset(rel, (pat != "0" | mat != "0") & parents_in_batch == 0)
 problem_children$move_from <- problem_children$iid_batch
-problem_children$move_to <- ifelse(!is.na(problem_children$mat_batch), 
-                                   problem_children$mat_batch, 
-                                   problem_children$pat_batch)
+problem_children$move_to <- ifelse(is.na(problem_children$mat_batch) | (!is.na(problem_children$pat_batch) & !is.na(problem_children$mat_batch) & !is.na(problem_children$iid_batch) & problem_children$iid_chip != problem_children$mat_chip & problem_children$iid_chip == problem_children$pat_chip), 
+                                   problem_children$pat_batch, 
+                                   problem_children$mat_batch)
+
+problem_children$same_chip <- 
 problem_children$moved <- 1
 
 updated_rel <- rel %>% left_join(problem_children %>% select(iid, move_from, move_to, moved), by = "iid") %>% mutate(iid_batch = ifelse(!is.na(move_to), move_to, iid_batch))
