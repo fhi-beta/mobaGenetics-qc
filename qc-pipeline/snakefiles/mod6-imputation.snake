@@ -45,7 +45,7 @@ def get_input_bim_file(wildcards):
 
 rule mod6_generate_chromosome_file:
     input:
-        bim = rules.mod5_output.output.bedset[1]
+        bim = get_input_bim_file
     output:
         chromosome_file = str(tmpMod6/"{batch}"/"chromosomes.txt")
     run:
