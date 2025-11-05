@@ -285,7 +285,7 @@ rule mod6_split_merged_phased:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        bcftools view {input.bcf} --samples-file {input.samples} | bcftools view -g ^miss | bcftools +fill-AN-AC -Ov -o {output.vcf} --write-index
+        bcftools view {input.bcf} --samples-file {input.samples} | bcftools view -g ^miss | bcftools +fill-AN-AC -Ov -o {output.vcf}
         """
         
 # rule mod6_impute_split_phased:
