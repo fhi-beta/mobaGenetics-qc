@@ -122,9 +122,10 @@ rule all:
         #str(tmpMod6_phasing_test / "mod6_phase_merged.chr21.phased.bcf")
         #expand(str(tmpMod6_phasing_test / "{batch}" / "mod6_split_merged_phased_no_filter.chr21.vcf"), batch = batches)
         # expand("/mnt/archive3/phasing_test/{batch}/mod6_impute.chr{chr}.imputed.vcf.gz", batch = batches, chr = ["20", "21"]),
-        expand(str(tmpMod6_phase_merged / "{batch}" / "mod7_filter.chr{chr}.vcf.gz"), batch = batches, chr = ["21"]),
-        expand(str(tmpMod6_phase_merged / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info"), batch = batches, chr = ["21"]),
-        expand(str(tmpMod6_phase_merged / "mod7_merge_batches_chr{chr}.bcf"), chr = ["21"])
+        # expand(str(tmpMod6_phase_merged / "{batch}" / "mod7_filter.chr{chr}.vcf.gz"), batch = batches, chr = ["21"]),
+        # expand(str(tmpMod6_phase_merged / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info"), batch = batches, chr = ["21"]),
+        # expand(str(tmpMod6_phase_merged / "mod7_merge_batches_chr{chr}.bcf"), chr = ["21"])
+        expans(str(tmpMod6_phasing_test / "mod6_make_split_samples_list.batch_{split_batch}"), split_batch = split_batches)
         #expand("/mnt/archive3/phasing_test/mod6_split_new_batches.batch{batch}.chr{chr}", batch = batches, chr = ["20", "21"])
         #expand(str(tmpMod8_2 / "phase_check" / "mod8_make_phasing_tables.common.chr{chr}"), chr = [str(i) for i in range(1,23)])
         #tmpMod8/"mod8_pedigree_ibd_estimate.kin0"

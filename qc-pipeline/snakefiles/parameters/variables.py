@@ -76,6 +76,14 @@ resultPath = base/'results'
 # - Batch 19 needs to be checked for overlap with other batches before being added. Gutorm notes that it probably does not need to be included.
 # batches_debug = ['snp001', 'snp002', 'snp003', 'snp007', 'snp008', 'snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018c', 'snp018de']
 batches =  config['batches']
+batches_to_split = config['batches_to_split']
+split_batches = []
+for batch in batches:
+    if batch in batches_to_split:
+        split_batches.append(f"{batch}_1")
+        split_batches.append(f"{batch}_2")
+    else:
+        split_batches.append(batch)
 chrs = config['chrs']
 # chrs_debug = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16']
 # chrs_debug = [str(i) for i in range(1, 23)]

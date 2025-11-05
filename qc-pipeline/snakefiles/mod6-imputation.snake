@@ -259,15 +259,42 @@ rule mod6_phase_merged:
         """
 
 
+
+def split_samples(input_file, output_file_base, batch):
+    with open(input_file) as f:
+        lines = f.readlines()
+    second_column = [line.split()[1] for line in lines]
+    if batch[0:-2] in batches_to_split:
+        half_point = len(second_column) // 2
+        if batch.endswith("_1"):
+            with open(f"{output_file_base}_1", "w") as f1:
+                f1.writelines("\n".join(second_column[:half_point]) + "\n")
+        else:
+            with open(f"{output_file_base}_2", "w") as f2:
+                f2.writelines("\n".join(second_column[half_point:]) + "\n")
+    else:
+        with open(output_file_base, "w") as f:
+            f.writelines("\n".join(second_column) + "\n")
+
 rule mod6_make_samples_list:
     input:
         fam = rules.mod5_output.output.bedset[2]
     output:
-        samples = str(tmpMod6_phasing_test / "mod6_make_samples_list.batch_{batch}")
-    shell:
-        """
-        cut -f2 {input.fam} > {output.samples}
-        """
+        samples = str(tmpMod6_phasing_test / "mod6_make_split_samples_list.batch_{split_batch}")
+    run:
+        split_samples(input.fam, output.samples, wildcards.split_batch)
+
+
+
+# rule mod6_make_samples_list:
+#     input:
+#         fam = rules.mod5_output.output.bedset[2]
+#     output:
+#         samples = str(tmpMod6_phasing_test / "mod6_make_samples_list.batch_{batch}")
+#     shell:
+#         """
+#         cut -f2 {input.fam} > {output.samples}
+#         """
 
 def get_samples_file(wildcards):
     return str(tmpMod6_phasing_test / f"mod6_make_samples_list.batch_{wildcards.batch}")
