@@ -364,6 +364,16 @@ tmpMod6str = str(tmpMod6)
 def get_shapeit_fam(wildcards):
     return f"{tmpMod6}/{wildcards.batch}/shapeit_fam.fam"
 
+rule mod6_generate_male_list:
+    input:
+        fam = rules.mod5_output.output.bedset[2]
+    output:
+        male_list = str(tmpMod6 / "{batch}" / "males.txt"),
+        blank_list = str(tmpMod6 / "{batch}" / "blank_list.txt")
+    run:
+        mqc.create_male_list(input.fam, output.male_list)
+        mqc.create_empty_files([output.blank_list])   
+
 rule mod6_phase:
     input:
         chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
