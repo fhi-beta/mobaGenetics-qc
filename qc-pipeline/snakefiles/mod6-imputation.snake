@@ -280,7 +280,7 @@ rule mod6_split_merged_phased:
         samples = get_samples_file,
         bcf = get_phased_bcf
     output:
-        vcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_split_merged_phased.chr{chr}.vcf")
+        vcf = str(tmpMod6_phase_merged / "{batch}" / "mod6_split_merged_phased.chr{chr}.vcf")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -288,198 +288,27 @@ rule mod6_split_merged_phased:
         bcftools view {input.bcf} --samples-file {input.samples} | bcftools view -g ^miss | bcftools +fill-AN-AC -Ov -o {output.vcf} --write-index
         """
         
-rule mod6_impute_split_phased:
-    input:
-        vcf = rules.mod6_split_merged_phased.out.vcf
-    output:
-        imputed_vcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_impute_split_phased.chr{chr}.imputed.vcf.gz")
-    params:
-        map_chr=get_map_chr,
-        beagle_chr=get_beagle_chr
-    threads: 32
-    log:
-        str(tmpMod6_phasing_test/"{batch}" / "mod6_impute_split_phased.chr{chr}.log")
-    shell:
-        """
-        reffile={hrc_bref}/HRC_GRCh37.chr{wildcards.chr}.bref3
-        mapfile={mapfiles}/plink.chr{params.map_chr}.GRCh37.map
-        output_full={output.imputed_vcf}
-        outTrunk="${{output_full%.vcf.gz}}"
-        java -Xmx{config[mem]} -jar {beagle} gt={input.vcf} ref=$reffile impute=true out=$outTrunk chrom={params.beagle_chr} nthreads={threads} ap=true map=$mapfile
-        """
-
-
-
-
-
-
-
-
-
-
-chrs = ["20, 21"]
-rule mod6_find_new_batches:
-    input:
-        relations_file = "/mnt/archive3/phasing_test/all_relations" # hook later
-    output:
-        md_file = "/mnt/archive3/phasing_test/batch_shuffle.md",
-        new_batches = expand("/mnt/archive3/phasing_test/new_batches.batch_{batch}", batch = batches)
-    params:
-        r_script = "utils/shuffle_batches.R"
-    conda:
-        "envs/r_4.2.yaml"
-    run:
-        out_trunk = mqc.plinkBase(output.new_batches[0])
-        shell(f"Rscript {params.r_script} {input.relations_file} {out_trunk} {output.md_file}")
-
-
-# def get_chr_shuffle_file(wildcards):
-#     return f"/mnt/archive3/phasing_test/new_batches.chr{wildcards.chr}"
-
-def get_merged_chr_file(wildcards):
-    return f"/mnt/archive3/phasing_test/mod6_merge_batches_chr{wildcards.chr}.bcf"
-
-def get_samples_file(wildcards):
-    return f"/mnt/archive3/phasing_test/new_batches.batch_{wildcards.batch}"
-
-rule mod6_split_new_batches:
-    input:
-        samples_file = get_samples_file,
-        merged_chr_file = rules.mod6_merge_batches.output.merged_bcf
-    output:
-        bcf = "/mnt/archive3/phasing_test/{batch}/mod6_split_new_batches.chr{chr}.bcf"
-    conda:
-        "envs/bcf_tabix.yaml"
-    run:
-        shell(f"bcftools view {input.merged_chr_file} --samples-file {input.samples_file} -o {output.bcf} --write-index")
-        # shell(f"bcftools +split {input.merged_chr_file} -o {output_folder} --samples-file {input.new_batches}")
-    
-
-# Note the fixploidy plugin: male haploid chr X samples must be recoded as diploid homozygotes before phasing due to a bug in shapeit
-rule mod6_fill_ac:
-    input:
-        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
-        bcf = rules.mod6_split_new_batches.output.bcf, #rules.mod6_conform.output.conformed_vcf,
-        index = rules.mod6_index_conform.output.index
-    output:
-        bcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_fill_ac.chr{chr}.bcf")
-    conda:
-        "envs/bcf_tabix.yaml"
-    shell:
-        """
-        mapfile -t chromosomes < {input.chromosome_file}
-        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
-            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_fill_ac"
-            touch {output.bcf}
-        else
-            bcftools +fill-AN-AC {input.bcf} | bcftools +fixploidy -o {output.bcf} --write-index
-        fi
-        """
-
-
-
-# rule mod6_index_fill_ac:
+# rule mod6_impute_split_phased:
 #     input:
-#         chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
-#         bcf = rules.mod6_fill_ac.output.bcf
+#         vcf = rules.mod6_split_merged_phased.out.vcf
 #     output:
-#         index = str(tmpMod6 / "{batch}" / "mod6_fill_ac.chr{chr}.bcf.gz.csi")
-#     conda:
-#         "envs/bcf_tabix.yaml"
+#         imputed_vcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_impute_split_phased.chr{chr}.imputed.vcf.gz")
+#     params:
+#         map_chr=get_map_chr,
+#         beagle_chr=get_beagle_chr
+#     threads: 32
+#     log:
+#         str(tmpMod6_phasing_test/"{batch}" / "mod6_impute_split_phased.chr{chr}.log")
 #     shell:
 #         """
-#         mapfile -t chromosomes < {input.chromosome_file}
-#         if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
-#             echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_index_fill_ac"
-#             touch {output.index}
-#         else
-#             tabix -p bcf {input.bcf}
-#         fi
+#         reffile={hrc_bref}/HRC_GRCh37.chr{wildcards.chr}.bref3
+#         mapfile={mapfiles}/plink.chr{params.map_chr}.GRCh37.map
+#         output_full={output.imputed_vcf}
+#         outTrunk="${{output_full%.vcf.gz}}"
+#         java -Xmx{config[mem]} -jar {beagle} gt={input.vcf} ref=$reffile impute=true out=$outTrunk chrom={params.beagle_chr} nthreads={threads} ap=true map=$mapfile
 #         """
 
 
-
-
-# rule mod6_generate_shapeit_family_files:
-#     input:
-#         fam = rules.mod5_output.output.bedset[2]
-#     output:
-#         shapeit_fam = str(tmpMod6 / "{batch}" / "shapeit_fam.fam")
-#     run:
-#         mqc.filter_fam_table_for_shapeit(input.fam, output.shapeit_fam)
-
-
-
-
-tmpMod6str = str(tmpMod6)
-def get_shapeit_fam(wildcards):
-    return f"{tmpMod6}/{wildcards.batch}/shapeit_fam.fam"
-
-rule mod6_generate_male_list:
-    input:
-        fam = rules.mod5_output.output.bedset[2]
-    output:
-        male_list = str(tmpMod6 / "{batch}" / "males.txt"),
-        blank_list = str(tmpMod6 / "{batch}" / "blank_list.txt")
-    run:
-        mqc.create_male_list(input.fam, output.male_list)
-        mqc.create_empty_files([output.blank_list])   
-
-rule mod6_phase:
-    input:
-        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
-        shapeit_fam = "/mnt/archive3/phasing_test/shapeit_fam",
-        bcf = rules.mod6_fill_ac.output.bcf,
-        male_list = rules.mod6_generate_male_list.output.male_list,
-        blank_list = rules.mod6_generate_male_list.output.blank_list
-    output:
-        phased_bcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_phase.chr{chr}.phased.bcf"),
-        shapeit_log = str(tmpMod6_phasing_test / "{batch}" / "mod6_phase.chr{chr}.phased.log")
-    params:
-        map_chr=get_map_chr,
-        ref_chr=get_reference_chr,
-        region_chr=get_beagle_chr
-    conda:
-        "envs/shapeit_5.yaml"
-    threads: 1
-    shell:
-        """
-        mapfile -t chromosomes < {input.chromosome_file}
-        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
-            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_phase"
-            touch {output.phased_bcf}
-            touch {output.shapeit_log}
-        else
-            if [[ "{wildcards.chr}" == "X" ]]; then
-                haploid_file={input.male_list}
-            else
-                haploid_file={input.blank_list}
-            fi
-            reffile=$(echo {hrc_vcf}/HRC.r1-1.EGA.GRCh37.chr{params.ref_chr}.haplotypes*.vcf.gz)
-            mapfile={mapfiles}/shapeit/chr{params.map_chr}.b37.gmap.gz
-            SHAPEIT5_phase_common --input {input.bcf} --pedigree {input.shapeit_fam} --region {params.region_chr} --haploids $haploid_file --reference $reffile --map $mapfile --output {output.phased_bcf} --output-format bcf --log {output.shapeit_log} --thread {threads}
-        fi
-        """
-
-
-rule mod6_convert_to_vcf:
-    input:
-        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
-        bcf = rules.mod6_phase.output.phased_bcf
-    output:
-        vcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_phase.chr{chr}.phased.vcf")
-    conda:
-        "envs/bcf_tabix.yaml"
-    shell:
-        """
-        mapfile -t chromosomes < {input.chromosome_file}
-        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
-            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_convert_to_vcf"
-            touch {output.vcf}
-        else
-            bcftools convert -Ov -o {output.vcf} {input.bcf}
-        fi
-        """
 
 rule mod6_generate_bcftools_sex_files:
     input:
@@ -492,10 +321,10 @@ rule mod6_generate_bcftools_sex_files:
 # convert male X variants back to haploid before imputation
 rule mod6_reset_male_x_ploidy:
     input:
-        vcf = rules.mod6_convert_to_vcf.output.vcf,
+        vcf = rules.mod6_split_merged_phased.output.vcf,
         sex_list = rules.mod6_generate_bcftools_sex_files.output.sex_list
     output:
-        vcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_reset_male_x_ploidy.chr{chr}.vcf")
+        vcf = str(tmpMod6_phase_merged / "{batch}" / "mod6_reset_male_x_ploidy.chr{chr}.vcf")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -513,7 +342,7 @@ rule mod6_impute:
         chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         vcf = rules.mod6_reset_male_x_ploidy.output.vcf #rules.mod6_conform.output.conformed_vcf
     output:
-        imputed_vcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz")
+        imputed_vcf = str(tmpMod6_phase_merged / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz")
     params:
         map_chr=get_map_chr,
         beagle_chr=get_beagle_chr
@@ -543,7 +372,7 @@ rule mod6_index:
         chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         imputed_vcf = rules.mod6_impute.output.imputed_vcf
     output:
-        index = str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.tbi")
+        index = str(tmpMod6_phase_merged / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.tbi")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -566,7 +395,7 @@ rule mod6_query:
         index = rules.mod6_index.output.index,
         imputed_vcf = rules.mod6_impute.output.imputed_vcf
     output:
-        info = str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info")
+        info = str(tmpMod6_phase_merged / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -580,5 +409,276 @@ rule mod6_query:
             bcftools query -f '%CHROM %POS %ID %IMP %REF %ALT %DR2 %AF\n' {input.imputed_vcf} -o {output.info}
         fi 
         """
+
+
+
+
+
+
+
+
+# chrs = ["20, 21"]
+# rule mod6_find_new_batches:
+#     input:
+#         relations_file = "/mnt/archive3/phasing_test/all_relations" # hook later
+#     output:
+#         md_file = "/mnt/archive3/phasing_test/batch_shuffle.md",
+#         new_batches = expand("/mnt/archive3/phasing_test/new_batches.batch_{batch}", batch = batches)
+#     params:
+#         r_script = "utils/shuffle_batches.R"
+#     conda:
+#         "envs/r_4.2.yaml"
+#     run:
+#         out_trunk = mqc.plinkBase(output.new_batches[0])
+#         shell(f"Rscript {params.r_script} {input.relations_file} {out_trunk} {output.md_file}")
+
+
+# # def get_chr_shuffle_file(wildcards):
+# #     return f"/mnt/archive3/phasing_test/new_batches.chr{wildcards.chr}"
+
+# def get_merged_chr_file(wildcards):
+#     return f"/mnt/archive3/phasing_test/mod6_merge_batches_chr{wildcards.chr}.bcf"
+
+# def get_samples_file(wildcards):
+#     return f"/mnt/archive3/phasing_test/new_batches.batch_{wildcards.batch}"
+
+# rule mod6_split_new_batches:
+#     input:
+#         samples_file = get_samples_file,
+#         merged_chr_file = rules.mod6_merge_batches.output.merged_bcf
+#     output:
+#         bcf = "/mnt/archive3/phasing_test/{batch}/mod6_split_new_batches.chr{chr}.bcf"
+#     conda:
+#         "envs/bcf_tabix.yaml"
+#     run:
+#         shell(f"bcftools view {input.merged_chr_file} --samples-file {input.samples_file} -o {output.bcf} --write-index")
+#         # shell(f"bcftools +split {input.merged_chr_file} -o {output_folder} --samples-file {input.new_batches}")
+    
+
+# # Note the fixploidy plugin: male haploid chr X samples must be recoded as diploid homozygotes before phasing due to a bug in shapeit
+# rule mod6_fill_ac:
+#     input:
+#         chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
+#         bcf = rules.mod6_split_new_batches.output.bcf, #rules.mod6_conform.output.conformed_vcf,
+#         index = rules.mod6_index_conform.output.index
+#     output:
+#         bcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_fill_ac.chr{chr}.bcf")
+#     conda:
+#         "envs/bcf_tabix.yaml"
+#     shell:
+#         """
+#         mapfile -t chromosomes < {input.chromosome_file}
+#         if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+#             echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_fill_ac"
+#             touch {output.bcf}
+#         else
+#             bcftools +fill-AN-AC {input.bcf} | bcftools +fixploidy -o {output.bcf} --write-index
+#         fi
+#         """
+
+
+
+# # rule mod6_index_fill_ac:
+# #     input:
+# #         chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
+# #         bcf = rules.mod6_fill_ac.output.bcf
+# #     output:
+# #         index = str(tmpMod6 / "{batch}" / "mod6_fill_ac.chr{chr}.bcf.gz.csi")
+# #     conda:
+# #         "envs/bcf_tabix.yaml"
+# #     shell:
+# #         """
+# #         mapfile -t chromosomes < {input.chromosome_file}
+# #         if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+# #             echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_index_fill_ac"
+# #             touch {output.index}
+# #         else
+# #             tabix -p bcf {input.bcf}
+# #         fi
+# #         """
+
+
+
+
+# # rule mod6_generate_shapeit_family_files:
+# #     input:
+# #         fam = rules.mod5_output.output.bedset[2]
+# #     output:
+# #         shapeit_fam = str(tmpMod6 / "{batch}" / "shapeit_fam.fam")
+# #     run:
+# #         mqc.filter_fam_table_for_shapeit(input.fam, output.shapeit_fam)
+
+
+
+
+# tmpMod6str = str(tmpMod6)
+# def get_shapeit_fam(wildcards):
+#     return f"{tmpMod6}/{wildcards.batch}/shapeit_fam.fam"
+
+# rule mod6_generate_male_list:
+#     input:
+#         fam = rules.mod5_output.output.bedset[2]
+#     output:
+#         male_list = str(tmpMod6 / "{batch}" / "males.txt"),
+#         blank_list = str(tmpMod6 / "{batch}" / "blank_list.txt")
+#     run:
+#         mqc.create_male_list(input.fam, output.male_list)
+#         mqc.create_empty_files([output.blank_list])   
+
+# rule mod6_phase:
+#     input:
+#         chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
+#         shapeit_fam = "/mnt/archive3/phasing_test/shapeit_fam",
+#         bcf = rules.mod6_fill_ac.output.bcf,
+#         male_list = rules.mod6_generate_male_list.output.male_list,
+#         blank_list = rules.mod6_generate_male_list.output.blank_list
+#     output:
+#         phased_bcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_phase.chr{chr}.phased.bcf"),
+#         shapeit_log = str(tmpMod6_phasing_test / "{batch}" / "mod6_phase.chr{chr}.phased.log")
+#     params:
+#         map_chr=get_map_chr,
+#         ref_chr=get_reference_chr,
+#         region_chr=get_beagle_chr
+#     conda:
+#         "envs/shapeit_5.yaml"
+#     threads: 1
+#     shell:
+#         """
+#         mapfile -t chromosomes < {input.chromosome_file}
+#         if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+#             echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_phase"
+#             touch {output.phased_bcf}
+#             touch {output.shapeit_log}
+#         else
+#             if [[ "{wildcards.chr}" == "X" ]]; then
+#                 haploid_file={input.male_list}
+#             else
+#                 haploid_file={input.blank_list}
+#             fi
+#             reffile=$(echo {hrc_vcf}/HRC.r1-1.EGA.GRCh37.chr{params.ref_chr}.haplotypes*.vcf.gz)
+#             mapfile={mapfiles}/shapeit/chr{params.map_chr}.b37.gmap.gz
+#             SHAPEIT5_phase_common --input {input.bcf} --pedigree {input.shapeit_fam} --region {params.region_chr} --haploids $haploid_file --reference $reffile --map $mapfile --output {output.phased_bcf} --output-format bcf --log {output.shapeit_log} --thread {threads}
+#         fi
+#         """
+
+
+# rule mod6_convert_to_vcf:
+#     input:
+#         chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
+#         bcf = rules.mod6_phase.output.phased_bcf
+#     output:
+#         vcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_phase.chr{chr}.phased.vcf")
+#     conda:
+#         "envs/bcf_tabix.yaml"
+#     shell:
+#         """
+#         mapfile -t chromosomes < {input.chromosome_file}
+#         if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+#             echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_convert_to_vcf"
+#             touch {output.vcf}
+#         else
+#             bcftools convert -Ov -o {output.vcf} {input.bcf}
+#         fi
+#         """
+
+# rule mod6_generate_bcftools_sex_files:
+#     input:
+#         fam = rules.mod5_output.output.bedset[2]
+#     output:
+#         sex_list = str(tmpMod6_phasing_test / "{batch}" / "sex_list.txt")
+#     run:
+#         mqc.create_sex_list_for_bcftools(input.fam, output.sex_list) 
+
+# # convert male X variants back to haploid before imputation
+# rule mod6_reset_male_x_ploidy:
+#     input:
+#         vcf = rules.mod6_convert_to_vcf.output.vcf,
+#         sex_list = rules.mod6_generate_bcftools_sex_files.output.sex_list
+#     output:
+#         vcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_reset_male_x_ploidy.chr{chr}.vcf")
+#     conda:
+#         "envs/bcf_tabix.yaml"
+#     shell:
+#         """
+#         if [[ {wildcards.chr} == "X" ]]; then
+#             bcftools +fixploidy {input.vcf} -o {output.vcf} -- -p {haploid_x_file} -s {input.sex_list}
+#         else
+#             cp {input.vcf} {output.vcf}
+#         fi
+#         """
+
+# rule_stem = "mod6_impute"
+# rule mod6_impute:
+#     input:
+#         chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
+#         vcf = rules.mod6_reset_male_x_ploidy.output.vcf #rules.mod6_conform.output.conformed_vcf
+#     output:
+#         imputed_vcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz")
+#     params:
+#         map_chr=get_map_chr,
+#         beagle_chr=get_beagle_chr
+#     threads: 32
+#     log:
+#         str(tmpMod6_phasing_test/"{batch}" / "mod6_impute_log_chr{chr}.log")
+#     shell:
+#         """
+#         mapfile -t chromosomes < {input.chromosome_file}
+        
+#         if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+#             echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_impute"
+#             touch {output.imputed_vcf}
+        
+#         else
+#             reffile={hrc_bref}/HRC_GRCh37.chr{wildcards.chr}.bref3
+#             mapfile={mapfiles}/plink.chr{params.map_chr}.GRCh37.map
+#             output_full={output.imputed_vcf}
+#             outTrunk="${{output_full%.vcf.gz}}"
+#             java -Xmx{config[mem]} -jar {beagle} gt={input.vcf} ref=$reffile impute=true out=$outTrunk window-markers={config[beagle_window_markers]} chrom={params.beagle_chr} nthreads={threads} ap=true map=$mapfile
+#         fi 
+#         """
+
+    
+# rule mod6_index:
+#     input:
+#         chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
+#         imputed_vcf = rules.mod6_impute.output.imputed_vcf
+#     output:
+#         index = str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.tbi")
+#     conda:
+#         "envs/bcf_tabix.yaml"
+#     shell:
+#         """
+#         mapfile -t chromosomes < {input.chromosome_file}
+        
+#         if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+#             echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_index"
+#             touch {output.index}
+        
+#         else
+#             tabix -p vcf {input.imputed_vcf}
+#         fi 
+        
+#         """
+
+# rule mod6_query:
+#     input:
+#         chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
+#         index = rules.mod6_index.output.index,
+#         imputed_vcf = rules.mod6_impute.output.imputed_vcf
+#     output:
+#         info = str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info")
+#     conda:
+#         "envs/bcf_tabix.yaml"
+#     shell:
+#         """
+#         mapfile -t chromosomes < {input.chromosome_file}
+#         if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+#             echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_query"
+#             touch {output.info}
+        
+#         else
+#             bcftools query -f '%CHROM %POS %ID %IMP %REF %ALT %DR2 %AF\n' {input.imputed_vcf} -o {output.info}
+#         fi 
+#         """
 
     

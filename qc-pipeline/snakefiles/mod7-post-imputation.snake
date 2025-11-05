@@ -4,7 +4,7 @@ rule mod7_filter:
         imputed_vcf = rules.mod6_impute.output.imputed_vcf,
         index = rules.mod6_index.output.index
     output:
-        filtered_vcf = str(tmpMod6_phasing_test / "{batch}" / "mod7_filter.chr{chr}.vcf.gz")
+        filtered_vcf = str(tmpMod6_phase_merged / "{batch}" / "mod7_filter.chr{chr}.vcf.gz")
     conda:
         "envs/bcf_tabix.yaml"
     params:
@@ -86,7 +86,7 @@ def get_batches_with_chromosome(chr):
     return batches_with_chromosome
 
 def get_vcf_batch_files_to_merge(wildcards):
-    return [f"{tmpMod6_phasing_test}/{batch}/mod7_filter.chr{wildcards.chr}.vcf.gz" for batch in batches]
+    return [f"{tmpMod6_phase_merged}/{batch}/mod7_filter.chr{wildcards.chr}.vcf.gz" for batch in batches]
 
     # REVERT THIS!
     # batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
@@ -102,10 +102,10 @@ rule mod7_merge_batches:
         vcfs = get_vcf_batch_files_to_merge,
         # index = get_index_batch_files_to_merge # REVERT THIS!
     output:
-        merged_vcf = str(tmpMod6_phasing_test / "mod7_merge_batches_chr{chr}.bcf")
+        merged_vcf = str(tmpMod6_phase_merged / "mod7_merge_batches_chr{chr}.bcf")
     log:
         # str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches.log")
-        str(tmpMod6_phasing_test  / "mod7_merge_batches_chr{chr}.log")
+        str(tmpMod6_phase_merged  / "mod7_merge_batches_chr{chr}.log")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
