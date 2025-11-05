@@ -235,6 +235,8 @@ def get_map_chr(wildcards):
     else:
         return wildcards.chr
 
+        
+
 rule mod6_phase_merged:
     input:
         shapeit_fam = "/mnt/archive3/phasing_test/shapeit_fam",
@@ -278,14 +280,40 @@ rule mod6_split_merged_phased:
         samples = get_samples_file,
         bcf = get_phased_bcf
     output:
-        bcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_split_merged_phased.chr{chr}.bcf")
+        vcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_split_merged_phased.chr{chr}.vcf")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        bcftools view {input.bcf} --samples-file {input.samples} | bcftools view -g ^miss | bcftools +fill-AN-AC -Ob -o {output.bcf} --write-index
+        bcftools view {input.bcf} --samples-file {input.samples} | bcftools view -g ^miss | bcftools +fill-AN-AC -Ov -o {output.vcf} --write-index
         """
         
+rule mod6_impute_split_phased:
+    input:
+        vcf = rules.mod6_split_merged_phased.out.vcf
+    output:
+        imputed_vcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_impute_split_phased.chr{chr}.imputed.vcf.gz")
+    params:
+        map_chr=get_map_chr,
+        beagle_chr=get_beagle_chr
+    threads: 32
+    log:
+        str(tmpMod6_phasing_test/"{batch}" / "mod6_impute_split_phased.chr{chr}.log")
+    shell:
+        """
+        reffile={hrc_bref}/HRC_GRCh37.chr{wildcards.chr}.bref3
+        mapfile={mapfiles}/plink.chr{params.map_chr}.GRCh37.map
+        output_full={output.imputed_vcf}
+        outTrunk="${{output_full%.vcf.gz}}"
+        java -Xmx{config[mem]} -jar {beagle} gt={input.vcf} ref=$reffile impute=true out=$outTrunk chrom={params.beagle_chr} nthreads={threads} ap=true map=$mapfile
+        """
+
+
+
+
+
+
+
 
 
 
@@ -370,13 +398,7 @@ rule mod6_fill_ac:
 #         """
 
 
-def get_map_chr(wildcards):
-    if wildcards.chr == "PAR1":
-        return "X_par1"
-    elif wildcards.chr == "PAR2":
-        return "X_par2"
-    else:
-        return wildcards.chr
+
 
 # rule mod6_generate_shapeit_family_files:
 #     input:
