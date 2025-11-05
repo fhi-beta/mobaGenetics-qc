@@ -321,42 +321,6 @@ rule mod6_fill_ac:
 
 
 
-rule mod6_phase:
-    input:
-        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
-        shapeit_fam = "/mnt/archive3/phasing_test/shapeit_fam",
-        bcf = rules.mod6_fill_ac.output.bcf,
-        male_list = rules.mod6_generate_male_list.output.male_list,
-        blank_list = rules.mod6_generate_male_list.output.blank_list
-    output:
-        phased_bcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_phase.chr{chr}.phased.bcf"),
-        shapeit_log = str(tmpMod6_phasing_test / "{batch}" / "mod6_phase.chr{chr}.phased.log")
-    params:
-        map_chr=get_map_chr,
-        ref_chr=get_reference_chr,
-        region_chr=get_beagle_chr
-    conda:
-        "envs/shapeit_5.yaml"
-    threads: 1
-    shell:
-        """
-        mapfile -t chromosomes < {input.chromosome_file}
-        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
-            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_phase"
-            touch {output.phased_bcf}
-            touch {output.shapeit_log}
-        else
-            if [[ "{wildcards.chr}" == "X" ]]; then
-                haploid_file={input.male_list}
-            else
-                haploid_file={input.blank_list}
-            fi
-            reffile=$(echo {hrc_vcf}/HRC.r1-1.EGA.GRCh37.chr{params.ref_chr}.haplotypes*.vcf.gz)
-            mapfile={mapfiles}/shapeit/chr{params.map_chr}.b37.gmap.gz
-            SHAPEIT5_phase_common --input {input.bcf} --pedigree {input.shapeit_fam} --region {params.region_chr} --haploids $haploid_file --reference $reffile --map $mapfile --output {output.phased_bcf} --output-format bcf --log {output.shapeit_log} --thread {threads}
-        fi
-
-
 # rule mod6_index_fill_ac:
 #     input:
 #         chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
@@ -393,15 +357,7 @@ def get_map_chr(wildcards):
 #     run:
 #         mqc.filter_fam_table_for_shapeit(input.fam, output.shapeit_fam)
 
-rule mod6_generate_male_list:
-    input:
-        fam = rules.mod5_output.output.bedset[2]
-    output:
-        male_list = str(tmpMod6_phasing_test / "{batch}" / "males.txt"),
-        blank_list = str(tmpMod6_phasing_test / "{batch}" / "blank_list.txt")
-    run:
-        mqc.create_male_list(input.fam, output.male_list)
-        mqc.create_empty_files([output.blank_list])   
+
 
 
 tmpMod6str = str(tmpMod6)
