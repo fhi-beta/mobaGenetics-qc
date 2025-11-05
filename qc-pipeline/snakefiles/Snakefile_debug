@@ -120,7 +120,7 @@ rule all:
         #"/mnt/archive3/phasing_test/mod6_merge_batches_chr20.bcf",
         #"/mnt/archive3/phasing_test/mod6_merge_batches_chr21.bcf"
         #str(tmpMod6_phasing_test / "mod6_phase_merged.chr21.phased.bcf")
-        str(tmpMod6_phasing_test / {batch} / "mod6_split_merged_phased.chr{chr}.bcf")
+        expand(str(tmpMod6_phasing_test / "{batch}" / "mod6_split_merged_phased.chr21.bcf"), batch = batches)
         # expand("/mnt/archive3/phasing_test/{batch}/mod6_impute.chr{chr}.imputed.vcf.gz", batch = batches, chr = ["20", "21"]),
         # expand(str(tmpMod6_phasing_test / "{batch}" / "mod7_filter.chr{chr}.vcf.gz"), batch = batches, chr = ["20", "21"]),
         # expand(str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info"), batch = batches, chr = ["20", "21"]),
