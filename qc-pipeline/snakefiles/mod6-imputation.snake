@@ -260,20 +260,20 @@ rule mod6_phase_merged:
 
 
 
-def split_samples(input_file, output_file_base, batch):
+def split_samples(input_file, output_file, batch):
     with open(input_file) as f:
         lines = f.readlines()
     second_column = [line.split()[1] for line in lines]
     if batch[0:-2] in batches_to_split:
         half_point = len(second_column) // 2
         if batch.endswith("_1"):
-            with open(f"{output_file_base}_1", "w") as f1:
+            with open(output_file, "w") as f1:
                 f1.writelines("\n".join(second_column[:half_point]) + "\n")
         else:
-            with open(f"{output_file_base}_2", "w") as f2:
+            with open(output_file, "w") as f2:
                 f2.writelines("\n".join(second_column[half_point:]) + "\n")
     else:
-        with open(output_file_base, "w") as f:
+        with open(output_file, "w") as f:
             f.writelines("\n".join(second_column) + "\n")
 
 def get_input_fam_file(wildcards):
