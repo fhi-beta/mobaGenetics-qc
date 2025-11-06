@@ -118,6 +118,21 @@ rule mod7_merge_batches:
         for file in {input.vcfs}; do echo "$file" >> {log}; done
         """
 
+rule mod7_phase_check:
+    input:
+        bcf = rules.mod7_merge_batches.output.merged_vcf
+    output:
+        phase_check = str(tmpMod6_phase_merged  / "mod7_phase_check.chr{chr}")
+    conda:
+        "envs/pysam.yaml"
+    params:
+        phase_script = "utils/phasing_check.py",
+        trios = "/mnt/archive3/phasing_test/trios"
+    shell:
+        """
+        python {params.phase_script} --trios archive3/phasing_test/trios --bcf {input.bcf} --output {output.phase_check} --optimize
+        """
+
 # Plink2 does not support phased dosages for multiallelic variants yet, so they are removed for now
 rule mod7_remove_multiallelic_variants:
     input:
