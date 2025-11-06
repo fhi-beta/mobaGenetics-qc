@@ -130,7 +130,7 @@ rule mod7_phase_check:
         trios = "/mnt/archive3/phasing_test/trios"
     shell:
         """
-        python {params.phase_script} --trios archive3/phasing_test/trios --bcf {input.bcf} --output {output.phase_check} --optimize
+        python {params.phase_script} --trios {params.trios} --bcf {input.bcf} --output {output.phase_check} --optimize
         """
 
 # Plink2 does not support phased dosages for multiallelic variants yet, so they are removed for now
