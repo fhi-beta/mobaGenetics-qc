@@ -160,7 +160,8 @@ rule mod7_index_merge:
 
 rule mod7_phase_check:
     input:
-        bcf = rules.mod7_merge_batches.output.merged_vcf
+        bcf = rules.mod7_merge_batches.output.merged_vcf,
+        index = rules.mod7_index_merge.output.index
     output:
         phase_check = str(tmpMod6_phase_merged  / "dr2_08" / "mod7_phase_check.chr{chr}")
     conda:
