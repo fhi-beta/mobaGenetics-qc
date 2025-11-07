@@ -379,7 +379,7 @@ rule mod6_find_new_batches:
 
 def get_samples_file(wildcards):
     # return str(tmpMod6_phasing_test / f"mod6_make_split_samples_list.batch_{wildcards.batch}")
-    return str(tmpMod6_phasing_test/"new_batches.batch_{wildcards.batch}")
+    return str(tmpMod6_phasing_test/ f"new_batches.batch_{wildcards.batch}")
 
 def get_phased_bcf(wildcards):
     return str(tmpMod6_phasing_test / f"mod6_phase_merged.chr{wildcards.chr}.phased.bcf"),
