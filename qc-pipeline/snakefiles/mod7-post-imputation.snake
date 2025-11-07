@@ -147,7 +147,7 @@ rule mod7_index_merge:
     input:
         bcf = rules.mod7_merge_batches.output.merged_vcf
     output:
-        index = str(tmpMod6_phase_merged / "dr2_08" /"mod7_merge_batches_chr{chr}.bcf.tbi")
+        index = str(tmpMod6_phase_merged / "dr2_08" /"mod7_merge_batches_chr{chr}.bcf.csi")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
