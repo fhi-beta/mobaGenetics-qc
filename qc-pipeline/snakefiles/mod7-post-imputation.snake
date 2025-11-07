@@ -159,7 +159,7 @@ rule mod7_phase_check:
     input:
         bcf = rules.mod7_merge_batches.output.merged_vcf,
         index = rules.mod7_index_merge.output.index,
-        relations_file = rules.mod6_
+        relations_file = rules.mod6_make_relationships_tables.output.all_relations
     output:
         phase_check = str(tmpMod6_phasing_test / "mod7_phase_check.chr{chr}")
     conda:
