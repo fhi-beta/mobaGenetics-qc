@@ -83,7 +83,6 @@ def main(args):
             pos = record.pos
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             print(f"Time: {current_time} Count: {counter} Chrom: {chrom}, Pos: {pos}, ID: {id}")
-            break # debug
         counter+=1
         if optimize:
             for f in trios:
