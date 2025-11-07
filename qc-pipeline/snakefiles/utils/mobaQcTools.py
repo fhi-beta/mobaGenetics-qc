@@ -1628,6 +1628,8 @@ def filter_fam_table_for_shapeit(input_file_path, output_file_path):
     filtered_df = selected_columns_df[(selected_columns_df.iloc[:, 1] != "0") | (selected_columns_df.iloc[:, 2] != "0")]
     filtered_df.replace("0", 'NA', inplace=True)
     filtered_df.to_csv(output_file_path, header=False, sep="\t", index=False)
+
+
     
 def make_duplicates_table(psam_file, batches_file, ids_file, miss_file, output_duplicates, output_trios, output_all):
     """

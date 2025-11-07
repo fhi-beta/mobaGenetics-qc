@@ -1,20 +1,42 @@
-debug <- F
+debug <- T
 
 if (debug){
     args <- c(
-        "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_make_phasing_tables.best", 
-        "/mnt/work/oystein/tmp/phasing_test/report.md",
-        "Phasing report debug")
+        "/mnt/archive3/phasing_test/phase_merged/mod7_phase_check.chr21", 
+        "/mnt/archive3/phasing_test/phase_merged/phase_report_unfiltered/phase_report.unfiltered.chr21.md",
+        "Phasing report, merged phasing, imputed by original batch",
+        "phasing_hom",
+        "Phasing error rates",
+        "21")
 } else {
     args <- commandArgs(TRUE)
 }
 
-input_files <- sapply(1:22, function(i) paste0(args[1],".chr", i))
+
+chr_input <- args[6]
+
+if(chr_input != "0"){
+    single_file <- TRUE
+    chr <- chr_input
+} else{
+    single_file <- FALSE
+}
+
+
+if(single_file){
+    input_file <- args[1]
+} else{
+    input_files <- sapply(1:22, function(i) paste0(args[1],".chr", i))
+}
+
 
 md_file <- args[2]
+
 title <- args[3]
+rate <- c(args[4], args[5])
 docs_folder <- dirname(md_file)
 plots_folder <- paste0(docs_folder, "/phasing_plots/")
+
 
 
 if(!dir.exists(docs_folder)){
@@ -30,12 +52,6 @@ write(
   x = paste("#", title),
   file = md_file,
   append = F
-)
-
-
-rates <- list(
-  c("phasing_hom", "Phasing error rates"),
-  c("mendel", "Mendelian error rates")
 )
 
 plot_density <- function(numbers, title, xlab, absolute_filepath, relative_filepath) {
@@ -59,7 +75,12 @@ plot_density <- function(numbers, title, xlab, absolute_filepath, relative_filep
     )
 }
 
+if (single_file){
+    chromosome_table <- read.table(input_file, header = TRUE)
+} else{
 chromosome_tables <- lapply(input_files, function(file) read.table(file, header = TRUE))
+}
+
 
 write_rates_table_row <- function(p, rates){
     rates <- na.omit(rates)
@@ -79,16 +100,15 @@ write_combined_rates_table_row <- function(p, trios, sites, errors){
     )
 }
 
-for (rate in rates){
 
+# write(
+#     x = paste0("## ", rate[2], " per chromosome and number of parents in same batch as child"),
+#     file = md_file,
+#     append = T
+# )
+
+write_chromosome_table <- function(tab, rate, chr){
     write(
-        x = paste0("## ", rate[2], " per chromosome and number of parents in same batch as child"),
-        file = md_file,
-        append = T
-    )
-    for (chr in 1:22) {
-        tab <- chromosome_tables[[chr]]
-        write(
             x = paste0("### ", rate[2], ", chromosome ", chr),
             file = md_file,
             append = T
@@ -155,4 +175,14 @@ for (rate in rates){
 
         }
     }
+
+if(single_file){
+    write_chromosome_table(chromosome_table, rate, chr)
+} else{
+for (chr in 1:22) {
+    tab <- chromosome_tables[[chr]]
+    write_chromosome_table(tab, rate, chr)
 }
+}
+
+

@@ -68,9 +68,9 @@ def main(args):
     with open(trios_file) as f:
         next(f)
         for line in f:
-            child, father, mother, iid_batch, pat_batch, mat_batch, reg_id, role, parents_in_batch, call_rate = line.strip().split()
+            child, father, mother, iid_batch, pat_batch, mat_batch, iid_chip, pat_chip, mat_chip, iid_reg, pat_reg, mat_reg, parents_in_batch, shared_chips = line.strip().split()
             if child != "NA" and father != "NA" and mother != "NA":
-                trios.append({'child':child, 'father': father, 'mother': mother, "reg_id": reg_id, "parents_in_batch":parents_in_batch, "call_rate": call_rate, "e_phasing":0, "n_phasing":0, "e_phasing_hom":0, "n_phasing_hom":0, "e_child_missing":0, "e_father_missing":0, "e_mother_missing":0, "n_missing":0, "e_mendel":0, "n_mendel":0})
+                trios.append({'child':child, 'father': father, 'mother': mother, "reg_id": reg_id, "parents_in_batch":parents_in_batch, "shared_chips": shared_chips, "e_phasing":0, "n_phasing":0, "e_phasing_hom":0, "n_phasing_hom":0, "e_child_missing":0, "e_father_missing":0, "e_mother_missing":0, "n_missing":0, "e_mendel":0, "n_mendel":0})
 
     vcf_in = pysam.VariantFile(bcf_file)
     counter = 0
@@ -83,6 +83,7 @@ def main(args):
             pos = record.pos
             current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             print(f"Time: {current_time} Count: {counter} Chrom: {chrom}, Pos: {pos}, ID: {id}")
+            break # debug
         counter+=1
         if optimize:
             for f in trios:
@@ -93,9 +94,9 @@ def main(args):
 
     with open(output, 'w') as output_file:
         if optimize:
-            output_line = "iid\tpat\tmat\treg_id\tparents_in_batch\te_phasing_hom\tn_phasing_hom\tr_phasing_hom\n"
+            output_line = "iid\tpat\tmat\treg_id\tparents_in_batch\tshared_chips\te_phasing_hom\tn_phasing_hom\tr_phasing_hom\n"
         else:
-            output_line = "iid\tpat\tmat\treg_id\tparents_in_batch\te_phasing\tn_phasing\tr_phasing\te_phasing_hom\tn_phasing_hom\tr_phasing_hom\te_mendel\tn_mendel\tr_mendel\te_child_missing\te_father_missing\te_mother_missing\tn_missing\tr_child_missing\tr_father_missing\tr_mother_missing\n"
+            output_line = "iid\tpat\tmat\treg_id\tparents_in_batch\tshared_chips\te_phasing\tn_phasing\tr_phasing\te_phasing_hom\tn_phasing_hom\tr_phasing_hom\te_mendel\tn_mendel\tr_mendel\te_child_missing\te_father_missing\te_mother_missing\tn_missing\tr_child_missing\tr_father_missing\tr_mother_missing\n"
         output_file.write(output_line)
         for f in trios:
             child = f['child']
@@ -135,9 +136,9 @@ def main(args):
                     r_father_missing = "NA"
                     r_mother_missing = "NA"
             if optimize:
-                output_line = f"{child}\t{father}\t{mother}\t{reg_id}\t{parents_in_batch}\t{e_phasing_hom}\t{n_phasing_hom}\t{r_phasing_hom}\n"
+                output_line = f"{child}\t{father}\t{mother}\t{reg_id}\t{parents_in_batch}\t{shared_chips}\t{e_phasing_hom}\t{n_phasing_hom}\t{r_phasing_hom}\n"
             else:
-                output_line = f"{child}\t{father}\t{mother}\t{reg_id}\t{parents_in_batch}\t{e_phasing}\t{n_phasing}\t{r_phasing}\t{e_phasing_hom}\t{n_phasing_hom}\t{r_phasing_hom}\t{e_mendel}\t{n_mendel}\t{r_mendel}\t{e_child_missing}\t{e_father_missing}\t{e_mother_missing}\t{n_missing}\t{r_child_missing}\t{r_father_missing}\t{r_mother_missing}\n"
+                output_line = f"{child}\t{father}\t{mother}\t{reg_id}\t{parents_in_batch}\t{shared_chips}\t{e_phasing}\t{n_phasing}\t{r_phasing}\t{e_phasing_hom}\t{n_phasing_hom}\t{r_phasing_hom}\t{e_mendel}\t{n_mendel}\t{r_mendel}\t{e_child_missing}\t{e_father_missing}\t{e_mother_missing}\t{n_missing}\t{r_child_missing}\t{r_father_missing}\t{r_mother_missing}\n"
             output_file.write(output_line)
 
     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
