@@ -49,8 +49,8 @@ tmpMod7 = base/'mod7-post-imputation'
 tmpMod8 = archive3_base/'mod8-release_annotation'
 tmpMod8_2 = archive3_base_2/'mod8-release_annotation'
 
-tmpMod6_phasing_test = Path("/mnt/archive3/phasing_test")
-tmpMod6_phase_merged = Path("/mnt/archive3/phasing_test/phase_merged")
+tmpMod6_phasing_test = Path("/mnt/archive3/phasing_test/phase_merged_reshuffle")
+# tmpMod6_phase_merged = Path("/mnt/archive3/phasing_test/phase_merged")
 
 #tmpMergeTest = base/'merge_test'
 # use archive for these for now, since /work is full:

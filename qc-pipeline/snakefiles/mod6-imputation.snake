@@ -187,8 +187,53 @@ rule mod6_index_conform:
 
 # Reshuffle batches (work in progress...)
 
+def get_fam_per_batch():
+    return [f"{tmpMod2}/{batch}/m2_output.fam" for batch in batches]
 
-    
+rule mod6_batch_table:
+    'Create a table listing the batch for each sample.'
+    input:
+        batch_fam = get_fam_per_batch()
+    output:
+        batch_table = str(tmpMod6_phasing_test / "mod6_batch_table")
+    run:
+        try:
+            id_to_batch_dfs = []
+            for batch in batches:
+                print(f"Importing fam for batch {batch}.")
+                file = f"{tmpMod2}/{batch}/m2_output.fam"
+                fam = pd.read_table(file, sep = " ", names =["fid", "iid", "mid", "pid", "sex", "pheno"])
+                fam['batch'] = batch
+                id_to_batch = fam[['iid', 'batch']]
+                id_to_batch_dfs.append(id_to_batch)
+
+            merged_df = pd.concat(id_to_batch_dfs, ignore_index = True)
+            merged_df.to_csv(output.batch_table, sep='\t', index = False)
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
+
+
+rule mod6_make_relationships_tables:
+    input:
+        expected_relationships = config['expected_relationships'],
+        batch_table = rules.mod6_batch_table.output.batch_table,
+        ids = config['id_mapping']
+    params:
+        batch_chip = "parameters/batch_chip",
+        r_script = "utils/make_relationships_tables.R"
+    output:
+        all_relations = str(tmpMod6_phasing_test / "expected_all_relations"),
+        shapeit_fam =  str(tmpMod6_phasing_test / "expected_shapeit_fam")
+    conda:
+        "envs/r_4.2.yaml"
+    shell:
+        """
+        Rscript {params.r_script} {input.expected_relationships} {input.batch_table} {params.batch_chip} {input.ids} {output.all_relations} {output.shapeit_fam}
+        """
+
+
 
 
 tmpMod6str = str(tmpMod6)
@@ -247,7 +292,7 @@ def get_map_chr(wildcards):
 
 rule mod6_phase_merged:
     input:
-        shapeit_fam = "/mnt/archive3/phasing_test/shapeit_fam",
+        shapeit_fam = rules.mod6_make_relationships_tables.output.shapeit_fam,
         bcf = rules.mod6_fill_ac_merged.output.bcf
     output:
         phased_bcf = str(tmpMod6_phasing_test / "mod6_phase_merged.chr{chr}.phased.bcf"),
@@ -267,37 +312,58 @@ rule mod6_phase_merged:
         """
 
 
-
-def split_samples(input_file, output_file, batch):
-    with open(input_file) as f:
-        lines = f.readlines()
-    second_column = [line.split()[1] for line in lines]
-    if batch[0:-2] in batches_to_split:
-        half_point = len(second_column) // 2
-        if batch.endswith("_1"):
-            with open(output_file, "w") as f1:
-                f1.writelines("\n".join(second_column[:half_point]) + "\n")
-        else:
-            with open(output_file, "w") as f2:
-                f2.writelines("\n".join(second_column[half_point:]) + "\n")
-    else:
-        with open(output_file, "w") as f:
-            f.writelines("\n".join(second_column) + "\n")
-
-def get_input_fam_file(wildcards):
-    if wildcards.split_batch[0:-2] in batches_to_split:
-        b = wildcards.split_batch[0:-2]
-    else:
-        b = wildcards.split_batch
-    return str(tmpMod5 / b / "mod5_output.fam")
-
-rule mod6_make_samples_list:
+rule mod6_find_new_batches:
     input:
-        fam = get_input_fam_file
+        relations_file = rules.mod6_make_relationships_tables.output.all_relations
     output:
-        samples = str(tmpMod6_phasing_test / "mod6_make_split_samples_list.batch_{split_batch}")
+        md_file = str(tmpMod6_phasing_test/"batch_shuffle.md"),
+        new_batches = expand(str(tmpMod6_phasing_test/"new_batches.batch_{batch}"), batch = batches)
+    params:
+        r_script = "utils/shuffle_batches.R"
+    conda:
+        "envs/r_4.2.yaml"
     run:
-        split_samples(input.fam, output.samples, wildcards.split_batch)
+        out_trunk = mqc.plinkBase(output.new_batches[0])
+        shell(f"Rscript {params.r_script} {input.relations_file} {out_trunk} {output.md_file}")
+
+
+
+
+
+# def split_samples(input_file, output_file, batch):
+#     with open(input_file) as f:
+#         lines = f.readlines()
+#     second_column = [line.split()[1] for line in lines]
+#     if batch[0:-2] in batches_to_split:
+#         half_point = len(second_column) // 2
+#         if batch.endswith("_1"):
+#             with open(output_file, "w") as f1:
+#                 f1.writelines("\n".join(second_column[:half_point]) + "\n")
+#         else:
+#             with open(output_file, "w") as f2:
+#                 f2.writelines("\n".join(second_column[half_point:]) + "\n")
+#     else:
+#         with open(output_file, "w") as f:
+#             f.writelines("\n".join(second_column) + "\n")
+
+# def get_input_fam_file(wildcards):
+#     if wildcards.split_batch[0:-2] in batches_to_split:
+#         b = wildcards.split_batch[0:-2]
+#     else:
+#         b = wildcards.split_batch
+#     return str(tmpMod5 / b / "mod5_output.fam")
+
+# rule mod6_make_samples_list:
+#     input:
+#         fam = get_input_fam_file
+#     output:
+#         samples = str(tmpMod6_phasing_test / "mod6_make_split_samples_list.batch_{split_batch}")
+#     run:
+#         split_samples(input.fam, output.samples, wildcards.split_batch)
+
+
+
+
 
 
 
@@ -312,7 +378,8 @@ rule mod6_make_samples_list:
 #         """
 
 def get_samples_file(wildcards):
-    return str(tmpMod6_phasing_test / f"mod6_make_split_samples_list.batch_{wildcards.batch}")
+    # return str(tmpMod6_phasing_test / f"mod6_make_split_samples_list.batch_{wildcards.batch}")
+    return str(tmpMod6_phasing_test/"new_batches.batch_{wildcards.batch}")
 
 def get_phased_bcf(wildcards):
     return str(tmpMod6_phasing_test / f"mod6_phase_merged.chr{wildcards.chr}.phased.bcf"),
@@ -322,7 +389,7 @@ rule mod6_split_merged_samples:
         samples = get_samples_file,
         bcf = get_phased_bcf
     output:
-        vcf = str(tmpMod6_phase_merged / "{batch}" / "mod6_split_merged_samples.chr{chr}.vcf.gz")
+        vcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_split_merged_samples.chr{chr}.vcf.gz")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -336,7 +403,7 @@ rule mod6_split_merged_variants:
         vcf = rules.mod6_split_merged_samples.output.vcf,
         conform = rules.mod6_conform.output.conformed_vcf
     output:
-        vcf = str(tmpMod6_phase_merged / "{batch}" / "mod6_split_merged_variants.chr{chr}.vcf")
+        vcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_split_merged_variants.chr{chr}.vcf")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -379,7 +446,7 @@ rule mod6_split_merged_variants:
 #         vcf = rules.mod6_split_merged_phased.output.vcf,
 #         sex_list = rules.mod6_generate_bcftools_sex_files.output.sex_list
 #     output:
-#         vcf = str(tmpMod6_phase_merged / "{batch}" / "mod6_reset_male_x_ploidy.chr{chr}.vcf")
+#         vcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_reset_male_x_ploidy.chr{chr}.vcf")
 #     conda:
 #         "envs/bcf_tabix.yaml"
 #     shell:
@@ -397,7 +464,7 @@ rule mod6_impute:
         chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         vcf = rules.mod6_split_merged_variants.output.vcf #rules.mod6_reset_male_x_ploidy.output.vcf #rules.mod6_conform.output.conformed_vcf
     output:
-        imputed_vcf = str(tmpMod6_phase_merged / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz")
+        imputed_vcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz")
     params:
         map_chr=get_map_chr,
         beagle_chr=get_beagle_chr
@@ -427,7 +494,7 @@ rule mod6_index:
         chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         imputed_vcf = rules.mod6_impute.output.imputed_vcf
     output:
-        index = str(tmpMod6_phase_merged / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.tbi")
+        index = str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.tbi")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -450,7 +517,7 @@ rule mod6_query:
         index = rules.mod6_index.output.index,
         imputed_vcf = rules.mod6_impute.output.imputed_vcf
     output:
-        info = str(tmpMod6_phase_merged / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info")
+        info = str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info")
     conda:
         "envs/bcf_tabix.yaml"
     shell:

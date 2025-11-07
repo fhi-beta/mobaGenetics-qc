@@ -1,35 +1,13 @@
 
 # NB! REVERT THIS
 
-rule mod7_filter:
-    input:
-        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
-        imputed_vcf = rules.mod6_impute.output.imputed_vcf,
-        index = rules.mod6_index.output.index
-    output:
-        filtered_vcf = str(tmpMod6_phase_merged / "dr2_08" / "{batch}" / "mod7_filter.chr{chr}.vcf.gz")
-    conda:
-        "envs/bcf_tabix.yaml"
-    params:
-        dr2_threshold = config['post_imputation_dr2_threshold']
-    shell:
-        """
-        mapfile -t chromosomes < {input.chromosome_file}
-        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
-            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod7_filter"
-            touch {output.filtered_vcf}
-        else
-            bcftools view -i 'INFO/DR2>=0.8' {input.imputed_vcf} -o {output.filtered_vcf} --write-index
-        fi 
-        """
-
 # rule mod7_filter:
 #     input:
 #         chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
 #         imputed_vcf = rules.mod6_impute.output.imputed_vcf,
 #         index = rules.mod6_index.output.index
 #     output:
-#         filtered_vcf = str(tmpMod6_phase_merged / "{batch}" / "mod7_filter.chr{chr}.vcf.gz")
+#         filtered_vcf = str(tmpMod6_phasing_test / "dr2_08" / "{batch}" / "mod7_filter.chr{chr}.vcf.gz")
 #     conda:
 #         "envs/bcf_tabix.yaml"
 #     params:
@@ -41,9 +19,31 @@ rule mod7_filter:
 #             echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod7_filter"
 #             touch {output.filtered_vcf}
 #         else
-#             bcftools view -i 'INFO/DR2>={params.dr2_threshold}' {input.imputed_vcf} -o {output.filtered_vcf} --write-index
+#             bcftools view -i 'INFO/DR2>=0.8' {input.imputed_vcf} -o {output.filtered_vcf} --write-index
 #         fi 
 #         """
+
+rule mod7_filter:
+    input:
+        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
+        imputed_vcf = rules.mod6_impute.output.imputed_vcf,
+        index = rules.mod6_index.output.index
+    output:
+        filtered_vcf = str(tmpMod6_phasing_test / "{batch}" / "mod7_filter.chr{chr}.vcf.gz")
+    conda:
+        "envs/bcf_tabix.yaml"
+    params:
+        dr2_threshold = config['post_imputation_dr2_threshold']
+    shell:
+        """
+        mapfile -t chromosomes < {input.chromosome_file}
+        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod7_filter"
+            touch {output.filtered_vcf}
+        else
+            bcftools view -i 'INFO/DR2>={params.dr2_threshold}' {input.imputed_vcf} -o {output.filtered_vcf} --write-index
+        fi 
+        """
     
 rule mod7_format_phased_dosage:
     input:
@@ -111,7 +111,7 @@ def get_batches_with_chromosome(chr):
     return batches_with_chromosome
 
 def get_vcf_batch_files_to_merge(wildcards):
-    return [f"{tmpMod6_phase_merged}/dr2_08/{batch}/mod7_filter.chr{wildcards.chr}.vcf.gz" for batch in split_batches]
+    return [f"{tmpMod6_phasing_test}/{batch}/mod7_filter.chr{wildcards.chr}.vcf.gz" for batch in split_batches]
 
     # REVERT THIS!
     # batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
@@ -127,10 +127,10 @@ rule mod7_merge_batches:
         vcfs = get_vcf_batch_files_to_merge,
         # index = get_index_batch_files_to_merge # REVERT THIS!
     output:
-        merged_vcf = str(tmpMod6_phase_merged / "dr2_08" / "mod7_merge_batches_chr{chr}.bcf")
+        merged_vcf = str(tmpMod6_phasing_test  / "mod7_merge_batches_chr{chr}.bcf")
     log:
         # str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches.log")
-        str(tmpMod6_phase_merged  / "dr2_08" / "mod7_merge_batches_chr{chr}.log")
+        str(tmpMod6_phasing_test  / "mod7_merge_batches_chr{chr}.log")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -147,7 +147,7 @@ rule mod7_index_merge:
     input:
         bcf = rules.mod7_merge_batches.output.merged_vcf
     output:
-        index = str(tmpMod6_phase_merged / "dr2_08" /"mod7_merge_batches_chr{chr}.bcf.csi")
+        index = str(tmpMod6_phasing_test /"mod7_merge_batches_chr{chr}.bcf.csi")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -158,14 +158,14 @@ rule mod7_index_merge:
 rule mod7_phase_check:
     input:
         bcf = rules.mod7_merge_batches.output.merged_vcf,
-        index = rules.mod7_index_merge.output.index
+        index = rules.mod7_index_merge.output.index,
+        relations_file = rules.mod6_
     output:
-        phase_check = str(tmpMod6_phase_merged  / "dr2_08" / "mod7_phase_check.chr{chr}")
+        phase_check = str(tmpMod6_phasing_test / "mod7_phase_check.chr{chr}")
     conda:
         "envs/pysam.yaml"
     params:
-        phase_script = "utils/phasing_check.py",
-        trios = "/mnt/archive3/phasing_test/trios"
+        phase_script = "utils/phasing_check.py"
     shell:
         """
         python {params.phase_script} --trios {params.trios} --bcf {input.bcf} --output {output.phase_check} --optimize
