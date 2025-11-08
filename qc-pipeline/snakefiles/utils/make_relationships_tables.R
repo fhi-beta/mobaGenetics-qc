@@ -3,7 +3,7 @@ library(glue)
 library(tidyr)
 library(dplyr)
 
-debug <- F
+debug <- T
 
 if (debug){
     args <- c("/mnt/archive2/moba_genotypes_resources/phenotypes/expected_relationship_24.04.12.gz",
@@ -54,7 +54,7 @@ rel$shared_chips <- ifelse(!is.na(rel$mat_chip) & rel$iid_chip == rel$mat_chip, 
 
 rel <- subset(rel, !is.na(iid_batch))
 rel <- rel %>% mutate(pat = ifelse(is.na(pat_batch), NA, pat)) %>% mutate(mat = ifelse(is.na(mat_batch), NA, mat))
-shapeit_fam <- subset(rel, !is.na(pat) | !is.na(mat)) %>% select(iid, pat, mat)
+shapeit_fam_df <- subset(rel, !is.na(pat) | !is.na(mat)) %>% select(iid, pat, mat)
 
 write.table(
   x = rel,
@@ -67,4 +67,4 @@ write.table(
 )
 
 
-write.table(x = shapeit_fam, file = shapeit_fam, col.names = F, row.names = F, quote = F, sep = "\t")
+write.table(x = shapeit_fam_df, file = shapeit_fam, col.names = F, row.names = F, quote = F, sep = "\t")
