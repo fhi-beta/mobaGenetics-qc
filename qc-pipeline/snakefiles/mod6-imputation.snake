@@ -272,7 +272,7 @@ rule mod6_fill_ac_merged:
     input:
         bcf = rules.mod6_merge_batches.output.merged_bcf 
     output:
-        bcf = str(tmpMod6_phasing_test  / "mod6_fill_ac_merged.chr{chr}.bcf")
+        bcf = "/mnt/archive3/phasing_test/mod6_fill_ac_merged.chr{chr}.bcf"
     conda:
         "envs/bcf_tabix.yaml"
     shell:
