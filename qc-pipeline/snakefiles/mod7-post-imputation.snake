@@ -128,7 +128,7 @@ def get_batches_with_chromosome(chr):
     return batches_with_chromosome
 
 def get_vcf_batch_files_to_merge(wildcards):
-    return [f"{tmpMod6_phasing_test}/{wildcards.quality}/{batch}/mod7_filter.chr{wildcards.chr}.vcf.gz" for batch in split_batches]
+    return [f"{tmpMod6_phasing_test}/{wildcards.quality}/{batch}/mod7_filter.chr{wildcards.chr}.vcf.gz" for batch in batches]
 
     # REVERT THIS!
     # batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
