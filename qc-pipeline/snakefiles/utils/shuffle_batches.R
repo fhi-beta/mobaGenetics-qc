@@ -6,11 +6,11 @@ library(stringr)
 library(knitr)
 
 
-debug <- F
+debug <- T
 
 if (debug) {
   
-  args <- c("/mnt/archive3/phasing_test/expected_all_relations", "/mnt/archive3/phasing_test/new_batches", "/mnt/archive3/phasing_test/batch_shuffle.md",  "/mnt/archive3/phasing_test/batch_movements")
+  args <- c("/mnt/archive3/phasing_test/expected_all_relations", "/mnt/archive3/phasing_test/new_batches", "/mnt/archive3/phasing_test/batch_shuffle.md",  "/mnt/archive3/phasing_test/batch_movements", "/mnt/archive3/phasing_test/batch_movements_trios")
   
 } else {
   args <- commandArgs(TRUE)
@@ -21,6 +21,7 @@ rel_file <- args[1]
 new_batches_trunk <- args[2]
 md_file <- args[3]
 movements_file <- args[4]
+trios_file <- args[5]
 
 rel <- read.table(rel_file, header = T)
 rel$orig_batch <- rel$iid_batch
@@ -51,8 +52,11 @@ updated_rel <- updated_rel %>%
     )
   ))
 
-
+updated_trios <- subset(updated_rel, !is.na(pat) & !is.na(mat))
 write.table(x = updated_rel, file = movements_file, col.names = T, row.names = F, quote = F, sep = "\t")
+
+
+write.table(x = updated_trios, file = trios_file, col.names = T, row.names = F, quote = F, sep = "\t")
 
 
 batches <- unique(updated_rel$iid_batch)

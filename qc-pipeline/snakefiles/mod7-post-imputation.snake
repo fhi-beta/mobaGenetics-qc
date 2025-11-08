@@ -193,9 +193,9 @@ rule mod7_phase_check_parallel:
     input:
         bcf = "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_make_best_snps_bcf.chr21.bcf",
         index = "/mnt/archive3/phasing_test/phase_merged/mod7_merge_batches_chr21.bcf.csi",
-        relations_file = "/mnt/archive3/phasing_test/batch_movements"
+        relations_file = "/mnt/archive3/phasing_test/batch_movements_trios"
     output:
-        phase_check = "/mnt/archive3/phasing_test/parallel_check2/parallel_phasing_test" #str(tmpMod6_phasing_test / "mod7_phase_check.{quality}.chr{chr}")
+        phase_check = "/mnt/archive3/phasing_test/parallel_check3/parallel_phasing_test" #str(tmpMod6_phasing_test / "mod7_phase_check.{quality}.chr{chr}")
     conda:
         "envs/pysam.yaml"
     params:
