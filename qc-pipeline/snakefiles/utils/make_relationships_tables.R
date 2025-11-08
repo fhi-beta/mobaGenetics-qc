@@ -28,8 +28,6 @@ ids <- read.table(id_file, header = T) %>% select(iid = sentrix_id, reg_id = id)
 exp_rel <- read.table(rel_file, header = T, col.names=c("iid", "mat", "pat"))[,c(1,3,2)]
 exp_rel <- subset(exp_rel, !is.na(iid) & (!is.na(pat) | !is.na(mat)))
 
-write.table(x = exp_rel, file = shapeit_fam, col.names = F, row.names = F, quote = F, sep = "\t")
-
 rel <- ids %>% select(iid) %>% left_join(exp_rel, by = "iid")
 
 # rel <- subset(rel, !is.na(iid))
@@ -55,6 +53,9 @@ rel$shared_chips <- ifelse(!is.na(rel$pat_chip) & rel$iid_chip == rel$pat_chip, 
 rel$shared_chips <- ifelse(!is.na(rel$mat_chip) & rel$iid_chip == rel$mat_chip, rel$shared_chips +1, rel$shared_chips)
 
 rel <- subset(rel, !is.na(iid_batch))
+rel <- rel %>% mutate(pat = ifelse(is.na(pat_batch), NA, pat)) %>% mutate(mat = ifelse(is.na(mat_batch), NA, mat))
+shapeit_fam <- subset(rel, !is.na(pat) | !is.na(mat)) %>% select(iid, pat, mat)
+
 write.table(
   x = rel,
   file =relations_file,
@@ -64,3 +65,6 @@ write.table(
   quote = F,
   na = "NA"
 )
+
+
+write.table(x = shapeit_fam, file = shapeit_fam, col.names = F, row.names = F, quote = F, sep = "\t")
