@@ -21,7 +21,7 @@ cat "$first_file" > "$output"
 
 for file in "${output}_split_"*.phase_check; do
     if [ "$file" != "$first_file" ]; then
-        tail -n +1 "$file" >> "$output"
+        tail -n +2 "$file" >> "$output"
     fi
 done
 
