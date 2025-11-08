@@ -122,9 +122,9 @@ rule all:
         #str(tmpMod6_phasing_test / "mod6_phase_merged.chr21.phased.bcf")
         #expand(str(tmpMod6_phasing_test / "{batch}" / "mod6_split_merged_phased_no_filter.chr21.vcf"), batch = batches)
         # expand("/mnt/archive3/phasing_test/{batch}/mod6_impute.chr{chr}.imputed.vcf.gz", batch = batches, chr = ["20", "21"]),
-        expand(str(tmpMod6_phasing_test / "{batch}" / "mod7_filter.chr{chr}.vcf.gz"), batch = batches, chr = ["21"]),
-        expand(str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info"), batch = batches, chr = ["21"]),
-        str(tmpMod6_phasing_test  / "mod7_phase_check.chr21")
+        expand(str(tmpMod6_phasing_test / "{quality}" /"{batch}" / "mod7_filter.chr{chr}.vcf.gz"), batch = batches, chr = ["21"], quality = ["dr2_03", "dr2_08"]),
+        expand(str(tmpMod6_phasing_test / "{quality}" /"{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info"), batch = batches, chr = ["21"], quality = ["dr2_03", "dr2_08"]),
+        expand(str(tmpMod6_phasing_test  / "{quality}" / "mod7_phase_check.chr21"), quality = ["dr_03", "dr_08"])
         # expand(str(tmpMod6_phasing_test / "mod7_merge_batches_chr{chr}.bcf"), chr = ["21"]),
         # str(tmpMod6_phasing_test  / "dr2_08" / "mod7_phase_check.chr21")
         

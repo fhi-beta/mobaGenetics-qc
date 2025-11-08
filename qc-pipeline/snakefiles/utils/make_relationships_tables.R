@@ -54,10 +54,36 @@ rel$shared_chips <- ifelse(!is.na(rel$mat_chip) & rel$iid_chip == rel$mat_chip, 
 
 rel <- subset(rel, !is.na(iid_batch))
 rel <- rel %>% mutate(pat = ifelse(is.na(pat_batch), NA, pat)) %>% mutate(mat = ifelse(is.na(mat_batch), NA, mat))
-shapeit_fam_df <- subset(rel, !is.na(pat) | !is.na(mat)) %>% select(iid, pat, mat)
+
+rel$parents <- 0
+rel$parents <- ifelse(!is.na(rel$pat), rel$parents +1, rel$parents)
+rel$parents<- ifelse(!is.na(rel$mat), rel$parents +1, rel$parents)
+
+rel_filtered <- rel %>%
+  group_by(iid) %>%
+  filter(shared_chips == max(shared_chips)) %>%
+  ungroup() %>%
+  as.data.frame()
+
+rel_filtered <- rel_filtered %>%
+  group_by(iid) %>%
+  filter(parents_in_batch == max(parents_in_batch)) %>%
+  ungroup() %>%
+  as.data.frame()
+
+rel_filtered <- rel_filtered %>%
+  group_by(iid) %>%
+  filter(parents == max(parents)) %>%
+  ungroup() %>%
+  as.data.frame()
+
+rel_filtered <- rel_filtered %>% distinct(iid, .keep_all=TRUE)
+
+
+shapeit_fam_df <- subset(rel_filtered, !is.na(pat) | !is.na(mat)) %>% select(iid, pat, mat)
 
 write.table(
-  x = rel,
+  x = rel_filtered,
   file =relations_file,
   col.names = T,
   row.names = F,
