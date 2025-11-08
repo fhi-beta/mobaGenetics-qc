@@ -1,11 +1,11 @@
 #!/bin/bash
 
 # Extract arguments
-relations_file=$1
-threads=$2
-phase_script=$3
-bcf_file=$4
-output=$5
+phase_script=$1
+relations_file=$2
+bcf_file=$3
+output=$4
+threads=$5
 
 # Split the input file into smaller files
 split_lines=$(wc -l < "$relations_file")

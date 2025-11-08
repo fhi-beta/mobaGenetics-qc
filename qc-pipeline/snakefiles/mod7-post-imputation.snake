@@ -199,12 +199,12 @@ rule mod7_phase_check_parallel:
     conda:
         "envs/pysam.yaml"
     params:
-        bash_script = "utils/phasing_check_parallel",
+        bash_script = "utils/phasing_check_parallel.sh",
         python_script = "utils/phasing_check.py"
     threads: 32
     shell:
         """
-        {params.bash_script} {input.relations_file} {threads} {params.python_script} {input.bcf} {output.phase_check}
+        {params.bash_script} {params.python_script} {input.relations_file} {input.bcf} {output.phase_check}  {threads}
         """
 
 
