@@ -104,6 +104,7 @@ def main(args):
             father = f['father']
             mother = f['mother']
             reg_id = f['reg_id']
+            shared_chips = f['shared_chips']
             parents_in_batch = f['parents_in_batch']
             orig_parents_in_batch = f['orig_parents_in_batch']
             e_phasing_hom = f['e_phasing_hom']
