@@ -203,7 +203,7 @@ rule mod7_phase_check_parallel:
     threads: 32
     shell:
         """
-        out=$(dirname {output.phase_check})
+        out_dir=$(dirname {output.phase_check})
 
         split_lines=$(wc -l < {input.relations_file})
         lines_per_file=$((split_lines / {threads}))
