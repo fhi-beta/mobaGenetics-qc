@@ -317,14 +317,15 @@ rule mod6_find_new_batches:
         relations_file = rules.mod6_make_relationships_tables.output.all_relations
     output:
         md_file = str(tmpMod6_phasing_test/"batch_shuffle.md"),
-        new_batches = expand(str(tmpMod6_phasing_test/"new_batches.batch_{batch}"), batch = batches)
+        new_batches = expand(str(tmpMod6_phasing_test/"new_batches.batch_{batch}"), batch = batches),
+        movements = str(tmpMod6_phasing_test/"movements")
     params:
         r_script = "utils/shuffle_batches.R"
     conda:
         "envs/r_4.2.yaml"
     run:
         out_trunk = mqc.plinkBase(output.new_batches[0])
-        shell(f"Rscript {params.r_script} {input.relations_file} {out_trunk} {output.md_file}")
+        shell(f"Rscript {params.r_script} {input.relations_file} {out_trunk} {output.md_file} {output.movements}")
 
 
 
