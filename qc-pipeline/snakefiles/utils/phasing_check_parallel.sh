@@ -17,7 +17,7 @@ parallel --jobs "$threads" "python $phase_script --trios {} --bcf $bcf_file --ou
 
 # Concatenate results and clean up
 first_file=$(ls "${output}_split_"*.phase_check | head -n 1)
-head -n 1 "$first_file" > "$output"
+cat "$first_file" > "$output"
 
 for file in "${output}_split_"*.phase_check; do
     if [ "$file" != "$first_file" ]; then
