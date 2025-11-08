@@ -2,7 +2,7 @@ debug <- T
 
 if (debug){
     args <- c(
-        "/mnt/archive3/phasing_test/phase_merged/mod7_phase_check.chr21", 
+        "/mnt/archive3/phasing_test/phase_merged/expected_all_relations_mod7_phase_check.chr21", 
         "/mnt/archive3/phasing_test/phase_merged/phase_report_unfiltered/phase_report.unfiltered.chr21.md",
         "Phasing report, merged phasing, imputed by original batch",
         "phasing_hom",
@@ -92,7 +92,6 @@ write_rates_table_row <- function(p, rates){
 }
 
 write_combined_rates_table_row <- function(p, trios, sites, errors){
-    rates <- na.omit(rates)
     write(
         x = paste("|", p,"|", trios, "|", sites, "|", errors, "|", signif(errors/sites, digits=2), "|"),
         file = md_file,
