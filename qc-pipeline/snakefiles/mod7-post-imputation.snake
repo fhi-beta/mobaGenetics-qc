@@ -204,7 +204,7 @@ rule mod7_phase_check_parallel:
     threads: 32
     shell:
         """
-        {params.bash_script} {input.relations_file} {threads} {params.phase_script} {input.bcf} {output.phase_check}
+        {params.bash_script} {input.relations_file} {threads} {params.python_script} {input.bcf} {output.phase_check}
         """
 
 
