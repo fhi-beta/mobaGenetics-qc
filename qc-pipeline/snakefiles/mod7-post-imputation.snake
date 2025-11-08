@@ -195,7 +195,7 @@ rule mod7_phase_check_parallel:
         index = "/mnt/archive3/phasing_test/phase_merged/mod7_merge_batches_chr21.bcf.csi",
         relations_file = "/mnt/archive3/phasing_test/batch_movements"
     output:
-        phase_check = "/mnt/archive3/phasing_test/parallel_phasing_test" #str(tmpMod6_phasing_test / "mod7_phase_check.{quality}.chr{chr}")
+        phase_check = "/mnt/archive3/phasing_test/parallel_check/parallel_phasing_test" #str(tmpMod6_phasing_test / "mod7_phase_check.{quality}.chr{chr}")
     conda:
         "envs/pysam.yaml"
     params:
