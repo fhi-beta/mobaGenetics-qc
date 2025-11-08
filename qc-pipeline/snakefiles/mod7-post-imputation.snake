@@ -201,7 +201,7 @@ rule mod7_phase_check_parallel:
     params:
         phase_script = "utils/phasing_check.py"
     threads: 32
-       shell:
+    shell:
         """
         out=$(dirname {output.phase_check})
 
