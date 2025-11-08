@@ -195,28 +195,16 @@ rule mod7_phase_check_parallel:
         index = "/mnt/archive3/phasing_test/phase_merged/mod7_merge_batches_chr21.bcf.csi",
         relations_file = "/mnt/archive3/phasing_test/batch_movements"
     output:
-        phase_check = "/mnt/archive3/phasing_test/parallel_check/parallel_phasing_test" #str(tmpMod6_phasing_test / "mod7_phase_check.{quality}.chr{chr}")
+        phase_check = "/mnt/archive3/phasing_test/parallel_check2/parallel_phasing_test" #str(tmpMod6_phasing_test / "mod7_phase_check.{quality}.chr{chr}")
     conda:
         "envs/pysam.yaml"
     params:
-        phase_script = "utils/phasing_check.py"
+        bash_script = "utils/phasing_check_parallel",
+        python_script = "utils/phasing_check.py"
     threads: 32
     shell:
         """
-        # Split the input file into smaller files
-        split_lines=$(wc -l < {input.relations_file})
-        lines_per_file=$((split_lines / {threads}))
-        
-        split -l $lines_per_file -d --additional-suffix=.txt {input.relations_file} {output.phase_check}_split_
-
-        # Process each split file in parallel
-        parallel --jobs {threads} "python {params.phase_script} --trios {{}} --bcf {input.bcf} --output {{}}.phase_check --optimize" ::: {output.phase_check}_split_*.txt
-        
-        # Concatenate the output files into a single file
-        cat {output.phase_check}_split_*.phase_check > {output.phase_check}
-        
-        # Clean up temporary files
-        # rm {params.phase_script}_split_*.txt
+        {params.bash_script} {input.relations_file} {threads} {params.phase_script} {input.bcf} {output.phase_check}
         """
 
 
