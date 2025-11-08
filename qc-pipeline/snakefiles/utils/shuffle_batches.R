@@ -59,6 +59,7 @@ batches <- unique(updated_rel$iid_batch)
 for (batch in batches) {
   samples_file <- paste0(new_batches_trunk, ".batch_", batch)
   samples <- subset(updated_rel, iid_batch == batch) %>% select(iid)
+  samples <- unique(samples)
   write.table(samples, samples_file, row.names = F, col.names = F, quote=F)
 }
 
