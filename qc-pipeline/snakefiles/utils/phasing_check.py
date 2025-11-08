@@ -70,7 +70,7 @@ def main(args):
         for line in f:
             child, father, mother, iid_batch, pat_batch, mat_batch, iid_chip, pat_chip, mat_chip, iid_reg, pat_reg, mat_reg, parents_in_batch, shared_chips, parents, orig_batch, orig_parents_in_batch, move_from, move_to, moved= line.strip().split()
             if child != "NA" and father != "NA" and mother != "NA":
-                trios.append({'child':child, 'father': father, 'mother': mother, "reg_id": iid_reg, "parents_in_batch":parents_in_batch, "shared_chips": shared_chips, "e_phasing":0, "n_phasing":0, "e_phasing_hom":0, "n_phasing_hom":0, "e_child_missing":0, "e_father_missing":0, "e_mother_missing":0, "n_missing":0, "e_mendel":0, "n_mendel":0})
+                trios.append({'child':child, 'father': father, 'mother': mother, "reg_id": iid_reg, "parents_in_batch":parents_in_batch,"orig_parents_in_batch":orig_parents_in_batch, "shared_chips": shared_chips, "e_phasing":0, "n_phasing":0, "e_phasing_hom":0, "n_phasing_hom":0, "e_child_missing":0, "e_father_missing":0, "e_mother_missing":0, "n_missing":0, "e_mendel":0, "n_mendel":0})
 
     vcf_in = pysam.VariantFile(bcf_file)
     counter = 0
