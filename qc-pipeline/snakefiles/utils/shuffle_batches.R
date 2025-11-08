@@ -6,7 +6,7 @@ library(stringr)
 library(knitr)
 
 
-debug <- T
+debug <- F
 
 if (debug) {
   
