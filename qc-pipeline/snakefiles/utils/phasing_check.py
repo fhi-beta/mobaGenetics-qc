@@ -64,9 +64,11 @@ def main(args):
     output = args.output
     optimize = args.optimize
     pf = args.pf
+    header = args.header
     trios = []
     with open(trios_file) as f:
-        next(f)
+        if header:
+            next(f)
         for line in f:
             child, father, mother, iid_batch, pat_batch, mat_batch, iid_chip, pat_chip, mat_chip, iid_reg, pat_reg, mat_reg, parents_in_batch, shared_chips, parents, orig_batch, orig_parents_in_batch, move_from, move_to, moved= line.strip().split()
             if child != "NA" and father != "NA" and mother != "NA":
@@ -151,6 +153,7 @@ if __name__ == "__main__":
     parser.add_argument('--bcf', type=str, required=True, help='Path to BCF file')
     parser.add_argument('--output', type=str, required=True, help='Output file path')
     parser.add_argument('--optimize', action='store_true', help='Check only phasing')
+    parser.add_argument('--header', action='store_true', help='Skip header')
     parser.add_argument('--pf', type=int, required=False, default=1000, help='Print frequency (defaults to 1000)')
     args = parser.parse_args()
     main(args)

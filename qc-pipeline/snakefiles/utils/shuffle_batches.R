@@ -6,7 +6,7 @@ library(stringr)
 library(knitr)
 
 
-debug <- T
+debug <- F
 
 if (debug) {
   
@@ -56,7 +56,7 @@ updated_trios <- subset(updated_rel, !is.na(pat) & !is.na(mat))
 write.table(x = updated_rel, file = movements_file, col.names = T, row.names = F, quote = F, sep = "\t")
 
 
-write.table(x = updated_trios, file = trios_file, col.names = T, row.names = F, quote = F, sep = "\t")
+write.table(x = updated_trios, file = trios_file, col.names = F, row.names = F, quote = F, sep = "\t")
 
 
 batches <- unique(updated_rel$iid_batch)
