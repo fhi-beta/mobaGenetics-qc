@@ -43,7 +43,7 @@ rule mod7_filter:
         imputed_vcf = get_imputed_index, # rules.mod6_impute.output.imputed_vcf,
         index = get_imputed_index # rules.mod6_index.output.index
     output:
-        filtered_vcf = str(tmpMod6_phasing_test / "{quality}" /"{batch}" / "mod7_filter.chr{chr}.vcf.gz")
+        filtered_vcf = str(tmpMod6_phasing_test /"{batch}" / "{quality}" / "mod7_filter.chr{chr}.vcf.gz")
     conda:
         "envs/bcf_tabix.yaml"
     params:
