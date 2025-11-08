@@ -207,13 +207,13 @@ rule mod7_phase_check_parallel:
         split_lines=$(wc -l < {input.relations_file})
         lines_per_file=$((split_lines / {threads}))
         
-        split -l $lines_per_file -d --additional-suffix=.txt {input.relations_file} {params.phase_script}_split_
+        split -l $lines_per_file -d --additional-suffix=.txt {input.relations_file} {output.phase_check}_split_
 
         # Process each split file in parallel
-        parallel --jobs {threads} "python {params.phase_script} --trios {{}} --bcf {input.bcf} --output {{.}} --optimize" ::: {params.phase_script}_split_*.txt
+        parallel --jobs {threads} "python {params.phase_script} --trios {{}} --bcf {input.bcf} --output {{.}} --optimize" ::: {output.phase_check}_split_*.txt
         
         # Concatenate the output files into a single file
-        cat {params.phase_script}_split_*.phase_check > {output.phase_check}
+        cat {output.phase_check}_split_*.phase_check > {output.phase_check}
         
         # Clean up temporary files
         # rm {params.phase_script}_split_*.txt
