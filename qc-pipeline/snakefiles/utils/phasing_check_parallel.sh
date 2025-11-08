@@ -25,4 +25,4 @@ for file in "${output}_split_"*.phase_check; do
     fi
 done
 
-#rm "${output}_split_"*
+rm "${output}_split_"*
