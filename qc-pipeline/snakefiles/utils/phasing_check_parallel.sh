@@ -13,7 +13,7 @@ lines_per_file=$((split_lines / threads))
 split -l "$lines_per_file" -d --additional-suffix=.txt "$relations_file" "${output}_split_"
 
 # Process each split file in parallel
-parallel --jobs "$threads" "python $phase_script --trios {} --bcf $bcf_file --output {}.phase_check --optimize" ::: "${output}_split_"*.txt
+parallel --jobs "$threads" "python $phase_script --trios {} --bcf $bcf_file --output {}.phase_check --optimize --pf 10000" ::: "${output}_split_"*.txt
 
 # Concatenate results and clean up
 first_file=$(ls "${output}_split_"*.phase_check | head -n 1)
