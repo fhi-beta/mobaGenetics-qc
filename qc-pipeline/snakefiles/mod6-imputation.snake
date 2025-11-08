@@ -303,7 +303,7 @@ rule mod6_phase_merged:
         region_chr=get_beagle_chr
     conda:
         "envs/shapeit_5.yaml"
-    threads: 30
+    threads: 32
     shell:
         """
         reffile=$(echo {hrc_vcf}/HRC.r1-1.EGA.GRCh37.chr{params.ref_chr}.haplotypes*.vcf.gz)
