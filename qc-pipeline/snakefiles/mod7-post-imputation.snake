@@ -191,32 +191,34 @@ rule mod7_phase_check:
 
 rule mod7_phase_check_parallel:
     input:
-        bcf = "/mnt/archive3/phasing_test/phase_merged/mod7_merge_batches_chr21.bcf",
+        bcf = "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_make_best_snps_bcf.chr21.bcf",
         index = "/mnt/archive3/phasing_test/phase_merged/mod7_merge_batches_chr21.bcf.csi",
         relations_file = "/mnt/archive3/phasing_test/batch_movements"
     output:
-        phase_check = "/mnt/archive3/phasing_test/parallel_phasing_test" #str(tmpMod6_phasing_test / "mod7_phase_check.{quality}.chr{chr}")
+        phase_check = "/mnt/archive3/phasing_test/parallel_test" #str(tmpMod6_phasing_test / "mod7_phase_check.{quality}.chr{chr}")
     conda:
         "envs/pysam.yaml"
     params:
         phase_script = "utils/phasing_check.py"
     threads: 32
-    shell:
+       shell:
         """
-        # Split the input file into smaller files
+        out=$(dirname {output.phase_check})
+
         split_lines=$(wc -l < {input.relations_file})
         lines_per_file=$((split_lines / {threads}))
-        
-        split -l $lines_per_file -d --additional-suffix=.txt {input.relations_file} {params.phase_script}_split_
 
-        # Process each split file in parallel
-        parallel --jobs {threads} "python {params.phase_script} --trios {} --bcf {input.bcf} --output {.} --optimize" ::: {params.phase_script}_split_*.txt
-        
-        # Concatenate the output files into a single file
-        cat {params.phase_script}_split_*.phase_check > {output.phase_check}
-        
-        # Clean up temporary files
-        rm {params.phase_script}_split_*.txt
+        # Split the input file into smaller files
+        split -l $lines_per_file -d --additional-suffix=.txt {input.relations_file} "$out_dir/relations_"
+
+        parallel --jobs {threads} --group --line-buffer \
+            "python {params.phase_script} --trios {{}} --bcf {input.bcf} --output {{.}}.phase_check --optimize 2>&1" ::: "$out_dir"/relations_*.txt
+
+        # Concatenate all temporary results into the final output file
+        cat "$out_dir"/relations_*.phase_check > {output.phase_check}
+
+        rm "$out_dir"/relations_*.txt
+        rm "$out_dir"/relations_*.phase_check
         """
 
 
