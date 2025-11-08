@@ -39,8 +39,8 @@ def get_chromosome_file(wildcards):
 
 rule mod7_filter:
     input:
-        chromosome_file = get_chromosome_file # rules.mod6_generate_chromosome_file.output.chromosome_file,
-        imputed_vcf = get_imputed_index # rules.mod6_impute.output.imputed_vcf,
+        chromosome_file = get_chromosome_file, # rules.mod6_generate_chromosome_file.output.chromosome_file,
+        imputed_vcf = get_imputed_index, # rules.mod6_impute.output.imputed_vcf,
         index = get_imputed_index # rules.mod6_index.output.index
     output:
         filtered_vcf = str(tmpMod6_phasing_test / "{quality}" /"{batch}" / "mod7_filter.chr{chr}.vcf.gz")
