@@ -188,6 +188,38 @@ rule mod7_phase_check:
         python {params.phase_script} --trios {input.relations_file} --bcf {input.bcf} --output {output.phase_check} --optimize
         """
 
+
+rule mod7_phase_check_parallel:
+    input:
+        bcf = "/mnt/archive3/phasing_test/phase_merged/mod7_merge_batches_chr21.bcf",
+        index = "/mnt/archive3/phasing_test/phase_merged/mod7_merge_batches_chr21.bcf.csi",
+        relations_file = "/mnt/archive3/phasing_test/batch_movements"
+    output:
+        phase_check = "/mnt/archive3/phasing_test/parallel_phasing_test" #str(tmpMod6_phasing_test / "mod7_phase_check.{quality}.chr{chr}")
+    conda:
+        "envs/pysam.yaml"
+    params:
+        phase_script = "utils/phasing_check.py"
+    threads: 32
+    shell:
+        """
+        # Split the input file into smaller files
+        split_lines=$(wc -l < {input.relations_file})
+        lines_per_file=$((split_lines / {threads}))
+        
+        split -l $lines_per_file -d --additional-suffix=.txt {input.relations_file} {params.phase_script}_split_
+
+        # Process each split file in parallel
+        parallel --jobs {threads} "python {params.phase_script} --trios {} --bcf {input.bcf} --output {.} --optimize" ::: {params.phase_script}_split_*.txt
+        
+        # Concatenate the output files into a single file
+        cat {params.phase_script}_split_*.phase_check > {output.phase_check}
+        
+        # Clean up temporary files
+        rm {params.phase_script}_split_*.txt
+        """
+
+
 # Plink2 does not support phased dosages for multiallelic variants yet, so they are removed for now
 rule mod7_remove_multiallelic_variants:
     input:

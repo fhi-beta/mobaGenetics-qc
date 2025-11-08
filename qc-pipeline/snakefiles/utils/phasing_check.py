@@ -93,9 +93,9 @@ def main(args):
 
     with open(output, 'w') as output_file:
         if optimize:
-            output_line = "iid\tpat\tmat\treg_id\tparents_in_batch\tshared_chips\te_phasing_hom\tn_phasing_hom\tr_phasing_hom\n"
+            output_line = "iid\tpat\tmat\treg_id\tparents_in_batch\torig_parents_in_batch\tshared_chips\te_phasing_hom\tn_phasing_hom\tr_phasing_hom\n"
         else:
-            output_line = "iid\tpat\tmat\treg_id\tparents_in_batch\tshared_chips\te_phasing\tn_phasing\tr_phasing\te_phasing_hom\tn_phasing_hom\tr_phasing_hom\te_mendel\tn_mendel\tr_mendel\te_child_missing\te_father_missing\te_mother_missing\tn_missing\tr_child_missing\tr_father_missing\tr_mother_missing\n"
+            output_line = "iid\tpat\tmat\treg_id\tparents_in_batch\torig_parents_in_batch\tshared_chips\te_phasing\tn_phasing\tr_phasing\te_phasing_hom\tn_phasing_hom\tr_phasing_hom\te_mendel\tn_mendel\tr_mendel\te_child_missing\te_father_missing\te_mother_missing\tn_missing\tr_child_missing\tr_father_missing\tr_mother_missing\n"
         output_file.write(output_line)
         for f in trios:
             child = f['child']
@@ -103,6 +103,7 @@ def main(args):
             mother = f['mother']
             reg_id = f['reg_id']
             parents_in_batch = f['parents_in_batch']
+            orig_parents_in_batch = f['orig_parents_in_batch']
             e_phasing_hom = f['e_phasing_hom']
             n_phasing_hom = f['n_phasing_hom']
             if n_phasing_hom > 0:
@@ -135,9 +136,9 @@ def main(args):
                     r_father_missing = "NA"
                     r_mother_missing = "NA"
             if optimize:
-                output_line = f"{child}\t{father}\t{mother}\t{reg_id}\t{parents_in_batch}\t{shared_chips}\t{e_phasing_hom}\t{n_phasing_hom}\t{r_phasing_hom}\n"
+                output_line = f"{child}\t{father}\t{mother}\t{reg_id}\t{parents_in_batch}\t{orig_parents_in_batch}\t{shared_chips}\t{e_phasing_hom}\t{n_phasing_hom}\t{r_phasing_hom}\n"
             else:
-                output_line = f"{child}\t{father}\t{mother}\t{reg_id}\t{parents_in_batch}\t{shared_chips}\t{e_phasing}\t{n_phasing}\t{r_phasing}\t{e_phasing_hom}\t{n_phasing_hom}\t{r_phasing_hom}\t{e_mendel}\t{n_mendel}\t{r_mendel}\t{e_child_missing}\t{e_father_missing}\t{e_mother_missing}\t{n_missing}\t{r_child_missing}\t{r_father_missing}\t{r_mother_missing}\n"
+                output_line = f"{child}\t{father}\t{mother}\t{reg_id}\t{parents_in_batch}\t{orig_parents_in_batch}\t{shared_chips}\t{e_phasing}\t{n_phasing}\t{r_phasing}\t{e_phasing_hom}\t{n_phasing_hom}\t{r_phasing_hom}\t{e_mendel}\t{n_mendel}\t{r_mendel}\t{e_child_missing}\t{e_father_missing}\t{e_mother_missing}\t{n_missing}\t{r_child_missing}\t{r_father_missing}\t{r_mother_missing}\n"
             output_file.write(output_line)
 
     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
