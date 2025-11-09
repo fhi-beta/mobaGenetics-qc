@@ -3,7 +3,7 @@ library(glue)
 library(tidyr)
 library(dplyr)
 
-debug <- F
+debug <- T
 
 if (debug){
     args <- c("/mnt/archive2/moba_genotypes_resources/phenotypes/expected_relationship_24.04.12.gz",
