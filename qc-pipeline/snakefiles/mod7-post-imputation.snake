@@ -217,9 +217,9 @@ rule mod7_phase_report:
         "envs/pysam.yaml"
     params:
         r_script = "utils/phasing_report.R",
-        title ="\"Phasing report, merged phasing, reshuffled batches"\"",
+        title ="\"Phasing report, merged phasing, reshuffled batches\"",
         rate = "phasing_hom",
-        rate_desc = "\"Phasing error rates"\""
+        rate_desc = "\"Phasing error rates\"",
         chromosome = {chr}
     threads: 32
     conda:

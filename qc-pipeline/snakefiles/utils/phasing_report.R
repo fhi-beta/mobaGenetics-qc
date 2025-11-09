@@ -119,12 +119,12 @@ write_chromosome_table <- function(tab, rate, chr){
         )
         
         write(
-            x = "| Parents in batch | Trios | Sites | Errors | Error rate |\n|:----|:----|:----|:----|:----|",
+            x = "| Shared chips | Trios | Sites | Errors | Error rate |\n|:----|:----|:----|:----|:----|",
             file = md_file,
             append = T
         )
         for (p in 0:2){
-            tab_p <- subset(tab, parents_in_batch == p)
+            tab_p <- subset(tab, shared_chips == p)
             trios <- nrow(tab_p)
             sites <- sum(tab_p[[paste0("n_",rate[1])]])
             errors <- sum(tab_p[[paste0("e_",rate[1])]])
@@ -146,12 +146,12 @@ write_chromosome_table <- function(tab, rate, chr){
             append = T
         )
         write(
-            x = "| Parents in batch | min | max | median | mean |\n|:----|:----|:----|:----|:----|",
+            x = "| Shared chips | min | max | median | mean |\n|:----|:----|:----|:----|:----|",
             file = md_file,
             append = T
         )
         for (p in 0:2){
-            tab_p <- subset(tab, parents_in_batch == p)
+            tab_p <- subset(tab, shared_chips == p)
             write_rates_table_row(p, tab_p[[paste0("r_",rate[1])]])
         }
         write_rates_table_row("Total", tab[[paste0("r_",rate[1])]])
@@ -171,9 +171,9 @@ write_chromosome_table <- function(tab, rate, chr){
             if (p==1){
                 plur <- ""
             }
-            tab_p <- subset(tab, parents_in_batch == p)
-            filename <- paste0(gsub(" ", "_", tolower(rate[2])),"_chr",chr,"_",p,"parents.png")
-            title <- paste0("Chromosome ", chr,", ",p, " parent", plur, " in batch")
+            tab_p <- subset(tab, shared_chips == p)
+            filename <- paste0(gsub(" ", "_", tolower(rate[2])),"_chr",chr,"_",p,"shared_chips.png")
+            title <- paste0("Chromosome ", chr,", ",p, " shared chip", plur)
             aboslute_path <- paste0(plots_folder, filename)
             relative_path <- paste0("phasing_plots/", filename)
             plot_density(tab_p[[paste0("r_",rate[1])]], title, rate[2], aboslute_path, relative_path)
