@@ -208,6 +208,28 @@ rule mod7_phase_check_parallel:
         """
 
 
+rule mod7_phase_report:
+    input:
+        phase_check = rules.mod7_phase_check_parallel.output.phase_check
+    output:
+        phase_report = str(tmpMod6_phasing_test / "phase_report" / "mod7_phase_report.{quality}.chr{chr}.md")
+    conda:
+        "envs/pysam.yaml"
+    params:
+        r_script = "utils/phasing_report.R",
+        title ="\"Phasing report, merged phasing, reshuffled batches"\"",
+        rate = "phasing_hom",
+        rate_desc = "\"Phasing error rates"\""
+        chromosome = {chr}
+    threads: 32
+    conda:
+        "envs/r_4.2"
+    shell:
+        """
+        Rscript {params.r_script} {input.phase_check} {output.phase_report} {params.title} {params.rate} {params.rate_desc} {params.chromosome}
+        """
+
+
 # Plink2 does not support phased dosages for multiallelic variants yet, so they are removed for now
 rule mod7_remove_multiallelic_variants:
     input:

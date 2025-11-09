@@ -1,10 +1,10 @@
-debug <- T
+debug <- F
 
 if (debug){
     args <- c(
-        "/mnt/archive3/phasing_test/phase_merged/expected_all_relations_mod7_phase_check.chr21", 
-        "/mnt/archive3/phasing_test/phase_merged/phase_report_unfiltered/phase_report.unfiltered.chr21.md",
-        "Phasing report, merged phasing, imputed by original batch",
+        "/mnt/archive3/phasing_test/phase_merged_reshuffle/mod7_phase_check.dr_08.chr21", 
+        "/mnt/archive3/phasing_test/phase_merged_reshuffle/phase_report/phase_report.dr_08.chr21.md",
+        "Phasing report, merged phasing, reshuffled batches",
         "phasing_hom",
         "Phasing error rates",
         "21")
@@ -130,6 +130,11 @@ write_chromosome_table <- function(tab, rate, chr){
             errors <- sum(tab_p[[paste0("e_",rate[1])]])
             write_combined_rates_table_row(p, trios, sites, errors)
         }
+        tab_p <- tab
+        trios <- nrow(tab_p)
+        sites <- sum(tab_p[[paste0("n_",rate[1])]])
+        errors <- sum(tab_p[[paste0("e_",rate[1])]])
+        write_combined_rates_table_row("Total", trios, sites, errors)
         write(
             x = "\n",
             file = md_file,
@@ -149,6 +154,7 @@ write_chromosome_table <- function(tab, rate, chr){
             tab_p <- subset(tab, parents_in_batch == p)
             write_rates_table_row(p, tab_p[[paste0("r_",rate[1])]])
         }
+        write_rates_table_row("Total", tab[[paste0("r_",rate[1])]])
         write(
             x = "\n",
             file = md_file,
@@ -173,6 +179,11 @@ write_chromosome_table <- function(tab, rate, chr){
             plot_density(tab_p[[paste0("r_",rate[1])]], title, rate[2], aboslute_path, relative_path)
 
         }
+        filename <- paste0(gsub(" ", "_", tolower(rate[2])),"_chr",chr,"_total.png")
+        title <- paste0("Chromosome ", chr,", all samples")
+        aboslute_path <- paste0(plots_folder, filename)
+        relative_path <- paste0("phasing_plots/", filename)
+        plot_density(tab[[paste0("r_",rate[1])]], title, rate[2], aboslute_path, relative_path)
     }
 
 if(single_file){
