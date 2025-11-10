@@ -371,7 +371,7 @@ rule mod6_find_new_batches:
     conda:
         "envs/r_4.2.yaml"
     run:
-        out_trunk = mqc.plinkBase(output.new_batches[0])
+        out_trunk = mqc.plinkBase(mqc.plinkBase(output.imputation_batches[0]))
         shell(f"Rscript {params.r_script} {input.relations_file} {out_trunk} {output.md_file} {output.updated_relations} {output.updated_trios}")
 
 
