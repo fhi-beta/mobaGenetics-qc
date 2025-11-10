@@ -6,7 +6,7 @@ library(stringr)
 library(knitr)
 
 
-debug <- F
+debug <- T
 
 if (debug) {
   
@@ -70,9 +70,9 @@ for (batch in batches) {
 }
 
 
-problem_children_df <- subset(updated_rel, parents>0 & shared_chips == 0)
+problem_children_updated <- subset(updated_rel, parents>0 & shared_chips == 0)
 
-updated_rel <- updated_rel %>% mutate(iid_batch = ifelse(iid %in% problem_children_df$iid, "problem", iid_batch))
+updated_rel <- updated_rel %>% mutate(iid_batch = ifelse(iid %in% problem_children_updated$iid, "problem", iid_batch))
 
 # Move problem to separate batch (with problem parents) for phasing
 for (batch in batches) {
@@ -87,9 +87,9 @@ for (batch in batches) {
 
 problem_batch_file <- paste0(new_batches_trunk, ".phasing.problem")
 
-iid <- as.character(problem_children$iid)
-pat <- as.character(na.omit(problem_children$pat))
-mat <- as.character(na.omit(problem_children$mat))
+iid <- as.character(problem_children_updated$iid)
+pat <- as.character(na.omit(problem_children_updated$pat))
+mat <- as.character(na.omit(problem_children_updated$mat))
 
 writeLines(iid, problem_batch_file)
 writeLines(iid, problem_children_file)
