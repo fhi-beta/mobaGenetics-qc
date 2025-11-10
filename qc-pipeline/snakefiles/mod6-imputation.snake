@@ -485,7 +485,7 @@ rule mod6_split_imputation_batches_variants:
         vcf = rules.mod6_split_imputation_batches_samples.output.vcf,
         conform = rules.mod6_conform.output.conformed_vcf
     output:
-        vcf = str(tmpMod6_phasing_test / "mod6_split_imputation_batches_variants.{batch}chr{chr}.vcf")
+        vcf = str(tmpMod6_phasing_test / "mod6_split_imputation_batches_variants.{batch}.chr{chr}.vcf")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
