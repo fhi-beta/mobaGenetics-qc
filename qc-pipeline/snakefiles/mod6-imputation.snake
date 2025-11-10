@@ -340,8 +340,7 @@ rule mod6_phase_rare:
         bcf = rules.mod6_fill_ac_merged.output.bcf,
         phased_bcf = rules.mod6_phase_common.output.phased_bcf
     output:
-        phased_bcf = str(tmpMod6_phasing_test / "mod6_phase_rare.chr{chr}.phased.bcf"),
-        shapeit_log = str(tmpMod6_phasing_test/ "mod6_phase_rare.chr{chr}.phased.log")
+        phased_bcf = str(tmpMod6_phasing_test / "mod6_phase_rare.chr{chr}.phased.bcf")
     params:
         map_chr=get_map_chr,
         ref_chr=get_reference_chr,
@@ -353,7 +352,7 @@ rule mod6_phase_rare:
         """
         reffile=$(echo {hrc_vcf}/HRC.r1-1.EGA.GRCh37.chr{params.ref_chr}.haplotypes*.vcf.gz)
         mapfile={mapfiles}/shapeit/chr{params.map_chr}.b37.gmap.gz
-        SHAPEIT5_phase_rare --input {input.bcf} --scaffold {input.phased_bcf} --pedigree {input.shapeit_fam}  --map $mapfile --input-region {params.region_chr} --scaffold-region {params.region_chr} --output {output.phased_bcf} --log {output.shapeit_log} --thread {threads}
+        SHAPEIT5_phase_rare --input {input.bcf} --scaffold {input.phased_bcf} --pedigree {input.shapeit_fam}  --map $mapfile --input-region {params.region_chr} --scaffold-region {params.region_chr} --output {output.phased_bcf} --thread {threads}
         """
 
 
