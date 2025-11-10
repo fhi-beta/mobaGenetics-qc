@@ -10,7 +10,7 @@ debug <- F
 
 if (debug) {
   
-  args <- c("/mnt/archive3/phasing_test/expected_all_relations", "/mnt/archive3/phasing_test/new_batches", "/mnt/archive3/phasing_test/batch_shuffle.md",  "/mnt/archive3/phasing_test/batch_movements", "/mnt/archive3/phasing_test/batch_movements_trios")
+  args <- c("/mnt/archive3/phasing_test/expected_all_relations", "/mnt/archive3/phasing_test/new_batches", "/mnt/archive3/phasing_test/batch_shuffle.md",  "/mnt/archive3/phasing_test/batch_movements", "/mnt/archive3/phasing_test/batch_movements_trios", "/mnt/archive3/phasing_test/problem_children")
   
 } else {
   args <- commandArgs(TRUE)
@@ -22,6 +22,7 @@ new_batches_trunk <- args[2]
 md_file <- args[3]
 movements_file <- args[4]
 trios_file <- args[5]
+problem_children_file <- args[6]
 
 rel <- read.table(rel_file, header = T)
 rel$orig_batch <- rel$iid_batch
@@ -52,20 +53,59 @@ updated_rel <- updated_rel %>%
     )
   ))
 
-updated_trios <- subset(updated_rel, !is.na(pat) & !is.na(mat))
-write.table(x = updated_rel, file = movements_file, col.names = T, row.names = F, quote = F, sep = "\t")
-
-
-write.table(x = updated_trios, file = trios_file, col.names = F, row.names = F, quote = F, sep = "\t")
 
 
 batches <- unique(updated_rel$iid_batch)
+updated_trios <- subset(updated_rel, !is.na(pat) & !is.na(mat))
+write.table(x = updated_rel, file = movements_file, col.names = T, row.names = F, quote = F, sep = "\t")
+write.table(x = updated_trios, file = trios_file, col.names = F, row.names = F, quote = F, sep = "\t")
+
+
+# Batches including problem children (for imputation)
 for (batch in batches) {
-  samples_file <- paste0(new_batches_trunk, ".batch_", batch)
+  samples_file <- paste0(new_batches_trunk, ".imputation.", batch)
   samples <- subset(updated_rel, iid_batch == batch) %>% select(iid)
   samples <- unique(samples)
   write.table(samples, samples_file, row.names = F, col.names = F, quote=F)
 }
+
+
+problem_children_df <- subset(updated_rel, parents>0 & shared_chips == 0)
+
+updated_rel <- updated_rel %>% mutate(iid_batch = ifelse(iid %in% problem_children_df$iid, "problem", iid_batch))
+
+# Move problem to separate batch (with problem parents) for phasing
+for (batch in batches) {
+  samples_file <- paste0(new_batches_trunk, ".phasing.", batch)
+  samples <- subset(updated_rel, iid_batch == batch) %>% select(iid)
+  samples <- unique(samples)
+  write.table(samples, samples_file, row.names = F, col.names = F, quote=F)
+}
+
+
+
+
+problem_batch_file <- paste0(new_batches_trunk, ".phasing.problem")
+
+iid <- as.character(problem_children$iid)
+pat <- as.character(na.omit(problem_children$pat))
+mat <- as.character(na.omit(problem_children$mat))
+
+writeLines(iid, problem_batch_file)
+writeLines(iid, problem_children_file)
+
+con <- file(problem_batch_file, open = "a")
+writeLines(pat, con)
+close(con)
+
+con <- file(problem_batch_file, open = "a")
+writeLines(mat, con)
+close(con)
+
+
+
+
+
 
 
 
