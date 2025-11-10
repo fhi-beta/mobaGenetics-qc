@@ -338,7 +338,7 @@ rule mod6_phase_rare:
     input:
         shapeit_fam = rules.mod6_make_relationships_tables.output.shapeit_fam,
         bcf = rules.mod6_fill_ac_merged.output.bcf,
-        phased_bcf = rules.mod6_phase_commom.output.phased_bcf
+        phased_bcf = rules.mod6_phase_common.output.phased_bcf
     output:
         phased_bcf = str(tmpMod6_phasing_test / "mod6_phase_rare.chr{chr}.phased.bcf"),
         shapeit_log = str(tmpMod6_phasing_test/ "mod6_phase_rare.chr{chr}.phased.log")
