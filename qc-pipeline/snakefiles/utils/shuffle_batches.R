@@ -88,8 +88,8 @@ for (batch in batches) {
 problem_batch_file <- paste0(new_batches_trunk, ".phasing.problem")
 
 iid <- as.character(problem_children_updated$iid)
-pat <- as.character(na.omit(problem_children_updated$pat))
-mat <- as.character(na.omit(problem_children_updated$mat))
+pat <- as.character(unique(na.omit(problem_children_updated$pat)))
+mat <- as.character(unique(na.omit(problem_children_updated$mat)))
 
 writeLines(iid, problem_batch_file)
 writeLines(iid, problem_children_file)
