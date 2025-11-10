@@ -436,7 +436,7 @@ rule mod6_extract_phased_problem_children:
 
 batches_and_problem_children = batches + ["problem_children"]
 def get_phased_bcf(wildcards):
-    return [str(tmpMod6_phasing_test / "{batch}" / f"mod6_phase.chr{wildcards.chr}.phased.bcf") for batch in batches_and_problem_children]
+    return [str(tmpMod6_phasing_test / f"{batch}" / f"mod6_phase.chr{wildcards.chr}.phased.bcf") for batch in batches_and_problem_children]
 
 
 rule mod6_merge_phased:
