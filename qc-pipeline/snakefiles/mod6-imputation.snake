@@ -352,7 +352,7 @@ rule mod6_phase_rare:
         """
         reffile=$(echo {hrc_vcf}/HRC.r1-1.EGA.GRCh37.chr{params.ref_chr}.haplotypes*.vcf.gz)
         mapfile={mapfiles}/shapeit/chr{params.map_chr}.b37.gmap.gz
-        SHAPEIT5_phase_rare --input {input.bcf} --scaffold {input.phased_bcf} --pedigree {input.shapeit_fam}  --map $mapfile --input-region {params.region_chr} --scaffold-region {params.region_chr} --output {output.phased_bcf} --thread {threads}
+        SHAPEIT5_phase_rare --input {input.bcf} --scaffold {input.phased_bcf} --pedigree {input.shapeit_fam}  --map $mapfile --input-region 21:10906741-48100155 --scaffold-region 21:10906741-48100155 --output {output.phased_bcf} --thread {threads}
         """
 
 
