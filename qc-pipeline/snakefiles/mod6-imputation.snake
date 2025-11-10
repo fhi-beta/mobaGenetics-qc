@@ -390,7 +390,7 @@ rule mod6_split_phasing_batches:
         samples = get_phasing_samples_file,
         bcf = rules.mod6_merge_batches.output.merged_bcf
     output:
-        bcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_split_phasing_batches.chr{chr}.bcf")
+        bcf = str(tmpMod6_phasing_test / "mod6_split_phasing_batches.{batch}.chr{chr}.bcf")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -403,8 +403,8 @@ rule mod6_phase:
         shapeit_fam = rules.mod6_make_relationships_tables.output.shapeit_fam,
         bcf = rules.mod6_split_phasing_batches.output.bcf
     output:
-        phased_bcf = str(tmpMod6_phasing_test / "{batch}"  / "mod6_phase.chr{chr}.phased.bcf"),
-        shapeit_log = str(tmpMod6_phasing_test/ "{batch}" / "mod6_phase.chr{chr}.phased.log")
+        phased_bcf = str(tmpMod6_phasing_test  / "mod6_phase.{batch}.chr{chr}.phased.bcf"),
+        shapeit_log = str(tmpMod6_phasing_test / "mod6_phase.{batch}.chr{chr}.phased.log")
     params:
         map_chr=get_map_chr,
         ref_chr=get_reference_chr,
@@ -422,10 +422,10 @@ rule mod6_phase:
 
 rule mod6_extract_phased_problem_children:
     input:
-        bcf = str(tmpMod6_phasing_test / "problem" / "mod6_phase.chr{chr}.phased.bcf"),
+        bcf = str(tmpMod6_phasing_test / "mod6_phase.problem.chr{chr}.phased.bcf"),
         problem_children = rules.mod6_find_new_batches.output.problem_children
     output:
-        bcf = str(tmpMod6_phasing_test / "problem_children" / "mod6_phase.chr{chr}.phased.bcf")
+        bcf = str(tmpMod6_phasing_test / "mod6_phase.problem_children.chr{chr}.phased.bcf")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -436,7 +436,7 @@ rule mod6_extract_phased_problem_children:
 
 batches_and_problem_children = batches + ["problem_children"]
 def get_phased_bcf(wildcards):
-    return [str(tmpMod6_phasing_test / f"{batch}" / f"mod6_phase.chr{wildcards.chr}.phased.bcf") for batch in batches_and_problem_children]
+    return [str(tmpMod6_phasing_test / f"mod6_phase.{batch}.chr{wildcards.chr}.phased.bcf") for batch in batches_and_problem_children]
 
 
 rule mod6_merge_phased:
@@ -472,7 +472,7 @@ rule mod6_split_imputation_batches_samples:
         samples = get_samples_file,
         bcf = rules.mod6_merge_phased.output.merged_bcf
     output:
-        vcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_split_imputation_batches.chr{chr}.vcf.gz")
+        vcf = str(tmpMod6_phasing_test / "mod6_split_imputation_batches_samples.{batch}.chr{chr}.vcf.gz")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -485,7 +485,7 @@ rule mod6_split_imputation_batches_variants:
         vcf = rules.mod6_split_imputation_batches_samples.output.vcf,
         conform = rules.mod6_conform.output.conformed_vcf
     output:
-        vcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_split_imputation_batches_variants.chr{chr}.vcf")
+        vcf = str(tmpMod6_phasing_test / "mod6_split_imputation_batches_variants.{batch}chr{chr}.vcf")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
