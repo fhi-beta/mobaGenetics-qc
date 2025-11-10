@@ -464,6 +464,9 @@ def get_phased_bcf(wildcards):
     return str(tmpMod6_phasing_test / f"mod6_phase_rare.chr{wildcards.chr}.phased.bcf")
     # return str(tmpMod6_phasing_test / f"mod6_phase_merged.chr{wildcards.chr}.phased.bcf"),
 
+def get_merged_phased(wildcards):
+    return str(tmpMod6_phasing_test / "mod6_merged_phased.chr{wildcards.chr}.bcf")
+
 rule mod6_split_imputation_batches_samples:
     input:
         samples = get_samples_file,
