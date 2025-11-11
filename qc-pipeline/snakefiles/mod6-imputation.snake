@@ -443,7 +443,9 @@ rule mod6_merge_phased:
     input:
         bcfs = get_phased_bcf
     output:
-        merged_bcf = str(tmpMod6_phasing_test / "mod6_merged_phased.chr{chr}.bcf")
+        merged_bcf = str(tmpMod6_phasing_test / "mod6_merged_phased.chr{chr}.bcf")    
+    log:
+        str(tmpMod6_phasing_test / "mod6_merged_phased.chr{chr}.log")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
