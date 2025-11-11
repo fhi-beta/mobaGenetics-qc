@@ -96,8 +96,8 @@ problem_batch_file <- paste0(new_batches_trunk, ".phasing.problem")
 problem_children_char <- as.character(problem_children_updated$iid)
 problem_fathers_char <- as.character(problem_fathers)
 problem_mothers_char <- as.character(problem_mothers)
-problem_fathers_without_unproblematic_children_char <- char(problem_fathers_without_unproblematic_children)
-problem_mothers_without_unproblematic_children_char <- char(problem_mothers_without_unproblematic_children)
+problem_fathers_without_unproblematic_children_char <- as.character(problem_fathers_without_unproblematic_children)
+problem_mothers_without_unproblematic_children_char <- as.character(problem_mothers_without_unproblematic_children)
 
 
 writeLines(problem_children_char, problem_batch_file)
