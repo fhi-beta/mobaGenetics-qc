@@ -71,8 +71,14 @@ for (batch in batches) {
 
 
 problem_children_updated <- subset(updated_rel, parents>0 & shared_chips == 0)
+no_problem_children_updated <-subset(updated_rel, parents>0 & shared_chips > 0)
+problem_fathers <- unique(na.omit(problem_children_updated$pat))
+problem_fathers_without_unproblematic_children <- problem_fathers[!(problem_fathers %in% no_problem_children_updated$pat)]
+problem_mothers <- unique(na.omit(problem_children_updated$mat))
+problem_mothers_without_unproblematic_children <- problem_mothers[!(problem_mothers %in% no_problem_children_updated$mat)]
 
 updated_rel <- updated_rel %>% mutate(iid_batch = ifelse(iid %in% problem_children_updated$iid, "problem", iid_batch))
+updated_rel <- updated_rel %>% mutate(iid_batch = ifelse(iid %in% problem_fathers_without_unproblematic_children | iid %in% problem_mothers_without_unproblematic_children, "problem", iid_batch))
 
 # Move problem to separate batch (with problem parents) for phasing
 for (batch in batches) {
@@ -87,22 +93,31 @@ for (batch in batches) {
 
 problem_batch_file <- paste0(new_batches_trunk, ".phasing.problem")
 
-iid <- as.character(problem_children_updated$iid)
-pat <- as.character(unique(na.omit(problem_children_updated$pat)))
-mat <- as.character(unique(na.omit(problem_children_updated$mat)))
+problem_children_char <- as.character(problem_children_updated$iid)
+problem_fathers_char <- as.character(problem_fathers)
+problem_mothers_char <- as.character(problem_mothers)
+problem_fathers_without_unproblematic_children_char <- char(problem_fathers_without_unproblematic_children)
+problem_mothers_without_unproblematic_children_char <- char(problem_mothers_without_unproblematic_children)
 
-writeLines(iid, problem_batch_file)
-writeLines(iid, problem_children_file)
+
+writeLines(problem_children_char, problem_batch_file)
+writeLines(problem_children_char, problem_children_file)
 
 con <- file(problem_batch_file, open = "a")
-writeLines(pat, con)
+writeLines(problem_fathers_char, con)
 close(con)
 
 con <- file(problem_batch_file, open = "a")
-writeLines(mat, con)
+writeLines(problem_mothers_char, con)
 close(con)
 
+con <- file(problem_children_file, open = "a")
+writeLines(problem_fathers_without_unproblematic_children_char, con)
+close(con)
 
+con <- file(problem_children_file, open = "a")
+writeLines(problem_mothers_without_unproblematic_children_char, con)
+close(con)
 
 
 
