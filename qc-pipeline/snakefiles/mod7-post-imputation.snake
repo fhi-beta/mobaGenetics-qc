@@ -219,14 +219,13 @@ rule mod7_phase_report:
         r_script = "utils/phasing_report.R",
         title ="\"Phasing report, merged phasing, reshuffled batches\"",
         rate = "phasing_hom",
-        rate_desc = "\"Phasing error rates\"",
-        chromosome = {chr}
+        rate_desc = "\"Phasing error rates\""
     threads: 32
     conda:
         "envs/r_4.2"
     shell:
         """
-        Rscript {params.r_script} {input.phase_check} {output.phase_report} {params.title} {params.rate} {params.rate_desc} {params.chromosome}
+        Rscript {params.r_script} {input.phase_check} {output.phase_report} {params.title} {params.rate} {params.rate_desc} {wildcards.chr}
         """
 
 
