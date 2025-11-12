@@ -1,3 +1,4 @@
+orig_batch  new_batch
 snp001  snp001
 snp002  merge_snp002_snp003
 snp003  merge_snp002_snp003
