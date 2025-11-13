@@ -490,7 +490,7 @@ def find_conform_batch(wildcards):
         batch = split_batch[0]
     else:
         batch = split_batch[1]
-    return str(tmpMod6 / "{batch}" / "mod6_conform.chr{wildcards.chr}.conformed.vcf.gz")
+    return str(tmpMod6 / f"{batch}" / f"mod6_conform.chr{wildcards.chr}.conformed.vcf.gz")
      
 
 rule mod6_split_imputation_batches_variants:
