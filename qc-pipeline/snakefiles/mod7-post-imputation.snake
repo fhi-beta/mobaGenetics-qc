@@ -50,13 +50,7 @@ rule mod7_filter:
         dr2_threshold = get_dr2_cutoff #config['post_imputation_dr2_threshold']
     shell:
         """
-        # mapfile -t chromosomes < {input.chromosome_file}
-        # if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
-        #     echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod7_filter"
-        #     touch {output.filtered_vcf}
-        # else
-            bcftools view -i 'INFO/DR2>={params.dr2_threshold}' {input.imputed_vcf} -o {output.filtered_vcf} --write-index
-        # fi 
+        bcftools view -i 'INFO/DR2>={params.dr2_threshold}' {input.imputed_vcf} -o {output.filtered_vcf} --write-index
         """
     
 rule mod7_format_phased_dosage:
