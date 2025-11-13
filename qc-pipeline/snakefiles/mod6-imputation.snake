@@ -484,11 +484,19 @@ rule mod6_split_imputation_batches_samples:
         """
         bcftools view {input.bcf} --samples-file {input.samples} | bcftools +fill-AN-AC -Oz -o {output.vcf} --write-index
         """
+def find_conform_batch(wildcards):
+    split_batch = wildcards.batch.split("_")
+    if split_batch[0] != "merge":
+        batch = split_batch[0]
+    else:
+        batch = split_batch[1]
+    return str(tmpMod6 / "{batch}" / "mod6_conform.chr{wildcards.chr}.conformed.vcf.gz")
+     
 
 rule mod6_split_imputation_batches_variants:
     input:
         vcf = rules.mod6_split_imputation_batches_samples.output.vcf,
-        conform = rules.mod6_conform.output.conformed_vcf
+        conform = find_conform_batch #rules.mod6_conform.output.conformed_vcf
     output:
         vcf = str(tmpMod6_phasing_test / "mod6_split_imputation_batches_variants.{batch}.chr{chr}.vcf")
     conda:
