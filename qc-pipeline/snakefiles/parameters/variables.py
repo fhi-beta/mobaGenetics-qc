@@ -49,7 +49,7 @@ tmpMod7 = base/'mod7-post-imputation'
 tmpMod8 = archive3_base/'mod8-release_annotation'
 tmpMod8_2 = archive3_base_2/'mod8-release_annotation'
 
-tmpMod6_phasing_test = Path("/mnt/archive3/phasing_test/shuffle_phase_reshuffle_imputation_keep_superproblems")
+tmpMod6_phasing_test = Path("/mnt/archive3/phasing_test/phasing_batches_all_related_larger_imputation_batches")
 # tmpMod6_phase_merged = Path("/mnt/archive3/phasing_test/phase_merged")
 
 #tmpMergeTest = base/'merge_test'
@@ -77,6 +77,7 @@ resultPath = base/'results'
 # batches_debug = ['snp001', 'snp002', 'snp003', 'snp007', 'snp008', 'snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018c', 'snp018de']
 batches =  config['batches']
 batches_to_split = config['batches_to_split']
+imputation_batches = ["snp001", "merge_snp002_snp003", "merge_snp007_snp008", "merge_snp009_snp011", "merge_snp010_snp014", "snp012", "snp016a", "snp016b", "snp017a", "merge_snp017b_snp017c_snp017d_snp017e_snp017cf" , "merge_snp018a_snp018b_snp018c_snp018de"]
 split_batches = []
 for batch in batches:
     if batch in batches_to_split:

@@ -6,11 +6,11 @@ library(stringr)
 library(knitr)
 
 
-debug <- F
+debug <- T
 
 if (debug) {
   
-  args <- c("/mnt/archive3/phasing_test/expected_all_relations", "/mnt/archive3/phasing_test/new_batches", "/mnt/archive3/phasing_test/batch_shuffle.md",  "/mnt/archive3/phasing_test/batch_movements", "/mnt/archive3/phasing_test/batch_movements_trios", "/mnt/archive3/phasing_test/problem_children")
+  args <- c("/mnt/archive3/phasing_test/expected_all_relations", "/mnt/archive3/phasing_test/new_imputation_batches", "/mnt/archive3/phasing_test/batch_shuffle.md",  "/mnt/archive3/phasing_test/batch_movements", "/mnt/archive3/phasing_test/batch_movements_trios", "/mnt/archive3/phasing_test/problem_children", "/mnt/work/oystein/github/mobaGenetics-qc/qc-pipeline/snakefiles/parameters/imputation_merge")
   
 } else {
   args <- commandArgs(TRUE)
@@ -23,6 +23,7 @@ md_file <- args[3]
 movements_file <- args[4]
 trios_file <- args[5]
 problem_children_file <- args[6]
+imputation_merge_file <- args[7]
 
 rel <- read.table(rel_file, header = T)
 rel$orig_batch <- rel$iid_batch
@@ -57,6 +58,20 @@ updated_rel <- updated_rel %>%
 
 batches <- unique(updated_rel$iid_batch)
 updated_trios <- subset(updated_rel, !is.na(pat) & !is.na(mat))
+
+imputation_merge <- read.table(imputation_merge_file, header = T)
+
+updated_rel <- updated_rel %>% left_join(imputation_merge %>% select (iid_batch = orig_batch, imputation_batch = new_batch), by = "iid_batch")
+
+imputation_batches <- unique(updated_rel$imputation_batch)
+
+for (batch in imputation_batches) {
+  samples_file <- paste0(new_batches_trunk, ".imputation.", batch)
+  samples <- subset(updated_rel, imputation_batch == batch) %>% select(iid)
+  samples <- unique(samples)
+  write.table(samples, samples_file, row.names = F, col.names = F, quote=F)
+}
+
 write.table(x = updated_rel, file = movements_file, col.names = T, row.names = F, quote = F, sep = "\t")
 write.table(x = updated_trios, file = trios_file, col.names = F, row.names = F, quote = F, sep = "\t")
 
@@ -79,6 +94,9 @@ problem_mothers_without_unproblematic_children <- problem_mothers[!(problem_moth
 
 updated_rel <- updated_rel %>% mutate(iid_batch = ifelse(iid %in% problem_children_updated$iid, "problem", iid_batch))
 updated_rel <- updated_rel %>% mutate(iid_batch = ifelse(iid %in% problem_fathers_without_unproblematic_children | iid %in% problem_mothers_without_unproblematic_children, "problem", iid_batch))
+
+updated_rel <- updated_rel %>% left_join(imputation_merge %>% select (iid_batch = orig_batch, imputation_batch = new_batch), by = "iid_batch")
+
 
 # Move problem to separate batch (with problem parents) for phasing
 for (batch in batches) {

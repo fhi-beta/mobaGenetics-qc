@@ -127,8 +127,10 @@ def get_batches_with_chromosome(chr):
             batches_with_chromosome.append(batch)
     return batches_with_chromosome
 
+# imputation_batches = ["snp001", "merge_snp002_snp003", "merge_snp007_snp008", "merge_snp009_snp011", "merge_snp010_snp014", "snp012", "snp016a", "snp016b", "snp017a", "merge_snp017b_snp017c_snp017d_snp017e_snp017cf" , "merge_snp018a_snp018b_snp018c_snp018de"]
+
 def get_vcf_batch_files_to_merge(wildcards):
-    return [f"{tmpMod6_phasing_test}/{batch}/mod7_filter.{wildcards.quality}.chr{wildcards.chr}.vcf.gz" for batch in batches]
+    return [f"{tmpMod6_phasing_test}/{batch}/mod7_filter.{wildcards.quality}.chr{wildcards.chr}.vcf.gz" for batch in imputation_batches]
 
     # REVERT THIS!
     # batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
@@ -193,7 +195,7 @@ rule mod7_phase_check_parallel:
     input:
         bcf = rules.mod7_merge_batches.output.merged_vcf,
         index = rules.mod7_index_merge.output.index,
-        relations_file = rules.mod6_find_new_batches.output.updated_trios
+        relations_file = "/mnt/archive3/phasing_test/shuffle_phase_reshuffle_imputation/updated_trios" #rules.mod6_find_new_batches.output.updated_trios
     output:
         phase_check = str(tmpMod6_phasing_test / "mod7_phase_check.{quality}.chr{chr}")
     conda:
