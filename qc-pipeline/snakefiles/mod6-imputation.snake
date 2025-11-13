@@ -510,7 +510,7 @@ rule mod6_split_imputation_batches_variants:
 rule_stem = "mod6_impute"
 rule mod6_impute:
     input:
-        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
+        # chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         vcf = rules.mod6_split_imputation_batches_variants.output.vcf #rules.mod6_split_merged_variants.output.vcf #rules.mod6_reset_male_x_ploidy.output.vcf #rules.mod6_conform.output.conformed_vcf
     output:
         imputed_vcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz")
@@ -522,25 +522,25 @@ rule mod6_impute:
         str(tmpMod6_phasing_test/"{batch}" / "mod6_impute_log_chr{chr}.log")
     shell:
         """
-        mapfile -t chromosomes < {input.chromosome_file}
+        # mapfile -t chromosomes < {input.chromosome_file}
         
-        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
-            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_impute"
-            touch {output.imputed_vcf}
+        # if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+        #     echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_impute"
+        #     touch {output.imputed_vcf}
         
-        else
+        # else
             reffile={hrc_bref}/HRC_GRCh37.chr{wildcards.chr}.bref3
             mapfile={mapfiles}/plink.chr{params.map_chr}.GRCh37.map
             output_full={output.imputed_vcf}
             outTrunk="${{output_full%.vcf.gz}}"
             java -Xmx{config[mem]} -jar {beagle} gt={input.vcf} ref=$reffile impute=true out=$outTrunk chrom={params.beagle_chr} nthreads={threads} ap=true map=$mapfile
-        fi 
+        # fi 
         """
 
     
 rule mod6_index:
     input:
-        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
+        # chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         imputed_vcf = rules.mod6_impute.output.imputed_vcf
     output:
         index = str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.tbi")
@@ -548,21 +548,21 @@ rule mod6_index:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        mapfile -t chromosomes < {input.chromosome_file}
+        # mapfile -t chromosomes < {input.chromosome_file}
         
-        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
-            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_index"
-            touch {output.index}
+        # if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+        #     echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_index"
+        #     touch {output.index}
         
-        else
+        # else
             tabix -p vcf {input.imputed_vcf}
-        fi 
+        # fi 
         
         """
 
 rule mod6_query:
     input:
-        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
+        # chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         index = rules.mod6_index.output.index,
         imputed_vcf = rules.mod6_impute.output.imputed_vcf
     output:
@@ -571,14 +571,14 @@ rule mod6_query:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        mapfile -t chromosomes < {input.chromosome_file}
-        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
-            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_query"
-            touch {output.info}
+        # mapfile -t chromosomes < {input.chromosome_file}
+        # if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+        #     echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_query"
+        #     touch {output.info}
         
-        else
+        # else
             bcftools query -f '%CHROM %POS %ID %IMP %REF %ALT %DR2 %AF\n' {input.imputed_vcf} -o {output.info}
-        fi 
+        # fi 
         """
 
 
