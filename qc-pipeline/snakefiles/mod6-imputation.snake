@@ -401,7 +401,7 @@ rule mod6_split_phasing_batches:
 
 rule mod6_phase:
     input:
-        shapeit_fam = "/mnt/archive3/phasing_test/shuffle_phase_reshuffle_imputation/updated_trios", #rules.mod6_make_relationships_tables.output.shapeit_fam,
+        shapeit_fam = "/mnt/archive3/phasing_test/shuffle_phase_reshuffle_imputation/expected_shapeit_fam", #rules.mod6_make_relationships_tables.output.shapeit_fam,
         bcf = rules.mod6_split_phasing_batches.output.bcf
     output:
         phased_bcf = str(tmpMod6_phasing_test  / "mod6_phase.{batch}.chr{chr}.phased.bcf"),
