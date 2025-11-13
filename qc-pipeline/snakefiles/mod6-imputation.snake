@@ -356,23 +356,23 @@ def get_map_chr(wildcards):
 #         """
 
 # phasing_batches = batches + ["problem"]
-rule mod6_find_new_batches:
-    input:
-        relations_file = rules.mod6_make_relationships_tables.output.all_relations
-    output:
-        md_file = str(tmpMod6_phasing_test/"batch_shuffle.md"),
-        imputation_batches = expand(str(tmpMod6_phasing_test/"new_batches.imputation.{batch}"), batch = batches),
-        phasing_batches = expand(str(tmpMod6_phasing_test/"new_batches.phasing.{batch}"), batch = phasing_batches),
-        updated_relations = str(tmpMod6_phasing_test/"updated_relations"),
-        updated_trios = str(tmpMod6_phasing_test/"updated_trios"),
-        problem_children = str(tmpMod6_phasing_test/"problem_children")
-    params:
-        r_script = "utils/shuffle_batches.R"
-    conda:
-        "envs/r_4.2.yaml"
-    run:
-        out_trunk = mqc.plinkBase(mqc.plinkBase(output.imputation_batches[0]))
-        shell(f"Rscript {params.r_script} {input.relations_file} {out_trunk} {output.md_file} {output.updated_relations} {output.updated_trios} {output.problem_children}")
+# rule mod6_find_new_batches:
+#     input:
+#         relations_file = rules.mod6_make_relationships_tables.output.all_relations
+#     output:
+#         md_file = str(tmpMod6_phasing_test/"batch_shuffle.md"),
+#         imputation_batches = expand(str(tmpMod6_phasing_test/"new_batches.imputation.{batch}"), batch = batches),
+#         phasing_batches = expand(str(tmpMod6_phasing_test/"new_batches.phasing.{batch}"), batch = phasing_batches),
+#         updated_relations = str(tmpMod6_phasing_test/"updated_relations"),
+#         updated_trios = str(tmpMod6_phasing_test/"updated_trios"),
+#         problem_children = str(tmpMod6_phasing_test/"problem_children")
+#     params:
+#         r_script = "utils/shuffle_batches.R"
+#     conda:
+#         "envs/r_4.2.yaml"
+#     run:
+#         out_trunk = mqc.plinkBase(mqc.plinkBase(output.imputation_batches[0]))
+#         shell(f"Rscript {params.r_script} {input.relations_file} {out_trunk} {output.md_file} {output.updated_relations} {output.updated_trios} {output.problem_children}")
 
 
 
@@ -401,7 +401,7 @@ rule mod6_split_phasing_batches:
 
 rule mod6_phase:
     input:
-        shapeit_fam = rules.mod6_make_relationships_tables.output.shapeit_fam,
+        shapeit_fam = "/mnt/archive3/phasing_test/shuffle_phase_reshuffle_imputation/updated_trios", #rules.mod6_make_relationships_tables.output.shapeit_fam,
         bcf = rules.mod6_split_phasing_batches.output.bcf
     output:
         phased_bcf = str(tmpMod6_phasing_test  / "mod6_phase.{batch}.chr{chr}.phased.bcf"),
