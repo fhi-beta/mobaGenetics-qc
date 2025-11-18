@@ -8,6 +8,9 @@ rel_file = "/mnt/archive3/phasing_test/phase_merged_reshuffle/updated_relations"
 output_trunk =  "/mnt/archive3/phasing_test/phasing_batch"
 fid_file = "/mnt/archive3/phasing_test/fids"
 n_phasing_batches = 3
+
+
+
 updated_rel = pd.read_csv(rel_file, sep = "\t", low_memory=False)
 
 
