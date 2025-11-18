@@ -124,7 +124,7 @@ def get_batches_with_chromosome(chr):
 # imputation_batches = ["snp001", "merge_snp002_snp003", "merge_snp007_snp008", "merge_snp009_snp011", "merge_snp010_snp014", "snp012", "snp016a", "snp016b", "snp017a", "merge_snp017b_snp017c_snp017d_snp017e_snp017cf" , "merge_snp018a_snp018b_snp018c_snp018de"]
 
 def get_vcf_batch_files_to_merge(wildcards):
-    return [f"{tmpMod6_phasing_test}/{batch}/mod7_filter.{wildcards.quality}.chr{wildcards.chr}.vcf.gz" for batch in imputation_batches]
+    return [f"{tmpMod6_phasing_test}/{batch}/mod7_filter.{wildcards.quality}.chr{wildcards.chr}.vcf.gz" for batch in batches]
 
     # REVERT THIS!
     # batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
