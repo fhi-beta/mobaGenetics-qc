@@ -125,7 +125,7 @@ rule all:
         # expand(str(tmpMod6_phasing_test / "{quality}" /"{batch}" / "mod7_filter.chr{chr}.vcf.gz"), batch = batches, chr = ["21"], quality = ["dr2_08"]),
         #expand(str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info"), batch = batches, chr = ["21"]),
         #str(tmpMod6_phasing_test / "phase_report" / "mod7_phase_report.dr2_08.chr21.md")
-        "/mnt/archive3/phasing_test/mod6_phase_rare.chr{chr}.chunk0.phased.bcf"
+        "/mnt/archive3/phasing_test/mod6_phase_rare.chr21.chunk0.phased.bcf"
         #str(tmpMod6_phasing_test / "mod6_phase_rare.chr21.phased.bcf")
        # "/mnt/archive3/phasing_test/parallel_check3/parallel_phasing_test"
         # expand(str(tmpMod6_phasing_test / "mod7_merge_batches_chr{chr}.bcf"), chr = ["21"]),
