@@ -312,48 +312,48 @@ def get_map_chr(wildcards):
 #         """
 
 
-# rule mod6_phase_common:
-#     input:
-#         shapeit_fam = rules.mod6_make_relationships_tables.output.shapeit_fam,
-#         bcf = rules.mod6_fill_ac_merged.output.bcf
-#     output:
-#         phased_bcf = str(tmpMod6_phasing_test / "mod6_phase_commom.chr{chr}.phased.bcf"),
-#         shapeit_log = str(tmpMod6_phasing_test/ "mod6_phase_common.chr{chr}.phased.log")
-#     params:
-#         map_chr=get_map_chr,
-#         ref_chr=get_reference_chr,
-#         region_chr=get_beagle_chr
-#     conda:
-#         "envs/shapeit_5.yaml"
-#     threads: 32
-#     shell:
-#         """
-#         reffile=$(echo {hrc_vcf}/HRC.r1-1.EGA.GRCh37.chr{params.ref_chr}.haplotypes*.vcf.gz)
-#         mapfile={mapfiles}/shapeit/chr{params.map_chr}.b37.gmap.gz
-#         SHAPEIT5_phase_common --input {input.bcf} --filter-maf 0.001 --pedigree {input.shapeit_fam} --region {params.region_chr} --reference $reffile --map $mapfile --output {output.phased_bcf} --output-format bcf --log {output.shapeit_log} --thread {threads}
-#         """
+rule mod6_phase_common:
+    input:
+        shapeit_fam ="/mnt/archive3/phasing_test/phase_merged_reshuffle/expected_shapeit_fam", # rules.mod6_make_relationships_tables.output.shapeit_fam,
+        bcf =  "/mnt/archive3/phasing_test/phase_related_reshuffle_imputation/mod6_split_phasing_batches.batch0.chr21.bcf" #rules.mod6_fill_ac_merged.output.bcf
+    output:
+        phased_bcf = "/mnt/archive3/phasing_test/mod6_phase_commom.chr{chr}.phased.bcf",
+        shapeit_log = "/mnt/archive3/phasing_test/mod6_phase_common.chr{chr}.phased.log"
+    params:
+        map_chr=get_map_chr,
+        ref_chr=get_reference_chr,
+        region_chr=get_beagle_chr
+    conda:
+        "envs/shapeit_5.yaml"
+    threads: 32
+    shell:
+        """
+        reffile=$(echo {hrc_vcf}/HRC.r1-1.EGA.GRCh37.chr{params.ref_chr}.haplotypes*.vcf.gz)
+        mapfile={mapfiles}/shapeit/chr{params.map_chr}.b37.gmap.gz
+        SHAPEIT5_phase_common --input {input.bcf} --filter-maf 0.001 --pedigree {input.shapeit_fam} --region {params.region_chr} --reference $reffile --map $mapfile --output {output.phased_bcf} --output-format bcf --log {output.shapeit_log} --thread {threads}
+        """
 
 
-# rule mod6_phase_rare:
-#     input:
-#         shapeit_fam = rules.mod6_make_relationships_tables.output.shapeit_fam,
-#         bcf = rules.mod6_fill_ac_merged.output.bcf,
-#         phased_bcf = rules.mod6_phase_common.output.phased_bcf
-#     output:
-#         phased_bcf = str(tmpMod6_phasing_test / "mod6_phase_rare.chr{chr}.phased.bcf")
-#     params:
-#         map_chr=get_map_chr,
-#         ref_chr=get_reference_chr,
-#         region_chr=get_beagle_chr
-#     conda:
-#         "envs/shapeit_5.yaml"
-#     threads: 32
-#     shell:
-#         """
-#         reffile=$(echo {hrc_vcf}/HRC.r1-1.EGA.GRCh37.chr{params.ref_chr}.haplotypes*.vcf.gz)
-#         mapfile={mapfiles}/shapeit/chr{params.map_chr}.b37.gmap.gz
-#         SHAPEIT5_phase_rare --input {input.bcf} --scaffold {input.phased_bcf} --pedigree {input.shapeit_fam}  --map $mapfile --input-region 21:10906742-48100155 --scaffold-region 21:10906741-48100200 --output {output.phased_bcf} --thread {threads}
-#         """
+rule mod6_phase_rare:
+    input:
+        shapeit_fam = "/mnt/archive3/phasing_test/phase_merged_reshuffle/expected_shapeit_fam", #rules.mod6_make_relationships_tables.output.shapeit_fam,
+        bcf = rules.mod6_fill_ac_merged.output.bcf,
+        phased_bcf = rules.mod6_phase_common.output.phased_bcf
+    output:
+        phased_bcf = "/mnt/archive3/phasing_test/mod6_phase_rare.chr{chr}.chunk0.phased.bcf"
+    params:
+        map_chr=get_map_chr,
+        ref_chr=get_reference_chr,
+        region_chr=get_beagle_chr
+    conda:
+        "envs/shapeit_5.yaml"
+    threads: 32
+    shell:
+        """
+        reffile=$(echo {hrc_vcf}/HRC.r1-1.EGA.GRCh37.chr{params.ref_chr}.haplotypes*.vcf.gz)
+        mapfile={mapfiles}/shapeit/chr{params.map_chr}.b37.gmap.gz
+        SHAPEIT5_phase_rare --input {input.bcf} --scaffold {input.phased_bcf} --pedigree {input.shapeit_fam}  --map $mapfile --input-region 21:1-39967491 --scaffold-region 21:1-48100155 --output {output.phased_bcf} --thread {threads}
+        """
 
 # phasing_batches = batches + ["problem"]
 # rule mod6_find_new_batches:
