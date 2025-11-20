@@ -337,7 +337,7 @@ rule mod6_phase_common:
 rule mod6_phase_rare:
     input:
         shapeit_fam = "/mnt/archive3/phasing_test/phase_merged_reshuffle/expected_shapeit_fam", #rules.mod6_make_relationships_tables.output.shapeit_fam,
-        bcf = rules.mod6_fill_ac_merged.output.bcf,
+        bcf = "/mnt/archive3/phasing_test/phase_related_reshuffle_imputation/mod6_split_phasing_batches.batch0.chr21.bcf",
         phased_bcf = rules.mod6_phase_common.output.phased_bcf
     output:
         phased_bcf = "/mnt/archive3/phasing_test/mod6_phase_rare.chr{chr}.chunk0.phased.bcf"
