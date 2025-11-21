@@ -233,7 +233,7 @@ rule mod6_make_relationships_tables:
         Rscript {params.r_script} {input.expected_relationships} {input.batch_table} {params.batch_chip} {input.ids} {output.all_relations} {output.shapeit_fam}
         """
 
-phasing_batches = batches + ["problem"]
+
 rule mod6_find_new_batches:
     input:
         relations_file = rules.mod6_make_relationships_tables.output.all_relations
