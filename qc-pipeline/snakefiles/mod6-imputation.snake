@@ -419,7 +419,7 @@ def get_map_chr(wildcards):
 def get_phasing_samples_file(wildcards):
     # return f"/mnt/archive3/phasing_test/phasing_batch.{wildcards.batch}"
     # return str(tmpMod6_phasing_test / f"mod6_make_split_samples_list.batch_{wildcards.batch}")
-    return str(tmpMod6_phasing_test/"phasing_batch.{wildcards.batch}")
+    return str(tmpMod6_phasing_test/f"phasing_batch.{wildcards.batch}")
     # return str(tmpMod6_phasing_test/ f"new_batches.phasing.{wildcards.batch}")
 
 # def get_phased_bcf(wildcards):
