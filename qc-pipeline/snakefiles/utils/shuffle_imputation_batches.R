@@ -10,7 +10,7 @@ debug <- F
 
 if (debug) {
   
-  args <- c("/mnt/archive3/phasing_test/expected_all_relations", "/mnt/archive3/phasing_test/new_imputation_batches", "/mnt/archive3/phasing_test/batch_shuffle.md",  "/mnt/archive3/phasing_test/batch_movements", "/mnt/archive3/phasing_test/batch_movements_trios"))
+  args <- c("/mnt/archive3/phasing_test/expected_all_relations", "/mnt/archive3/phasing_test/new_imputation_batches", "/mnt/archive3/phasing_test/batch_shuffle.md",  "/mnt/archive3/phasing_test/batch_movements", "/mnt/archive3/phasing_test/batch_movements_trios")
   
 } else {
   args <- commandArgs(TRUE)
