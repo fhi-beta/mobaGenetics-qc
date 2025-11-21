@@ -234,7 +234,7 @@ rule mod6_make_relationships_tables:
         """
 
 phasing_batches = batches + ["problem"]
-rule mod6_find_new_imputation_batches:
+rule mod6_find_new_batches:
     input:
         relations_file = rules.mod6_make_relationships_tables.output.all_relations
     output:
