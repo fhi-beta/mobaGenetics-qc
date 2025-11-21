@@ -59,7 +59,7 @@ updated_trios <- subset(updated_rel, !is.na(pat) & !is.na(mat))
 
 for (batch in batches) {
   samples_file <- paste0(new_batches_trunk, ".imputation.", batch)
-  samples <- subset(updated_rel, imputation_batch == batch) %>% select(iid)
+  samples <- subset(updated_rel, iid_batch == batch) %>% select(iid)
   samples <- unique(samples)
   write.table(samples, samples_file, row.names = F, col.names = F, quote=F)
 }
