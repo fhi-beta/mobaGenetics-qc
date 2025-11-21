@@ -49,7 +49,7 @@ tmpMod7 = base/'mod7-post-imputation'
 tmpMod8 = archive3_base/'mod8-release_annotation'
 tmpMod8_2 = archive3_base_2/'mod8-release_annotation'
 
-tmpMod6_phasing_test = Path("/mnt/archive3/phasing_test/phase_related_reshuffle_imputation")
+tmpMod6_phasing_test = Path("/mnt/archive3/phasing_test/phase_related_2_batches")
 # tmpMod6_phase_merged = Path("/mnt/archive3/phasing_test/phase_merged")
 
 #tmpMergeTest = base/'merge_test'
@@ -64,6 +64,9 @@ release_folder_2 = Path(config['release_base']) / config['release2'] # Path(conf
 release_base_name = "moba_genotypes_" + config['release2'] # "moba_genotypes_" + config['release']
 
 n_samples = config['n_samples']
+
+
+
 # tmpMod5 = base/'mod5-samples_unrelated'
 # tmpMod6 = base/'mod6-phasing-preparation'
 resultPath = base/'results'
@@ -77,14 +80,17 @@ resultPath = base/'results'
 # batches_debug = ['snp001', 'snp002', 'snp003', 'snp007', 'snp008', 'snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018c', 'snp018de']
 batches =  config['batches']
 batches_to_split = config['batches_to_split']
-imputation_batches = ["snp001", "merge_snp002_snp003", "merge_snp007_snp008", "merge_snp009_snp011", "merge_snp010_snp014", "snp012", "snp016a", "snp016b", "snp017a", "merge_snp017b_snp017c_snp017d_snp017e_snp017cf" , "merge_snp018a_snp018b_snp018c_snp018de"]
-split_batches = []
-for batch in batches:
-    if batch in batches_to_split:
-        split_batches.append(f"{batch}_1")
-        split_batches.append(f"{batch}_2")
-    else:
-        split_batches.append(batch)
+
+n_phasing_batches = config['n_phasing_batches']
+phasing_batches = [f"batch{i}" for i in range(n_phasing_batches)]
+# imputation_batches = ["snp001", "merge_snp002_snp003", "merge_snp007_snp008", "merge_snp009_snp011", "merge_snp010_snp014", "snp012", "snp016a", "snp016b", "snp017a", "merge_snp017b_snp017c_snp017d_snp017e_snp017cf" , "merge_snp018a_snp018b_snp018c_snp018de"]
+# split_batches = []
+# for batch in batches:
+#     if batch in batches_to_split:
+#         split_batches.append(f"{batch}_1")
+#         split_batches.append(f"{batch}_2")
+#     else:
+#         split_batches.append(batch)
 chrs = config['chrs']
 # chrs_debug = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16']
 # chrs_debug = [str(i) for i in range(1, 23)]
