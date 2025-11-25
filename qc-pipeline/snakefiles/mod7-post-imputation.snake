@@ -46,8 +46,8 @@ rule mod7_filter:
         filtered_vcf = str(tmpMod6_phasing_test /"{batch}" / "mod7_filter.chr{chr}.vcf.gz")
     conda:
         "envs/bcf_tabix.yaml"
-    params:
-        dr2_threshold = get_dr2_cutoff #config['post_imputation_dr2_threshold']
+    # params:
+    #     dr2_threshold = get_dr2_cutoff #config['post_imputation_dr2_threshold']
     shell:
         """
         bcftools view -i 'INFO/DR2>=0.3 && INFO/AF>=0.001' {input.imputed_vcf} -o {output.filtered_vcf} --write-index
