@@ -104,7 +104,7 @@ batches <- unique(rel_filtered$iid_batch)
 
 for (batch in batches) {
   samples_file <- paste0(imputation_batches_trunk, ".", batch)
-  samples <- subset(rel_filtered$, iid_batch == batch) %>% select(iid)
+  samples <- subset(rel_filtered, iid_batch == batch) %>% select(iid)
   samples <- unique(samples)
   write.table(samples, samples_file, row.names = F, col.names = F, quote=F)
 }
