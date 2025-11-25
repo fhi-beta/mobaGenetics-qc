@@ -19,7 +19,7 @@
 #             echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod7_filter"
 #             touch {output.filtered_vcf}
 #         else
-#             bcftools view -i 'INFO/DR2>=0.8' {input.imputed_vcf} -o {output.filtered_vcf} --write-index
+#             bcftools view -i 'INFO/DR2>=0.3' {input.imputed_vcf} -o {output.filtered_vcf} --write-index
 #         fi 
 #         """
 
@@ -43,14 +43,14 @@ rule mod7_filter:
         imputed_vcf =  rules.mod6_impute.output.imputed_vcf,
         index = rules.mod6_index.output.index
     output:
-        filtered_vcf = str(tmpMod6_phasing_test /"{batch}" / "mod7_filter.{quality}.chr{chr}.vcf.gz")
+        filtered_vcf = str(tmpMod6_phasing_test /"{batch}" / "mod7_filter.chr{chr}.vcf.gz")
     conda:
         "envs/bcf_tabix.yaml"
     params:
         dr2_threshold = get_dr2_cutoff #config['post_imputation_dr2_threshold']
     shell:
         """
-        bcftools view -i 'INFO/DR2>={params.dr2_threshold}' {input.imputed_vcf} -o {output.filtered_vcf} --write-index
+        bcftools view -i 'INFO/DR2>=0.3 && INFO/AF>=0.001' {input.imputed_vcf} -o {output.filtered_vcf} --write-index
         """
     
 rule mod7_format_phased_dosage:
@@ -124,7 +124,7 @@ def get_batches_with_chromosome(chr):
 # imputation_batches = ["snp001", "merge_snp002_snp003", "merge_snp007_snp008", "merge_snp009_snp011", "merge_snp010_snp014", "snp012", "snp016a", "snp016b", "snp017a", "merge_snp017b_snp017c_snp017d_snp017e_snp017cf" , "merge_snp018a_snp018b_snp018c_snp018de"]
 
 def get_vcf_batch_files_to_merge(wildcards):
-    return [f"{tmpMod6_phasing_test}/{batch}/mod7_filter.{wildcards.quality}.chr{wildcards.chr}.vcf.gz" for batch in batches]
+    return [f"{tmpMod6_phasing_test}/{batch}/mod7_filter.chr{wildcards.chr}.vcf.gz" for batch in batches]
 
     # REVERT THIS!
     # batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
@@ -140,10 +140,10 @@ rule mod7_merge_batches:
         vcfs = get_vcf_batch_files_to_merge,
         # index = get_index_batch_files_to_merge # REVERT THIS!
     output:
-        merged_vcf = str(tmpMod6_phasing_test / "mod7_merge_batches.{quality}.chr{chr}.bcf")
+        merged_vcf = str(tmpMod6_phasing_test / "mod7_merge_batches.chr{chr}.bcf")
     log:
         # str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches.log")
-        str(tmpMod6_phasing_test / "mod7_merge_batches.{quality}.chr{chr}.log")
+        str(tmpMod6_phasing_test / "mod7_merge_batches.chr{chr}.log")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -160,7 +160,7 @@ rule mod7_index_merge:
     input:
         bcf = rules.mod7_merge_batches.output.merged_vcf
     output:
-        index = str(tmpMod6_phasing_test /"mod7_merge_batches.{quality}.chr{chr}.bcf.csi")
+        index = str(tmpMod6_phasing_test /"mod7_merge_batches.chr{chr}.bcf.csi")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
@@ -189,9 +189,9 @@ rule mod7_phase_check_parallel:
     input:
         bcf = rules.mod7_merge_batches.output.merged_vcf,
         index = rules.mod7_index_merge.output.index,
-        relations_file = rules.mod6_find_new_batches.output.updated_trios
+        relations_file = rules.mod6_make_relationships_tables.output.all_relations
     output:
-        phase_check = str(tmpMod6_phasing_test / "mod7_phase_check.{quality}.chr{chr}")
+        phase_check = str(tmpMod6_phasing_test / "mod7_phase_check.chr{chr}")
     conda:
         "envs/pysam.yaml"
     params:

@@ -11,7 +11,8 @@ if (debug){
     "/mnt/work/oystein/github/mobaGenetics-qc/qc-pipeline/snakefiles/parameters/batch_chip",
     "/mnt/archive2/moba_genotypes_resources/phenotypes/ids_24.08.07.gz",
     "/mnt/archive3/phasing_test/expected_all_relations",
-    "/mnt/archive3/phasing_test/expected_shapeit_fam")
+    "/mnt/archive3/phasing_test/expected_shapeit_fam",
+    "/mnt/archive3/phasing_test/imputation_batches")
 } else {
     args <- commandArgs(TRUE)
 }
@@ -22,18 +23,22 @@ chip_file <- args[3]
 id_file <- args[4]
 relations_file <- args[5]
 shapeit_fam <- args[6]
+imputation_batches_trunk <- args[7]
 
 
 ids <- read.table(id_file, header = T) %>% select(iid = sentrix_id, reg_id = id)
 exp_rel <- read.table(rel_file, header = T, col.names=c("iid", "mat", "pat"))[,c(1,3,2)]
 exp_rel <- subset(exp_rel, !is.na(iid) & (!is.na(pat) | !is.na(mat)))
 
-rel <- ids %>% select(iid) %>% left_join(exp_rel, by = "iid")
+# rel <- batches %>% select(iid) %>% left_join(exp_rel, by = "iid")
 
 # rel <- subset(rel, !is.na(iid))
 # rel <- subset(rel, !is.na(pat) | !is.na(mat))
 batches <- read.table(batch_file, header = T)
 batch_chip <- read.table(chip_file, header = T)
+
+rel <- batches %>% select(iid) %>% left_join(exp_rel, by = "iid")
+
 
 rel <- rel %>% left_join(batches %>% select(iid, iid_batch = batch), by = "iid")
 rel <- rel %>% left_join(batches %>% select(pat = "iid", pat_batch = batch), by = "pat")
@@ -94,3 +99,12 @@ write.table(
 
 
 write.table(x = shapeit_fam_df, file = shapeit_fam, col.names = F, row.names = F, quote = F, sep = "\t")
+
+batches <- unique(rel_filtered$iid_batch)
+
+for (batch in batches) {
+  samples_file <- paste0(imputation_batches_trunk, ".", batch)
+  samples <- subset(rel_filtered$, iid_batch == batch) %>% select(iid)
+  samples <- unique(samples)
+  write.table(samples, samples_file, row.names = F, col.names = F, quote=F)
+}
