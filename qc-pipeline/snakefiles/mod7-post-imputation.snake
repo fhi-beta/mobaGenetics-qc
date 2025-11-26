@@ -150,7 +150,7 @@ rule mod7_merge_batches:
         """
         echo "Output file: {output.merged_vcf}" > {log}
         echo "Merge started $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
-        bcftools merge {input.vcfs} -o {output.merged_vcf}
+        bcftools merge {input.vcfs} -o {output.merged_vcf} --write-index
         echo "Merge finished $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
         echo "Merged files:" >> {log}
         for file in {input.vcfs}; do echo "$file" >> {log}; done
@@ -188,7 +188,7 @@ rule mod7_index_merge:
 rule mod7_phase_check_parallel:
     input:
         bcf = rules.mod7_merge_batches.output.merged_vcf,
-        index = rules.mod7_index_merge.output.index,
+        # index = rules.mod7_index_merge.output.index,
         relations_file = rules.mod6_make_relationships_tables.output.all_relations
     output:
         phase_check = str(tmpMod6_phasing_test / "mod7_phase_check.chr{chr}")

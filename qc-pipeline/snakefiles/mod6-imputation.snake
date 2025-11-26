@@ -494,7 +494,7 @@ rule mod6_merge_phased:
         """
         echo "Output file: {output.merged_bcf}" > {log}
         echo "Merge started $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
-        bcftools merge {input.bcfs} -o {output.merged_bcf} --write-index
+        bcftools merge {input.bcfs} -o {output.merged_bcf} --force-single --write-index
         echo "Merge finished $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
         echo "Merged files:" >> {log}
         for file in {input.bcfs}; do echo "$file" >> {log}; done
