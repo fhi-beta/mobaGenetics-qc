@@ -107,7 +107,6 @@ def main(args):
             child = f['child']
             father = f['father']
             mother = f['mother']
-            reg_id = f['reg_id']
             e_phasing_hom = f['e_phasing_hom']
             n_phasing_hom = f['n_phasing_hom']
             if n_phasing_hom > 0:
@@ -140,9 +139,9 @@ def main(args):
                     r_father_missing = "NA"
                     r_mother_missing = "NA"
             if optimize:
-                output_line = f"{child}\t{father}\t{mother}\t{reg_id}\t{e_phasing_hom}\t{n_phasing_hom}\t{r_phasing_hom}\n"
+                output_line = f"{child}\t{father}\t{mother}\t{e_phasing_hom}\t{n_phasing_hom}\t{r_phasing_hom}\n"
             else:
-                output_line = f"{child}\t{father}\t{mother}\t{reg_id}\t{e_phasing}\t{n_phasing}\t{r_phasing}\t{e_phasing_hom}\t{n_phasing_hom}\t{r_phasing_hom}\t{e_mendel}\t{n_mendel}\t{r_mendel}\t{e_child_missing}\t{e_father_missing}\t{e_mother_missing}\t{n_missing}\t{r_child_missing}\t{r_father_missing}\t{r_mother_missing}\n"
+                output_line = f"{child}\t{father}\t{mother}\t{e_phasing}\t{n_phasing}\t{r_phasing}\t{e_phasing_hom}\t{n_phasing_hom}\t{r_phasing_hom}\t{e_mendel}\t{n_mendel}\t{r_mendel}\t{e_child_missing}\t{e_father_missing}\t{e_mother_missing}\t{n_missing}\t{r_child_missing}\t{r_father_missing}\t{r_mother_missing}\n"
             output_file.write(output_line)
 
     current_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
