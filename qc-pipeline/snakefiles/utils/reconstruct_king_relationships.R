@@ -9,41 +9,21 @@ library(grid)
     "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_pedigree_ibd_estimate.kin0", 
     "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_check_sex_common_filter_X_ycounts.sexcheck",
     "/mnt/archive2/moba_genotypes_resources/phenotypes/birth_year_24.04.12.gz",
-    "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_batch_table_batch",
+    "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_batch_table_batch", 
+    "/mnt/archive2/moba_genotypes_resources/phenotypes/ids_24.08.07.gz",
     "/mnt/archive2/moba_genotypes_resources/phenotypes/confirmed_relationships_25.01.30")
 
 
 genome_file <- args[1]
 
-if (!file.exists(genome_file)) {
-  
-  stop("Genome file not found")
-  
-}
 
 sex_check_file <- args[2]
 
-if (!file.exists(sex_check_file)) {
-  
-  stop("sex check file not found")
-  
-}
-
 birth_year_file <- args[3]
-
-if (!file.exists(birth_year_file)) {
-  
-  stop("Birth year file not found")
-  
-}
 batch_file <- args[4]
-if (!file.exists(batch_file)) {
-  
-  stop("Batch file not found")
-  
-}
+ids_file <- args[5]
 
-confirmed_relations_file <- args[5]
+confirmed_relations_file <- args[6]
 
 genomic_relatedness_table <- read.table(
   file = genome_file,
@@ -63,12 +43,6 @@ sex$sex <- ifelse(sex$SNPSEX == "0", sex$PEDSEX, sex$SNPSEX)
 batches <- read.table(batch_file, header = T)
 
 
-expected_relationships_data <- read.table(
-  file = expected_relationships_file,
-  header = T,
-  sep = "\t",
-  stringsAsFactors = F
-)
 
 print("Read birth year file")
 birth_year_data  <- read.table(
@@ -112,11 +86,37 @@ related_table <- related_table %>%
       ),
     by = "ID2"
   ) %>% 
+  left_join(
+    id_data %>% 
+      select(
+        ID1 = sentrix_id,
+        role1 = role
+      ),
+    by = "ID1"
+  ) %>%
+   left_join(
+    id_data %>% 
+      select(
+        ID2 = sentrix_id,
+        role2 = role
+      ),
+    by = "ID2"
+  ) %>%
   mutate(
-    birth_year1 = ifelse(is.na(birth_year1), 1900, birth_year1),
-    birth_year2 = ifelse(is.na(birth_year2), 1900, birth_year2)
+    birth_year1 = ifelse(is.na(birth_year1), 0, birth_year1),
+    birth_year2 = ifelse(is.na(birth_year2), 0, birth_year2)
   ) %>% left_join(sex %>% select(ID1 = IID, sex1 = sex), by = "ID1") %>% 
   left_join(sex %>% select(ID2 = IID, sex2 = sex), by = "ID2")
+
+related_table <- subset(related_table, !(birth_year1 == 0 & birth_year2 == 0))
+
+related_table$birth_year1 <- ifelse(related_table$birth_year1 == 0 & related_table$role2 == "child", 1900, related_table$birth_year1)
+related_table$birth_year1 <- ifelse(related_table$birth_year1 == 0 & related_table$role2 != "child", 2100, related_table$birth_year1)
+
+related_table$birth_year2 <- ifelse(related_table$birth_year2 == 0 & related_table$role1 == "child", 1900, related_table$birth_year2)
+related_table$birth_year2 <- ifelse(related_table$birth_year2 == 0 & related_table$role1 != "child", 2100, related_table$birth_year2)
+
+related_table <- subset(related_table, !(role1 != "child" & role2 != "child"))
 
 parent_offspring_table <- data.frame(
     parent_sentrix_id = as.character(ifelse(related_table$birth_year1 < related_table$birth_year2, related_table$ID1,related_table$ID2)),

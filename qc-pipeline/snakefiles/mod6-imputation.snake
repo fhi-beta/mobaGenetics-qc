@@ -217,7 +217,7 @@ rule mod6_batch_table:
 
 rule mod6_make_relationships_tables:
     input:
-        expected_relationships = config['expected_relationships'],
+        expected_relationships = config['confirmed_relationships'], # config['expected_relationships'],
         batch_table = rules.mod6_batch_table.output.batch_table,
         ids = config['id_mapping']
     params:

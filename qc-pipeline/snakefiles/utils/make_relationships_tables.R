@@ -6,7 +6,7 @@ library(dplyr)
 debug <- F
 
 if (debug){
-    args <- c("/mnt/archive2/moba_genotypes_resources/phenotypes/expected_relationship_24.04.12.gz",
+    args <- c("/mnt/archive2/moba_genotypes_resources/phenotypes/confirmed_relationships_25.01.30",
     "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_pedigree_ibd_estimate.kin0",
     "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_batch_table_batch",
     "/mnt/work/oystein/github/mobaGenetics-qc/qc-pipeline/snakefiles/parameters/batch_chip",
