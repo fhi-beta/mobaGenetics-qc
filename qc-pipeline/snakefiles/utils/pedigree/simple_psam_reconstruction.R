@@ -9,7 +9,7 @@ set.seed(11111)
 
 
 # Command line arguments
-debug <- F
+debug <- T
 debug_plink_version <- 2
 debug_batch <- "snp010"
 if (debug) {
@@ -191,7 +191,6 @@ psam_data <- psam_data_raw[,c("IID", "SEX")]
   file = psam_file,
   header = F,
   sep = "\t",
-  col.names = c("IID", "SEX"),
   stringsAsFactors = F
 )
 }

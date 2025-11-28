@@ -6,12 +6,12 @@ library(ggplot2)
 library(grid) 
  
  args <- c(
-    "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_pedigree_ibd_estimate.kin0", 
+    "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_pedigree_ibd_estimate.kin0", 
     "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_check_sex_common_filter_X_ycounts.sexcheck",
     "/mnt/archive2/moba_genotypes_resources/phenotypes/birth_year_24.04.12.gz",
     "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_batch_table_batch", 
     "/mnt/archive2/moba_genotypes_resources/phenotypes/ids_24.08.07.gz",
-    "/mnt/archive2/moba_genotypes_resources/phenotypes/confirmed_relationships_25.01.30")
+    "/mnt/archive2/moba_genotypes_resources/phenotypes/confirmed_relationships_2025.09.25")
 
 
 genome_file <- args[1]
