@@ -232,7 +232,7 @@ rule mod6_make_relationships_tables:
         "envs/r_4.2.yaml"
     run:
         imputation_batches_trunk = mqc.plinkBase(output.imputation_batches[0])
-        shell(f"Rscript {params.r_script} {input.confirmed_relationships_relationships} {input.batch_table} {params.batch_chip} {input.ids} {output.all_relations} {output.shapeit_fam} {imputation_batches_trunk}")
+        shell(f"Rscript {params.r_script} {input.confirmed_relationships} {input.batch_table} {params.batch_chip} {input.ids} {output.all_relations} {output.shapeit_fam} {imputation_batches_trunk}")
 
 
 # rule mod6_find_new_batches:
