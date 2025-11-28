@@ -4,7 +4,6 @@ if (debug){
     args <- c(
         "/mnt/archive3/phasing_test/phase_related_orig_imputation/mod7_phase_check.chr21",
         "/mnt/archive3/phasing_test/phase_related_orig_imputation/expected_all_relations",
-        "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_psam_reconstruction.psam",
         "/mnt/archive3/phasing_test/debug/phase_report/phase_report.chr21.md", 
         "Phasing report, pre-phase related samples",
         "phasing_hom",
@@ -15,7 +14,7 @@ if (debug){
 }
 
 
-chr_input <- args[8]
+chr_input <- args[7]
 
 if(chr_input != "0"){
     single_file <- TRUE
@@ -33,11 +32,10 @@ if(single_file){
 
 
 relations_file <- args[2]
-filter_psam <- args[3]
-md_file <- args[4]
+md_file <- args[3]
 
-title <- args[5]
-rate <- c(args[6], args[7])
+title <- args[4]
+rate <- c(args[5], args[6])
 docs_folder <- dirname(md_file)
 plots_folder <- paste0(docs_folder, "/phasing_plots/")
 
@@ -83,13 +81,13 @@ if (single_file){
     chromosome_table <- read.table(input_file, header = TRUE)
     rel <- read.table(relations_file, header = TRUE)
     chromosome_table <- chromosome_table %>% left_join(rel %>% select(iid, shared_chips), by = "iid")
-    if (filter_psam != "0")
-    {
-        psam <- read.table(filter_psam)
-        ptrios <- subset(psam, V3 != "0" & V4 != "0") %>% select(iid = V2, pat = V3, mat = V4)
-        chromosome_table <- chromosome_table %>% semi_join(ptrios, by = c("iid", "pat", "mat"))
+    # if (filter_psam != "0")
+    # {
+    #     psam <- read.table(filter_psam)
+    #     ptrios <- subset(psam, V3 != "0" & V4 != "0") %>% select(iid = V2, pat = V3, mat = V4)
+    #     chromosome_table <- chromosome_table %>% semi_join(ptrios, by = c("iid", "pat", "mat"))
 
-    }
+    # }
 } else {chromosome_tables <- lapply(input_files, function(file) read.table(file, header = TRUE))
 rel <- read.table(relations_file, header = TRUE)
 chromosome_tables <- lapply(chromosome_tables, function(tab) tab %>% left_join(rel %>% select(iid, shared_chips), by = "iid"))
