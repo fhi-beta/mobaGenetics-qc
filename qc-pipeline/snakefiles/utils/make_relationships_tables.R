@@ -58,6 +58,7 @@ rel$pat_confirmed <- ifelse(!is.na(rel$pat1) | !is.na(rel$pat2), 1, 0)
 rel$pat <- ifelse(rel$pat_confirmed == 1, rel$pat, NA)
 rel$mat <- ifelse(rel$mat_confirmed == 1, rel$mat, NA)
 
+rel <- rel %>% select(iid, pat, mat)
 
 rel <- rel %>% left_join(batches %>% select(iid, iid_batch = batch), by = "iid")
 rel <- rel %>% left_join(batches %>% select(pat = "iid", pat_batch = batch), by = "pat")
