@@ -124,7 +124,7 @@ trios <- subset(rel_filtered, !is.na(pat) & !is.na(mat))
 write.table(
   x = trios,
   file =trios_file,
-  col.names = T,
+  col.names = F,
   row.names = F,
   sep = "\t",
   quote = F,
