@@ -256,8 +256,8 @@ rule mod6_find_families:
     input:
         relations = rules.mod6_make_relationships_tables.output.all_relations #rules.mod6_find_new_batches.output.updated_relations,
     output:
-        fids = "/mnt/archive3/phasing_test/confirmed_fids",
-        families = "/mnt/archive3/phasing_test/confirmed_families" #str(tmpMod6_phasing_test/"families")
+        fids = str(tmpMod6_phasing_test /"fids"),
+        families = str(tmpMod6_phasing_test /"families") #str(tmpMod6_phasing_test/"families")
     params:
         python_script = "utils/find_families.py"
     shell:
