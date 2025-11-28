@@ -217,21 +217,22 @@ rule mod6_batch_table:
 
 rule mod6_make_relationships_tables:
     input:
-        expected_relationships = config['expected_relationships'],
+        confirmed_relationships = config['confirmed_relationships'],#config['expected_relationships'],
         batch_table = rules.mod6_batch_table.output.batch_table,
         ids = config['id_mapping']
     params:
         batch_chip = "parameters/batch_chip",
         r_script = "utils/make_relationships_tables.R"
     output:
-        all_relations = str(tmpMod6_phasing_test / "expected_all_relations"),
-        shapeit_fam =  str(tmpMod6_phasing_test / "expected_shapeit_fam"),
+        all_relations = str(tmpMod6_phasing_test / "confirmed_all_relations"),
+        trios = str(tmpMod6_phasing_test / "confirmed_trios"),
+        shapeit_fam =  str(tmpMod6_phasing_test / "confirmed_shapeit_fam"),
         imputation_batches = expand(str(tmpMod6_phasing_test/"imputation_batch.{batch}"), batch = batches)
     conda:
         "envs/r_4.2.yaml"
     run:
         imputation_batches_trunk = mqc.plinkBase(output.imputation_batches[0])
-        shell(f"Rscript {params.r_script} {input.expected_relationships} {input.batch_table} {params.batch_chip} {input.ids} {output.all_relations} {output.shapeit_fam} {imputation_batches_trunk}")
+        shell(f"Rscript {params.r_script} {input.confirmed_relationships_relationships} {input.batch_table} {params.batch_chip} {input.ids} {output.all_relations} {output.shapeit_fam} {imputation_batches_trunk}")
 
 
 # rule mod6_find_new_batches:
@@ -254,8 +255,8 @@ rule mod6_find_families:
     input:
         relations = rules.mod6_make_relationships_tables.output.all_relations #rules.mod6_find_new_batches.output.updated_relations,
     output:
-        fids = "/mnt/archive3/phasing_test/fids",
-        families = "/mnt/archive3/phasing_test/families" #str(tmpMod6_phasing_test/"families")
+        fids = "/mnt/archive3/phasing_test/confirmed_fids",
+        families = "/mnt/archive3/phasing_test/confirmed_families" #str(tmpMod6_phasing_test/"families")
     params:
         python_script = "utils/find_families.py"
     shell:

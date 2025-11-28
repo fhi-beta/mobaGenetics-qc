@@ -6,13 +6,14 @@ library(dplyr)
 debug <- F
 
 if (debug){
-    args <- c("/mnt/archive2/moba_genotypes_resources/phenotypes/expected_relationship_24.04.12.gz",
+    args <- c("/mnt/archive2/moba_genotypes_resources/phenotypes/confirmed_relationships_25.01.30",
     "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_batch_table_batch",
     "/mnt/work/oystein/github/mobaGenetics-qc/qc-pipeline/snakefiles/parameters/batch_chip",
     "/mnt/archive2/moba_genotypes_resources/phenotypes/ids_24.08.07.gz",
     "/mnt/archive3/phasing_test/expected_all_relations",
     "/mnt/archive3/phasing_test/expected_shapeit_fam",
-    "/mnt/archive3/phasing_test/imputation_batches")
+    "/mnt/archive3/phasing_test/imputation_batches",
+    "/mnt/archive3/phasing_test/expected_trios")
 } else {
     args <- commandArgs(TRUE)
 }
@@ -24,6 +25,7 @@ id_file <- args[4]
 relations_file <- args[5]
 shapeit_fam <- args[6]
 imputation_batches_trunk <- args[7]
+trios_file <- args[8]
 
 
 ids <- read.table(id_file, header = T) %>% select(iid = sentrix_id, reg_id = id)
@@ -90,6 +92,17 @@ shapeit_fam_df <- subset(rel_filtered, !is.na(pat) | !is.na(mat)) %>% select(iid
 write.table(
   x = rel_filtered,
   file =relations_file,
+  col.names = T,
+  row.names = F,
+  sep = "\t",
+  quote = F,
+  na = "NA"
+)
+trios <- subset(rel_filtered, !is.na(pat) & !is.na(mat))
+
+write.table(
+  x = trios,
+  file =trios_file,
   col.names = T,
   row.names = F,
   sep = "\t",

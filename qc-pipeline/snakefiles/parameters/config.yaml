@@ -17,6 +17,7 @@ release_base: "/mnt/archive3/moba_genotypes_releases"
 
 # Phenotypes
 expected_relationships: "/mnt/archive2/moba_genotypes_resources/phenotypes/expected_relationship_24.04.12.gz"
+confirmed_relationships: "/mnt/archive2/moba_genotypes_resources/phenotypes/confirmed_relationships_25.01.30"
 birth_year: "/mnt/archive2/moba_genotypes_resources/phenotypes/birth_year_24.04.12.gz"
 id_mapping: "/mnt/archive2/moba_genotypes_resources/phenotypes/ids_24.08.07.gz"
 batch_files: "/mnt/archive/moba_genotypes_releases/2024.12.03/batch/moba_genotypes_2024.12.03_batches"
