@@ -217,7 +217,7 @@ rule mod7_phase_report:
         rate_desc = "\"Phasing error rates\""
     threads: 32
     conda:
-        "envs/r_4.2"
+        "envs/r_4.2.yaml"
     shell:
         """
         Rscript {params.r_script} {input.phase_check} {input.all_relations} {output.phase_report} {params.title} {params.rate} {params.rate_desc} {wildcards.chr}
