@@ -729,12 +729,12 @@ plot_discrete <- function(column, plot_data, top_pc, file_suffix){
   pc_name_x <- paste0("pc", pc_i)
   pc_name_y <- paste0("pc", pc_i + 1)
   
-  moba_plot_data <- subset(plot_data, startsWith(pop, "MoBa"))
+  moba_plot_data <- subset(plot_data, pop == "MoBa")
   moba_plot_data$x <- moba_plot_data[[pc_name_x]]
   moba_plot_data$y <- moba_plot_data[[pc_name_y]]
   
   
-  kg_plot_data <- subset(merged_pcs, !startsWith(pop, "MoBa"))
+  kg_plot_data <- subset(merged_pcs, pop != "MoBa")
   
   kg_plot_data$x <- kg_plot_data[[pc_name_x]]
   kg_plot_data$y <- kg_plot_data[[pc_name_y]]
