@@ -760,7 +760,6 @@ plot_discrete <- function(column, plot_data, top_pc, file_suffix){
     ) +
     geom_density2d(
       data = kg_plot_data,
-      bins = 50,
       mapping = aes(
        x = x,
        y = y
