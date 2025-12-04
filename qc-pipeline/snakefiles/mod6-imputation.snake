@@ -268,13 +268,12 @@ rule mod6_find_phasing_batches:
     input:
         families = rules.mod6_find_families.output.families
     output:
-        phasing_batches = expand(str(tmpMod6_phasing_test/"phasing_batch.{batch}"), batch = phasing_batches)
+        phasing_batches = expand(str(tmpMod6_phasing_test/"phasing_batches_{n_batches}"/"phasing_batch.{batch}"), batch = phasing_batches)
     params:
-        python_script = "utils/find_phasing_batches.py",
-        n_phasing_batches = n_phasing_batches
+        python_script = "utils/find_phasing_batches.py"
     run:
         out_trunk = mqc.plinkBase(mqc.plinkBase(output.phasing_batches[0]))
-        shell(f"python {params.python_script} --families {input.families} --n_batches {params.n_phasing_batches} --output_trunk {out_trunk}")
+        shell(f"python {params.python_script} --families {input.families} --n_batches {wildcards.n_batches} --output_trunk {out_trunk}")
 
 
 
@@ -309,18 +308,17 @@ rule mod6_merge_batches:
         for file in {input.vcfs}; do echo "$file" >> {log}; done
         """
 
-# testing running phasing on merged batches
-rule mod6_fill_ac_merged:
-    input:
-        bcf = rules.mod6_merge_batches.output.merged_bcf 
-    output:
-        bcf = "/mnt/archive3/phasing_test/mod6_fill_ac_merged.chr{chr}.bcf"
-    conda:
-        "envs/bcf_tabix.yaml"
-    shell:
-        """
-        bcftools +fill-AN-AC {input.bcf} -o {output.bcf} --write-index
-        """
+# rule mod6_fill_ac_merged:
+#     input:
+#         bcf = rules.mod6_merge_batches.output.merged_bcf 
+#     output:
+#         bcf = "/mnt/archive3/phasing_test/mod6_fill_ac_merged.chr{chr}.bcf"
+#     conda:
+#         "envs/bcf_tabix.yaml"
+#     shell:
+#         """
+#         bcftools +fill-AN-AC {input.bcf} -o {output.bcf} --write-index
+#         """
 
 def get_map_chr(wildcards):
     if wildcards.chr == "PAR1":
@@ -419,9 +417,10 @@ def get_map_chr(wildcards):
 
 
 def get_phasing_samples_file(wildcards):
+    n_batches = config['n_phasing_batches'][f'chr{wildcards.chr}']
     # return f"/mnt/archive3/phasing_test/phasing_batch.{wildcards.batch}"
     # return str(tmpMod6_phasing_test / f"mod6_make_split_samples_list.batch_{wildcards.batch}")
-    return str(tmpMod6_phasing_test/f"phasing_batch.{wildcards.batch}")
+    return str(tmpMod6_phasing_test/f"phasing_batches_{n_batches}"/f"phasing_batch.{wildcards.batch}")
     # return str(tmpMod6_phasing_test/ f"new_batches.phasing.{wildcards.batch}")
 
 # def get_phased_bcf(wildcards):

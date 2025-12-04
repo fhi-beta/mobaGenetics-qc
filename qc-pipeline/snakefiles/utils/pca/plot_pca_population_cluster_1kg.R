@@ -9,7 +9,7 @@
 
 set.seed(20240112)
 
-debug <- F
+debug <- T
 debug_plink_version <- 2
 
 if (debug) {
@@ -40,7 +40,8 @@ if (debug) {
     "/mnt/archive2/moba_genotypes_resources/phenotypes/ids_24.08.07.gz",
     "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_batch_table_batch",
     "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_psam_reconstruction.psam",
-    2
+    2,
+    "/mnt/archive2/moba_genotypes_resources/phenotypes/northern_norwegians"
   )
   }
 
@@ -112,6 +113,8 @@ batches_file <- args[10]
 psam_file <- args[11]
 
 plink_version <- args[12]
+
+northern_norwegians_file <- args[13]
 
 
 # Libraries
@@ -195,6 +198,13 @@ if(plink_version == 2){
   col.names = c("fid", "iid", "pat", "mat", "sex"),
   stringsAsFactors = F
 )
+northern_norwegians <- read.table(
+  file = northern_norwegians_file,
+  header = F,
+  stringsAsFactors = F,
+  col.names = c("iid")
+)
+
 } else if(plink_version == 1){
   psam_data  <- read.table(
   file = psam_file,
@@ -238,8 +248,13 @@ het$stds_het_rate <- factor(het$stds_het_rate, levels=c("<0", "0-0.5", "0.5-1", 
 batches_data$batch <- as.factor(batches_data$batch)
 
 
-
+if (plink_version == 1){
 populations_order <- c(sort(unique(thousand_genomes_populations$super_pop)), "MoBa")
+} else if (plink_version == 2){
+populations_order <- c(sort(unique(thousand_genomes_populations$super_pop)), "MoBa_NN", "MoBa")
+}
+
+
 
 merged_pcs <- pcs %>% 
   left_join(
@@ -282,94 +297,25 @@ merged_pcs <- pcs %>%
     desc(pop_factor)
   )
 
+if (plink_version == 2){
+  northern_norwegians <- northern_norwegians %>% left_join(merged_pcs,
+    by = "iid") %>% mutate(iid = paste0("NN_", iid))
+  northern_norwegians$pop <- "MoBa_NN"
+  northern_norwegians <- northern_norwegians %>% mutate(pop_factor = factor(pop))
+  northern_norwegians$pat <- NA
+  northern_norwegians$mat <- NA
+  northern_norwegians$role <- NA
+  northern_norwegians$batch <- NA
+  northern_norwegians$het_rate <- NA
+  northern_norwegians$stds_het_rate <- NA
+  northern_norwegians$f <- NA
+  northern_norwegians$fid <- NA
+  merged_pcs <- rbind(merged_pcs, northern_norwegians)
 
-# moba_pcs_mysterious <- moba_pcs_mysterious %>% left_join(het %>% 
-#       select(
-#         iid, het_rate, stds_het_rate, f
-#       ),
-#     by = "iid")
+}
 
 
-# for (pc_i in 1:9) {
-  
-#   pc_name_x <- paste0("pc", pc_i)
-#   pc_name_y <- paste0("pc", pc_i + 1)
-#   moba_pcs_mysterious$x <- moba_pcs_mysterious[[pc_name_x]]
-#   moba_pcs_mysterious$y <- moba_pcs_mysterious[[pc_name_y]]
-  
-  
-#   write(
-#     x = paste0("### ", pc_name_y, " vs. ", pc_name_x),
-#     file = md_file,
-#     append = T
-#   )
-  
-#   plot <- ggplot() +
-#     theme_bw(
-#       base_size = 24
-#     ) +
-#     geom_point(
-#       data = moba_pcs_mysterious,
-#       mapping = aes(
-#         x = x,
-#         y = y,
-#         col = stds_het_rate
-#       ),
-#       alpha = 0.2
-#     ) +
-#     geom_xsidedensity(
-#       data = moba_pcs_mysterious,
-#       mapping = aes(
-#         x = x,
-#         y = after_stat(density),
-#         fill= stds_het_rate
-#       ),
-#       alpha = 0.8
-#     ) +
-#     geom_ysidedensity(
-#       data = moba_pcs_mysterious,
-#       mapping = aes(
-#         x = after_stat(density),
-#         y = y,
-#         fill=stds_het_rate
-#       ),
-#       alpha = 0.8
-#     ) +
-#     scale_x_continuous(
-#       name = pc_name_x
-#     ) +
-#     scale_y_continuous(
-#       name = pc_name_y
-#     ) +
-#     theme(
-#       ggside.panel.scale = 0.15,
-#       ggside.axis.ticks = element_blank(),
-#       ggside.axis.text = element_blank(),
-#       ggside.panel.grid = element_blank(),
-#       ggside.panel.background = element_blank(),
-#       ggside.panel.spacing = unit(0, "pt"),
-#       panel.border = element_blank()
-#     )
-  
-#   file_name <- paste0("only_moba_het_", pc_name_x, "_", pc_name_y, ".png")
-  
-#   print(paste0("Plotting to ", plot_folder, "/", file_name))
-  
-#   png(
-#     filename = file.path(plot_folder, file_name),
-#     width = 800,
-#     height = 600
-#   )
-#   grid.draw(plot)
-#   device <- dev.off()
-  
-#   write(
-#     x = paste0("![](plot/", file_name, ")"),
-#     file = md_file,
-#     append = T
-#   )
-  
-# }
+
 
 trios <- subset(merged_pcs, !is.na(pat) & pat !="0" & !is.na(mat) & mat !="0")
 
@@ -400,88 +346,6 @@ trios_plot_data <- child_data %>%
 
 
 
-# for (pc_i in 1:9) {
-  
-#   pc_name_x <- paste0("pc", pc_i)
-#   pc_name_y <- paste0("pc", pc_i + 1)
-#   moba_pcs_mysterious$x <- moba_pcs_mysterious[[pc_name_x]]
-#   moba_pcs_mysterious$y <- moba_pcs_mysterious[[pc_name_y]]
-  
-  
-#   write(
-#     x = paste0("### ", pc_name_y, " vs. ", pc_name_x),
-#     file = md_file,
-#     append = T
-#   )
-  
-#   plot <- ggplot() +
-#     theme_bw(
-#       base_size = 24
-#     ) +
-#     geom_point(
-#       data = moba_pcs_mysterious,
-#       mapping = aes(
-#         x = x,
-#         y = y,
-#         col = mysterious
-#       ),
-#       alpha = 0.2
-#     ) +
-#     geom_xsidedensity(
-#       data = moba_pcs_mysterious,
-#       mapping = aes(
-#         x = x,
-#         y = after_stat(density),
-#         fill= mysterious
-#       ),
-#       alpha = 0.8
-#     ) +
-#     geom_ysidedensity(
-#       data = moba_pcs_mysterious,
-#       mapping = aes(
-#         x = after_stat(density),
-#         y = y,
-#         fill= mysterious
-#       ),
-#       alpha = 0.8
-#     ) +
-#     scale_x_continuous(
-#       name = pc_name_x
-#     ) +
-#     scale_y_continuous(
-#       name = pc_name_y
-#     ) +
-#     scale_color_manual(values = c("blue", "red")) +
-#     scale_fill_manual(values = c("blue", "red")) +
-#     theme(
-#       ggside.panel.scale = 0.15,
-#       ggside.axis.ticks = element_blank(),
-#       ggside.axis.text = element_blank(),
-#       ggside.panel.grid = element_blank(),
-#       ggside.panel.background = element_blank(),
-#       ggside.panel.spacing = unit(0, "pt"),
-#       panel.border = element_blank()
-#     )
-  
-#   file_name <- paste0("only_moba_", pc_name_x, "_", pc_name_y, ".png")
-  
-#   print(paste0("Plotting to ", plot_folder, "/", file_name))
-  
-#   png(
-#     filename = file.path(plot_folder, file_name),
-#     width = 800,
-#     height = 600
-#   )
-#   grid.draw(plot)
-#   device <- dev.off()
-  
-#   write(
-#     x = paste0("![](plot/", file_name, ")"),
-#     file = md_file,
-#     append = T
-#   )
-  
-# }
 
 write(
   x = paste0("Principal component analysis of the MoBa samples merged with the thousand genomes."),
@@ -526,6 +390,11 @@ write(
 )
 write(
   x = paste0("| SAS | South Asian |"),
+  file = md_file,
+  append = T
+)
+write(
+  x = paste0("| MoBa_NN | Northern Norweigan (MoBa) |"),
   file = md_file,
   append = T
 )
@@ -584,9 +453,9 @@ for (pc_i in 1:9) {
   merged_pcs$x <- merged_pcs[[pc_name_x]]
   merged_pcs$y <- merged_pcs[[pc_name_y]]
   
-  moba_data <- subset(merged_pcs, startsWith(pop, "MoBa"))
+  moba_data <- subset(merged_pcs, pop == "MoBa")
   
-  kg_data <- subset(merged_pcs, !startsWith(pop, "MoBa"))
+  kg_data <- subset(merged_pcs, pop != "MoBa")
   
   write(
     x = paste0("### ", pc_name_y, " vs. ", pc_name_x),
@@ -891,6 +760,7 @@ plot_discrete <- function(column, plot_data, top_pc, file_suffix){
     ) +
     geom_density2d(
       data = kg_plot_data,
+      bins = 50,
       mapping = aes(
        x = x,
        y = y
@@ -954,13 +824,15 @@ plot_discrete <- function(column, plot_data, top_pc, file_suffix){
 }
 
 plot_trios(trios_plot_data, "trios", 10)
-plot_discrete("stds_het_rate", merged_pcs, 10, "stds_het_rate")
 
 write(
   x = "## Heterozygosity rate",
   file = md_file,
   append = T
 )
+plot_discrete("stds_het_rate", merged_pcs, 10, "stds_het_rate")
+
+
 
 if(plink_version == 2){
 write(
@@ -974,7 +846,7 @@ plot_discrete("batch", merged_pcs, 3, "batch")
 
 
 # 1kg cluster size
-kg <- subset(merged_pcs, !startsWith(pop, "MoBa"))
+kg <- subset(merged_pcs, pop != "MoBa")
 
 kg <- kg %>%  
   select(
@@ -1154,7 +1026,7 @@ write(
 
 
 # Inference in MoBa
-train_df <- subset(merged_pcs, !startsWith(pop, "MoBa"))
+train_df <- subset(merged_pcs, pop != "MoBa")
 
 train_df <- train_df %>%  
   mutate(
@@ -1173,7 +1045,7 @@ classifier <- svm(
   probability = TRUE
 )
 
-moba_df <- subset(merged_pcs, startsWith(pop, "MoBa")) %>% 
+moba_df <- subset(merged_pcs, pop == "MoBa") %>% 
   select(
     fid, iid, starts_with("pc"), role
   )
@@ -1197,6 +1069,8 @@ names(probabilities) <- paste0("p_", names(probabilities))
 moba_df <- cbind(moba_df, probabilities)
 
 moba_df$pop_inference[moba_df$pop_inference == "EUR" & moba_df$p_EUR >= core_threshold_p] <- "EUR_core"
+
+
 
 
 write(
@@ -1338,7 +1212,13 @@ write(
 
 plot_folder <- file.path(docs_folder, "plot")
 
-populations <- sort(unique(c(moba_df$pop_inference, merged_pcs$pop)))
+populations <- sort(unique(c(moba_df$pop_inference)))
+
+
+inf_populations_colors <- scico(
+  n = length(populations),
+  palette = "hawaii"
+)
 
 for (pc_i in 1:9) {
   
@@ -1348,9 +1228,9 @@ for (pc_i in 1:9) {
   moba_plot_data <- moba_df
   moba_plot_data$x <- moba_df[[pc_name_x]]
   moba_plot_data$y <- moba_df[[pc_name_y]]
-  moba_plot_data$pop_factor <- factor(moba_plot_data$pop, levels = populations)
+  moba_plot_data$pop_factor <- factor(moba_plot_data$pop_inference, levels = populations)
   
-  kg_plot_data <- subset(merged_pcs, !startsWith(pop, "MoBa")) %>% 
+  kg_plot_data <- subset(merged_pcs, pop != "MoBa") %>% 
     mutate(
       pop_factor = factor(pop, levels = populations)
     )
@@ -1379,6 +1259,7 @@ for (pc_i in 1:9) {
     ) +
     geom_density2d(
       data = kg_plot_data,
+      bins = 50,
       mapping = aes(
         x = x,
         y = y,
@@ -1408,6 +1289,16 @@ for (pc_i in 1:9) {
     ) +
     scale_y_continuous(
       name = pc_name_y
+    ) +
+    scale_color_manual(
+      name = "Population",
+      values = inf_populations_colors,
+      # drop = F
+    ) +
+    scale_fill_manual(
+      name = "Population",
+      values = inf_populations_colors,
+      drop = F
     ) +
     theme(
       ggside.panel.scale = 0.15,

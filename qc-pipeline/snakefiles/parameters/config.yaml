@@ -110,7 +110,31 @@ xmarkers_clean: 0.000001
 n_samples: "all"
 
 # memory and thread allocation
-n_phasing_batches: 4
+n_phasing_batches:
+  chr1: 4
+  chr2: 4
+  chr3: 4
+  chr4: 4
+  chr5: 4
+  chr6: 4
+  chr7: 4
+  chr8: 4
+  chr9: 4
+  chr10: 4
+  chr11: 4
+  chr12: 4
+  chr13: 3
+  chr14: 3
+  chr15: 3
+  chr16: 2
+  chr17: 3
+  chr18: 2
+  chr19: 3
+  chr20: 1
+  chr21: 1
+  chr22: 1
+
+
 mem: "112g"
 beagle_window: "25.0"
 beagle_window_markers: "250000"

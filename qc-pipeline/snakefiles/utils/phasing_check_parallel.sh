@@ -9,7 +9,7 @@ threads=$5
 
 # Split the input file into smaller files
 split_lines=$(wc -l < "$relations_file")
-lines_per_file=$((split_lines / threads))
+lines_per_file=$(( (split_lines + threads - 1) / threads ))
 split -l "$lines_per_file" -d --additional-suffix=.txt "$relations_file" "${output}_split_"
 
 # Process each split file in parallel
