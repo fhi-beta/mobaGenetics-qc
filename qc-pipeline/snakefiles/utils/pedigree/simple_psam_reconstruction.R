@@ -1108,7 +1108,6 @@ new_psam <- new_psam %>%
 
 new_psam <- new_psam %>% distinct(IID, .keep_all=TRUE)
 rel$avg_parent_miss <- ifelse(rel$avg_parent_miss == 1, NA, rel$avg_parent_miss)
-confirmed_relationships <- rel %>% filter(!is.na(PAT) | !is.na(MAT)) %>% select(child_sentrix_id = IID, mother_sentrix_id = MAT, father_sentrix_id = PAT)
 
 new_psam <- new_psam %>% select(FID, IID, PAT, MAT, SEX)
 
@@ -1237,14 +1236,6 @@ if(plink_version == "1"){
 write.table(
   x = rel,
   file = all_samples_file,
-  col.names = T,
-  row.names = F,
-  sep = "\t",
-  quote = F
-)
-write.table(
-  x = confirmed_relationships,
-  file = confirmed_relationships_file,
   col.names = T,
   row.names = F,
   sep = "\t",
