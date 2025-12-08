@@ -912,13 +912,7 @@ check_expected_relationships <- function(
   id_type
 ) {
 
-parent_offspring_expected <- parent_offspring_expected %>% 
-    filter(
-      !is.na(child_id) & 
-      !is.na(parent_id) & 
-      child_id %in% ids & 
-      parent_id %in% ids
-    )
+
 
 mother_offspring_detected <<- unique(parent_offspring_detected %>% filter(parent_sex == 2 & !is.na(parent_id) & !is.na(child_id) & age_difference> 12) %>% select(parent_id, child_id))
 mother_offspring_detected_dupl <<- subset(mother_offspring_detected, duplicated(child_id))
@@ -990,12 +984,13 @@ write(
   file = md_file,
   append = T
 )
-
+if(plink_version == "2"){
 write(
   x = paste("Multiple same-sex parents (at the", substring(id_type, 1, nchar(id_type)-1), "level):\n - ", nrow(mother_offspring_detected_dupl), "children with more than one mother detected\n - ", nrow(father_offspring_detected_dupl), "children with more than one father detected\n - ", nrow(mother_offspring_expected_dupl), "children with more than one mother in registry\n - ", nrow(father_offspring_expected_dupl), "children with more than one father in registry\n"),
   file = md_file,
   append = T
 )
+}
 
 
 write_relationship_docs(nrow(mother_offspring_expected_found), sum(mother_offspring_expected_found$found), sum(!mother_offspring_expected_found$found), "mother-child relationships expected.", "recovered by genetic relationships.")
