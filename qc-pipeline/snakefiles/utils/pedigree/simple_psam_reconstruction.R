@@ -912,6 +912,13 @@ check_expected_relationships <- function(
   id_type
 ) {
 
+parent_offspring_expected <- parent_offspring_expected %>% 
+    filter(
+      !is.na(child_id) & 
+      !is.na(parent_id) & 
+      child_id %in% ids & 
+      parent_id %in% ids
+    )
 
 mother_offspring_detected <<- unique(parent_offspring_detected %>% filter(parent_sex == 2 & !is.na(parent_id) & !is.na(child_id) & age_difference> 12) %>% select(parent_id, child_id))
 mother_offspring_detected_dupl <<- subset(mother_offspring_detected, duplicated(child_id))
