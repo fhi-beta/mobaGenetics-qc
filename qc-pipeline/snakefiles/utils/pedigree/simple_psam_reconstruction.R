@@ -10,17 +10,17 @@ set.seed(11111)
 
 # Command line arguments
 debug <- T
-debug_plink_version <- 2
+debug_plink_version <- 1
 debug_batch <- "snp010"
 if (debug) {
   if(debug_plink_version == 1){
     args <- c(
-    paste0("/mnt/work/qc_genotypes/pipeOut_dev/2024.01.30/mod2-genetic-relationship/",debug_batch,"/pedigree_ibd_estimate.kin0"), 
-    paste0("/mnt/work/qc_genotypes/pipeOut_dev/2024.01.30/mod2-genetic-relationship/", debug_batch, "/check_sex.sexcheck"),
-    "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz",
-    "/mnt/archive/snpQc/phenotypes/birth_year_24.04.12.gz",
-    "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
-    paste0("/mnt/work/qc_genotypes/pipeOut_dev/2024.01.30/mod2-genetic-relationship/", debug_batch, "/callrate_permanent_removal.fam"),
+    paste0("/mnt/work/qc_genotypes/pipeOut_dev/2025.01.30/mod2-genetic-relationship/",debug_batch,"/pedigree_ibd_estimate.kin0"), 
+    paste0("/mnt/work/qc_genotypes/pipeOut_dev/2025.01.30/mod2-genetic-relationship/", debug_batch, "/check_sex.sexcheck"),
+    "/mnt/archive2/moba_genotypes_resources/phenotypes/expected_relationship_24.04.12.gz",
+    "/mnt/archive2/moba_genotypes_resources/phenotypes/birth_year_24.04.12.gz",
+    "/mnt/archive2/moba_genotypes_resources/phenotypes/ids_24.08.07.gz",
+    paste0("/mnt/work/qc_genotypes/pipeOut_dev/2025.01.30/mod2-genetic-relationship/", debug_batch, "/callrate_permanent_removal.fam"),
     paste0("/mnt/work/oystein/tmp/fam_reconstruction/plink1/", debug_batch, "/fam_reconstruction.fam"),
     paste0("/mnt/work/oystein/tmp/fam_reconstruction/plink1/", debug_batch, "/exclusion"),
     paste0("/mnt/work/oystein/tmp/fam_reconstruction/plink1/", debug_batch, "/mismatch_information.gz"),
@@ -62,7 +62,6 @@ args <- commandArgs(TRUE)
 
 # }
 }
-
 genome_file <- args[1]
 
 if (!file.exists(genome_file)) {
@@ -151,12 +150,21 @@ genomic_relatedness_table <- read.table(
 )
 
 print("Read sex check file")
+if (plink_version == "1"){
 sex_check_data <- read.table(
+  file = sex_check_file,
+  header = T,
+  stringsAsFactors = F
+)
+} else {
+  sex_check_data <- read.table(
   file = sex_check_file,
   header = F,
   col.names = c("IID", "PEDSEX", "SNPSEX", "STATUS", "F", "YCOUNT"),
   stringsAsFactors = F
 )
+}
+
 
 sex_check_data$SNPSEX[is.na(sex_check_data$SNPSEX)] <- 0
 sex_check_data$PEDSEX[is.na(sex_check_data$PEDSEX)] <- 0
