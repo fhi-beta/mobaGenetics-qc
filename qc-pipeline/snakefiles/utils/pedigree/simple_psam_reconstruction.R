@@ -15,12 +15,12 @@ debug_batch <- "snp010"
 if (debug) {
   if(debug_plink_version == 1){
     args <- c(
-    paste0("/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod2-genetic-relationship/",debug_batch,"/pedigree_ibd_estimate.kin0"), 
-    paste0("/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod2-genetic-relationship/", debug_batch, "/check_sex.sexcheck"),
+    paste0("/mnt/work/qc_genotypes/pipeOut_dev/2024.01.30/mod2-genetic-relationship/",debug_batch,"/pedigree_ibd_estimate.kin0"), 
+    paste0("/mnt/work/qc_genotypes/pipeOut_dev/2024.01.30/mod2-genetic-relationship/", debug_batch, "/check_sex.sexcheck"),
     "/mnt/archive/snpQc/phenotypes/expected_relationship_24.04.12.gz",
     "/mnt/archive/snpQc/phenotypes/birth_year_24.04.12.gz",
     "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
-    paste0("/mnt/work/qc_genotypes/pipeOut_dev/2024.07.01/mod2-genetic-relationship/", debug_batch, "/callrate_permanent_removal.fam"),
+    paste0("/mnt/work/qc_genotypes/pipeOut_dev/2024.01.30/mod2-genetic-relationship/", debug_batch, "/callrate_permanent_removal.fam"),
     paste0("/mnt/work/oystein/tmp/fam_reconstruction/plink1/", debug_batch, "/fam_reconstruction.fam"),
     paste0("/mnt/work/oystein/tmp/fam_reconstruction/plink1/", debug_batch, "/exclusion"),
     paste0("/mnt/work/oystein/tmp/fam_reconstruction/plink1/", debug_batch, "/mismatch_information.gz"),
@@ -31,19 +31,23 @@ if (debug) {
   )
   } else if(debug_plink_version == 2){
     args <- c(
-    "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_pedigree_ibd_estimate.kin0", 
-    "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_check_sex_common_filter_X_ycounts.sexcheck",
+    "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_pedigree_ibd_estimate.kin0", 
+    "/mntarchive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_import_ycounts.sexcheck",
     "/mnt/archive2/moba_genotypes_resources/phenotypes/expected_relationship_24.04.12.gz",
     "/mnt/archive2/moba_genotypes_resources/phenotypes/birth_year_24.04.12.gz",
     "/mnt/archive2/moba_genotypes_resources/phenotypes/ids_24.08.07.gz",
-    "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_common_snps_filter.psam",
+    "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_split_rare_common.psam",
     "/mnt/work/oystein/tmp/fam_reconstruction/plink2/debug/mod8_psam_reconstruction.psam",
     "/mnt/work/oystein/tmp/fam_reconstruction/plink2/debug/exclusion",
     "/mnt/work/oystein/tmp/fam_reconstruction/plink2/debug/mismatch_information.gz",
     "/mnt/work/oystein/tmp/fam_reconstruction/plink2/debug/mismatch_relationship.gz",
     "/mnt/work/oystein/tmp/fam_reconstruction/plink2/debug/fam_reconstruction_debug.md",
     "debug",
-    "2"
+    "2",
+    "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_batch_table_batch",
+    "/mnt/work/oystein/github/mobaGenetics-qc/qc-pipeline/snakefiles/parameters/batch_chip",
+    "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_best_snps.smiss",
+    "/mnt/work/oystein/tmp/fam_reconstruction/plink2/debug/all_samples_relationships"
   )
   }
   
@@ -52,11 +56,11 @@ if (debug) {
  
 args <- commandArgs(TRUE)
 
-if (length(args) != 13) {
+# if (length(args) != 13) {
   
-  stop(paste0("13 arguments expected: IBD estimate file, sex check file, expected relationships file, birth year file, id file, current psam/fam file, destination file, exclusion file, mismatch_information, mismatch_relationship, md file, title, plink version (1 or 2) ", length(args), " found: ", paste(args, collapse = ", ")))
-  
-}
+#   stop(paste0("13 arguments expected: IBD estimate file, sex check file, expected relationships file, birth year file, id file, current psam/fam file, destination file, exclusion file, mismatch_information, mismatch_relationship, md file, title, plink version (1 or 2) ", length(args), " found: ", paste(args, collapse = ", ")))
+
+# }
 }
 
 genome_file <- args[1]
@@ -119,6 +123,12 @@ md_file <- args[11]
 
 title <- args[12]
 plink_version <- args[13]
+if (plink_version == 2) {
+  batch_file <- args[14]
+  chip_file <- args[15]
+  smiss_file <- args[16]
+  all_samples_file <- args[17]
+}
 
 
 # Libraries
@@ -190,7 +200,23 @@ psam_data <- psam_data_raw[,c("IID", "SEX")]
   psam_data  <- read.table(
   file = psam_file,
   header = F,
+  col.names = c("IID", "SEX"),
   sep = "\t",
+  stringsAsFactors = F
+)
+batches <- read.table(
+  file = batch_file,
+  header = T,
+  stringsAsFactors = F
+)
+batch_chip <- read.table(
+  file = chip_file,
+  header = T,
+  stringsAsFactors = F
+)
+smiss <- read.table(
+  file = smiss_file,
+  header = F, col.names = c("FID", "IID", "MISSING_CT", "OBS_CT", "F_MISS"),
   stringsAsFactors = F
 )
 }
@@ -696,8 +722,8 @@ related_table <- related_table %>%
     by = "ID2"
   ) %>% 
   mutate(
-    birth_year1 = ifelse(is.na(birth_year1), 1900, birth_year1),
-    birth_year2 = ifelse(is.na(birth_year2), 1900, birth_year2)
+    birth_year1 = ifelse(is.na(birth_year1), 0, birth_year1),
+    birth_year2 = ifelse(is.na(birth_year2), 0, birth_year2)
   ) %>% 
   left_join(
     id_to_family_sex %>% 
@@ -714,7 +740,30 @@ related_table <- related_table %>%
         sex2 = sex
       ),
     by = "ID2"
+  )%>% 
+  left_join(
+    id_data %>% 
+      select(
+        ID1 = sentrix_id,
+        role1 = role
+      ),
+    by = "ID1"
+  ) %>%
+   left_join(
+    id_data %>% 
+      select(
+        ID2 = sentrix_id,
+        role2 = role
+      ),
+    by = "ID2"
   )
+
+related_table$birth_year1 <- ifelse(related_table$birth_year1 == 0 & !is.na(related_table$role2) & related_table$role2 == "child", 1900, related_table$birth_year1)
+related_table$birth_year1 <- ifelse(related_table$birth_year1 == 0 & !is.na(related_table$role2) & (related_table$role2 == "father" | related_table$role2 == "mother"), 2100, related_table$birth_year1)
+
+related_table$birth_year2 <- ifelse(related_table$birth_year2 == 0 & !is.na(related_table$role1) & related_table$role1 == "child", 1900, related_table$birth_year2)
+related_table$birth_year2 <- ifelse(related_table$birth_year2 == 0 & !is.na(related_table$role1) & (related_table$role1 == "father" | related_table$role1 == "mother"), 2100, related_table$birth_year2)
+
 
 filtered_table <- subset(related_table, InfType =="PO")
 
@@ -727,6 +776,10 @@ parent_offspring_table <- data.frame(
     parent_sex = ifelse(filtered_table$birth_year1 < filtered_table$birth_year2, filtered_table$sex1,filtered_table$sex2),
     child_sex = ifelse(filtered_table$birth_year1 < filtered_table$birth_year2, filtered_table$sex2,filtered_table$sex1)
 )
+
+
+
+
 
 parent_offspring_table_ind <- parent_offspring_table %>%
   left_join(id_data, by = c("child_sentrix_id" = "sentrix_id")) %>%
@@ -838,6 +891,11 @@ write(
 }
 
 
+
+
+
+
+
 check_expected_relationships <- function(
   parent_offspring_expected,
   parent_offspring_detected,
@@ -872,7 +930,7 @@ father_offspring_expected_found <<- found_in(father_offspring_expected, father_o
 mother_offspring_detected_found <<- found_in(mother_offspring_detected, mother_offspring_expected, ids)
 father_offspring_detected_found <<- found_in(father_offspring_detected, father_offspring_expected, ids)
 
-restored_psam_data <<- orig_psam_data %>%
+simplified_psam <<- orig_psam_data %>%
   left_join(
     father_offspring_detected %>%
       select(
@@ -893,17 +951,17 @@ restored_psam_data <<- orig_psam_data %>%
   )
 
 
-n_trios <<- nrow(restored_psam_data[!is.na(restored_psam_data$IID) & !is.na(restored_psam_data$MAT) & !is.na(restored_psam_data$PAT) & !duplicated(restored_psam_data),])
-children <<- restored_psam_data[!is.na(restored_psam_data$IID) & (!is.na(restored_psam_data$MAT) | !is.na(restored_psam_data$PAT)) & !duplicated(restored_psam_data),]$IID 
-fathers <<- unique(na.omit(restored_psam_data$PAT))
-mothers <<- unique(na.omit(restored_psam_data$MAT))
-unrelated <<- subset(restored_psam_data, !(IID %in% children) & !(IID %in% fathers) & !(IID %in% mothers))$IID 
+n_trios <<- nrow(simplified_psam[!is.na(simplified_psam$IID) & !is.na(simplified_psam$MAT) & !is.na(simplified_psam$PAT) & !duplicated(simplified_psam),])
+children <<- simplified_psam[!is.na(simplified_psam$IID) & (!is.na(simplified_psam$MAT) | !is.na(simplified_psam$PAT)) & !duplicated(simplified_psam),]$IID 
+fathers <<- unique(na.omit(simplified_psam$PAT))
+mothers <<- unique(na.omit(simplified_psam$MAT))
+unrelated <<- subset(simplified_psam, !(IID %in% children) & !(IID %in% fathers) & !(IID %in% mothers))$IID 
 n_children <<- length(children)
 n_fathers <<- length(fathers)
 n_mothers <<- length(mothers)
 n_unrelated <<- length(unrelated)
-n_mc <<- nrow(restored_psam_data[!is.na(restored_psam_data$IID) & !is.na(restored_psam_data$MAT) & !duplicated(restored_psam_data),])
-n_fc <<- nrow(restored_psam_data[!is.na(restored_psam_data$IID) & !is.na(restored_psam_data$PAT) & !duplicated(restored_psam_data),])
+n_mc <<- nrow(simplified_psam[!is.na(simplified_psam$IID) & !is.na(simplified_psam$MAT) & !duplicated(simplified_psam),])
+n_fc <<- nrow(simplified_psam[!is.na(simplified_psam$IID) & !is.na(simplified_psam$PAT) & !duplicated(simplified_psam),])
 
 
 
@@ -947,6 +1005,115 @@ write(
 
 check_expected_relationships(expected_relationships_data_ind, parent_offspring_table_ind, psam_data_ind, ind_ids, "individuals")
 check_expected_relationships(expected_relationships_data_samples, parent_offspring_table_samples, psam_data, sample_ids, "samples")
+
+if (plink_version== 1){
+  new_psam <- simplified_psam
+} else {
+
+
+rel <- psam_data %>% select(IID) %>% left_join(id_to_family_sex %>%
+           select(
+          FID = family,
+            IID = id
+           ), by = "IID")
+rel <- rel %>%
+  left_join(
+    father_offspring_detected %>%
+      select(
+        PAT = parent_id,
+        IID = child_id
+      ),
+      by = "IID"
+  ) %>%
+  left_join(
+    mother_offspring_detected %>%
+      select(
+        MAT = parent_id,
+        IID = child_id
+      ),
+      by = "IID"
+  ) %>% select(IID, PAT, MAT, FID)
+
+
+
+rel <- rel %>% left_join(id_to_family_sex %>% select(IID = id, SEX = sex), by = "IID")
+
+rel <- rel %>% left_join(father_offspring_detected_found %>% select(IID = child_id, PAT = parent_id, expected_father = found), by = c("IID","PAT"))
+rel <- rel %>% left_join(mother_offspring_detected_found %>% select(IID = child_id, MAT = parent_id, expected_mother = found), by = c("IID","MAT"))
+
+rel <- rel %>% left_join(batches %>% select(IID = iid, iid_batch = batch), by = "IID")
+rel <- rel %>% left_join(batches %>% select(PAT = "iid", pat_batch = batch), by = "PAT")
+rel <- rel %>% left_join(batches %>% select(MAT = "iid", mat_batch = batch), by = "MAT")
+rel <- rel %>% left_join(batch_chip %>% select(iid_batch = batch, iid_chip = chip), by ="iid_batch")
+rel <- rel %>% left_join(batch_chip %>% select(pat_batch = batch, pat_chip = chip), by ="pat_batch")
+rel <- rel %>% left_join(batch_chip %>% select(mat_batch = batch, mat_chip = chip), by ="mat_batch")
+rel <- rel %>% left_join(id_data %>% select(IID = sentrix_id, iid_reg = id), by = "IID")
+rel <- rel %>% left_join(id_data %>% select(PAT = sentrix_id, pat_reg = id), by = "PAT")
+rel <- rel %>% left_join(id_data %>% select(MAT = sentrix_id, mat_reg = id), by = "MAT")
+
+rel <- rel %>% left_join(smiss %>% select(IID, iid_miss = F_MISS), by = "IID")
+rel <- rel %>% left_join(smiss %>% select(PAT = IID, pat_miss = F_MISS), by = "PAT")
+rel <- rel %>% left_join(smiss %>% select(MAT = IID, mat_miss = F_MISS), by = "MAT")
+rel$avg_parent_miss <- ifelse(is.na(rel$mat_miss) & is.na(rel$pat_miss), 
+                              1,
+                              ifelse(is.na(rel$mat_miss), 
+                                     rel$pat_miss,
+                                     ifelse(is.na(rel$pat_miss), 
+                                            rel$mat_miss,
+                                            (rel$pat_miss + rel$mat_miss) / 2)))
+
+
+rel$parents_in_batch <- 0
+rel$parents_in_batch <- ifelse(!is.na(rel$pat_batch) & rel$iid_batch == rel$pat_batch, rel$parents_in_batch +1, rel$parents_in_batch)
+rel$parents_in_batch <- ifelse(!is.na(rel$mat_batch) & rel$iid_batch == rel$mat_batch, rel$parents_in_batch +1, rel$parents_in_batch)
+rel$shared_chips <- 0
+rel$shared_chips <- ifelse(!is.na(rel$pat_chip) & rel$iid_chip == rel$pat_chip, rel$shared_chips +1, rel$shared_chips)
+rel$shared_chips <- ifelse(!is.na(rel$mat_chip) & rel$iid_chip == rel$mat_chip, rel$shared_chips +1, rel$shared_chips)
+
+# rel <- subset(rel, !is.na(iid_batch))
+rel <- rel %>% mutate(PAT = ifelse(is.na(pat_batch), NA, PAT)) %>% mutate(MAT = ifelse(is.na(mat_batch), NA, MAT))
+
+rel$parents <- 0
+rel$parents <- ifelse(!is.na(rel$PAT), rel$parents +1, rel$parents)
+rel$parents <- ifelse(!is.na(rel$MAT), rel$parents +1, rel$parents)
+
+rel$expected_parents <- 0
+rel$expected_parents <- ifelse(!is.na(rel$expected_father) & rel$expected_father, rel$expected_parents +1, rel$expected_parents)
+rel$expected_parents <- ifelse(!is.na(rel$expected_mother) & rel$expected_mother, rel$expected_parents +1, rel$expected_parents)
+
+
+new_psam <- rel %>%
+  group_by(IID) %>%
+  filter(shared_chips == max(shared_chips)) %>%
+  ungroup() %>%
+  as.data.frame()
+
+new_psam <- new_psam %>%
+  group_by(IID) %>%
+  filter(parents_in_batch == max(parents_in_batch)) %>%
+  ungroup() %>%
+  as.data.frame()
+
+new_psam <- new_psam %>%
+  group_by(IID) %>%
+  filter(expected_parents == max(expected_parents)) %>%
+  ungroup() %>%
+  as.data.frame()
+
+new_psam <- new_psam %>%
+  group_by(IID) %>%
+  filter(avg_parent_miss == min(avg_parent_miss)) %>%
+  ungroup() %>%
+  as.data.frame()
+
+new_psam <- new_psam %>% distinct(IID, .keep_all=TRUE)
+rel$avg_parent_miss <- ifelse(rel$avg_parent_miss == 1, NA, rel$avg_parent_miss)
+confirmed_relationships <- rel %>% filter(!is.na(PAT) | !is.na(MAT)) %>% select(child_sentrix_id = IID, mother_sentrix_id = MAT, father_sentrix_id = PAT)
+
+new_psam <- new_psam %>% select(FID, IID, PAT, MAT, SEX)
+
+}
+
 
 
 # Conflicting relationships
@@ -1027,29 +1194,29 @@ mismatches_table <- mismatches_table %>%
 mismatches_table <- unique(mismatches_table)
  # Complete new psam
  
-restored_psam_data$SEX <- NULL
- restored_psam_data <- restored_psam_data %>%
-      left_join(
-        id_to_family_sex %>%
-           select(
-            FID = family,
-            IID = id,
-            SEX = sex
-           ),
-        by = "IID"
-      )
+# restored_psam_data$SEX <- NULL
+#  restored_psam_data <- restored_psam_data %>%
+#       left_join(
+#         id_to_family_sex %>%
+#            select(
+#             FID = family,
+#             IID = id,
+#             SEX = sex
+#            ),
+#         by = "IID"
+#       )
 
-restored_psam_data <- restored_psam_data[, c("FID", setdiff(names(restored_psam_data), "FID"))]
-colnames(restored_psam_data)[colnames(restored_psam_data) == "FID"] <- "#FID"
+# restored_psam_data <- restored_psam_data[, c("FID", setdiff(names(restored_psam_data), "FID"))]
+colnames(new_psam)[colnames(new_psam) == "FID"] <- "#FID"
 
-if (!identical(psam_data$IID, restored_psam_data$IID)){
+if (!identical(psam_data$IID, new_psam$IID)){
   stop("Restored psam IIDs do not match original")
 }
 
 if(plink_version == "1"){
-  restored_psam_data$PHE <- -9
+  new_psam$PHE <- -9
   write.table(
-  x = restored_psam_data,
+  x = new_psam,
   file = destination_file,
   col.names = F,
   row.names = F,
@@ -1059,13 +1226,29 @@ if(plink_version == "1"){
 )
 } else if(plink_version == "2"){
   write.table(
-  x = restored_psam_data,
+  x = new_psam,
   file = destination_file,
   col.names = T,
   row.names = F,
   sep = "\t",
   quote = F,
   na = "0"
+)
+write.table(
+  x = rel,
+  file = all_samples_file,
+  col.names = T,
+  row.names = F,
+  sep = "\t",
+  quote = F
+)
+write.table(
+  x = confirmed_relationships,
+  file = confirmed_relationships_file,
+  col.names = T,
+  row.names = F,
+  sep = "\t",
+  quote = F
 )
 
 }
@@ -1112,7 +1295,7 @@ to_remove_ids <- c(
 
 to_remove_ids <- unique(to_remove_ids)
 
-to_remove_psam <- restored_psam_data[restored_psam_data$IID %in% to_remove_ids, 1:2]
+to_remove_psam <- new_psam[new_psam$IID %in% to_remove_ids, 1:2]
 
 write.table(
   x = to_remove_psam,

@@ -14,10 +14,10 @@ rule mod8_split_rare_common:
     input:
         pgenset = rules.mod7_rename_missing_ids.output.pgenset
     output:
-        pgenset_common_snps = multiext(str(tmpMod8 / rule_stem),".pgen",".pvar",".psam"),
+        pgenset_common_snps = multiext(str(tmpMod8 / rule_stem),".pgen",".pvar"),
         afreq_common_snps = tmpMod8/(rule_stem + '.afreq'),
         common_snps_list = tmpMod8/(rule_stem + ".snplist"),
-        pgenset_rare_snps = multiext(str(tmpMod8/rule_stem) + "_rare", ".pgen", ".pvar", ".psam")
+        pgenset_rare_snps = multiext(str(tmpMod8/rule_stem) + "_rare", ".pgen", ".pvar")
     params:
         release_maf_threshold = config['release_maf_thr'],
         mac_threshold = config['merged_set_best_snps_mac_thr']
@@ -78,116 +78,116 @@ rule summarize_dr2:
         input_base = str(tmpMod6)
         mqc.summarize_dr2(input_base, output.dr2, batches, chrs_without_par, threads)
 
+# Rule deprecated 2025.09.25
+# rule_stem = 'mod8_common_snps_filter'
+# rule mod8_common_snps_filter:
+#     'Select common markers genotyped or with best imputation scores, filter by mac and geno rate'
+#     input:
+#         pgenset = rules.mod8_split_rare_common.output.pgenset_common_snps,
+#         afreq_common_snps = rules.mod8_split_rare_common.output.afreq_common_snps,
+#         r2_table = rules.summarize_dr2.output.dr2,
+#         high_ld_regions_hg19 = high_ld_regions_hg19
+#     output:
+#         pgenset_common_snps = multiext(str(tmpMod8 / rule_stem),".pgen",".pvar",".psam"),
+#     params:
+#         release_hw_threshold = config['release_hw_thr'],
+#         release_sd_het_threshold = config['release_sd_het_thr'],
+#         mac_threshold = config['merged_set_best_snps_mac_thr'],
+#     run:
+#         try:
 
-rule_stem = 'mod8_common_snps_filter'
-rule mod8_common_snps_filter:
-    'Select common markers genotyped or with best imputation scores, filter by mac and geno rate'
-    input:
-        pgenset = rules.mod8_split_rare_common.output.pgenset_common_snps,
-        afreq_common_snps = rules.mod8_split_rare_common.output.afreq_common_snps,
-        r2_table = rules.summarize_dr2.output.dr2,
-        high_ld_regions_hg19 = high_ld_regions_hg19
-    output:
-        pgenset_common_snps = multiext(str(tmpMod8 / rule_stem),".pgen",".pvar",".psam"),
-    params:
-        release_hw_threshold = config['release_hw_thr'],
-        release_sd_het_threshold = config['release_sd_het_thr'],
-        mac_threshold = config['merged_set_best_snps_mac_thr'],
-    run:
-        try:
+#             inTrunk =  mqc.plinkBase(input.pgenset[0])
+#             outTrunk_common =  mqc.plinkBase(output.pgenset_common_snps[0])
 
-            inTrunk =  mqc.plinkBase(input.pgenset[0])
-            outTrunk_common =  mqc.plinkBase(output.pgenset_common_snps[0])
+#             subprocess.run(
+#                 [
+#                     plink2local,
+#                     "--pfile", inTrunk,
+#                     "--hardy", "midp",
+#                     "--read-freq", input.afreq_common_snps,
+#                     "--out", inTrunk
+#                 ],
+#                 check = True
+#             )
 
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", inTrunk,
-                    "--hardy", "midp",
-                    "--read-freq", input.afreq_common_snps,
-                    "--out", inTrunk
-                ],
-                check = True
-            )
+#             mqc.extract_list(
+#                 inTrunk + ".hardy",
+#                 inTrunk + ".exclude",
+#                 threshold_doc_file = inTrunk + ".details",
+#                 sep = None,
+#                 colName = "^MIDP$",
+#                 condition = "<",
+#                 threshold = params.release_hw_threshold,
+#                 key_cols = [1],
+#                 doc_cols = [0, 1]
+#             )
 
-            mqc.extract_list(
-                inTrunk + ".hardy",
-                inTrunk + ".exclude",
-                threshold_doc_file = inTrunk + ".details",
-                sep = None,
-                colName = "^MIDP$",
-                condition = "<",
-                threshold = params.release_hw_threshold,
-                key_cols = [1],
-                doc_cols = [0, 1]
-            )
-
-            mqc.extract_list(
-                inTrunk + ".hardy.x",
-                inTrunk + "_x.exclude",
-                threshold_doc_file = inTrunk + ".details",
-                sep = None,
-                colName = "^MIDP$",
-                condition = "<",
-                threshold = params.release_hw_threshold,
-                key_cols = [1],
-                doc_cols = [0, 1]
-            )
-
-
-            print(f"het.")
-
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", inTrunk,
-                    "--read-freq", input.afreq_common_snps,
-                    "--autosome",
-                    "--maf", str(0.01),
-                    "--het",
-                    "--out",
-                    inTrunk
-                ],
-                check = True
-            )
-
-            het_p_values = inTrunk + ".het"
-            mqc.compute_excess_het(
-                het_p_values,
-                inTrunk + "_het.exclude",
-                params.release_sd_het_threshold,
-                plink1=False
-            )
-
-            with open(inTrunk + ".exclude", 'a') as exclude_file:
-                with open(inTrunk + "_x.exclude", 'r') as exclude_x_file:
-                    exclude_file.write(exclude_x_file.read())
-                with open(inTrunk + "_het.exclude", 'r') as exclude_het_file:
-                    exclude_file.write(exclude_het_file.read())
-
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", inTrunk,
-                    "--exclude", inTrunk + ".exclude",
-                    "--out", outTrunk_common,
-                    "--make-pgen"
-                ],
-                check = True
-            )
+#             mqc.extract_list(
+#                 inTrunk + ".hardy.x",
+#                 inTrunk + "_x.exclude",
+#                 threshold_doc_file = inTrunk + ".details",
+#                 sep = None,
+#                 colName = "^MIDP$",
+#                 condition = "<",
+#                 threshold = params.release_hw_threshold,
+#                 key_cols = [1],
+#                 doc_cols = [0, 1]
+#             )
 
 
-        except Exception as e:
-            print(f"An exception occurred in rule {rule}.")
-            print(e)
+#             print(f"het.")
+
+#             subprocess.run(
+#                 [
+#                     plink2local,
+#                     "--pfile", inTrunk,
+#                     "--read-freq", input.afreq_common_snps,
+#                     "--autosome",
+#                     "--maf", str(0.01),
+#                     "--het",
+#                     "--out",
+#                     inTrunk
+#                 ],
+#                 check = True
+#             )
+
+#             het_p_values = inTrunk + ".het"
+#             mqc.compute_excess_het(
+#                 het_p_values,
+#                 inTrunk + "_het.exclude",
+#                 params.release_sd_het_threshold,
+#                 plink1=False
+#             )
+
+#             with open(inTrunk + ".exclude", 'a') as exclude_file:
+#                 with open(inTrunk + "_x.exclude", 'r') as exclude_x_file:
+#                     exclude_file.write(exclude_x_file.read())
+#                 with open(inTrunk + "_het.exclude", 'r') as exclude_het_file:
+#                     exclude_file.write(exclude_het_file.read())
+
+#             subprocess.run(
+#                 [
+#                     plink2local,
+#                     "--pfile", inTrunk,
+#                     "--exclude", inTrunk + ".exclude",
+#                     "--out", outTrunk_common,
+#                     "--make-pgen"
+#                 ],
+#                 check = True
+#             )
+
+
+#         except Exception as e:
+#             print(f"An exception occurred in rule {rule}.")
+#             print(e)
 
 rule mod8_best_snps:
     input:
-        pgenset = multiext("/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_split_rare_common", ".pgen", ".pvar", ".psam"), # rules.mod8_split_rare_common.output.pgenset_common_snps, #rules.mod8_common_snps_filter.output.pgenset_common_snps,
-        r2_table = "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_dr2.txt.gz", #rules.summarize_dr2.output.dr2,
+        pgenset = rules.mod8_split_rare_common.output.pgenset_common_snps,
+        r2_table = rules.summarize_dr2.output.dr2,
         high_ld_regions_hg19 = high_ld_regions_hg19
     output:
-        pgenset = multiext(str(tmpMod8_2/"mod8_best_snps"), ".pgen", ".pvar", ".psam"),
+        pgenset = multiext(str(tmpMod8_2/"mod8_best_snps"), ".pgen", ".pvar"),
         best_pruned_list = str(tmpMod8_2/"mod8_best_snps_pruned.prune.in")
     params:
         release_maf_threshold = config['release_maf_thr'],
@@ -247,6 +247,79 @@ rule mod8_best_snps:
         )
 
         mqc.remove_pgenset(temp1)
+
+
+rule_stem = 'mod8_generate_best_snps_stats'
+rule mod8_generate_best_snps_stats:
+    'Generate statistics on the filtered snps'
+    input:
+        pgenset = rules.mod8_best_snps.output.pgenset,
+    output:
+        het = tmpMod8_2/'mod8_best_snps.het',
+        hardy = tmpMod8_2/'mod8_best_snps.hardy',
+        afreq = tmpMod8_2/'mod8_best_snps.afreq',
+        smiss = tmpMod8_2/'mod8_best_snps.smiss',
+        vmiss = tmpMod8_2/'mod8_best_snps.vmiss',
+    threads: 1
+    run:
+        try:
+            # Plink base paths
+            plink_input = mqc.plinkBase(input.pgenset[0])
+            plink_het_output = mqc.plinkBase(output.het)
+            plink_hwe_output = mqc.plinkBase(output.hardy)
+            plink_freq_output = mqc.plinkBase(output.afreq)
+            plink_miss_output = mqc.plinkBase(output.smiss)
+
+            # Frequencies
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--freq",
+                    "--out", plink_freq_output
+                ],
+                check=True
+            )
+
+            # Heterozygocity rate
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--read-freq", output.afreq,
+                    "--het",
+                    "--out", plink_het_output
+                ],
+                check=True
+            )
+
+            # HWE
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--hardy", "midp",
+                    "--read-freq", output.afreq,
+                    "--out", plink_hwe_output
+                ],
+                check=True
+            )
+
+            # Missingness
+            subprocess.run(
+                [
+                    plink2local,
+                    "--pfile", plink_input,
+                    "--read-freq", output.afreq,
+                    "--missing",
+                    "--out", plink_miss_output
+                ],
+                check=True
+            )
+
+        except Exception as e:
+            print(f"An exception occurred in rule {rule}.")
+            print(e)
 
 
 
@@ -334,7 +407,7 @@ rule mod8_pedigree_ibd_estimate:
 rule_stem = 'mod8_check_sex'
 rule mod8_check_sex:
     input:
-        pgenset = rules.mod8_split_rare_common.output.pgenset_common_snps #rules.mod8_common_snps_filter.output.pgenset_common_snps
+        pgenset = rules.mod8_split_rare_common.output.pgenset_common_snps
     output:
         sex_check = tmpMod8_2/(rule_stem + ".sexcheck")
     run:
@@ -346,7 +419,7 @@ rule mod8_check_sex:
                     "plink2",
                     "--pfile", in_trunk,
                     "--chr", "X",
-                    "--check-sex", "max-female-xf=0.6", "min-male-xf=0.8",
+                    "--check-sex", "max-female-xf=0.8", "min-male-xf=0.8",
                     "--out", out_trunk
                 ],
                 check=True
@@ -378,40 +451,30 @@ rule mod8_import_ycounts:
 rule_stem = 'mod8_psam_reconstruction'
 rule mod8_psam_reconstruction:
     input:
-        psam_all_markers = rules.mod8_split_rare_common.output.pgenset_common_snps[2], # rules.mod8_common_snps_filter.output.pgenset_common_snps[2],
+        pgenset_all_markers = rules.mod8_split_rare_common.output.pgenset_common_snps, # rules.mod8_common_snps_filter.output.pgenset_common_snps[2],
         king_relatedness = rules.mod8_pedigree_ibd_estimate.output.king_relatedness,
         sex_check = rules.mod8_import_ycounts.output.sex_check,
         expected_relationships = config['expected_relationships'],
         birth_year = config['birth_year'],
-        id_mapping = config['id_mapping']
+        id_mapping = config['id_mapping'],
+        batch_table = rules.mod8_batch_table.output.batch_table,
+        best_smiss = rules.mod8_generate_best_snps_stats.output.smiss
     params:
-        title = "\"Psam file reconstruction\""
+        title = "\"Psam file reconstruction\"",
+        batch_chip = "parameters/batch_chip",
     output:
         updated_psam = tmpMod8_2/(rule_stem + ".psam"),
         pedigree_sample_exclusion = tmpMod8_2/(rule_stem + "_pedigree_sample_exclusion"),
         mismatch_information = tmpMod8_2/"mismatch_information.gz",
         mismatch_relationship = tmpMod8_2/"mismatch_relationship.gz",
-        md_file = github_docs_2/(rule_stem + ".md")
+        md_file = github_docs_2/(rule_stem + ".md"),
+        all_samples_relationships = tmpMod8_2/"all_samples_relationships"
     conda:
         "envs/r_4.2.yaml"
     threads: 1
-    shell:
-        """
-        Rscript utils/pedigree/simple_psam_reconstruction.R \
-            {input.king_relatedness} \
-            {input.sex_check} \
-            {input.expected_relationships} \
-            {input.birth_year} \
-            {input.id_mapping} \
-            {input.psam_all_markers} \
-            {output.updated_psam} \
-            {output.pedigree_sample_exclusion} \
-            {output.mismatch_information} \
-            {output.mismatch_relationship} \
-            {output.md_file} \
-            {params.title} \
-            2
-        """
+    run:
+        psam = mqc.plinkBase(input.pgenset_all_markers[0]) + ".psam"
+        shell("Rscript utils/pedigree/simple_psam_reconstruction.R {input.king_relatedness} {input.sex_check} {input.expected_relationships} {input.birth_year} {input.id_mapping} {psam} {output.updated_psam} {output.pedigree_sample_exclusion} {output.mismatch_information} {output.mismatch_relationship} {output.md_file} {params.title} 2 {input.batch_table} {params.batch_chip} {input.best_smiss} {output.all_samples_relationships}")
 
 rule_stem = 'mod8_exclude_conflictual_relationships'
 rule mod8_exclude_conflictual_relationships:
@@ -486,6 +549,7 @@ rule mod8_exclude_conflictual_relationships:
                     print(f"An exception occurred in rule {rule}.")
                     print(e)
 
+
 rule mod8_best_snps_list:
     input:
         dr2 = rules.summarize_dr2.output.dr2,
@@ -497,77 +561,6 @@ rule mod8_best_snps_list:
 
 
 
-rule_stem = 'mod8_generate_best_snps_stats'
-rule mod8_generate_best_snps_stats:
-    'Generate statistics on the filtered snps'
-    input:
-        pgenset = rules.mod8_exclude_conflictual_relationships.output.pgenset_best_snps
-    output:
-        het = tmpMod8_2/'mod8_best_snps.het',
-        hardy = tmpMod8_2/'mod8_best_snps.hardy',
-        afreq = tmpMod8_2/'mod8_best_snps.afreq',
-        smiss = tmpMod8_2/'mod8_best_snps.smiss',
-        vmiss = tmpMod8_2/'mod8_best_snps.vmiss',
-    threads: 1
-    run:
-        try:
-            # Plink base paths
-            plink_input = mqc.plinkBase(input.pgenset[0])
-            plink_het_output = mqc.plinkBase(output.het)
-            plink_hwe_output = mqc.plinkBase(output.hardy)
-            plink_freq_output = mqc.plinkBase(output.afreq)
-            plink_miss_output = mqc.plinkBase(output.smiss)
-
-            # Frequencies
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", plink_input,
-                    "--freq",
-                    "--out", plink_freq_output
-                ],
-                check=True
-            )
-
-            # Heterozygocity rate
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", plink_input,
-                    "--read-freq", output.afreq,
-                    "--het",
-                    "--out", plink_het_output
-                ],
-                check=True
-            )
-
-            # HWE
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", plink_input,
-                    "--hardy", "midp",
-                    "--read-freq", output.afreq,
-                    "--out", plink_hwe_output
-                ],
-                check=True
-            )
-
-            # Missingness
-            subprocess.run(
-                [
-                    plink2local,
-                    "--pfile", plink_input,
-                    "--read-freq", output.afreq,
-                    "--missing",
-                    "--out", plink_miss_output
-                ],
-                check=True
-            )
-
-        except Exception as e:
-            print(f"An exception occurred in rule {rule}.")
-            print(e)
 
 
 
@@ -613,7 +606,7 @@ rule mod8_make_bcf:
     input:
         pgenset = multiext("/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_exclude_conflictual_relationships", ".pgen", ".pvar", ".psam") # hook into pipeline later
     output:
-        bcf = str(tmpMod8_2/"mod8_make_bcf.common.chr{phasing_chr}.bcf")
+        bcf = str(tmpMod8_2/"phase_check" / "mod8_make_bcf.best.chr{phasing_chr}.bcf")
     conda:
         "envs/plink2_tabix.yaml"
     run:
