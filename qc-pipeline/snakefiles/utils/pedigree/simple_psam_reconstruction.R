@@ -32,7 +32,7 @@ if (debug) {
   } else if(debug_plink_version == 2){
     args <- c(
     "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_pedigree_ibd_estimate.kin0", 
-    "/mntarchive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_import_ycounts.sexcheck",
+    "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_import_ycounts.sexcheck",
     "/mnt/archive2/moba_genotypes_resources/phenotypes/expected_relationship_24.04.12.gz",
     "/mnt/archive2/moba_genotypes_resources/phenotypes/birth_year_24.04.12.gz",
     "/mnt/archive2/moba_genotypes_resources/phenotypes/ids_24.08.07.gz",
