@@ -214,6 +214,19 @@ rule mod6_batch_table:
             print(f"An exception occurred in rule {rule}.")
             print(e)
 
+rule mod6_imputation_batch_files:
+    input:
+        batch_table = rules.mod6_batch_table.output.batch_table
+    output:
+        imputation_batches = expand(str(tmpMod6_phasing_test/"imputation_batch.{batch}"), batch = batches)
+    params:
+        r_script = "utils/make_imputation_batch_files.R"
+    conda:
+        "envs/r_4.2.yaml"
+    run:
+        out_trunk = mqc.plinkBase(output.imputation_batches[0])
+        shell(f"Rscript {params.r_script} {input.batch_table} {out_trunk}")
+
 
 rule mod6_filter_relationships:
     input:
@@ -282,7 +295,7 @@ rule mod6_find_phasing_batches:
     input:
         families = rules.mod6_find_families.output.families
     output:
-        phasing_batches = expand(str(tmpMod6_phasing_test/"phasing_batches_{n_batches}"/"phasing_batch.{batch}"), batch = phasing_batches)
+        phasing_batches = expand(str(tmpMod6_phasing_test/"phasing_batches_{n_batches}"/"phasing_batch.{batch}"), batch = [f"batch{i}" for i in range(wildcards.n_batches)])
     params:
         python_script = "utils/find_phasing_batches.py"
     run:
@@ -514,6 +527,7 @@ rule mod6_merge_phased:
         echo "Merged files:" >> {log}
         for file in {input.bcfs}; do echo "$file" >> {log}; done
         """
+
 
 def get_samples_file(wildcards):
     # return str(tmpMod6_phasing_test / f"mod6_make_split_samples_list.batch_{wildcards.batch}")
