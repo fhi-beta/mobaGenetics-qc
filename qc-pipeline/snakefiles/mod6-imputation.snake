@@ -281,7 +281,7 @@ rule mod6_filter_relationships:
 
 rule mod6_find_families:
     input:
-        relations = rules.mod6_make_relationships_tables.output.all_relations #rules.mod6_find_new_batches.output.updated_relations,
+        relations = rules.mod6_filter_relationships.output.filtered_relationships #rules.mod6_find_new_batches.output.updated_relations,
     output:
         fids = str(tmpMod6_phasing_test /"fids"),
         families = str(tmpMod6_phasing_test /"families") #str(tmpMod6_phasing_test/"families")
@@ -291,6 +291,7 @@ rule mod6_find_families:
         """
         python {params.python_script} --relationships {input.relations} --fids {output.fids} --families {output.families}
         """
+
 rule mod6_find_phasing_batches:
     input:
         families = rules.mod6_find_families.output.families

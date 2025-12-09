@@ -3,7 +3,7 @@ library(glue)
 library(tidyr)
 library(dplyr)
 
-debug <-F
+debug <-T
 if (debug) {
   args <- c("/mnt/archive2/moba_genotypes_resources/phenotypes/all_samples_confirmed_relationships_2025.09.25",
     "/mnt/archive3/phasing_test/filtered_shapeit_fam",
@@ -45,13 +45,13 @@ filtered_rel <- filtered_rel %>%
   ungroup() %>%
   as.data.frame()
 
-filtered_rel <- filtered_rel %>% distinct(IID, .keep_all=TRUE)
+filtered_rel <- filtered_rel %>% distinct(IID, .keep_all=TRUE) %>% rename(iid = IID, pat = PAT, mat = MAT)
 
-filtered_rel <- subset(filtered_rel, !is.na(MAT) | !is.na(PAT))
+filtered_rel <- subset(filtered_rel, !is.na(mat) | !is.na(pat))
 
-shapeit_fam <- filtered_rel %>% select(IID, PAT, MAT)
+shapeit_fam <- filtered_rel %>% select(iid, pat, mat)
 
-trios <- subset(filtered_rel, !is.na(MAT) & !is.na(PAT)) %>% select(PAT, MAT, IID)
+trios <- subset(filtered_rel, !is.na(mat) & !is.na(pat)) %>% select(pat, mat, iid)
 
 
 
