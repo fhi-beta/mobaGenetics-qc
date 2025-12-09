@@ -215,25 +215,39 @@ rule mod6_batch_table:
             print(e)
 
 
-rule mod6_make_relationships_tables:
+rule mod6_filter_relationships:
     input:
-        expected_relationships = config['confirmed_relationships'], # config['expected_relationships'],
-        batch_table = rules.mod6_batch_table.output.batch_table,
-        ids = config['id_mapping']
-    params:
-        batch_chip = "parameters/batch_chip",
-        r_script = "utils/make_relationships_tables.R",
-        king = "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_pedigree_ibd_estimate.kin0"
+        relationships = config['confirmed_relationships']
     output:
-        all_relations = str(tmpMod6_phasing_test / "confirmed_all_relations"),
-        trios = str(tmpMod6_phasing_test / "confirmed_trios"),
-        shapeit_fam =  str(tmpMod6_phasing_test / "confirmed_shapeit_fam"),
-        imputation_batches = expand(str(tmpMod6_phasing_test/"imputation_batch.{batch}"), batch = batches)
+        filtered_relationships = str(tmpMod6_phasing_test / "filtered_relationships"),
+        filtered_shapeit_fam = str(tmpMod6_phasing_test / "filtered_shapeit_fam"),
+        filtered_trios = str(tmpMod6_phasing_test / "filtered_trios")
+    params:
+        r_script = "utils/filter_relationships.R"
     conda:
         "envs/r_4.2.yaml"
     run:
-        imputation_batches_trunk = mqc.plinkBase(output.imputation_batches[0])
-        shell(f"Rscript {params.r_script} {input.expected_relationships} {params.king} {input.batch_table} {params.batch_chip} {input.ids} {output.all_relations} {output.shapeit_fam} {imputation_batches_trunk} {output.trios}")
+        shell(f"Rscript {params.r_script} {input.relationships} {output.filtered_shapeit_fam} {output.filtered_relationships} {output.filtered_trios}")
+
+# rule mod6_make_relationships_tables:
+#     input:
+#         expected_relationships = config['confirmed_relationships'], # config['expected_relationships'],
+#         batch_table = rules.mod6_batch_table.output.batch_table,
+#         ids = config['id_mapping']
+#     params:
+#         batch_chip = "parameters/batch_chip",
+#         r_script = "utils/make_relationships_tables.R",
+#         king = "/mnt/archive3/snpQc/pipeOut_dev/2025.01.30/mod8-release_annotation/mod8_pedigree_ibd_estimate.kin0"
+#     output:
+#         all_relations = str(tmpMod6_phasing_test / "confirmed_all_relations"),
+#         trios = str(tmpMod6_phasing_test / "confirmed_trios"),
+#         shapeit_fam =  str(tmpMod6_phasing_test / "confirmed_shapeit_fam"),
+#         imputation_batches = expand(str(tmpMod6_phasing_test/"imputation_batch.{batch}"), batch = batches)
+#     conda:
+#         "envs/r_4.2.yaml"
+#     run:
+#         imputation_batches_trunk = mqc.plinkBase(output.imputation_batches[0])
+#         shell(f"Rscript {params.r_script} {input.expected_relationships} {params.king} {input.batch_table} {params.batch_chip} {input.ids} {output.all_relations} {output.shapeit_fam} {imputation_batches_trunk} {output.trios}")
 
 
 # rule mod6_find_new_batches:
@@ -443,7 +457,7 @@ rule mod6_split_phasing_batches:
 
 rule mod6_phase:
     input:
-        shapeit_fam = rules.mod6_make_relationships_tables.output.shapeit_fam,
+        shapeit_fam = rules.mod6_filter_relationships.output.filtered_shapeit_fam,
         bcf = rules.mod6_split_phasing_batches.output.bcf
     output:
         phased_bcf = str(tmpMod6_phasing_test  / "mod6_phase.{batch}.chr{chr}.phased.bcf"),

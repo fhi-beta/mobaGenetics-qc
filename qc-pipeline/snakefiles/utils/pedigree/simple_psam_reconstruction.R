@@ -10,7 +10,7 @@ set.seed(11111)
 
 # Command line arguments
 debug <- T
-debug_plink_version <- 1
+debug_plink_version <- 2
 debug_batch <- "snp010"
 if (debug) {
   if(debug_plink_version == 1){
