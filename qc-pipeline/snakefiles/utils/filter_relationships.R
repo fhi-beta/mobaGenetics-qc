@@ -3,7 +3,7 @@ library(glue)
 library(tidyr)
 library(dplyr)
 
-debug <-T
+debug <-F
 if (debug) {
   args <- c("/mnt/archive2/moba_genotypes_resources/phenotypes/all_samples_confirmed_relationships_2025.09.25",
     "/mnt/archive3/phasing_test/filtered_shapeit_fam",
