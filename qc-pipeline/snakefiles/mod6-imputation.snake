@@ -507,7 +507,7 @@ rule mod6_phase:
 
 # batches_and_problem_children = batches + ["problem_children"]
 def get_phased_bcf(wildcards):
-    return [str(tmpMod6_phasing_test / f"mod6_phase.{batch}.chr{wildcards.chr}.phased.bcf") for batch in phasing_batches]
+    return [str(tmpMod6_phasing_test / f"mod6_phase.{batch}.chr{wildcards.chr}.phased.bcf") for batch in phasing_batches[f"chr{wildcards.chr}"]]
 
 
 rule mod6_merge_phased:
