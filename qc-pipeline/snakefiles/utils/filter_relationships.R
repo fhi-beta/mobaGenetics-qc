@@ -31,7 +31,7 @@ file.create(families_file)
 
 family_lines <- fids %>%
   group_by(FID) %>%
-  summarize(members_line = paste(IID, collapse = " ")) %>%
+  summarize(members_line = paste(IID, collapse = "\t")) %>%
   pull(members_line)
 
 writeLines(family_lines, families_file)
