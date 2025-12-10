@@ -82,6 +82,7 @@ batches =  config['batches']
 batches_to_split = config['batches_to_split']
 
 n_phasing_batches = config['n_phasing_batches']
+max_phasing_batches = max(n_phasing_batches.values())
 phasing_batches = {}
 for chr in n_phasing_batches:
     phasing_batches[chr] = [f"batch{i}" for i in range(n_phasing_batches[chr])]
