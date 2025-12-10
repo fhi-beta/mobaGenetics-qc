@@ -8,7 +8,8 @@ if (debug) {
   args <- c("/mnt/archive2/moba_genotypes_resources/phenotypes/all_samples_confirmed_relationships_2025.09.25",
     "/mnt/archive3/phasing_test/filtered_shapeit_fam",
     "/mnt/archive3/phasing_test/filtered_relations",
-    "/mnt/archive3/phasing_test/filtered_trios")
+    "/mnt/archive3/phasing_test/filtered_trios",
+    "/mnt/archive3/phasing_test/families")
 } else {
   args <- commandArgs(TRUE)
 }
@@ -17,9 +18,23 @@ all_samples_file <- args[1]
 shapeit_fam_file <- args[2]
 relations_file <- args[3]
 trios_file <- args[4]
+families_file <- args[5]
 
 rel <- read.table(all_samples_file, header = T)
 rel$avg_parent_miss <- ifelse(is.na(rel$avg_parent_miss), 1, rel$avg_parent_miss)
+
+fids <- rel %>%
+  distinct(IID, .keep_all = TRUE) %>%
+  select(FID, IID)
+
+file.create(families_file)
+
+family_lines <- fids %>%
+  group_by(FID) %>%
+  summarize(members_line = paste(IID, collapse = " ")) %>%
+  pull(members_line)
+
+writeLines(family_lines, families_file)
 
 filtered_rel <- rel %>%
   group_by(IID) %>%

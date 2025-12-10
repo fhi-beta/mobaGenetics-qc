@@ -234,13 +234,14 @@ rule mod6_filter_relationships:
     output:
         filtered_relationships = str(tmpMod6_phasing_test / "filtered_relationships"),
         filtered_shapeit_fam = str(tmpMod6_phasing_test / "filtered_shapeit_fam"),
-        filtered_trios = str(tmpMod6_phasing_test / "filtered_trios")
+        filtered_trios = str(tmpMod6_phasing_test / "filtered_trios"),
+        families = str(tmpMod6_phasing_test / "families")
     params:
         r_script = "utils/filter_relationships.R"
     conda:
         "envs/r_4.2.yaml"
     run:
-        shell(f"Rscript {params.r_script} {input.relationships} {output.filtered_shapeit_fam} {output.filtered_relationships} {output.filtered_trios}")
+        shell(f"Rscript {params.r_script} {input.relationships} {output.filtered_shapeit_fam} {output.filtered_relationships} {output.filtered_trios} {output.families}")
 
 # rule mod6_make_relationships_tables:
 #     input:
@@ -279,18 +280,18 @@ rule mod6_filter_relationships:
 #         out_trunk = mqc.plinkBase(mqc.plinkBase(output.imputation_batches[0]))
 #         shell(f"Rscript {params.r_script} {input.relations_file} {out_trunk} {output.md_file} {output.updated_relations} {output.updated_trios}")
 
-rule mod6_find_families:
-    input:
-        relations = rules.mod6_filter_relationships.output.filtered_relationships #rules.mod6_find_new_batches.output.updated_relations,
-    output:
-        fids = str(tmpMod6_phasing_test /"fids"),
-        families = str(tmpMod6_phasing_test /"families") #str(tmpMod6_phasing_test/"families")
-    params:
-        python_script = "utils/find_families.py"
-    shell:
-        """
-        python {params.python_script} --relationships {input.relations} --fids {output.fids} --families {output.families}
-        """
+# rule mod6_find_families:
+#     input:
+#         relations = rules.mod6_filter_relationships.output.filtered_relationships #rules.mod6_find_new_batches.output.updated_relations,
+#     output:
+#         fids = str(tmpMod6_phasing_test /"fids"),
+#         families = str(tmpMod6_phasing_test /"families") #str(tmpMod6_phasing_test/"families")
+#     params:
+#         python_script = "utils/find_families.py"
+#     shell:
+#         """
+#         python {params.python_script} --relationships {input.relations} --fids {output.fids} --families {output.families}
+#         """
 
 rule mod6_find_phasing_batches:
     input:
