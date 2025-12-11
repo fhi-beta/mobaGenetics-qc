@@ -297,7 +297,7 @@ rule mod6_find_phasing_batches:
     input:
         families = rules.mod6_filter_relationships.output.families
     output:
-        phasing_batches = expand(str(tmpMod6_phasing_test/"phasing_batches_{n_batches}"/"phasing_batch.{batch}"), batch = [f"batch{i}" for i in range(max_phasing_batches)])
+        phasing_batches = [str(tmpMod6_phasing_test/"phasing_batches_{n_batches}"/"phasing_batch.{batch}") for batch in [f"batch{i}" for i in range(max_phasing_batches)]]
     params:
         python_script = "utils/find_phasing_batches.py"
     run:
