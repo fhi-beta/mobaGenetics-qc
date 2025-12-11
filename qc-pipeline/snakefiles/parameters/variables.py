@@ -80,12 +80,12 @@ resultPath = base/'results'
 # batches_debug = ['snp001', 'snp002', 'snp003', 'snp007', 'snp008', 'snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018c', 'snp018de']
 batches =  config['batches']
 batches_to_split = config['batches_to_split']
-
+chrs = config['chrs']
 n_phasing_batches = config['n_phasing_batches']
 max_phasing_batches = max(n_phasing_batches.values())
 phasing_batches = {}
-for chr in n_phasing_batches:
-    phasing_batches[chr] = [f"batch{i}" for i in range(n_phasing_batches[chr])]
+for chr in chrs:
+    phasing_batches[f"chr{chr}"] = [f"batch{i}" for i in range(n_phasing_batches[chr])]
 
 # phasing_batches = [f"batch{i}" for i in range(n_phasing_batches)]
 # imputation_batches = ["snp001", "merge_snp002_snp003", "merge_snp007_snp008", "merge_snp009_snp011", "merge_snp010_snp014", "snp012", "snp016a", "snp016b", "snp017a", "merge_snp017b_snp017c_snp017d_snp017e_snp017cf" , "merge_snp018a_snp018b_snp018c_snp018de"]
@@ -96,6 +96,6 @@ for chr in n_phasing_batches:
 #         split_batches.append(f"{batch}_2")
 #     else:
 #         split_batches.append(batch)
-chrs = config['chrs']
+
 # chrs_debug = ['1', '2', '3', '4', '5', '6', '7', '8', '9', '10', '11', '12', '13', '14', '15', '16']
 # chrs_debug = [str(i) for i in range(1, 23)]
