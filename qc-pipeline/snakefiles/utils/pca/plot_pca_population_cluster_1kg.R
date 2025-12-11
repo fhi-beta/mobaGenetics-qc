@@ -9,7 +9,7 @@
 
 set.seed(20240112)
 
-debug <- T
+debug <- F
 debug_plink_version <- 2
 
 if (debug) {

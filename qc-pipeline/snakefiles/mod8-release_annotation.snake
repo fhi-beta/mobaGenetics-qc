@@ -818,7 +818,7 @@ rule mod8_plot_pca_both:
         psam = rules.mod8_exclude_conflictual_relationships.output.pgenset_best_snps[2]
     params:
         title = "\"Principal Component Analysys (PCA) vs. 1 KG\"",
-        std_het_cutoff = config["release_sd_het_thr"]
+        std_het_cutoff = config["release_sd_het_thr"],
         northern_norwegians = config['northern_norwegians']
     output:
         md_file = github_docs_2/"pca_1kg_moba.md",
