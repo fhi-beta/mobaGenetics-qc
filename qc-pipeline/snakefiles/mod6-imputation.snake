@@ -795,6 +795,19 @@ rule mod6_find_ref_af:
         """
 
 
+# rule mod6_imputation_report:
+#     input:
+#         imputed_info = rules.mod6_query.output.info,
+#         ref_af = rules.mod6_find_ref_af.output.af
+#     output:
+#         report = str(tmpMod6_phasing_test / "{batch}" / "imputation_report" / "mod6_imputation_report.chr{chr}.txt")
+#     params:
+#         r_script = "utils/imputation_report.R"
+#     conda:
+#         "envs/r_4.2.yaml"
+#     run:
+
+#         shell(f"Rscript {params.r_script} --imputed_info {input.imputed_info} --ref_af {input.ref_af} --output {output.report}")
 
 # def split_samples(input_file, output_file, batch):
 #     with open(input_file) as f:
