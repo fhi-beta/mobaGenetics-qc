@@ -299,8 +299,7 @@ rule mod6_find_phasing_batches:
     output:
         phasing_batches = expand(str(tmpMod6_phasing_test/"phasing_batches_{n_batches}"/"phasing_batch.{batch}"), batch = [f"batch{i}" for i in range(max_phasing_batches)])
     params:
-        python_script = "utils/find_phasing_batches.py",
-        n_batches = wildcards.n_batches
+        python_script = "utils/find_phasing_batches.py"
     run:
         out_trunk = mqc.plinkBase(output.phasing_batches)
         for f in output.phasing_batches:
