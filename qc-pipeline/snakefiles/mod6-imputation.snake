@@ -520,9 +520,7 @@ rule mod6_phase:
         blank_list = rules.mod6_generate_male_list.output.blank_list
     output:
         phased_bcf = str(tmpMod6_phasing_test  / "mod6_phase.{batch}.chr{chr}.phased.bcf"),
-        shapeit_log = str(tmpMod6_phasing_test / "mod6_phase.{batch}.chr{chr}.phased.log"),
-        male_list = rules.mod6_generate_male_list.output.male_list,
-        blank_list = rules.mod6_generate_male_list.output.blank_list
+        shapeit_log = str(tmpMod6_phasing_test / "mod6_phase.{batch}.chr{chr}.phased.log")
     params:
         map_chr=get_map_chr,
         ref_chr=get_reference_chr,
