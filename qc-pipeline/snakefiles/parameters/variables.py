@@ -82,6 +82,7 @@ batches =  config['batches']
 batches_to_split = config['batches_to_split']
 chrs = config['chrs']
 n_phasing_batches = config['n_phasing_batches']
+print(n_phasing_batches)
 max_phasing_batches = max(n_phasing_batches.values())
 phasing_batches = {}
 for chr in n_phasing_batches.keys():
