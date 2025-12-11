@@ -770,6 +770,30 @@ rule mod6_query:
         fi 
         """
 
+def get_ref_vcf(wildcards):
+    if wildcards.chr == "!":
+        return str(hrc_vcf / "HRC.r1-1.EGA.GRCh37.chr1.haplotypes.noIBD.vcf.gz")
+    else if chr == "X":
+        return str(hrc_vcf / "HRC.r1-1.EGA.GRCh37.chrX_nonPAR.haplotypes.vcf.gz")
+    else if chr == "PAR1":
+        return str(hrc_vcf / "HRC.r1-1.EGA.GRCh37.chrX_PAR1.haplotypes.vcf.gz")
+    else if chr == "PAR2":
+        return str(hrc_vcf / "HRC.r1-1.EGA.GRCh37.chrX_PAR2.haplotypes.vcf.gz")
+    else:
+        return str(hrc_vcf /f"HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes.vcf.gz")
+
+rule mod6_find_ref_af:
+    input:
+        vcf = get_ref_vcf
+    output:
+        af = str(hrc_af / "HRC_af_chr{chr}")
+    conda:
+        "envs/bcf_tabix.yaml"
+    shell:
+        """
+        bcftools query -f '%CHROM\t%POS\t%ID\t%AF\n' {input.vcf} -o {output.af}
+        """
+
 
 
 # def split_samples(input_file, output_file, batch):

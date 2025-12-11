@@ -26,6 +26,7 @@ batch_files: "/mnt/archive/moba_genotypes_releases/2024.12.03/batch/moba_genotyp
 # contains HRC.r1-1.GRCh37.wgs.mac5.sites.tab. If not found - google it.
 # Used by the Will Rayner perl-script in mod5.
 hrc_sites: "/mnt/archive2/moba_genotypes_resources/HRC/HRC.r1-1.GRCh37.wgs.mac5.sites.tab"
+hrc_af: "/mnt/archive2/moba_genotypes_resources/HRC"
 1000g_sites: "/mnt/archive2/moba_genotypes_resources/1000Genomes/1000GP_Phase3_combined.legend"
 hrc_ega: "/mnt/archive/HRC_1.1_EGA/24.05.30"
 hrc_bref: "/mnt/archive/HRC_bref3"
