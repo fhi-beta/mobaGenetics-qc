@@ -682,7 +682,7 @@ rule mod6_generate_bcftools_sex_files:
 # convert male X variants back to haploid before imputation
 rule mod6_reset_male_x_ploidy:
     input:
-        vcf = rules.mod6_split_imputation_batches_variants.output.vcf #rules.mod6_convert_to_vcf.output.vcf,
+        vcf = rules.mod6_split_imputation_batches_variants.output.vcf, #rules.mod6_convert_to_vcf.output.vcf,
         sex_list = rules.mod6_generate_bcftools_sex_files.output.sex_list
     output:
         vcf = str(tmpMod6 / "{batch}" / "mod6_reset_male_x_ploidy.chr{chr}.vcf")
