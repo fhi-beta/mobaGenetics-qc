@@ -488,6 +488,7 @@ def get_phasing_samples_file(wildcards):
     #return str(tmpMod6_phasing_test / f"mod6_phase_rare.chr{wildcards.chr}.phased.bcf")
     #return str(tmpMod6_phasing_test / f"mod6_phase_merged.chr{wildcards.chr}.phased.bcf"),
 
+# Note the fixploidy plugin: male haploid chr X samples must be recoded as diploid homozygotes before phasing due to a bug in shapeit
 rule mod6_split_phasing_batches:
     input:
         samples = get_phasing_samples_file,
@@ -498,16 +499,30 @@ rule mod6_split_phasing_batches:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        bcftools view {input.bcf} --samples-file {input.samples} | bcftools +fill-AN-AC -Ob -o {output.bcf} --write-index
+        bcftools view {input.bcf} --samples-file {input.samples} | bcftools +fixploidy | bcftools +fill-AN-AC -Ob -o {output.bcf} --write-index
         """
+
+rule mod6_generate_male_list:
+    input:
+        fam = rules.mod5_output.output.bedset[2]
+    output:
+        male_list = str(tmpMod6 / "{batch}" / "males.txt"),
+        blank_list = str(tmpMod6 / "{batch}" / "blank_list.txt")
+    run:
+        mqc.create_male_list(input.fam, output.male_list)
+        mqc.create_empty_files([output.blank_list])   
 
 rule mod6_phase:
     input:
         shapeit_fam = rules.mod6_filter_relationships.output.filtered_shapeit_fam,
-        bcf = rules.mod6_split_phasing_batches.output.bcf
+        bcf = rules.mod6_split_phasing_batches.output.bcf,
+        male_list = rules.mod6_generate_male_list.output.male_list,
+        blank_list = rules.mod6_generate_male_list.output.blank_list
     output:
         phased_bcf = str(tmpMod6_phasing_test  / "mod6_phase.{batch}.chr{chr}.phased.bcf"),
-        shapeit_log = str(tmpMod6_phasing_test / "mod6_phase.{batch}.chr{chr}.phased.log")
+        shapeit_log = str(tmpMod6_phasing_test / "mod6_phase.{batch}.chr{chr}.phased.log"),
+        male_list = rules.mod6_generate_male_list.output.male_list,
+        blank_list = rules.mod6_generate_male_list.output.blank_list
     params:
         map_chr=get_map_chr,
         ref_chr=get_reference_chr,
@@ -517,10 +532,16 @@ rule mod6_phase:
     threads: 32
     shell:
         """
+        if [[ "{wildcards.chr}" == "X" ]]; then
+            haploid_file={input.male_list}
+        else
+            haploid_file={input.blank_list}
+        fi
         reffile=$(echo {hrc_vcf}/HRC.r1-1.EGA.GRCh37.chr{params.ref_chr}.haplotypes*.vcf.gz)
         mapfile={mapfiles}/shapeit/chr{params.map_chr}.b37.gmap.gz
-        SHAPEIT5_phase_common --input {input.bcf} --pedigree {input.shapeit_fam} --region {params.region_chr} --reference $reffile --map $mapfile --output {output.phased_bcf} --output-format bcf --log {output.shapeit_log} --thread {threads}
+        SHAPEIT5_phase_common --input {input.bcf} --pedigree {input.shapeit_fam} --region {params.region_chr} --reference $reffile --map $mapfile --haploids $haploid_file --output {output.phased_bcf} --output-format bcf --log {output.shapeit_log} --thread {threads}
         """
+
 
 
 # rule mod6_extract_phased_problem_children:
@@ -650,12 +671,37 @@ rule mod6_split_imputation_batches_variants:
 #         bcftools view {input.vcf} --regions-file {input.conform} -Ov -o {output.vcf}
 #         """
     
+rule mod6_generate_bcftools_sex_files:
+    input:
+        fam = rules.mod5_output.output.bedset[2]
+    output:
+        sex_list = str(tmpMod6 / "{batch}" / "sex_list.txt")
+    run:
+        mqc.create_sex_list_for_bcftools(input.fam, output.sex_list) 
+
+# convert male X variants back to haploid before imputation
+rule mod6_reset_male_x_ploidy:
+    input:
+        vcf = rules.mod6_split_imputation_batches_variants.output.vcf #rules.mod6_convert_to_vcf.output.vcf,
+        sex_list = rules.mod6_generate_bcftools_sex_files.output.sex_list
+    output:
+        vcf = str(tmpMod6 / "{batch}" / "mod6_reset_male_x_ploidy.chr{chr}.vcf")
+    conda:
+        "envs/bcf_tabix.yaml"
+    shell:
+        """
+        if [[ {wildcards.chr} == "X" ]]; then
+            bcftools +fixploidy {input.vcf} -o {output.vcf} -- -p {haploid_x_file} -s {input.sex_list}
+        else
+            cp {input.vcf} {output.vcf}
+        fi
+        """
 
 rule_stem = "mod6_impute"
 rule mod6_impute:
     input:
         chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
-        vcf = rules.mod6_split_imputation_batches_variants.output.vcf #rules.mod6_split_merged_variants.output.vcf #rules.mod6_reset_male_x_ploidy.output.vcf #rules.mod6_conform.output.conformed_vcf
+        vcf = rules.mod6_reset_male_x_ploidy.output.vcf #rules.mod6_split_imputation_batches_variants.output.vcf #rules.mod6_split_merged_variants.output.vcf #rules.mod6_reset_male_x_ploidy.output.vcf #rules.mod6_conform.output.conformed_vcf
     output:
         imputed_vcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz")
     params:
@@ -962,15 +1008,7 @@ rule mod6_query:
 # def get_shapeit_fam(wildcards):
 #     return f"{tmpMod6}/{wildcards.batch}/shapeit_fam.fam"
 
-# rule mod6_generate_male_list:
-#     input:
-#         fam = rules.mod5_output.output.bedset[2]
-#     output:
-#         male_list = str(tmpMod6 / "{batch}" / "males.txt"),
-#         blank_list = str(tmpMod6 / "{batch}" / "blank_list.txt")
-#     run:
-#         mqc.create_male_list(input.fam, output.male_list)
-#         mqc.create_empty_files([output.blank_list])   
+
 
 # rule mod6_phase:
 #     input:
