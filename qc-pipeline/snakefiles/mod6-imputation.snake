@@ -301,7 +301,7 @@ rule mod6_find_phasing_batches:
     params:
         python_script = "utils/find_phasing_batches.py"
     run:
-        out_trunk = mqc.plinkBase(output.phasing_batches)
+        out_trunk = mqc.plinkBase(output.phasing_batches[0])
         for f in output.phasing_batches:
             with open(f, 'w') as fp:
                 pass
