@@ -197,12 +197,6 @@ if(plink_version == 2){
   col.names = c("fid", "iid", "pat", "mat", "sex"),
   stringsAsFactors = F
 )
-northern_norwegians <- read.table(
-  file = northern_norwegians_file,
-  header = F,
-  stringsAsFactors = F,
-  col.names = c("iid")
-)
 
 } else if(plink_version == 1){
   psam_data  <- read.table(
@@ -295,8 +289,15 @@ merged_pcs <- pcs %>%
 
 if (plink_version == 2){
   merged_pcs <- merged_pcs %>% left_join(het %>% select(iid, het_rate, stds_het_rate), by = "iid")
+  northern_norwegians <- read.table(
+  file = northern_norwegians_file,
+  header = F,
+  stringsAsFactors = F,
+  col.names = c("iid")
+)
   northern_norwegians <- northern_norwegians %>% left_join(merged_pcs,
     by = "iid") %>% mutate(iid = paste0("NN_", iid))
+  northern_norwegians <-  northern_norwegians[, c("fid", setdiff(names(northern_norwegians), "fid"))]
   northern_norwegians$pop <- "MoBa_NN"
   northern_norwegians <- northern_norwegians %>% mutate(pop_factor = factor(pop))
   northern_norwegians$pat <- NA
@@ -305,7 +306,6 @@ if (plink_version == 2){
   northern_norwegians$batch <- NA
   northern_norwegians$het_rate <- NA
   northern_norwegians$stds_het_rate <- NA
-  northern_norwegians$f <- NA
   northern_norwegians$fid <- NA
   merged_pcs <- rbind(merged_pcs, northern_norwegians)
 
