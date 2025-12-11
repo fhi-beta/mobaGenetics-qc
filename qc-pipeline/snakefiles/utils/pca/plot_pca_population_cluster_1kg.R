@@ -16,22 +16,21 @@ if (debug) {
   if(debug_plink_version == 1){
       args <- c(
     "/mnt/work/qc_genotypes/pipeOut_dev/2025.01.30/mod3-population-clustering/snp001/pca_both.pcs",
-    "/mnt/archive/snpQc/1000Genomes/all_phase3.psam",
+    "/mnt/archive2/moba_genotypes_resources/1000Genomes/all_phase3.psam",
     "/mnt/work/oystein/tmp/pca_1kg_moba.md",
     "\"Principal Component Analysys (PCA) vs. 1 KG\"",
     "/mnt/work/oystein/tmp/clusters",
     "/mnt/work/oystein/tmp/ceu_core_ids",
-    "/mnt/archive/snpQc/phenotypes/ids_24.08.07.gz",
+    "/mnt/archive2/moba_genotypes_resources/phenotypes/ids_24.08.07.gz",
     "/mnt/archive/moba_genotypes_releases/2024.12.03/batch/moba_genotypes_2024.12.03_batches",
     "/mnt/work/qc_genotypes/pipeOut_dev/2025.01.30/mod2-genetic-relationship/snp001/m2_output.fam",
-    1
+    "1"
   )
 
   } else if(debug_plink_version == 2){
         args <- c(
     "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_pca_both.pcs",
     "/mnt/archive2/moba_genotypes_resources/1000Genomes/all_phase3.psam",
-    "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_best_snps.het",
     "/mnt/work/oystein/tmp/pca_1kg_moba.md",
     "\"Principal Component Analysys (PCA) vs. 1 KG\"",
     "/mnt/work/oystein/tmp/clusters",
@@ -39,8 +38,9 @@ if (debug) {
     "/mnt/archive2/moba_genotypes_resources/phenotypes/ids_24.08.07.gz",
     "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_batch_table_batch",
     "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_psam_reconstruction.psam",
-    2,
-    "/mnt/archive2/moba_genotypes_resources/phenotypes/northern_norwegians"
+    "2",
+    "/mnt/archive2/moba_genotypes_resources/phenotypes/northern_norwegians",
+     "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_best_snps.het"
   )
   }
 
@@ -65,7 +65,7 @@ if (!file.exists(pcs_file)) {
   
 # }
 
-thousand_genomes_populations_file <- args[3]
+thousand_genomes_populations_file <- args[2]
 
 if (!file.exists(thousand_genomes_populations_file)) {
   
@@ -73,16 +73,10 @@ if (!file.exists(thousand_genomes_populations_file)) {
   
 }
 
-het_file <- args[4]
-
-if (!file.exists(het_file)) {
-  
-  stop("Heterozygosity file not found")
-  
-}
 
 
-md_file <- args[5]
+
+md_file <- args[3]
 docs_folder <- dirname(md_file)
 
 if (!dir.exists(docs_folder)) {
@@ -99,23 +93,26 @@ if (!dir.exists(plot_folder)) {
   
 }
 
-md_title <- args[6]
+md_title <- args[4]
 
-cluster_file <- args[7]
+cluster_file <- args[5]
 
-ceu_ids_file <- args[8]
+ceu_ids_file <- args[6]
 
-id_file <- args[9]
+id_file <- args[7]
 
-batches_file <- args[10]
+batches_file <- args[8]
 
-psam_file <- args[11]
+psam_file <- args[9]
 
-plink_version <- args[12]
+plink_version <- args[10]
 
 if (plink_version == 2){
 
-northern_norwegians_file <- args[13]
+northern_norwegians_file <- args[11]
+het_file <- args[12]
+
+}
 
 
 # Libraries
@@ -156,20 +153,21 @@ pcs <- read.table(
 ) %>% 
   clean_names()
 
-moba_pcs <- read.table(
-  file = moba_pcs_file,
-  header = T,
-  sep = "\t",
-  stringsAsFactors = F
-) %>% 
-  clean_names()
+# moba_pcs <- read.table(
+#   file = moba_pcs_file,
+#   header = T,
+#   sep = "\t",
+#   stringsAsFactors = F
+# ) %>% 
+#   clean_names()
 
-
+if (plink_version == 2){
 het <- read.table(
   het_file, 
   header = F, 
   col.names = c("fid", "iid", "o_hom", "e_hom", "obs_ct", "f")
   )
+}
 
 # het <- read.table(
 #   het_file, 
@@ -226,6 +224,7 @@ northern_norwegians <- read.table(
 
 psam_data <- psam_data %>% mutate(pat = as.character(pat),
          mat = as.character(mat))
+if (plink_version == 2){
 het$het_rate <- (het$obs_ct - het$o_hom)/het$obs_ct
 mean_het_rate <- mean(het$het_rate)
 std_het_rate <- sd(het$het_rate)
@@ -237,13 +236,15 @@ het$stds_het_rate[het$het_rate > mean_het_rate+1.5*std_het_rate] <- "1.5-2"
 het$stds_het_rate[het$het_rate > mean_het_rate+2*std_het_rate] <- "2-2.5"
 het$stds_het_rate[het$het_rate > mean_het_rate+2.5*std_het_rate] <- "2.5-3"
 het$stds_het_rate[het$het_rate > mean_het_rate+3*std_het_rate] <- ">3"
+het$stds_het_rate <- factor(het$stds_het_rate, levels=c("<0", "0-0.5", "0.5-1", "1-1.5", "1.5-2", "2-2.5", "2.5-3", ">3"))
+}
 
 # for (std2 in 1:(2*(std_cutoff-2))){
 #   het$stds_het_rate[het$het_rate > mean_het_rate + 0.5*std2*std_het_rate] <- paste0(0.5*std2"-",0.5*std2+0.5) 
 # }
 
 
-het$stds_het_rate <- factor(het$stds_het_rate, levels=c("<0", "0-0.5", "0.5-1", "1-1.5", "1.5-2", "2-2.5", "2.5-3", ">3"))
+
 
 
 batches_data$batch <- as.factor(batches_data$batch)
@@ -277,13 +278,6 @@ merged_pcs <- pcs %>%
     by = "iid"
   ) %>%
   left_join(
-    het %>% 
-      select(
-        iid, het_rate, stds_het_rate, f
-      ),
-    by = "iid"
-  ) %>%
-  left_join(
     batches_data,
     by = "iid"
   ) %>%
@@ -298,7 +292,9 @@ merged_pcs <- pcs %>%
     desc(pop_factor)
   )
 
+
 if (plink_version == 2){
+  merged_pcs <- merged_pcs %>% left_join(het %>% select(iid, het_rate, stds_het_rate), by = "iid")
   northern_norwegians <- northern_norwegians %>% left_join(merged_pcs,
     by = "iid") %>% mutate(iid = paste0("NN_", iid))
   northern_norwegians$pop <- "MoBa_NN"
@@ -825,16 +821,16 @@ plot_discrete <- function(column, plot_data, top_pc, file_suffix){
 
 plot_trios(trios_plot_data, "trios", 10)
 
-write(
+
+
+
+if(plink_version == 2){
+  write(
   x = "## Heterozygosity rate",
   file = md_file,
   append = T
 )
 plot_discrete("stds_het_rate", merged_pcs, 10, "stds_het_rate")
-
-
-
-if(plink_version == 2){
 write(
   x = "## PCs with batches marked",
   file = md_file,

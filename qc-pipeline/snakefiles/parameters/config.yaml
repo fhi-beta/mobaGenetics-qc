@@ -47,6 +47,9 @@ hgdp_weights: "/mnt/archive/snpQc/pc_loadings/hgdp_tgp_pca_covid19hgi_snps_score
 1000_genomes_stem: "/mnt/archive2/moba_genotypes_resources/1000Genomes/all_phase3"
 1000_genomes_pop:  "/mnt/archive2/moba_genotypes_resources/1000Genomes/all_phase3.psam"
 
+
+northern_norwegians: "/mnt/archive2/moba_genotypes_resources/phenotypes/northern_norwegians"
+
 # Thresholds and names of the columns in snp table file
 cluster_sep_thr: 0.40
 10%_GC_score_thr: 0.30

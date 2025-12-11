@@ -819,6 +819,7 @@ rule mod8_plot_pca_both:
     params:
         title = "\"Principal Component Analysys (PCA) vs. 1 KG\"",
         std_het_cutoff = config["release_sd_het_thr"]
+        northern_norwegians = config['northern_norwegians']
     output:
         md_file = github_docs_2/"pca_1kg_moba.md",
         cluster_file = tmpMod8_2/"clusters",
@@ -831,7 +832,6 @@ rule mod8_plot_pca_both:
         Rscript utils/pca/plot_pca_population_cluster_1kg.R \
             {input.pcs} \
             {input.pop_map} \
-            {input.het} \
             {output.md_file} \
             {params.title} \
             {output.cluster_file} \
@@ -840,6 +840,8 @@ rule mod8_plot_pca_both:
             {input.batches} \
             {input.psam} \
             2
+            {params.northern_norwegians}
+            {input.het} \
         """
         
 
