@@ -30,7 +30,6 @@ if (debug) {
   } else if(debug_plink_version == 2){
         args <- c(
     "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_pca_both.pcs",
-    "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_pca_only_moba.pcs",
     "/mnt/archive2/moba_genotypes_resources/1000Genomes/all_phase3.psam",
     "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_best_snps.het",
     "/mnt/work/oystein/tmp/pca_1kg_moba.md",
@@ -58,13 +57,13 @@ if (!file.exists(pcs_file)) {
   
 }
 
-moba_pcs_file <- args[2]
+# moba_pcs_file <- args[2]
 
-if (!file.exists(pcs_file)) {
+# if (!file.exists(pcs_file)) {
   
-  stop("MoBa PCs file not found")
+#   stop("MoBa PCs file not found")
   
-}
+# }
 
 thousand_genomes_populations_file <- args[3]
 
@@ -113,6 +112,8 @@ batches_file <- args[10]
 psam_file <- args[11]
 
 plink_version <- args[12]
+
+if (plink_version == 2){
 
 northern_norwegians_file <- args[13]
 

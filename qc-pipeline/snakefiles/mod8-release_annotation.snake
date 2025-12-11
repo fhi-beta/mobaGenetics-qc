@@ -830,7 +830,6 @@ rule mod8_plot_pca_both:
         """
         Rscript utils/pca/plot_pca_population_cluster_1kg.R \
             {input.pcs} \
-            {input.pcs_only_moba} \
             {input.pop_map} \
             {input.het} \
             {output.md_file} \

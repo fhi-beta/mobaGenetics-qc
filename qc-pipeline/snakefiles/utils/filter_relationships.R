@@ -9,7 +9,9 @@ if (debug) {
     "/mnt/archive3/phasing_test/filtered_shapeit_fam",
     "/mnt/archive3/phasing_test/filtered_relations",
     "/mnt/archive3/phasing_test/filtered_trios",
-    "/mnt/archive3/phasing_test/families")
+    "/mnt/archive3/phasing_test/families",
+    "/mnt/archive3/phasing_test/males"
+    )
 } else {
   args <- commandArgs(TRUE)
 }
@@ -19,6 +21,7 @@ shapeit_fam_file <- args[2]
 relations_file <- args[3]
 trios_file <- args[4]
 families_file <- args[5]
+males_file <- args[6]
 
 rel <- read.table(all_samples_file, header = T)
 rel$avg_parent_miss <- ifelse(is.na(rel$avg_parent_miss), 1, rel$avg_parent_miss)
@@ -61,6 +64,7 @@ filtered_rel <- filtered_rel %>%
   as.data.frame()
 
 filtered_rel <- filtered_rel %>% distinct(IID, .keep_all=TRUE) %>% rename(iid = IID, pat = PAT, mat = MAT)
+males <- subset(filtered_rel, SEX == 1) %>% select(iid)
 
 shapeit_fam <- subset(filtered_rel, !is.na(mat) | !is.na(pat)) %>% select(iid, pat, mat)
 
@@ -90,4 +94,6 @@ write.table(
 
 
 write.table(x = shapeit_fam, file = shapeit_fam_file, col.names = F, row.names = F, quote = F, sep = "\t")
+
+write.table(x = males, file =   males_file, col.names = F, row.names = F, quote = F, sep = "\t")
 

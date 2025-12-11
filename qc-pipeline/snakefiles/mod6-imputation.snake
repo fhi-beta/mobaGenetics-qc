@@ -235,13 +235,14 @@ rule mod6_filter_relationships:
         filtered_relationships = str(tmpMod6_phasing_test / "filtered_relationships"),
         filtered_shapeit_fam = str(tmpMod6_phasing_test / "filtered_shapeit_fam"),
         filtered_trios = str(tmpMod6_phasing_test / "filtered_trios"),
-        families = str(tmpMod6_phasing_test / "families")
+        families = str(tmpMod6_phasing_test / "families"),
+        males = str(tmpMod6_phasing_test / "males")
     params:
         r_script = "utils/filter_relationships.R"
     conda:
         "envs/r_4.2.yaml"
     run:
-        shell(f"Rscript {params.r_script} {input.relationships} {output.filtered_shapeit_fam} {output.filtered_relationships} {output.filtered_trios} {output.families}")
+        shell(f"Rscript {params.r_script} {input.relationships} {output.filtered_shapeit_fam} {output.filtered_relationships} {output.filtered_trios} {output.families} {output.males}")
 
 # rule mod6_make_relationships_tables:
 #     input:
@@ -502,21 +503,21 @@ rule mod6_split_phasing_batches:
         bcftools view {input.bcf} --samples-file {input.samples} | bcftools +fixploidy | bcftools +fill-AN-AC -Ob -o {output.bcf} --write-index
         """
 
-rule mod6_generate_male_list:
-    input:
-        fam = rules.mod5_output.output.bedset[2]
-    output:
-        male_list = str(tmpMod6 / "{batch}" / "males.txt"),
-        blank_list = str(tmpMod6 / "{batch}" / "blank_list.txt")
-    run:
-        mqc.create_male_list(input.fam, output.male_list)
-        mqc.create_empty_files([output.blank_list])   
+# rule mod6_generate_male_list:
+#     input:
+#         fam = rules.mod5_output.output.bedset[2]
+#     output:
+#         male_list = str(tmpMod6 / "{batch}" / "males.txt"),
+#         blank_list = str(tmpMod6 / "{batch}" / "blank_list.txt")
+#     run:
+#         mqc.create_male_list(input.fam, output.male_list)
+#         mqc.create_empty_files([output.blank_list])   
 
 rule mod6_phase:
     input:
         shapeit_fam = rules.mod6_filter_relationships.output.filtered_shapeit_fam,
         bcf = rules.mod6_split_phasing_batches.output.bcf,
-        # male_list = rules.mod6_generate_male_list.output.male_list,
+        male_list = rules.mod6_filter_relationships.output.males,
         # blank_list = rules.mod6_generate_male_list.output.blank_list
     output:
         phased_bcf = str(tmpMod6_phasing_test  / "mod6_phase.{batch}.chr{chr}.phased.bcf"),
@@ -524,15 +525,21 @@ rule mod6_phase:
     params:
         map_chr=get_map_chr,
         ref_chr=get_reference_chr,
-        region_chr=get_beagle_chr
+        region_chr=get_beagle_chr,
+        blank_file = "utils/blank_file"
     conda:
         "envs/shapeit_5.yaml"
     threads: 32
     shell:
         """
+        if [[ "{wildcards.chr}" == "X" ]]; then
+            haploid_file={input.male_list}
+        else
+            haploid_file={params.blank_file}
+        fi
         reffile=$(echo {hrc_vcf}/HRC.r1-1.EGA.GRCh37.chr{params.ref_chr}.haplotypes*.vcf.gz)
         mapfile={mapfiles}/shapeit/chr{params.map_chr}.b37.gmap.gz
-        SHAPEIT5_phase_common --input {input.bcf} --pedigree {input.shapeit_fam} --region {params.region_chr} --reference $reffile --map $mapfile --output {output.phased_bcf} --output-format bcf --log {output.shapeit_log} --thread {threads}
+        SHAPEIT5_phase_common --input {input.bcf} --pedigree {input.shapeit_fam} --region {params.region_chr} --reference $reffile --haploids $haploid_file --map $mapfile --output {output.phased_bcf} --output-format bcf --log {output.shapeit_log} --thread {threads}
         """
 
 
