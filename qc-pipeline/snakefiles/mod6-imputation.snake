@@ -551,27 +551,41 @@ def get_merged_phased(wildcards):
 rule mod6_split_imputation_batches_samples:
     input:
         samples = get_samples_file,
-        bcf = rules.mod6_merge_phased.output.merged_bcf
+        bcf = rules.mod6_merge_phased.output.merged_bcf,
+        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file
     output:
         vcf = str(tmpMod6_phasing_test / "mod6_split_imputation_batches_samples.{batch}.chr{chr}.vcf.gz")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        bcftools view {input.bcf} --samples-file {input.samples} | bcftools +fill-AN-AC -Oz -o {output.vcf} --write-index
+        mapfile -t chromosomes < {input.chromosome_file}
+        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_split_imputation_batches_samples"
+            touch {output.vcf}
+        else
+             bcftools view {input.bcf} --samples-file {input.samples} | bcftools +fill-AN-AC -Oz -o {output.vcf} --write-index
+        fi
         """
 
 rule mod6_split_imputation_batches_variants:
     input:
         vcf = rules.mod6_split_imputation_batches_samples.output.vcf,
-        conform = rules.mod6_conform.output.conformed_vcf
+        conform = rules.mod6_conform.output.conformed_vcf,
+        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file
     output:
         vcf = str(tmpMod6_phasing_test / "mod6_split_imputation_batches_variants.{batch}.chr{chr}.vcf")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        bcftools view {input.vcf} --regions-file {input.conform} -Ov -o {output.vcf}
+        mapfile -t chromosomes < {input.chromosome_file}
+        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_split_imputation_batches_variants"
+            touch {output.vcf}
+        else
+            bcftools view {input.vcf} --regions-file {input.conform} -Ov -o {output.vcf}
+        fi
         """
 
 
@@ -613,7 +627,7 @@ rule mod6_split_imputation_batches_variants:
 rule_stem = "mod6_impute"
 rule mod6_impute:
     input:
-        # chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
+        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         vcf = rules.mod6_split_imputation_batches_variants.output.vcf #rules.mod6_split_merged_variants.output.vcf #rules.mod6_reset_male_x_ploidy.output.vcf #rules.mod6_conform.output.conformed_vcf
     output:
         imputed_vcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz")
@@ -625,17 +639,25 @@ rule mod6_impute:
         str(tmpMod6_phasing_test/"{batch}" / "mod6_impute_log_chr{chr}.log")
     shell:
         """
-        reffile={hrc_bref}/HRC_GRCh37.chr{wildcards.chr}.bref3
-        mapfile={mapfiles}/plink.chr{params.map_chr}.GRCh37.map
-        output_full={output.imputed_vcf}
-        outTrunk="${{output_full%.vcf.gz}}"
-        java -Xmx{config[mem]} -jar {beagle} gt={input.vcf} ref=$reffile impute=true out=$outTrunk chrom={params.beagle_chr} nthreads={threads} ap=true map=$mapfile
+        mapfile -t chromosomes < {input.chromosome_file}
+        
+        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_impute"
+            touch {output.imputed_vcf}
+        else
+            reffile={hrc_bref}/HRC_GRCh37.chr{wildcards.chr}.bref3
+            mapfile={mapfiles}/plink.chr{params.map_chr}.GRCh37.map
+            output_full={output.imputed_vcf}
+            outTrunk="${{output_full%.vcf.gz}}"
+            java -Xmx{config[mem]} -jar {beagle} gt={input.vcf} ref=$reffile impute=true out=$outTrunk chrom={params.beagle_chr} nthreads={threads} ap=true map=$mapfile
+        fi 
+
         """
 
     
 rule mod6_index:
     input:
-        # chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
+        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         imputed_vcf = rules.mod6_impute.output.imputed_vcf
     output:
         index = str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.tbi")
@@ -643,12 +665,20 @@ rule mod6_index:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        tabix -p vcf {input.imputed_vcf}
+        mapfile -t chromosomes < {input.chromosome_file}
+        
+        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_index"
+            touch {output.index}
+        
+        else
+            tabix -p vcf {input.imputed_vcf}
+        fi 
         """
 
 rule mod6_query:
     input:
-        # chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
+        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file,
         index = rules.mod6_index.output.index,
         imputed_vcf = rules.mod6_impute.output.imputed_vcf
     output:
@@ -657,7 +687,14 @@ rule mod6_query:
         "envs/bcf_tabix.yaml"
     shell:
         """
-        bcftools query -f '%CHROM %POS %ID %IMP %REF %ALT %DR2 %AF\n' {input.imputed_vcf} -o {output.info}
+        mapfile -t chromosomes < {input.chromosome_file}
+        if [[ ! " ${{chromosomes[@]}} " =~ " {wildcards.chr} " ]]; then
+            echo "Chromosome {wildcards.chr} not in chromosome list for {wildcards.batch}, bypassing mod6_query"
+            touch {output.info}
+        
+        else
+            bcftools query -f '%CHROM %POS %ID %IMP %REF %ALT %DR2 %AF\n' {input.imputed_vcf} -o {output.info}
+        fi 
         """
 
 

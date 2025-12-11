@@ -133,6 +133,9 @@ n_phasing_batches:
   chr20: 1
   chr21: 1
   chr22: 1
+  chrX: 4
+  chrPAR1: 1
+  chrPAR2: 1
 
 
 mem: "112g"
