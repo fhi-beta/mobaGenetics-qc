@@ -773,11 +773,11 @@ rule mod6_query:
 def get_ref_vcf(wildcards):
     if wildcards.chr == "!":
         return str(hrc_vcf / "HRC.r1-1.EGA.GRCh37.chr1.haplotypes.noIBD.vcf.gz")
-    else if chr == "X":
+    elif chr == "X":
         return str(hrc_vcf / "HRC.r1-1.EGA.GRCh37.chrX_nonPAR.haplotypes.vcf.gz")
-    else if chr == "PAR1":
+    elif chr == "PAR1":
         return str(hrc_vcf / "HRC.r1-1.EGA.GRCh37.chrX_PAR1.haplotypes.vcf.gz")
-    else if chr == "PAR2":
+    elif chr == "PAR2":
         return str(hrc_vcf / "HRC.r1-1.EGA.GRCh37.chrX_PAR2.haplotypes.vcf.gz")
     else:
         return str(hrc_vcf /f"HRC.r1-1.EGA.GRCh37.chr{wildcards.chr}.haplotypes.vcf.gz")
