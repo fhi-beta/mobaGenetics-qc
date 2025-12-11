@@ -516,8 +516,8 @@ rule mod6_phase:
     input:
         shapeit_fam = rules.mod6_filter_relationships.output.filtered_shapeit_fam,
         bcf = rules.mod6_split_phasing_batches.output.bcf,
-        male_list = rules.mod6_generate_male_list.output.male_list,
-        blank_list = rules.mod6_generate_male_list.output.blank_list
+        # male_list = rules.mod6_generate_male_list.output.male_list,
+        # blank_list = rules.mod6_generate_male_list.output.blank_list
     output:
         phased_bcf = str(tmpMod6_phasing_test  / "mod6_phase.{batch}.chr{chr}.phased.bcf"),
         shapeit_log = str(tmpMod6_phasing_test / "mod6_phase.{batch}.chr{chr}.phased.log")
@@ -530,14 +530,14 @@ rule mod6_phase:
     threads: 32
     shell:
         """
-        if [[ "{wildcards.chr}" == "X" ]]; then
-            haploid_file={input.male_list}
-        else
-            haploid_file={input.blank_list}
-        fi
+        # if [[ "{wildcards.chr}" == "X" ]]; then
+        #     haploid_file={input.male_list}
+        # else
+        #     haploid_file={input.blank_list}
+        # fi
         reffile=$(echo {hrc_vcf}/HRC.r1-1.EGA.GRCh37.chr{params.ref_chr}.haplotypes*.vcf.gz)
         mapfile={mapfiles}/shapeit/chr{params.map_chr}.b37.gmap.gz
-        SHAPEIT5_phase_common --input {input.bcf} --pedigree {input.shapeit_fam} --region {params.region_chr} --reference $reffile --map $mapfile --haploids $haploid_file --output {output.phased_bcf} --output-format bcf --log {output.shapeit_log} --thread {threads}
+        SHAPEIT5_phase_common --input {input.bcf} --pedigree {input.shapeit_fam} --region {params.region_chr} --reference $reffile --map $mapfile --output {output.phased_bcf} --output-format bcf --log {output.shapeit_log} --thread {threads}
         """
 
 
