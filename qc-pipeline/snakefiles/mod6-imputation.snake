@@ -309,16 +309,24 @@ rule mod6_find_phasing_batches:
 
 
 
+def get_batches_with_chromosome(chr):
+    batches_with_chromosome = []
+    for batch in batches:
+        chromosome_file = f"{tmpMod6str}/{batch}/chromosomes.txt"
+        if mqc.chromosome_in_file(chromosome_file, chr):
+            batches_with_chromosome.append(batch)
+    return batches_with_chromosome
+
 
 tmpMod6str = str(tmpMod6)
 def get_index_conform_files_to_merge(wildcards):
-    #batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
-    return [f"{tmpMod6str}/{batch}/mod6_conform.chr{wildcards.chr}.conformed.vcf.gz.tbi" for batch in batches]
+    batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
+    return [f"{tmpMod6str}/{batch}/mod6_conform.chr{wildcards.chr}.conformed.vcf.gz.tbi" for batch in batches_with_chromosome]
 
 
 def get_conform_files_to_merge(wildcards):
-    #batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
-    return [f"{tmpMod6str}/{batch}/mod6_conform.chr{wildcards.chr}.conformed.vcf.gz" for batch in batches]
+    batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
+    return [f"{tmpMod6str}/{batch}/mod6_conform.chr{wildcards.chr}.conformed.vcf.gz" for batch in batches_with_chromosome]
 
 rule mod6_merge_batches:
     input:
