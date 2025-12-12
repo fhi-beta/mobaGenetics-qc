@@ -646,7 +646,7 @@ rule mod6_generate_bcftools_sex_files:
     input:
         fam = rules.mod5_output.output.bedset[2]
     output:
-        sex_list = str(tmpMod6 / "{batch}" / "sex_list.txt")
+        sex_list = str(tmpMod6_phasing_test / "{batch}" / "sex_list.txt")
     run:
         mqc.create_sex_list_for_bcftools(input.fam, output.sex_list) 
 
@@ -656,7 +656,7 @@ rule mod6_reset_male_x_ploidy:
         vcf = rules.mod6_split_imputation_batches_variants.output.vcf, #rules.mod6_convert_to_vcf.output.vcf,
         sex_list = rules.mod6_generate_bcftools_sex_files.output.sex_list
     output:
-        vcf = str(tmpMod6 / "{batch}" / "mod6_reset_male_x_ploidy.chr{chr}.vcf")
+        vcf = str(tmpMod6_phasing_test / "{batch}" / "mod6_reset_male_x_ploidy.chr{chr}.vcf")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
