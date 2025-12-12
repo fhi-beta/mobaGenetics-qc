@@ -642,41 +642,6 @@ rule mod6_split_imputation_batches_variants:
         fi
         """
 
-
-# rule mod6_split_imputation_batches_samples:
-#     input:
-#         samples = get_samples_file,
-#         bcf = rules.mod6_merge_phased.output.merged_bcf
-#     output:
-#         vcf = str(tmpMod6_phasing_test / "mod6_split_imputation_batches_samples.{batch}.chr{chr}.vcf.gz")
-#     conda:
-#         "envs/bcf_tabix.yaml"
-#     shell:
-#         """
-#         bcftools view {input.bcf} --samples-file {input.samples} | bcftools +fill-AN-AC -Oz -o {output.vcf} --write-index
-#         """
-# def find_conform_batch(wildcards):
-#     split_batch = wildcards.batch.split("_")
-#     if split_batch[0] != "merge":
-#         batch = split_batch[0]
-#     else:
-#         batch = split_batch[1]
-#     return str(tmpMod6 / f"{batch}" / f"mod6_conform.chr{wildcards.chr}.conformed.vcf.gz")
-     
-
-# rule mod6_split_imputation_batches_variants:
-#     input:
-#         vcf = rules.mod6_split_imputation_batches_samples.output.vcf,
-#         conform = find_conform_batch #rules.mod6_conform.output.conformed_vcf
-#     output:
-#         vcf = str(tmpMod6_phasing_test / "mod6_split_imputation_batches_variants.{batch}.chr{chr}.vcf")
-#     conda:
-#         "envs/bcf_tabix.yaml"
-#     shell:
-#         """
-#         bcftools view {input.vcf} --regions-file {input.conform} -Ov -o {output.vcf}
-#         """
-    
 rule mod6_generate_bcftools_sex_files:
     input:
         fam = rules.mod5_output.output.bedset[2]
@@ -817,7 +782,6 @@ rule mod6_imputation_report:
     run:
         ref_directory = os.path.dirname(input.ref_af[0])
         imp_directory = os.path.dirname(input.imputed_info[0])
-        #chromosomes = ",".join(get_chromosomes_in_batch(wildcards.batch))
         shell(f"Rscript {params.r_script} {ref_directory} {imp_directory} {output.report}")
 
 # def split_samples(input_file, output_file, batch):

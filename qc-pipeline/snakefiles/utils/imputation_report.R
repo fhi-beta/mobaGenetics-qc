@@ -6,8 +6,8 @@ library(ggplot2)
 debug <- F
 if (debug){
 args <- c("/mnt/archive2/moba_genotypes_resources/HRC",
-        "/mnt/archive3/phasing_test/phase_chr20_test/snp007",
-        "/mnt/work/oystein/tmp/snp007/imputation_report/imputation_report.md"
+        "/mnt/work/qc_genotypes/pipeOut_dev/2025.01.30/mod6-imputation/snp008",
+        "/mnt/work/oystein/tmp/snp008/imputation_report/imputation_report.md"
         )
 } else {
     args <- commandArgs(TRUE)
@@ -52,10 +52,12 @@ for (chr in chromosomes) {
     file = md,
     append = T
     )
+    
     ref <- read.table(
       file = ref_file,
       header = F,
       col.names = c("chr", "pos", "id", "af"),
+      colClasses = c("character", "numeric", "character", "numeric"),
       stringsAsFactors = F
     )
 
@@ -63,7 +65,8 @@ for (chr in chromosomes) {
     imp <- read.table(
       file = imp_file,
       header = F,
-        col.names = c("chr", "pos", "id", "imp", "ref", "alt", "dr2", "af"),
+      col.names = c("chr", "pos", "id", "imp", "ref", "alt", "dr2", "af"),
+      colClasses = c("character", "numeric", "character", "character", "character", "character", "numeric", "numeric"),
       stringsAsFactors = F
     ) 
 
