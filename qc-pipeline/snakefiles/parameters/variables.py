@@ -90,7 +90,7 @@ for chr in n_phasing_batches.keys():
     phasing_batches[chr] = [f"batch{i}" for i in range(n_phasing_batches[chr])]
 
 
-imputation_report_test = Path("/mnt/oystein/imputation_report_test")
+imputation_report_test = Path("/mnt/work/oystein/imputation_report_test")
 # phasing_batches = [f"batch{i}" for i in range(n_phasing_batches)]
 # imputation_batches = ["snp001", "merge_snp002_snp003", "merge_snp007_snp008", "merge_snp009_snp011", "merge_snp010_snp014", "snp012", "snp016a", "snp016b", "snp017a", "merge_snp017b_snp017c_snp017d_snp017e_snp017cf" , "merge_snp018a_snp018b_snp018c_snp018de"]
 # split_batches = []
