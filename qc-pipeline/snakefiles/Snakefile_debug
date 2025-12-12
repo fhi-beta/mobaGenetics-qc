@@ -125,7 +125,7 @@ rule all:
         # expand(str(tmpMod6_phasing_test / "{quality}" /"{batch}" / "mod7_filter.chr{chr}.vcf.gz"), batch = batches, chr = ["21"], quality = ["dr2_08"]),
         # expand(str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info"), batch = batches, chr = ["20"]),
         # str(tmpMod6_phasing_test / "phase_report" / "mod7_phase_report.chr20.md")
-        expand(str(github_docs_2 / "{batch}" / "mod6_imputation_report.md"), batch = batches_debug)
+        expand(str(github_docs_2 / "{batch}" / "imputation_report.md"), batch = batches_debug)
         # expand("/mnt/archive2/moba_genotypes_resources/HRC/HRC_af_chr{chr}", chr = chrs)
         # expand(str(tmpMod6_phasing_test / "mod7_merge_batches.chr{chr}.bcf"), chr = ["PAR1", "PAR2"]),
         # str(tmpMod6_phasing_test / "mod7_phase_check.chr21")
