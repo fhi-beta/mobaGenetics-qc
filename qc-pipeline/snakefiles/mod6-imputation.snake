@@ -817,7 +817,7 @@ rule mod6_imputation_report:
     run:
         ref_directory = os.path.dirname(input.ref_af[0])
         imp_directory = os.path.dirname(input.imputed_info[0])
-        chromosomes = ",".join(get_chromosomes_in_batch(wildcards.batch))
+        chromosomes = "20" #",".join(get_chromosomes_in_batch(wildcards.batch))
         shell(f"Rscript {params.r_script} {ref_directory} {imp_directory} {output.report} {chromosomes}")
 
 # def split_samples(input_file, output_file, batch):
