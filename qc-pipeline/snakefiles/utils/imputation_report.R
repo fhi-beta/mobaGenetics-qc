@@ -3,12 +3,12 @@ library(janitor)
 library(tidyr)
 library(dplyr)
 library(ggplot2)
-debug <- T
+debug <- F
 if (debug){
 args <- c("/mnt/archive2/moba_genotypes_resources/HRC/",
-        "/mnt/work/qc_genotypes/pipeOut_dev/2025.01.30/mod6-imputation/snp007/",
-        "/mnt/work/oystein/tmp/imputation_report/imputation_report.md",
-        "snp007"
+        "/mnt/archive3/phasing_test/phase_chr20_test/snp007/",
+        "/mnt/work/oystein/tmp/snp007/imputation_report/imputation_report.md",
+        "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,PAR1,PAR2"
         )
 } else {
     args <- commandArgs(TRUE)
@@ -17,29 +17,36 @@ args <- c("/mnt/archive2/moba_genotypes_resources/HRC/",
 ref_folder <- args[1]
 imputation_folder <- args[2]
 md <- args[3]
+batch <- basename(dirname(md))
 md_folder <- dirname(md)
+chromosomes <- if(length(args) >= 4) strsplit(args[4], ",")[[1]] else c(1:22, "X", "PAR1", "PAR2")
 if(!dir.exists(md_folder)){
     dir.create(md_folder, recursive = T)
 }
+plot_folder <- paste0(md_folder, "/imputation_plots/")
+if(!dir.exists(plot_folder)){
+    dir.create(plot_folder)
+}
+relative_plot_folder <- "imputation_plots/"
 
 write(
-  x = paste0("#Imputation report, batch ", args[4]),
+  x = paste0("#Imputation report, batch ", batch),
   file = md,
   append = F
 )
 
 
-for (chr in c(1:22, "X")) { 
-    write(
-    x = paste0("## Chromosome ", chr),
-    file = md,
-    append = T
-    )
+for (chr in chromosomes) {
     ref_file <- paste0(ref_folder, "HRC_af_chr", chr)
     imp_file <- paste0(imputation_folder, "mod6_impute.chr", chr, ".imputed.vcf.gz.info")
     if(!file.exists(ref_file) | !file.exists(imp_file)){
         next
     }
+    write(
+    x = paste0("## Chromosome ", chr),
+    file = md,
+    append = T
+    )
     ref <- read.table(
       file = ref_file,
       header = F,
@@ -61,9 +68,9 @@ for (chr in c(1:22, "X")) {
         xlab("Allele frequency") +
         ylab("Dosage R^2") +
         ggtitle(paste0("Chromosome ", chr))
-    ggsave(filename = paste0(md_folder, "/imputation_dr2_chr", chr, ".png"), dpi=200, width = 5, height = 5)
+    ggsave(filename = paste0(plot_folder, "imputation_dr2_chr", chr, ".png"), dpi=200, width = 5, height = 5)
     write(
-    x = paste0("![](imputation_dr2_chr", chr, ".png)"),
+    x = paste0("![](", relative_plot_folder, "imputation_dr2_chr", chr, ".png)"),
     file = md,
     append = T
     )
@@ -76,9 +83,9 @@ for (chr in c(1:22, "X")) {
         xlab("Allele frequency in reference panel") +
         ylab("Allele frequency in imputed data") +
         ggtitle(paste0("Chromosome ", chr))
-    ggsave(filename = paste0(md_folder, "/imputation_af_chr", chr, ".png"), dpi=300, width = 5, height = 5)
+    ggsave(filename = paste0(plot_folder, "imputation_af_chr", chr, ".png"), dpi=200, width = 5, height = 5)
     write(
-    x = paste0("![](imputation_af_chr", chr, ".png)"),
+    x = paste0("![](", relative_plot_folder, "imputation_af_chr", chr, ".png)"),
     file = md,
     append = T
     )

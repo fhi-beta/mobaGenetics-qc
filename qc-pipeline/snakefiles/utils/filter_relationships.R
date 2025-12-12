@@ -68,7 +68,7 @@ males <- subset(filtered_rel, SEX == 1) %>% select(iid)
 
 shapeit_fam <- subset(filtered_rel, !is.na(mat) | !is.na(pat)) %>% select(iid, pat, mat)
 
-trios <- subset(filtered_rel, !is.na(mat) & !is.na(pat)) %>% select(pat, mat, iid)
+trios <- subset(filtered_rel, !is.na(mat) & !is.na(pat)) %>% select(iid, pat, mat)
 
 
 

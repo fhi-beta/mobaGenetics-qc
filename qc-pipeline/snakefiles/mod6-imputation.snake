@@ -304,6 +304,12 @@ def get_batches_with_chromosome(chr):
             batches_with_chromosome.append(batch)
     return batches_with_chromosome
 
+def get_chromosomes_in_batch(batch):
+    chromosome_file = f"{tmpMod6str}/{batch}/chromosomes.txt"
+    with open(chromosome_file, 'r') as infile:
+        chromosomes = [line.strip() for line in infile]
+    return chromosomes
+
 rule mod6_find_par_phasing_batches:
     input:
         batch_table = rules.mod6_batch_table.output.batch_table
@@ -794,20 +800,25 @@ rule mod6_find_ref_af:
         bcftools query -f '%CHROM\t%POS\t%ID\t%AF\n' {input.vcf} -o {output.af}
         """
 
+def get_query_files(wildcards):
+    chromosomes = get_chromosomes_in_batch(wildcards.batch)
+    return [str(tmpMod6_phasing_test / f"{wildcards.batch}" / f"mod6_impute.chr{chr}.imputed.vcf.gz.info") for chr in chromosomes]
 
-# rule mod6_imputation_report:
-#     input:
-#         imputed_info = rules.mod6_query.output.info,
-#         ref_af = rules.mod6_find_ref_af.output.af
-#     output:
-#         report = str(tmpMod6_phasing_test / "{batch}" / "imputation_report" / "mod6_imputation_report.chr{chr}.txt")
-#     params:
-#         r_script = "utils/imputation_report.R"
-#     conda:
-#         "envs/r_4.2.yaml"
-#     run:
-
-#         shell(f"Rscript {params.r_script} --imputed_info {input.imputed_info} --ref_af {input.ref_af} --output {output.report}")
+rule mod6_imputation_report:
+    input:
+        imputed_info = get_query_files,
+        ref_af = expand(str(hrc_af / "HRC_af_chr{chr}"), chr=chrs)
+    output:
+        report = str(tmpMod6_phasing_test / "{batch}" / "mod6_imputation_report.md")
+    params:
+        r_script = "utils/imputation_report.R"
+    conda:
+        "envs/r_4.2.yaml"
+    run:
+        ref_directory = os.path.dirname(input.ref_af[0])
+        imp_directory = os.path.dirname(input.imputed_info[0])
+        chromosomes = ",".join(get_chromosomes_in_batch(wildcards.batch))
+        shell(f"Rscript {params.r_script} {ref_directory} {imp_directory} {output.report} {chromosomes}")
 
 # def split_samples(input_file, output_file, batch):
 #     with open(input_file) as f:
