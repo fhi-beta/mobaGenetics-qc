@@ -50,7 +50,7 @@ tmpMod7 = base/'mod7-post-imputation'
 tmpMod8 = archive3_base/'mod8-release_annotation'
 tmpMod8_2 = archive3_base_2/'mod8-release_annotation'
 
-tmpMod6_phasing_test = Path("/mnt/archive3/phasing_test/phase_chr20_test")
+tmpMod6_phasing_test = Path("/mnt/archive3/phasing_test/phase_confirmed_relationships_chr3")
 # tmpMod6_phase_merged = Path("/mnt/archive3/phasing_test/phase_merged")
 
 #tmpMergeTest = base/'merge_test'
