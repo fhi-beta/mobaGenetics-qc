@@ -7,8 +7,7 @@ debug <- F
 if (debug){
 args <- c("/mnt/archive2/moba_genotypes_resources/HRC/",
         "/mnt/archive3/phasing_test/phase_chr20_test/snp007/",
-        "/mnt/work/oystein/tmp/snp007/imputation_report/imputation_report.md",
-        "1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,21,22,X,PAR1,PAR2"
+        "/mnt/work/oystein/tmp/snp007/imputation_report/imputation_report.md"
         )
 } else {
     args <- commandArgs(TRUE)
@@ -19,7 +18,7 @@ imputation_folder <- args[2]
 md <- args[3]
 batch <- basename(dirname(md))
 md_folder <- dirname(md)
-chromosomes <- if(length(args) >= 4) strsplit(args[4], ",")[[1]] else c(1:22, "X", "PAR1", "PAR2")
+chromosomes <- c(1:22, "X", "PAR1", "PAR2")
 if(!dir.exists(md_folder)){
     dir.create(md_folder, recursive = T)
 }
