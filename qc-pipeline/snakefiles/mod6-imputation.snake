@@ -807,7 +807,7 @@ def get_query_files(wildcards):
 rule mod6_imputation_report:
     input:
         imputed_info = get_query_files,
-        ref_af = expand(str(hrc_af / "HRC_af_chr{chr}"), chr=chrs)
+        ref_af = expand(str(hrc_af / "HRC_af_chr{chr}"), chr=["20"])
     output:
         report = str(tmpMod6_phasing_test / "{batch}" / "mod6_imputation_report.md")
     params:
