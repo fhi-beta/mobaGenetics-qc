@@ -19,7 +19,7 @@ md <- args[3]
 batch <- basename(dirname(md))
 md_folder <- dirname(md)
 chromosomes <- c(1:22, "X", "PAR1", "PAR2")
-print(chromosomes)
+print(paste0("Chromosomes:", paste(chromosomes, collapse = ", ")))
 if(!dir.exists(md_folder)){
     dir.create(md_folder, recursive = T)
 }
