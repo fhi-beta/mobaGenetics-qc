@@ -801,13 +801,13 @@ rule mod6_find_ref_af:
         """
 
 def get_query_files(wildcards):
-    chromosomes = get_chromosomes_in_batch(wildcards.batch)
+    chromosomes = ["20"] #get_chromosomes_in_batch(wildcards.batch)
     return [str(tmpMod6_phasing_test / f"{wildcards.batch}" / f"mod6_impute.chr{chr}.imputed.vcf.gz.info") for chr in chromosomes]
 
 rule mod6_imputation_report:
     input:
         imputed_info = get_query_files,
-        ref_af = expand(str(hrc_af / "HRC_af_chr{chr}"), chr=["20"])
+        ref_af = expand(str(hrc_af / "HRC_af_chr{chr}"), chr=chrs)
     output:
         report = str(tmpMod6_phasing_test / "{batch}" / "mod6_imputation_report.md")
     params:
