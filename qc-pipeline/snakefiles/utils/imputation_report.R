@@ -5,8 +5,8 @@ library(dplyr)
 library(ggplot2)
 debug <- F
 if (debug){
-args <- c("/mnt/archive2/moba_genotypes_resources/HRC/",
-        "/mnt/archive3/phasing_test/phase_chr20_test/snp007/",
+args <- c("/mnt/archive2/moba_genotypes_resources/HRC",
+        "/mnt/archive3/phasing_test/phase_chr20_test/snp007",
         "/mnt/work/oystein/tmp/snp007/imputation_report/imputation_report.md"
         )
 } else {
@@ -19,7 +19,6 @@ md <- args[3]
 batch <- basename(dirname(md))
 md_folder <- dirname(md)
 chromosomes <- c(1:22, "X", "PAR1", "PAR2")
-print(paste0("Chromosomes:", paste(chromosomes, collapse = ", ")))
 if(!dir.exists(md_folder)){
     dir.create(md_folder, recursive = T)
 }
@@ -37,8 +36,8 @@ write(
 
 
 for (chr in chromosomes) {
-    ref_file <- paste0(ref_folder, "HRC_af_chr", chr)
-    imp_file <- paste0(imputation_folder, "mod6_impute.chr", chr, ".imputed.vcf.gz.info")
+    ref_file <- paste0(ref_folder, "/HRC_af_chr", chr)
+    imp_file <- paste0(imputation_folder, "/mod6_impute.chr", chr, ".imputed.vcf.gz.info")
     if(!file.exists(ref_file) | !file.exists(imp_file)){
         if(!file.exists(ref_file)){
             print(paste0("Reference file not found: ", ref_file))
