@@ -761,7 +761,7 @@ rule mod6_query:
         index = rules.mod6_index.output.index,
         imputed_vcf = rules.mod6_impute.output.imputed_vcf
     output:
-        info = str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info")
+        info = str(tmpMod6 / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info")
     conda:
         "envs/bcf_tabix.yaml"
     shell:
