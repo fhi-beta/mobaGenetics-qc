@@ -40,6 +40,12 @@ for (chr in chromosomes) {
     ref_file <- paste0(ref_folder, "HRC_af_chr", chr)
     imp_file <- paste0(imputation_folder, "mod6_impute.chr", chr, ".imputed.vcf.gz.info")
     if(!file.exists(ref_file) | !file.exists(imp_file)){
+        if(!file.exists(ref_file)){
+            print(paste0("Reference file not found: ", ref_file))
+        }
+        if(!file.exists(imp_file)){
+            print(paste0("Imputation info file not found: ", imp_file))
+        }
         next
     }
     write(
