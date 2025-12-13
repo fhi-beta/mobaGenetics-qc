@@ -126,8 +126,8 @@ write(
         geom_point(alpha=0.3) +
         xlab("Allele frequency") +
         ylab("Dosage R^2") +
-        ggtitle(paste0("Chromosome ", chr)) 
-    # + geom_xsidedensity(
+        ggtitle(paste0("Chromosome ", chr)) +
+    # geom_xsidedensity(
     #   data = imp,
     #     mapping = aes(
     #         x = af,
