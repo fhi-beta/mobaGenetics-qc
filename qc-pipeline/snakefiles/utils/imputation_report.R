@@ -4,7 +4,7 @@ library(tidyr)
 library(dplyr)
 library(ggplot2)
 library(ggside)
-debug <- T
+debug <- F
 if (debug){
 args <- c("/mnt/archive2/moba_genotypes_resources/HRC",
         "/mnt/archive3/phasing_test/phase_confirmed_relationships/snp008/",
