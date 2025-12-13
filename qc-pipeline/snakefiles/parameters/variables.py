@@ -50,7 +50,7 @@ tmpMod7 = base/'mod7-post-imputation'
 tmpMod8 = archive3_base/'mod8-release_annotation'
 tmpMod8_2 = archive3_base_2/'mod8-release_annotation'
 
-tmpMod6_phasing_test = Path("/mnt/archive3/phasing_test/phase_chr20_test")
+tmpMod6_phasing_test = Path("/mnt/archive3/phasing_test/phase_confirmed_relationships")
 # tmpMod6_phase_merged = Path("/mnt/archive3/phasing_test/phase_merged")
 
 #tmpMergeTest = base/'merge_test'
@@ -80,7 +80,7 @@ resultPath = base/'results'
 # - Batch 19 needs to be checked for overlap with other batches before being added. Gutorm notes that it probably does not need to be included.
 # batches_debug = ['snp001', 'snp002', 'snp003', 'snp007', 'snp008', 'snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018c', 'snp018de']
 batches =  config['batches']
-chrs_debug = ['20','21']
+chrs_debug = ['21']
 batches_debug = ['snp008', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp016a', 'snp016b', 'snp017b', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018de']
 batches_to_split = config['batches_to_split']
 chrs = config['chrs']
