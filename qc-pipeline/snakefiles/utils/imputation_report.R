@@ -30,7 +30,7 @@ if(!dir.exists(plot_folder)){
 relative_plot_folder <- "imputation_plots/"
 
 write(
-  x = paste0("#Imputation report, batch ", batch),
+  x = paste0("# Imputation report, batch ", batch),
   file = md,
   append = F
 )
