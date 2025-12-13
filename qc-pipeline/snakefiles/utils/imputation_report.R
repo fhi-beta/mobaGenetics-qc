@@ -122,24 +122,20 @@ write(
     
 
     #batr plot of dr2 values
-    ggplot(imp, aes(x=af, y=dr2)) + 
-        geom_point(alpha=0.3) +
-        xlab("Allele frequency") +
-        ylab("Dosage R^2") +
-        ggtitle(paste0("Chromosome ", chr)) +
-    geom_xsidedensity(
-         aes(
-            y = after_stat(density)
-        ),
-      alpha = 0.8
-    ) +
-    geom_ysidedensity(
-        aes(
-        x = after_stat(density)
-      ),
-      alpha = 0.8
-    ) 
-    ggsave(filename = paste0(plot_folder, "imputation_dr2_chr", chr, ".png"), dpi=200, width = 5, height = 5)
+    if(nrow(imp) > 0){
+        ggplot(imp, aes(x=af, y=dr2)) + 
+            geom_point(alpha=0.3) +
+            xlab("Allele frequency") +
+            ylab("Dosage R^2") +
+            ggtitle(paste0("Chromosome ", chr)) +
+        geom_xsidedensity(
+            alpha = 0.8
+        ) +
+        geom_ysidedensity(
+            alpha = 0.8
+        ) 
+        ggsave(filename = paste0(plot_folder, "imputation_dr2_chr", chr, ".png"), dpi=200, width = 5, height = 5)
+    }
     write(
     x = paste0("![](", relative_plot_folder, "imputation_dr2_chr", chr, ".png)"),
     file = md,
@@ -148,24 +144,21 @@ write(
     af <- ref %>% select(chr, pos, af_ref = af) %>% inner_join(imp %>% select(chr, pos, af_imp = af), by = c("chr", "pos"))
 
 
-    ggplot(af, aes(x=af_ref, y=af_imp)) + 
-        geom_point(alpha=0.3) +
-        geom_abline(slope=1, intercept=0, color="red") +
-        xlab("Allele frequency in reference panel") +
-        ylab("Allele frequency in imputed data") +
-        ggtitle(paste0("Chromosome ", chr)) + geom_xsidedensity(
-         aes(
-            y = after_stat(density)
-        ),
-      alpha = 0.8
-    ) +
-    geom_ysidedensity(
-        aes(
-        x = after_stat(density)
-      ),
-      alpha = 0.8
-    ) 
-    ggsave(filename = paste0(plot_folder, "imputation_af_chr", chr, ".png"), dpi=200, width = 5, height = 5)
+    if(nrow(af) > 0){
+        ggplot(af, aes(x=af_ref, y=af_imp)) + 
+            geom_point(alpha=0.3) +
+            geom_abline(slope=1, intercept=0, color="red") +
+            xlab("Allele frequency in reference panel") +
+            ylab("Allele frequency in imputed data") +
+            ggtitle(paste0("Chromosome ", chr)) + 
+        geom_xsidedensity(
+            alpha = 0.8
+        ) +
+        geom_ysidedensity(
+            alpha = 0.8
+        ) 
+        ggsave(filename = paste0(plot_folder, "imputation_af_chr", chr, ".png"), dpi=200, width = 5, height = 5)
+    }
     write(
     x = paste0("![](", relative_plot_folder, "imputation_af_chr", chr, ".png)"),
     file = md,
