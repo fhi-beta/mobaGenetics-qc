@@ -83,7 +83,7 @@ for (chr in chromosomes) {
             append = T
         )
         write(
-            x = paste0("| All variants | None | ", n_all, " |"),
+            x = paste0("| All variants | All variants | ", n_all, " |"),
             file = md,
             append = T
         )
@@ -98,18 +98,18 @@ for (chr in chromosomes) {
             append = T
         )
         write(
-            x = paste0("| Common variants (AF >= 0.01) | None | ", n_common, " |"),
+            x = paste0("| AF >= 0.01 | All variants | ", n_common, " |"),
             file = md,
             append = T
         )
 
         write(
-            x = paste0("| Common variants (AF >= 0.01) | DR2 >= 0.3 | ", n_03_common, " |"),
+            x = paste0("| AF >= 0.01 | DR2 >= 0.3 | ", n_03_common, " |"),
             file = md,
             append = T
         )
         write(
-            x = paste0("| Common variants (AF >= 0.01) | DR2 >= 0.9 | ", n_09_common, " |"),
+            x = paste0("| AF >= 0.01 | DR2 >= 0.9 | ", n_09_common, " |"),
             file = md,
             append = T
         )
