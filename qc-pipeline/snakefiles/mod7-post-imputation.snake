@@ -217,7 +217,7 @@ rule mod7_phase_report:
         phase_check = rules.mod7_phase_check_parallel.output.phase_check,
         all_relations = rules.mod6_filter_relationships.output.filtered_relationships
     output:
-        phase_report = str(tmpMod6_phasing_test / "phase_report" / "mod7_phase_report.chr{chr}.md")
+        phase_report = str(tmpMod6_phasing_test / "phase_report" / "mod7_phase_report.md")
     params:
         r_script = "utils/phasing_report.R",
         title ="\"Phasing report: phase confirmed relationships\"",
