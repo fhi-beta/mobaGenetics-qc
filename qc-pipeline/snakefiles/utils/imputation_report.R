@@ -127,20 +127,18 @@ write(
         xlab("Allele frequency") +
         ylab("Dosage R^2") +
         ggtitle(paste0("Chromosome ", chr)) +
-    # geom_xsidedensity(
-    #   data = imp,
-    #     mapping = aes(
-    #         x = af,
-    #         y = after_stat(density)
-    #     ),
-    #   alpha = 0.8
-    # ) +
+    geom_xsidedensity(
+         aes(
+            y = after_stat(density)
+        ),
+      alpha = 0.8
+    ) +
     geom_ysidedensity(
         aes(
         x = after_stat(density)
       ),
       alpha = 0.8
-    ) 
+    ) +
     ggsave(filename = paste0(plot_folder, "imputation_dr2_chr", chr, ".png"), dpi=200, width = 5, height = 5)
     write(
     x = paste0("![](", relative_plot_folder, "imputation_dr2_chr", chr, ".png)"),
@@ -156,21 +154,17 @@ write(
         xlab("Allele frequency in reference panel") +
         ylab("Allele frequency in imputed data") +
         ggtitle(paste0("Chromosome ", chr)) + geom_xsidedensity(
-      data = af,
-      mapping = aes(
-        x = af_ref,
-        y = after_stat(density)
-      ),
+         aes(
+            y = after_stat(density)
+        ),
       alpha = 0.8
     ) +
     geom_ysidedensity(
-      data = af,
-      mapping = aes(
-        x = after_stat(density),
-        y = af_imp
+        aes(
+        x = after_stat(density)
       ),
       alpha = 0.8
-    ) 
+    ) +
     ggsave(filename = paste0(plot_folder, "imputation_af_chr", chr, ".png"), dpi=200, width = 5, height = 5)
     write(
     x = paste0("![](", relative_plot_folder, "imputation_af_chr", chr, ".png)"),
