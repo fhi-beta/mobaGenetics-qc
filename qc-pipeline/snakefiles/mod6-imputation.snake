@@ -775,7 +775,7 @@ rule mod6_imputation_report:
         imputed_info = get_query_files,
         ref_af = expand(str(hrc_af / "HRC_af_chr{chr}"), chr=chrs)
     output:
-        report = str(imputation_report_previous / "{batch}" / "imputation_report.md")
+        report = str(tmpMod6_phasing_test / "{batch}" / "imputation_report.md")
     params:
         r_script = "utils/imputation_report.R"
     conda:
