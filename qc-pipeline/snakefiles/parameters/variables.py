@@ -71,7 +71,7 @@ n_samples = config['n_samples']
 
 
 # tmpMod5 = base/'mod5-samples_unrelated'
-# tmpMod6 = base/'mod6-phasing-preparation'
+# tmpMod6 = base/'mod6-hasing-preparation'
 resultPath = base/'results'
 
 ### Batch settings
@@ -82,7 +82,7 @@ resultPath = base/'results'
 # - Batch 19 needs to be checked for overlap with other batches before being added. Gutorm notes that it probably does not need to be included.
 # batches_debug = ['snp001', 'snp002', 'snp003', 'snp007', 'snp008', 'snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018c', 'snp018de']
 batches =  config['batches']
-chrs_debug = ['4', '20','21']
+chrs_debug = ['12', '20','21']
 batches_debug = ['snp008', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp016a', 'snp016b', 'snp017b', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018de']
 batches_to_split = config['batches_to_split']
 chrs = config['chrs']
