@@ -2,9 +2,9 @@ library(dplyr)
 debug <- F
 if (debug){
     args <- c(
-        "/mnt/archive3/phasing_test/phase_related_orig_imputation/mod7_phase_check",
-        "/mnt/archive3/phasing_test/phase_related_orig_imputation/expected_all_relations",
-        "/mnt/archive3/phasing_test/debug/phase_report/phase_report.chr21.md", 
+        "/mnt/archive3/phasing_test/phase_chr20_test/mod7_phase_check",
+        "/mnt/archive3/phasing_test/phase_chr20_test/filtered_relationships",
+        "/mnt/archive3/phasing_test/debug/phase_report/phase_report.md", 
         "Phasing report, pre-phase related samples",
         "phasing_hom",
         "Phasing error rates")
@@ -75,9 +75,14 @@ chromosome_tables <- lapply(input_files, function(file) {
     }
 })
 
-chromosome_tables <- Filter(Negate(is.null), chromosome_tables)
 rel <- read.table(relations_file, header = TRUE)
-chromosome_tables <- lapply(chromosome_tables, function(tab) tab %>% left_join(rel %>% select(iid, shared_chips), by = "iid"))
+chromosome_tables <- lapply(chromosome_tables, function(tab) {
+    if (is.null(tab)) {
+        return(NULL)
+    }
+    tab <- tab %>% left_join(rel %>% select(iid, shared_chips), by = "iid")
+    return(tab)
+})
 
 
 
@@ -188,7 +193,10 @@ write_chromosome_table <- function(tab, rate, chr){
 
 for (chr in 1:22) {
     tab <- chromosome_tables[[chr]]
-    write_chromosome_table(tab, rate, chr)
+    if (!is.null(tab)) {
+        write_chromosome_table(tab, rate, chr)
+    }
+    
 }
 
 

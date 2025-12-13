@@ -4,10 +4,10 @@ library(tidyr)
 library(dplyr)
 library(ggplot2)
 library(ggside)
-debug <- F
+debug <- T
 if (debug){
 args <- c("/mnt/archive2/moba_genotypes_resources/HRC",
-        "/mnt/work/qc_genotypes/pipeOut_dev/2025.01.30/mod6-imputation/snp008",
+        "/mnt/archive3/phasing_test/phase_confirmed_relationships/snp008/",
         "/mnt/work/oystein/tmp/snp008/imputation_report/imputation_report.md"
         )
 } else {

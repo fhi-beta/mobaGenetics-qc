@@ -226,10 +226,9 @@ rule mod7_phase_report:
     threads: 32
     conda:
         "envs/r_4.2.yaml"
-    shell:
-        """
-        Rscript {params.r_script} {input.phase_check} {input.all_relations} {output.phase_report} {params.title} {params.rate} {params.rate_desc} {wildcards.chr}
-        """
+    run:
+        in_trunk = mqc.plinkBase(input.phase_check)
+        shell("Rscript {params.r_script} {in_trunk} {input.all_relations} {output.phase_report} {params.title} {params.rate} {params.rate_desc}")
 
 
 # Plink2 does not support phased dosages for multiallelic variants yet, so they are removed for now
