@@ -75,7 +75,7 @@ for (chr in chromosomes) {
         geom_point(alpha=0.3) +
         xlab("Allele frequency") +
         ylab("Dosage R^2") +
-        ggtitle(paste0("Chromosome ", chr))
+        ggtitle(paste0("Chromosome ", chr)) + geom_xsidedensity(aes(x=af), fill="lightblue", alpha=0.5) + geom_ysidedensity(aes(y=dr2), fill="lightblue", alpha=0.5)
     ggsave(filename = paste0(plot_folder, "imputation_dr2_chr", chr, ".png"), dpi=200, width = 5, height = 5)
     write(
     x = paste0("![](", relative_plot_folder, "imputation_dr2_chr", chr, ".png)"),
@@ -90,7 +90,7 @@ for (chr in chromosomes) {
         geom_abline(slope=1, intercept=0, color="red") +
         xlab("Allele frequency in reference panel") +
         ylab("Allele frequency in imputed data") +
-        ggtitle(paste0("Chromosome ", chr))
+        ggtitle(paste0("Chromosome ", chr)) + geom_xsidedensity(aes(x=af_ref), fill="lightblue", alpha=0.5) + geom_ysidedensity(aes(y=af_imp), fill="lightblue", alpha=0.5)
     ggsave(filename = paste0(plot_folder, "imputation_af_chr", chr, ".png"), dpi=200, width = 5, height = 5)
     write(
     x = paste0("![](", relative_plot_folder, "imputation_af_chr", chr, ".png)"),
