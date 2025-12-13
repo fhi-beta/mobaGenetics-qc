@@ -126,19 +126,18 @@ write(
         geom_point(alpha=0.3) +
         xlab("Allele frequency") +
         ylab("Dosage R^2") +
-        ggtitle(paste0("Chromosome ", chr)) + geom_xsidedensity(
-      data = imp,
-        mapping = aes(
-            x = af,
-            y = after_stat(density)
-        ),
-      alpha = 0.8
-    ) +
+        ggtitle(paste0("Chromosome ", chr)) 
+    # + geom_xsidedensity(
+    #   data = imp,
+    #     mapping = aes(
+    #         x = af,
+    #         y = after_stat(density)
+    #     ),
+    #   alpha = 0.8
+    # ) +
     geom_ysidedensity(
-      data = imp,
-      mapping = aes(
-        x = after_stat(density),
-        y = dr2
+        aes(
+        x = after_stat(density)
       ),
       alpha = 0.8
     ) 

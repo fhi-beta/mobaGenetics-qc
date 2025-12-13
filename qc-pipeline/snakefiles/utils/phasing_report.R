@@ -2,33 +2,21 @@ library(dplyr)
 debug <- F
 if (debug){
     args <- c(
-        "/mnt/archive3/phasing_test/phase_related_orig_imputation/mod7_phase_check.chr21",
+        "/mnt/archive3/phasing_test/phase_related_orig_imputation/mod7_phase_check",
         "/mnt/archive3/phasing_test/phase_related_orig_imputation/expected_all_relations",
         "/mnt/archive3/phasing_test/debug/phase_report/phase_report.chr21.md", 
         "Phasing report, pre-phase related samples",
         "phasing_hom",
-        "Phasing error rates",
-        "21")
+        "Phasing error rates")
 } else {
     args <- commandArgs(TRUE)
 }
 
 
-chr_input <- args[7]
-
-if(chr_input != "0"){
-    single_file <- TRUE
-    chr <- chr_input
-} else{
-    single_file <- FALSE
-}
 
 
-if(single_file){
-    input_file <- args[1]
-} else{
-    input_files <- sapply(1:22, function(i) paste0(args[1],".chr", i))
-}
+input_files <- sapply(1:22, function(i) paste0(args[1],".chr", i))
+
 
 
 relations_file <- args[2]
@@ -77,21 +65,20 @@ plot_density <- function(numbers, title, xlab, absolute_filepath, relative_filep
     )
 }
 
-if (single_file){
-    chromosome_table <- read.table(input_file, header = TRUE)
-    rel <- read.table(relations_file, header = TRUE)
-    chromosome_table <- chromosome_table %>% left_join(rel %>% select(iid, shared_chips), by = "iid")
-    # if (filter_psam != "0")
-    # {
-    #     psam <- read.table(filter_psam)
-    #     ptrios <- subset(psam, V3 != "0" & V4 != "0") %>% select(iid = V2, pat = V3, mat = V4)
-    #     chromosome_table <- chromosome_table %>% semi_join(ptrios, by = c("iid", "pat", "mat"))
+# Only read tables for files that exist
+chromosome_tables <- lapply(input_files, function(file) {
+    if (file.exists(file)) {
+        read.table(file, header = TRUE)
+    } else {
+        warning(paste("File does not exist:", file))
+        NULL
+    }
+})
 
-    # }
-} else {chromosome_tables <- lapply(input_files, function(file) read.table(file, header = TRUE))
+chromosome_tables <- Filter(Negate(is.null), chromosome_tables)
 rel <- read.table(relations_file, header = TRUE)
 chromosome_tables <- lapply(chromosome_tables, function(tab) tab %>% left_join(rel %>% select(iid, shared_chips), by = "iid"))
-}
+
 
 
 write_rates_table_row <- function(p, rates){
@@ -198,13 +185,11 @@ write_chromosome_table <- function(tab, rate, chr){
         plot_density(tab[[paste0("r_",rate[1])]], title, rate[2], aboslute_path, relative_path)
     }
 
-if(single_file){
-    write_chromosome_table(chromosome_table, rate, chr)
-} else{
+
 for (chr in 1:22) {
     tab <- chromosome_tables[[chr]]
     write_chromosome_table(tab, rate, chr)
 }
-}
+
 
 
