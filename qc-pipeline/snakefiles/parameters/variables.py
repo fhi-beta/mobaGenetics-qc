@@ -51,6 +51,8 @@ tmpMod8 = archive3_base/'mod8-release_annotation'
 tmpMod8_2 = archive3_base_2/'mod8-release_annotation'
 
 tmpMod6_phasing_test = Path("/mnt/archive3/phasing_test/phase_confirmed_relationships")
+
+imputation_report_previous = Path("/mnt/work/oystein/imputation_report/2025.01.30/phase_report")
 # tmpMod6_phase_merged = Path("/mnt/archive3/phasing_test/phase_merged")
 
 #tmpMergeTest = base/'merge_test'
