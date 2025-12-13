@@ -138,7 +138,7 @@ write(
         x = after_stat(density)
       ),
       alpha = 0.8
-    ) +
+    ) 
     ggsave(filename = paste0(plot_folder, "imputation_dr2_chr", chr, ".png"), dpi=200, width = 5, height = 5)
     write(
     x = paste0("![](", relative_plot_folder, "imputation_dr2_chr", chr, ".png)"),
@@ -164,7 +164,7 @@ write(
         x = after_stat(density)
       ),
       alpha = 0.8
-    ) +
+    ) 
     ggsave(filename = paste0(plot_folder, "imputation_af_chr", chr, ".png"), dpi=200, width = 5, height = 5)
     write(
     x = paste0("![](", relative_plot_folder, "imputation_af_chr", chr, ".png)"),
