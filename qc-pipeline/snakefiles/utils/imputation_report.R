@@ -70,6 +70,56 @@ for (chr in chromosomes) {
       colClasses = c("character", "numeric", "character", "character", "character", "character", "numeric", "numeric"),
       stringsAsFactors = F
     ) 
+    n_03 <- nrow(subset(imp, dr2 >= 0.3))
+    n_09 <- nrow(subset(imp, dr2 >= 0.9))
+    n_03_common <- nrow(subset(imp, dr2 >= 0.3 & af >= 0.01))
+    n_09_common <- nrow(subset(imp, dr2 >= 0.9 & af >= 0.01))
+    n_common <- nrow(subset(imp, af >= 0.01))
+    n_all <- nrow(imp)
+
+     write(
+            x = "| Allele frequency filter | DR2 filter | Number of variants |\n|:----|:----|:----|",
+            file = md,
+            append = T
+        )
+        write(
+            x = paste0("| All variants | None | ", n_all, " |"),
+            file = md,
+            append = T
+        )
+        write(
+            x = paste0("| All variants | DR2 >= 0.3 | ", n_03, " |"),
+            file = md,
+            append = T
+        )
+        write(
+            x = paste0("| All variants | DR2 >= 0.9 | ", n_09, " |"),
+            file = md,
+            append = T
+        )
+        write(
+            x = paste0("| Common variants (AF >= 0.01) | None | ", n_common, " |"),
+            file = md,
+            append = T
+        )
+
+        write(
+            x = paste0("| Common variants (AF >= 0.01) | DR2 >= 0.3 | ", n_03_common, " |"),
+            file = md,
+            append = T
+        )
+        write(
+            x = paste0("| Common variants (AF >= 0.01) | DR2 >= 0.9 | ", n_09_common, " |"),
+            file = md,
+            append = T
+        )
+
+write(
+    x = "\n",
+    file = md,
+    append = T
+)
+    
 
     #batr plot of dr2 values
     ggplot(imp, aes(x=af, y=dr2)) + 
