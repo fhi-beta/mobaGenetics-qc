@@ -211,10 +211,12 @@ rule mod7_phase_check_parallel:
         {params.bash_script} {params.python_script} {input.relations_file} {input.bcf} {output.phase_check}  {threads}
         """
 
+def get_phase_check_files(wildcards):
+    return [str(tmpMod6_phasing_test / f"mod7_phase_check.chr{chr}") for chr in chrs_debug]
 
 rule mod7_phase_report:
     input:
-        phase_check = rules.mod7_phase_check_parallel.output.phase_check,
+        phase_check = get_phase_check_files,
         all_relations = rules.mod6_filter_relationships.output.filtered_relationships
     output:
         phase_report = str(tmpMod6_phasing_test / "phase_report" / "mod7_phase_report.md")
@@ -227,7 +229,7 @@ rule mod7_phase_report:
     conda:
         "envs/r_4.2.yaml"
     run:
-        in_trunk = mqc.plinkBase(input.phase_check)
+        in_trunk = mqc.plinkBase(input.phase_check[0])
         shell("Rscript {params.r_script} {in_trunk} {input.all_relations} {output.phase_report} {params.title} {params.rate} {params.rate_desc}")
 
 
