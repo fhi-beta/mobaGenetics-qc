@@ -632,9 +632,12 @@ rule mod8_make_phasing_tables:
         python {params.phasing_script} --bcf {input.bcf} --trios {input.trios} --output {output.phasing_table}
         """
 
+def get_phasing_tables():
+    return [str(tmpMod8 / "phase_check" / f"mod8_make_phasing_tables.best.chr{chr}") for chr in chrs]
+
 rule mod8_phase_report:
     input:
-        phase_check = rules.mod8_make_phasing_tables.output.phasing_table,
+        phase_check = get_phasing_tables(),
         all_relations = rules.mod6_filter_relationships.output.filtered_relationships
     output:
         phase_report = str(github_docs / "phasing_report_best_snps" / "phasing_report_best_snps.md")
