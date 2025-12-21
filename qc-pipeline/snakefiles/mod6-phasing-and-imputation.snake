@@ -51,7 +51,7 @@ rule mod6_generate_chromosome_file:
     run:
         mqc.extract_chromosomes(input.bim, output.chromosome_file)
 
-    
+
 
 rule_stem = "mod6_split_into_chromosomes"
 rule mod6_split_into_chromosomes:
@@ -259,18 +259,18 @@ def get_chromosomes_in_batch(batch):
         chromosomes = [line.strip() for line in infile]
     return chromosomes
 
-rule mod6_find_par_phasing_batches:
-    input:
-        batch_table = rules.mod6_batch_table.output.batch_table
-    output:
-        phasing_batch = str(tmpMod6/"chr{chr}_phasing_batch.batch0")
-    run:
-        batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
-        with open(input.batch_table, 'r') as infile, open(output.phasing_batch, 'w') as outfile:
-            for line in infile:
-                iid, batch = line.strip().split('\t')
-                if batch in batches_with_chromosome:
-                    outfile.write(f"{iid}\n")
+# rule mod6_find_par_phasing_batches:
+#     input:
+#         batch_table = rules.mod6_batch_table.output.batch_table
+#     output:
+#         phasing_batch = str(tmpMod6/"chr{chr}_phasing_batch.batch0")
+#     run:
+#         batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
+#         with open(input.batch_table, 'r') as infile, open(output.phasing_batch, 'w') as outfile:
+#             for line in infile:
+#                 iid, batch = line.strip().split('\t')
+#                 if batch in batches_with_chromosome:
+#                     outfile.write(f"{iid}\n")
 
 
 rule mod6_find_phasing_batches:
@@ -292,34 +292,39 @@ rule mod6_find_phasing_batches:
 
 tmpMod6str = str(tmpMod6)
 def get_index_conform_files_to_merge(wildcards):
-    batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
-    return [f"{tmpMod6str}/{batch}/mod6_conform.chr{wildcards.chr}.conformed.vcf.gz.tbi" for batch in batches_with_chromosome]
+    # batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
+    return [f"{tmpMod6str}/{batch}/mod6_conform.chr{wildcards.chr}.conformed.vcf.gz.tbi" for batch in batches]
 
 
 def get_conform_files_to_merge(wildcards):
-    batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
-    return [f"{tmpMod6str}/{batch}/mod6_conform.chr{wildcards.chr}.conformed.vcf.gz" for batch in batches_with_chromosome]
+    # batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
+    return [f"{tmpMod6str}/{batch}/mod6_conform.chr{wildcards.chr}.conformed.vcf.gz" for batch in batches]
 
 rule mod6_merge_batches:
     input:
         vcfs = get_conform_files_to_merge,
-        index = get_index_conform_files_to_merge
+        index = get_index_conform_files_to_merge,
+        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file
     output:
-        merged_bcf = "/mnt/archive3/phasing_test/mod6_merge_batches_chr{chr}.bcf"
+        merged_bcf = str(tmpMod6/"mod6_merge_batches_chr{chr}.bcf")
     log:
-        # str(tmpMod7 / "{number_of_samples}_samples" / "mod7_merge_batches.log")
-        "/mnt/archive3/phasing_test/mod6_merge_batches_chr{chr}.log"
+        str(tmpMod6/"mod6_merge_batches_chr{chr}.log")
+        # "/mnt/archive3/phasing_test/mod6_merge_batches_chr{chr}.log"
     conda:
         "envs/bcf_tabix.yaml"
-    shell:
-        """
+    run:
+        non_empty_vcfs = []
+        for vcf in input.vcfs:
+            if os.path.getsize(vcf) > 0:
+                non_empty_vcfs.append(vcf)
+        shell(f"""          
         echo "Output file: {output.merged_bcf}" > {log}
         echo "Merge started $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
-        bcftools merge {input.vcfs} -o {output.merged_bcf} --write-index
+        bcftools merge {non_empty_vcfs} -o {output.merged_bcf} --write-index
         echo "Merge finished $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
         echo "Merged files:" >> {log}
-        for file in {input.vcfs}; do echo "$file" >> {log}; done
-        """
+        for file in {non_empty_vcfs}; do echo "$file" >> {log}; done
+        """)
 
 # rule mod6_fill_ac_merged:
 #     input:
