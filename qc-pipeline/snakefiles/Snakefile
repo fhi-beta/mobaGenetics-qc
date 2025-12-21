@@ -12,6 +12,7 @@
 # External libraries
 from pathlib import Path
 import shutil
+from shutil import copyfile
 import gzip
 import pandas as pd
 import numpy as np
@@ -31,6 +32,7 @@ configfile: "parameters/config.yaml"
 # Local libraries
 sys.path.append('utils')  # in order to find our local packages
 import mobaQcTools as mqc
+import batch_report
 
 # Pipeline variables and setup
 include: "parameters/variables.py"
