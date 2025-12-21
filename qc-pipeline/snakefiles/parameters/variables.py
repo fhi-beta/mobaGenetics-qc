@@ -46,8 +46,8 @@ tmpMod3 = base/'mod3-population-clustering'
 tmpMod4 = base/'mod4-good_markers'
 tmpMod5 = base/'mod5-harmonization'
 tmpMod6 = base/'mod6-phasing-and-imputation'
-tmpMod7 = base/'mod7-merging'
-tmpMod8 = archive3_base/'mod8-release-annotation'
+tmpMod7 = base/'mod7-post-imputation-merging'
+tmpMod8 = base/'mod8-release-annotation'
 # tmpMod8_2 = archive3_base_2/'mod8-release_annotation'
 
 # tmpMod6_phasing_test = Path("/mnt/archive3/phasing_test/phase_chr20_test")
