@@ -64,7 +64,7 @@ tmpMod8 = base/'mod8-release-annotation'
 #tmpMod8 = Path(config['output_base']) / config['release2'] / 'mod8-release_annotation'
 release_folder = Path(config['release_base']) / config['release'] # Path(config['release_base']) / config['release']
 # release_folder_2 = Path(config['release_base']) / config['release2'] # Path(config['release_base']) / config['release']
-release_base_name = "moba_genotypes_" + config['release2'] # "moba_genotypes_" + config['release']
+release_base_name = "moba_genotypes_" + config['release'] # "moba_genotypes_" + config['release']
 
 n_samples = config['n_samples']
 
