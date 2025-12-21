@@ -303,8 +303,7 @@ def get_conform_files_to_merge(wildcards):
 rule mod6_merge_batches:
     input:
         vcfs = get_conform_files_to_merge,
-        index = get_index_conform_files_to_merge,
-        chromosome_file = rules.mod6_generate_chromosome_file.output.chromosome_file
+        index = get_index_conform_files_to_merge
     output:
         merged_bcf = str(tmpMod6/"mod6_merge_batches_chr{chr}.bcf")
     log:
