@@ -128,20 +128,20 @@ def get_batches_with_chromosome(chr):
 # imputation_batches = ["snp001", "merge_snp002_snp003", "merge_snp007_snp008", "merge_snp009_snp011", "merge_snp010_snp014", "snp012", "snp016a", "snp016b", "snp017a", "merge_snp017b_snp017c_snp017d_snp017e_snp017cf" , "merge_snp018a_snp018b_snp018c_snp018de"]
 
 def get_vcf_batch_files_to_merge(wildcards):
-    batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
-    return [f"{tmpMod7str}/{batch}/mod7_format.chr{wildcards.chr}.vcf.gz" for batch in batches_with_chromosome]
+    # batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
+    return [f"{tmpMod7str}/{batch}/mod7_format.chr{wildcards.chr}.vcf.gz" for batch in batches]
     # return [f"{tmpMod7}/{batch}/mod7_filter.chr{wildcards.chr}.vcf.gz" for batch in batches_with_chromosome]
 
 
 tmpMod7str = str(tmpMod7)
 def get_index_batch_files_to_merge(wildcards):
-    batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
-    return [f"{tmpMod7str}/{batch}/mod7_format.chr{wildcards.chr}.vcf.gz.tbi" for batch in batches_with_chromosome]
+    # batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
+    return [f"{tmpMod7str}/{batch}/mod7_format.chr{wildcards.chr}.vcf.gz.tbi" for batch in batches]
 
 rule mod7_merge_batches:
     input:
         vcfs = get_vcf_batch_files_to_merge,
-        index = get_index_batch_files_to_merge # REVERT THIS!
+        index = get_index_batch_files_to_merge
     output:
         merged_vcf = str(tmpMod7 / "mod7_merge_batches.chr{chr}.bcf")
     log:
@@ -149,14 +149,18 @@ rule mod7_merge_batches:
         str(tmpMod7 / "mod7_merge_batches.chr{chr}.log")
     conda:
         "envs/bcf_tabix.yaml"
-    shell:
+    run:
+        non_empty_vcfs = []
+        for vcf in input.vcfs:
+            if os.path.getsize(vcf) > 0:
+                non_empty_vcfs.append(vcf)
         """
         echo "Output file: {output.merged_vcf}" > {log}
         echo "Merge started $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
-        bcftools merge {input.vcfs} -o {output.merged_vcf} --write-index
+        bcftools merge {non_empty_vcfs} -o {output.merged_vcf} --write-index
         echo "Merge finished $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
         echo "Merged files:" >> {log}
-        for file in {input.vcfs}; do echo "$file" >> {log}; done
+        for file in {non_empty_vcfs}; do echo "$file" >> {log}; done
         """
 
 # rule mod7_index_merge:
