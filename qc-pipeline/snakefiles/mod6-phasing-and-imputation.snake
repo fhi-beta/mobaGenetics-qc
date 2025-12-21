@@ -259,18 +259,18 @@ def get_chromosomes_in_batch(batch):
         chromosomes = [line.strip() for line in infile]
     return chromosomes
 
-# rule mod6_find_par_phasing_batches:
-#     input:
-#         batch_table = rules.mod6_batch_table.output.batch_table
-#     output:
-#         phasing_batch = str(tmpMod6/"chr{chr}_phasing_batch.batch0")
-#     run:
-#         batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
-#         with open(input.batch_table, 'r') as infile, open(output.phasing_batch, 'w') as outfile:
-#             for line in infile:
-#                 iid, batch = line.strip().split('\t')
-#                 if batch in batches_with_chromosome:
-#                     outfile.write(f"{iid}\n")
+rule mod6_find_par_phasing_batches:
+    input:
+        batch_table = rules.mod6_batch_table.output.batch_table
+    output:
+        phasing_batch = str(tmpMod6/"chr{chr}_phasing_batch.batch0")
+    run:
+        batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
+        with open(input.batch_table, 'r') as infile, open(output.phasing_batch, 'w') as outfile:
+            for line in infile:
+                iid, batch = line.strip().split('\t')
+                if batch in batches_with_chromosome:
+                    outfile.write(f"{iid}\n")
 
 
 rule mod6_find_phasing_batches:
