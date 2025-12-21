@@ -595,7 +595,7 @@ rule mod6_find_ref_af:
         """
 
 def get_query_files(wildcards):
-    chromosomes = chrs_debug # get_chromosomes_in_batch(wildcards.batch)
+    chromosomes = get_chromosomes_in_batch(wildcards.batch)
     return [str(tmpMod6 / f"{wildcards.batch}" / f"mod6_impute.chr{chr}.imputed.vcf.gz.info") for chr in chromosomes]
     #return [str(tmpMod6 / f"{wildcards.batch}" / f"mod6_impute.chr{chr}.imputed.vcf.gz.info") for chr in chromosomes]
 

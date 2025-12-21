@@ -207,7 +207,7 @@ rule mod7_phase_check_parallel:
         """
 
 def get_phase_check_files(wildcards):
-    return [str(tmpMod7 / f"mod7_phase_check.chr{chr}") for chr in chrs_debug]
+    return [str(tmpMod7 / f"mod7_phase_check.chr{chr}") for chr in chrs]
 
 rule mod7_phase_report:
     input:

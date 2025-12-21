@@ -123,7 +123,7 @@ rule all:
         #expand(str(tmpMod6_phasing_test / "{batch}" / "mod6_split_merged_phased_no_filter.chr21.vcf"), batch = batches)
         # expand("/mnt/archive3/phasing_test/{batch}/mod6_impute.chr{chr}.imputed.vcf.gz", batch = batches, chr = ["20", "21"]),
         # expand(str(tmpMod6_phasing_test / "{quality}" /"{batch}" / "mod7_filter.chr{chr}.vcf.gz"), batch = batches, chr = ["21"], quality = ["dr2_08"]),
-        expand(str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info"), batch = batches, chr = chrs_debug),
+        expand(str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info"), batch = batches, chr = chrs),
         str(tmpMod6_phasing_test / "phase_report" / "mod7_phase_report.md"),
         expand(str(tmpMod6_phasing_test / "{batch}" / "imputation_report.md"), batch = batches)
         # expand("/mnt/archive2/moba_genotypes_resources/HRC/HRC_af_chr{chr}", chr = chrs)
