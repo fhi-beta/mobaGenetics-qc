@@ -871,7 +871,7 @@ rule release_md:
         relatedness_md_file = github_docs/"mod8_psam_reconstruction.md"
     params:
         docs_folder = github_docs,
-        version = config['release2']
+        version = config['release']
     output:
         release_md_file = github_docs/"readme.md"
     conda:
@@ -893,7 +893,7 @@ rule release_genotypes:
         pgenset_common_snps = rules.mod8_exclude_conflictual_relationships.output.pgenset_common_snps,
         pgenset_best_snps = rules.mod8_exclude_conflictual_relationships.output.pgenset_best_snps
     params:
-        version = config['release2']
+        version = config['release']
     output:
         pgenset_rare_snps =  multiext(str(release_folder / (release_base_name + "_rare")), ".pgen", ".pvar", ".psam"),
         pgenset_common_snps =  multiext(str(release_folder / (release_base_name + "_common")), ".pgen", ".pvar", ".psam"),
