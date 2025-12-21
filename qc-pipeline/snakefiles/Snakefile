@@ -68,6 +68,12 @@ include: "mod8-release-annotation.snake"
 # rule all, lists the output of every module
 rule all:
     input:
+        expand(github_docs / "{batch}" / "imputation_report.md", batch = batches),
+        github_docs / "phasing_report_unfiltered" / "phasing_report_unfiltered.md",
+        github_docs / "phasing_report_best_snps" / "phasing_report_best_snps.md",
+        resultPath / "count_tables" / "mod5_samples",
+        resultPath / "count_tables" / "mod5_variants",
+        github_docs / "initial_samples_overview.md",
         mod8_best_markers_het = tmpMod8/'mod8_best_snps.het',
         mod8_best_markers_hardy = tmpMod8/'mod8_best_snps.hardy',
         mod8_best_markers_afreq = tmpMod8/'mod8_best_snps.afreq',
@@ -81,12 +87,6 @@ rule all:
         mod8_cluster_file = tmpMod8/"clusters",
         mod8_ceu_id_file = tmpMod8/"ceu_core_ids",
         mod8_release_md_file= github_docs / "readme.md",
-        expand(github_docs / "{batch}" / "imputation_report.md", batch = batches),
-        github_docs / "phasing_report_unfiltered" / "phasing_report_unfiltered.md",
-        github_docs / "phasing_report_best_snps" / "phasing_report_best_snps.md",
-        resultPath / "count_tables" / "mod5_samples",
-        resultPath / "count_tables" / "mod5_variants",
-        github_docs / "initial_samples_overview.md",
 
         r2_table = release_folder/"snp"/(release_base_name + "_snp_r2.gz"),
         best_snps = release_folder/"snp"/(release_base_name + "_reference_500k_snps"),
