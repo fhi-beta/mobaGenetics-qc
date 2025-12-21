@@ -174,7 +174,7 @@ rule mod5_missingness_and_hwe:
                 [
                     plinklocal,
                     "--bfile", inTrunk,
-                    "--hwe", "1e-6",
+                    # "--hwe", "1e-6",
                     "--geno", "0.02",
                     "--make-bed",
                     "--out", outTrunk
@@ -547,7 +547,7 @@ rule mod5_output:
                 "--hardy",
                 "--out", outTrunk
             ])
-            batch_report.write_report(output.md, wildcards.batch, "mod5-pre-phasing", outTrunk, input.sexcheck)
+            batch_report.write_report(output.md, wildcards.batch, "mod5-harmonization", outTrunk, input.sexcheck)
         except Exception as e:
             print(f"An exception occurred in rule {rule}.")
             print(e)

@@ -61,9 +61,9 @@ include: "mod1-data-conversion.snake"
 include: "mod2-genetic-relationship.snake"
 include: "mod3-population-clustering.snake"
 include: "mod4-good-markers.snake"
-include: "mod5-pre-phasing.snake"
-include: "mod6-imputation.snake"
-# include: "mod7-post-imputation.snake"
+include: "mod5-harmonization.snake"
+include: "mod6-phasing-and-imputation.snake"
+# include: "mod7-merging.snake"
 
 # Debug code
 # batches_debug = ['snp007']

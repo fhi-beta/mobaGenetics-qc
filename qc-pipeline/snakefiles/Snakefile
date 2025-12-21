@@ -55,14 +55,14 @@ for batch in batches:
 report: "report/qc.rst"
 
 # The different modules
-# include: "mod1-data-conversion.snake"
-# include: "mod2-genetic-relationship.snake"
-# include: "mod3-population-clustering.snake"
-# include: "mod4-good-markers.snake"
-# include: "mod5-pre-phasing.snake"
-# include: "mod6-imputation.snake"
-# include: "mod7-post-imputation.snake"
-include: "mod8-release_annotation.snake"
+include: "mod1-data-conversion.snake"
+include: "mod2-genetic-relationship.snake"
+include: "mod3-population-clustering.snake"
+include: "mod4-good-markers.snake"
+include: "mod5-harmonization.snake"
+include: "mod6-phasing-and-imputation.snake"
+include: "mod7-merging.snake"
+include: "mod8-release-annotation.snake"
 
 
 # rule all, lists the output of every module
@@ -81,22 +81,50 @@ rule all:
         mod8_cluster_file = tmpMod8/"clusters",
         mod8_ceu_id_file = tmpMod8/"ceu_core_ids",
         mod8_release_md_file= github_docs / "readme.md",
+        expand(github_docs / "{batch}" / "imputation_report.md", batch = batches),
+        github_docs / "phasing_report_unfiltered" / "phasing_report_unfiltered.md",
+        github_docs / "phasing_report_best_snps" / "phasing_report_best_snps.md",
+        resultPath / "count_tables" / "mod5_samples",
+        resultPath / "count_tables" / "mod5_variants",
+        github_docs / "initial_samples_overview.md",
+
+        r2_table = release_folder/"snp"/(release_base_name + "_snp_r2.gz"),
+        best_snps = release_folder/"snp"/(release_base_name + "_reference_500k_snps"),
+        pcs_with_1000G = release_folder/"pca_with_1000G"/(release_base_name + ".pcs"),
+        eigenvector_with_1000G = release_folder/"pca_with_1000G"/(release_base_name + ".vec"),
+        snp_loadings_with_1000G = release_folder/"pca_with_1000G"/(release_base_name + ".load"),
+        eigenvalues_with_1000G = release_folder/"pca_with_1000G"/(release_base_name + ".val"),
+        variance_explained_with_1000G = release_folder/"pca_with_1000G"/(release_base_name + ".pve"),
+        pcs_only_moba = release_folder/"pca_only_moba"/(release_base_name + ".pcs"),
+        eigenvector_only_moba = release_folder/"pca_only_moba"/(release_base_name + ".vec"),
+        snp_loadings_only_moba = release_folder/"pca_only_moba"/(release_base_name + ".load"),
+        eigenvalues_only_moba = release_folder/"pca_only_moba"/(release_base_name + ".val"),
+        variance_explained_only_moba = release_folder/"pca_only_moba"/(release_base_name + ".pve"),
+        cluster_file = release_folder/"pca"/(release_base_name + "_clusters"),
+        ceu_id_file = release_folder/"pca"/(release_base_name + "_ceu_core_ids"),
+        king_relatedness = release_folder/"kinship"/(release_base_name + ".kin0"),
+        sex_check = release_folder/"sex_check"/(release_base_name + ".sexcheck"),
+        batch_table = release_folder/"batch"/(release_base_name + "_batches"),
+        duplicates_table = release_folder/"batch"/(release_base_name + "_duplicates"),
+        readme = release_folder/"readme.md"
+
+
 
         # Release files
-        release_genotypes_pgenset =  multiext(str(release_folder / release_base_name), ".pgen", ".pvar", ".psam"),
-        release_r2_table = release_folder/"snp"/("snp_r2_" + config['release']),
-        release_best_snps = release_folder/"snp"/("reference_500k_snps_" + config['release']),
-        release_pcs = release_folder/"pca"/(release_base_name + ".pcs"),
-        release_eigenvector = release_folder/"pca"/(release_base_name + ".vec"),
-        release_snp_loadings = release_folder/"pca"/(release_base_name + ".load"),
-        release_eigenvalues = release_folder/"pca"/(release_base_name + ".val"),
-        release_variance_explained = release_folder/"pca"/(release_base_name + ".pve"),
-        release_cluster_file = release_folder/"pca"/(release_base_name + "_clusters"),
-        release_ceu_id_file = release_folder/"pca"/(release_base_name + "_ceu_core_ids"),
-        release_king_relatedness = release_folder/"kinship"/(release_base_name + ".kin0"),
-        release_sex_check = release_folder/"sex_check"/(release_base_name + ".sex_check"),
-        release_batch_table = release_folder/"batch"/(release_base_name + "_batches"),
-        release_readme = release_folder/"readme.md"
+        # release_genotypes_pgenset =  multiext(str(release_folder / release_base_name), ".pgen", ".pvar", ".psam"),
+        # release_r2_table = release_folder/"snp"/("snp_r2_" + config['release']),
+        # release_best_snps = release_folder/"snp"/("reference_500k_snps_" + config['release']),
+        # release_pcs = release_folder/"pca"/(release_base_name + ".pcs"),
+        # release_eigenvector = release_folder/"pca"/(release_base_name + ".vec"),
+        # release_snp_loadings = release_folder/"pca"/(release_base_name + ".load"),
+        # release_eigenvalues = release_folder/"pca"/(release_base_name + ".val"),
+        # release_variance_explained = release_folder/"pca"/(release_base_name + ".pve"),
+        # release_cluster_file = release_folder/"pca"/(release_base_name + "_clusters"),
+        # release_ceu_id_file = release_folder/"pca"/(release_base_name + "_ceu_core_ids"),
+        # release_king_relatedness = release_folder/"kinship"/(release_base_name + ".kin0"),
+        # release_sex_check = release_folder/"sex_check"/(release_base_name + ".sex_check"),
+        # release_batch_table = release_folder/"batch"/(release_base_name + "_batches"),
+        # release_readme = release_folder/"readme.md"
 
         # # Module 1:
         # mod1_start_het = expand(tmpMod1/"{batch}"/'mod1_start_het.het', batch = batches),

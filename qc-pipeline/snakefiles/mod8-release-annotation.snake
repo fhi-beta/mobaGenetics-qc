@@ -187,8 +187,8 @@ rule mod8_best_snps:
         r2_table = rules.summarize_dr2.output.dr2,
         high_ld_regions_hg19 = high_ld_regions_hg19
     output:
-        pgenset = multiext(str(tmpMod8_2/"mod8_best_snps"), ".pgen", ".pvar"),
-        best_pruned_list = str(tmpMod8_2/"mod8_best_snps_pruned.prune.in")
+        pgenset = multiext(str(tmpMod8/"mod8_best_snps"), ".pgen", ".pvar"),
+        best_pruned_list = str(tmpMod8/"mod8_best_snps_pruned.prune.in")
     params:
         release_maf_threshold = config['release_maf_thr'],
         release_hw_threshold = config['release_hw_thr'],
@@ -201,7 +201,7 @@ rule mod8_best_snps:
     run:
         inTrunk = mqc.plinkBase(input.pgenset[0])
         outTrunk =  mqc.plinkBase(output.pgenset[0])
-        id_file = tmpMod8_2/"ids_best"
+        id_file = tmpMod8/"ids_best"
         print(f"Extracting markers with overall r2 >= {params.info_threshold} and all batches r2 >= {params.batch_info_threshold}")
         mqc.find_high_dr2_variants(input.r2_table, id_file, params.batch_info_threshold, params.info_threshold)
 
@@ -255,11 +255,11 @@ rule mod8_generate_best_snps_stats:
     input:
         pgenset = rules.mod8_best_snps.output.pgenset,
     output:
-        het = tmpMod8_2/'mod8_best_snps.het',
-        hardy = tmpMod8_2/'mod8_best_snps.hardy',
-        afreq = tmpMod8_2/'mod8_best_snps.afreq',
-        smiss = tmpMod8_2/'mod8_best_snps.smiss',
-        vmiss = tmpMod8_2/'mod8_best_snps.vmiss',
+        het = tmpMod8/'mod8_best_snps.het',
+        hardy = tmpMod8/'mod8_best_snps.hardy',
+        afreq = tmpMod8/'mod8_best_snps.afreq',
+        smiss = tmpMod8/'mod8_best_snps.smiss',
+        vmiss = tmpMod8/'mod8_best_snps.vmiss',
     threads: 1
     run:
         try:
@@ -332,7 +332,7 @@ rule mod8_batch_table:
     input:
         batch_fam = get_fam_per_batch()
     output:
-        batch_table = tmpMod8_2/(rule_stem + "_batch")
+        batch_table = tmpMod8/(rule_stem + "_batch")
     run:
         try:
 
@@ -361,7 +361,7 @@ rule mod8_pedigree_ibd_estimate:
     input:
         pgenset = rules.mod8_best_snps.output.pgenset,
     output:
-        king_relatedness = tmpMod8_2/(rule_stem + ".kin0")
+        king_relatedness = tmpMod8/(rule_stem + ".kin0")
     threads: 24
     run:
         try:
@@ -409,7 +409,7 @@ rule mod8_check_sex:
     input:
         pgenset = rules.mod8_split_rare_common.output.pgenset_common_snps
     output:
-        sex_check = tmpMod8_2/(rule_stem + ".sexcheck")
+        sex_check = tmpMod8/(rule_stem + ".sexcheck")
     run:
         try:
             in_trunk = mqc.plinkBase(input.pgenset[0])
@@ -434,7 +434,7 @@ rule mod8_import_ycounts:
     input:
         sex_check =  rules.mod8_check_sex.output.sex_check
     output:
-        sex_check = tmpMod8_2/"mod8_import_ycounts.sexcheck"
+        sex_check = tmpMod8/"mod8_import_ycounts.sexcheck"
     run:
         ycounts = []
         for batch in batches:
@@ -463,12 +463,12 @@ rule mod8_psam_reconstruction:
         title = "\"Psam file reconstruction\"",
         batch_chip = "parameters/batch_chip",
     output:
-        updated_psam = tmpMod8_2/(rule_stem + ".psam"),
-        pedigree_sample_exclusion = tmpMod8_2/(rule_stem + "_pedigree_sample_exclusion"),
-        mismatch_information = tmpMod8_2/"mismatch_information.gz",
-        mismatch_relationship = tmpMod8_2/"mismatch_relationship.gz",
-        md_file = github_docs_2/(rule_stem + ".md"),
-        all_samples_relationships = tmpMod8_2/"all_samples_relationships"
+        updated_psam = tmpMod8/(rule_stem + ".psam"),
+        pedigree_sample_exclusion = tmpMod8/(rule_stem + "_pedigree_sample_exclusion"),
+        mismatch_information = tmpMod8/"mismatch_information.gz",
+        mismatch_relationship = tmpMod8/"mismatch_relationship.gz",
+        md_file = github_docs/(rule_stem + ".md"),
+        all_samples_relationships = tmpMod8/"all_samples_relationships"
     conda:
         "envs/r_4.2.yaml"
     threads: 1
@@ -485,9 +485,9 @@ rule mod8_exclude_conflictual_relationships:
         pedigree_sample_exclusion = rules.mod8_psam_reconstruction.output.pedigree_sample_exclusion,
         updated_psam = rules.mod8_psam_reconstruction.output.updated_psam
     output:
-        pgenset_common_snps =  multiext(str(tmpMod8_2/rule_stem), ".pgen", ".pvar", ".psam"),
-        pgenset_rare_snps = multiext(str(tmpMod8_2/(rule_stem + "_rare")), ".pgen", ".pvar", ".psam"),
-        pgenset_best_snps = multiext(str(tmpMod8_2/(rule_stem + "_best_snps")), ".pgen", ".pvar", ".psam")
+        pgenset_common_snps =  multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
+        pgenset_rare_snps = multiext(str(tmpMod8/(rule_stem + "_rare")), ".pgen", ".pvar", ".psam"),
+        pgenset_best_snps = multiext(str(tmpMod8/(rule_stem + "_best_snps")), ".pgen", ".pvar", ".psam")
     run:
         try:
             inTrunk_common_markers = mqc.plinkBase(input.pgenset_common_snps[0])
@@ -555,7 +555,7 @@ rule mod8_best_snps_list:
         dr2 = rules.summarize_dr2.output.dr2,
         pgenset = rules.mod8_exclude_conflictual_relationships.output.pgenset_best_snps
     output:
-        best_snps_list = tmpMod8_2/'mod8_best_snps_list.txt'
+        best_snps_list = tmpMod8/'mod8_best_snps_list.txt'
     run:
         mqc.best_snps_of_subset(input.dr2, output.best_snps_list, 500000, input.pgenset[1])
 
@@ -573,9 +573,9 @@ rule mod8_make_duplicates_table:
         ids = config['id_mapping'],
         smiss = rules.mod8_generate_best_snps_stats.output.smiss,
     output:
-        duplicates = tmpMod8_2/'mod8_duplicates_table.txt',
-        trios = tmpMod8_2/'mod8_trios_table.txt',
-        all_relations = tmpMod8_2/'mod8_all_relations_table.txt',
+        duplicates = tmpMod8/'mod8_duplicates_table.txt',
+        trios = tmpMod8/'mod8_trios_table.txt',
+        all_relations = tmpMod8/'mod8_all_relations_table.txt',
     run:
         psam_file = input.pgenset[2]
         mqc.make_duplicates_table(psam_file, input.batches, input.ids, input.smiss, output.duplicates, output.trios, output.all_relations)
@@ -604,9 +604,9 @@ rule mod8_make_duplicates_table:
 
 rule mod8_make_bcf:
     input:
-        pgenset = multiext("/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_exclude_conflictual_relationships", ".pgen", ".pvar", ".psam") # hook into pipeline later
+        pgenset = rules.mod8_exclude_conflictual_relationships.output.pgenset_best_snps
     output:
-        bcf = str(tmpMod8_2/"phase_check" / "mod8_make_bcf.best.chr{phasing_chr}.bcf")
+        bcf = str(tmpMod8 / "phase_check" / "mod8_make_bcf.best.chr{phasing_chr}.bcf")
     conda:
         "envs/plink2_tabix.yaml"
     run:
@@ -620,9 +620,9 @@ rule mod8_make_bcf:
 rule mod8_make_phasing_tables:
     input:
         bcf = rules.mod8_make_bcf.output.bcf,
-        trios = "/mnt/archive3/phasing_test/trios"
+        trios = rules.mod6_filter_relationships.output.filtered_trios
     output:
-        phasing_table = str(tmpMod8_2 / "phase_check" / "mod8_make_phasing_tables.common.chr{phasing_chr}")
+        phasing_table = str(tmpMod8 / "phase_check" / "mod8_make_phasing_tables.best.chr{phasing_chr}")
     params:
         phasing_script = "utils/phasing_check.py"
     conda:
@@ -631,6 +631,25 @@ rule mod8_make_phasing_tables:
         """
         python {params.phasing_script} --bcf {input.bcf} --trios {input.trios} --output {output.phasing_table}
         """
+
+rule mod8_phase_report:
+    input:
+        phase_check = rules.mod8_make_phasing_tables.output.phasing_table,
+        all_relations = rules.mod6_filter_relationships.output.filtered_relationships
+    output:
+        phase_report = str(github_docs / "phasing_report_best_snps" / "phasing_report_best_snps.md")
+    params:
+        r_script = "utils/phasing_report.R",
+        title ="\"Phasing report: all variants\"",
+        rate = "phasing_hom",
+        rate_desc = "\"Phasing error rates\""
+    threads: 32
+    conda:
+        "envs/r_4.2.yaml"
+    run:
+        in_trunk = mqc.plinkBase(input.phase_check[0])
+        shell("Rscript {params.r_script} {in_trunk} {input.all_relations} {output.phase_report} {params.title} {params.rate} {params.rate_desc}")
+
 
 
 
@@ -641,13 +660,13 @@ rule mod8_common_markers_moba_ref:
         bedset_ref = multiext(config["1000_genomes_stem"], '.bed', '.bim', '.fam'),
         pgenset_moba = rules.mod8_exclude_conflictual_relationships.output.pgenset_best_snps
     output:
-        bedset_ref = multiext(str(tmpMod8_2/"pca_ref") ,'.bed','.bim','.fam'),
-        bedset_moba = multiext(str(tmpMod8_2/"pca_moba") ,'.bed','.bim','.fam'),
-        bedset_only_moba = multiext(str(tmpMod8_2/"pca_only_moba") ,'.bed','.bim','.fam'),
-        tri_alleles = tmpMod8_2/(rule_stem + "_tri_alleles.missnp"),
-        marker_list = tmpMod8_2/(rule_stem + ".txt")
+        bedset_ref = multiext(str(tmpMod8/"pca_ref") ,'.bed','.bim','.fam'),
+        bedset_moba = multiext(str(tmpMod8/"pca_moba") ,'.bed','.bim','.fam'),
+        bedset_only_moba = multiext(str(tmpMod8/"pca_only_moba") ,'.bed','.bim','.fam'),
+        tri_alleles = tmpMod8/(rule_stem + "_tri_alleles.missnp"),
+        marker_list = tmpMod8/(rule_stem + ".txt")
     benchmark:
-        tmpMod8_2/(rule_stem + ".benchmark")
+        tmpMod8/(rule_stem + ".benchmark")
 
     run:
         inTrunk_ref =  mqc.plinkBase(input.bedset_ref[0])
@@ -744,14 +763,14 @@ rule mod8_pca_both:
         bedset_ref = rules.mod8_common_markers_moba_ref.output.bedset_ref,
         bedset_moba = rules.mod8_common_markers_moba_ref.output.bedset_moba,
     output:
-        bedset = multiext(str(tmpMod8_2/rule_stem), '.bed', '.bim', '.fam'),
-        pcs = tmpMod8_2/(rule_stem + ".pcs"),
-        eigenvector = tmpMod8_2/(rule_stem + ".vec"),
-        snp_loadings = tmpMod8_2/(rule_stem + ".load"),
-        eigenvalues = tmpMod8_2/(rule_stem + ".val"),
-        variance_explained = tmpMod8_2/(rule_stem + ".pve"),
+        bedset = multiext(str(tmpMod8/rule_stem), '.bed', '.bim', '.fam'),
+        pcs = tmpMod8/(rule_stem + ".pcs"),
+        eigenvector = tmpMod8/(rule_stem + ".vec"),
+        snp_loadings = tmpMod8/(rule_stem + ".load"),
+        eigenvalues = tmpMod8/(rule_stem + ".val"),
+        variance_explained = tmpMod8/(rule_stem + ".pve"),
     benchmark:
-        tmpMod8_2/(rule_stem + ".benchmark")
+        tmpMod8/(rule_stem + ".benchmark")
     run:
         inTrunk_ref = mqc.plinkBase(input.bedset_ref[0])
         inTrunk_moba = mqc.plinkBase(input.bedset_moba[0])
@@ -785,11 +804,11 @@ rule mod8_pca_only_moba:
     input:
         bedset = rules.mod8_common_markers_moba_ref.output.bedset_only_moba
     output:
-        pcs = tmpMod8_2/(rule_stem + ".pcs"),
-        eigenvector = tmpMod8_2/(rule_stem + ".vec"),
-        snp_loadings = tmpMod8_2/(rule_stem + ".load"),
-        eigenvalues = tmpMod8_2/(rule_stem + ".val"),
-        variance_explained = tmpMod8_2/(rule_stem + ".pve")
+        pcs = tmpMod8/(rule_stem + ".pcs"),
+        eigenvector = tmpMod8/(rule_stem + ".vec"),
+        snp_loadings = tmpMod8/(rule_stem + ".load"),
+        eigenvalues = tmpMod8/(rule_stem + ".val"),
+        variance_explained = tmpMod8/(rule_stem + ".pve")
     run:
         inTrunk = mqc.plinkBase(input.bedset[0])
         subprocess.run(
@@ -821,9 +840,9 @@ rule mod8_plot_pca_both:
         std_het_cutoff = config["release_sd_het_thr"],
         northern_norwegians = config['northern_norwegians']
     output:
-        md_file = github_docs_2/"pca_1kg_moba.md",
-        cluster_file = tmpMod8_2/"clusters",
-        ceu_id_file = tmpMod8_2/"ceu_core_ids"
+        md_file = github_docs/"pca_1kg_moba.md",
+        cluster_file = tmpMod8/"clusters",
+        ceu_id_file = tmpMod8/"ceu_core_ids"
     conda:
         "envs/plot_pca_both.yaml"
     threads: 1
@@ -848,13 +867,13 @@ rule mod8_plot_pca_both:
 rule_stem = "release_md"
 rule release_md:
     input:
-        pca_md_file = github_docs_2/"pca_1kg_moba.md",
-        relatedness_md_file = github_docs_2/"mod8_psam_reconstruction.md"
+        pca_md_file = github_docs/"pca_1kg_moba.md",
+        relatedness_md_file = github_docs/"mod8_psam_reconstruction.md"
     params:
-        docs_folder = github_docs_2,
+        docs_folder = github_docs,
         version = config['release2']
     output:
-        release_md_file = github_docs_2/"readme.md"
+        release_md_file = github_docs/"readme.md"
     conda:
         "envs/plot_pca_both.yaml"
     threads: 1
@@ -876,13 +895,13 @@ rule release_genotypes:
     params:
         version = config['release2']
     output:
-        pgenset_rare_snps =  multiext(str(release_folder_2 / (release_base_name + "_rare")), ".pgen", ".pvar", ".psam"),
-        pgenset_common_snps =  multiext(str(release_folder_2 / (release_base_name + "_common")), ".pgen", ".pvar", ".psam"),
-        pgenset_best_snps =  multiext(str(release_folder_2 / (release_base_name + "_common_best_pruned")), ".pgen", ".pvar", ".psam")
+        pgenset_rare_snps =  multiext(str(release_folder / (release_base_name + "_rare")), ".pgen", ".pvar", ".psam"),
+        pgenset_common_snps =  multiext(str(release_folder / (release_base_name + "_common")), ".pgen", ".pvar", ".psam"),
+        pgenset_best_snps =  multiext(str(release_folder / (release_base_name + "_common_best_pruned")), ".pgen", ".pvar", ".psam")
     run:
         try:
 
-            print(f"Writing release genotypes {release_base_name} to {release_folder_2}.")
+            print(f"Writing release genotypes {release_base_name} to {release_folder}.")
 
             # rare SNPs
             inTrunk =  mqc.plinkBase(input.pgenset_rare_snps[0])
@@ -937,51 +956,51 @@ rule release_additional_files:
     params:
         version = config['release']
     output:
-        r2_table = release_folder_2/"snp"/(release_base_name + "_snp_r2.gz"),
-        best_snps = release_folder_2/"snp"/(release_base_name + "_reference_500k_snps"),
-        pcs_with_1000G = release_folder_2/"pca_with_1000G"/(release_base_name + ".pcs"),
-        eigenvector_with_1000G = release_folder_2/"pca_with_1000G"/(release_base_name + ".vec"),
-        snp_loadings_with_1000G = release_folder_2/"pca_with_1000G"/(release_base_name + ".load"),
-        eigenvalues_with_1000G = release_folder_2/"pca_with_1000G"/(release_base_name + ".val"),
-        variance_explained_with_1000G = release_folder_2/"pca_with_1000G"/(release_base_name + ".pve"),
-        pcs_only_moba = release_folder_2/"pca_only_moba"/(release_base_name + ".pcs"),
-        eigenvector_only_moba = release_folder_2/"pca_only_moba"/(release_base_name + ".vec"),
-        snp_loadings_only_moba = release_folder_2/"pca_only_moba"/(release_base_name + ".load"),
-        eigenvalues_only_moba = release_folder_2/"pca_only_moba"/(release_base_name + ".val"),
-        variance_explained_only_moba = release_folder_2/"pca_only_moba"/(release_base_name + ".pve"),
-        cluster_file = release_folder_2/"pca"/(release_base_name + "_clusters"),
-        ceu_id_file = release_folder_2/"pca"/(release_base_name + "_ceu_core_ids"),
-        king_relatedness = release_folder_2/"kinship"/(release_base_name + ".kin0"),
-        sex_check = release_folder_2/"sex_check"/(release_base_name + ".sexcheck"),
-        batch_table = release_folder_2/"batch"/(release_base_name + "_batches"),
-        duplicates_table = release_folder_2/"batch"/(release_base_name + "_duplicates"),
-        readme = release_folder_2/"readme.md"
+        r2_table = release_folder/"snp"/(release_base_name + "_snp_r2.gz"),
+        best_snps = release_folder/"snp"/(release_base_name + "_reference_500k_snps"),
+        pcs_with_1000G = release_folder/"pca_with_1000G"/(release_base_name + ".pcs"),
+        eigenvector_with_1000G = release_folder/"pca_with_1000G"/(release_base_name + ".vec"),
+        snp_loadings_with_1000G = release_folder/"pca_with_1000G"/(release_base_name + ".load"),
+        eigenvalues_with_1000G = release_folder/"pca_with_1000G"/(release_base_name + ".val"),
+        variance_explained_with_1000G = release_folder/"pca_with_1000G"/(release_base_name + ".pve"),
+        pcs_only_moba = release_folder/"pca_only_moba"/(release_base_name + ".pcs"),
+        eigenvector_only_moba = release_folder/"pca_only_moba"/(release_base_name + ".vec"),
+        snp_loadings_only_moba = release_folder/"pca_only_moba"/(release_base_name + ".load"),
+        eigenvalues_only_moba = release_folder/"pca_only_moba"/(release_base_name + ".val"),
+        variance_explained_only_moba = release_folder/"pca_only_moba"/(release_base_name + ".pve"),
+        cluster_file = release_folder/"pca"/(release_base_name + "_clusters"),
+        ceu_id_file = release_folder/"pca"/(release_base_name + "_ceu_core_ids"),
+        king_relatedness = release_folder/"kinship"/(release_base_name + ".kin0"),
+        sex_check = release_folder/"sex_check"/(release_base_name + ".sexcheck"),
+        batch_table = release_folder/"batch"/(release_base_name + "_batches"),
+        duplicates_table = release_folder/"batch"/(release_base_name + "_duplicates"),
+        readme = release_folder/"readme.md"
     run:
         try:
 
-            print(f"Writing release additional files {release_base_name} to {release_folder_2}.")
+            print(f"Writing release additional files {release_base_name} to {release_folder}.")
 
             releaseTrunk =  mqc.plinkBase(input.release_genotypes[0])
 
             # Housekeeping
-            if not os.path.exists(release_folder_2/"snp"):
-                os.makedirs(release_folder_2/"snp")
+            if not os.path.exists(release_folder/"snp"):
+                os.makedirs(release_folder/"snp")
 
-            if not os.path.exists(release_folder_2/"pca_with_1000G"):
-                os.makedirs(release_folder_2/"pca_with_1000G")
+            if not os.path.exists(release_folder/"pca_with_1000G"):
+                os.makedirs(release_folder/"pca_with_1000G")
 
             
-            if not os.path.exists(release_folder_2/"pca_only_moba"):
-                os.makedirs(release_folder_2/"pca_only_moba")
+            if not os.path.exists(release_folder/"pca_only_moba"):
+                os.makedirs(release_folder/"pca_only_moba")
 
-            if not os.path.exists(release_folder_2/"kinship"):
-                os.makedirs(release_folder_2/"kinship")
+            if not os.path.exists(release_folder/"kinship"):
+                os.makedirs(release_folder/"kinship")
 
-            if not os.path.exists(release_folder_2/"sex_check"):
-                os.makedirs(release_folder_2/"sex_check")
+            if not os.path.exists(release_folder/"sex_check"):
+                os.makedirs(release_folder/"sex_check")
 
-            if not os.path.exists(release_folder_2/"batch"):
-                os.makedirs(release_folder_2/"batch")
+            if not os.path.exists(release_folder/"batch"):
+                os.makedirs(release_folder/"batch")
 
             # Readme
             with open(output.readme, 'w') as file:

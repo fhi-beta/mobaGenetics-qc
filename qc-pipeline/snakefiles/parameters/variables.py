@@ -30,29 +30,29 @@ blacklisted_variants = os.path.abspath(os.path.join(os.path.dirname(workflow.bas
 tmp_path = Path(config['output_base']) / config['release'] / 'tmp'
 runlog = Path(config['output_base']) / config['release'] / 'runlog.txt'
 base = Path(config['output_base']) / config['release']
-archive_base = Path(config['archive_output_base']) / config['release']
-archive3_base = Path(config['archive3_output_base']) / config['release']
-archive3_base_2 = Path(config['archive3_output_base']) / config['release2']
+# archive_base = Path(config['archive_output_base']) / config['release']
+# archive3_base = Path(config['archive3_output_base']) / config['release']
+# archive3_base_2 = Path(config['archive3_output_base']) / config['release2']
 hrc_ega = Path(config['hrc_ega'])
 hrc_bref = Path(config['hrc_bref'])
 hrc_vcf = Path(config['hrc_vcf'])
 hrc_af = Path(config['hrc_af'])
 github_docs = Path(os.path.dirname(workflow.basedir)) / 'docs' / config['release']
 
-github_docs_2 = Path(os.path.dirname(workflow.basedir)) / 'docs' / config['release2']
+# github_docs_2 = Path(os.path.dirname(workflow.basedir)) / 'docs' / config['release2']
 tmpMod1 = base/'mod1-data-preparation'
 tmpMod2 = base/'mod2-genetic-relationship'
 tmpMod3 = base/'mod3-population-clustering'
 tmpMod4 = base/'mod4-good_markers'
-tmpMod5 = base/'mod5-pre-phasing'
-tmpMod6 = base/'mod6-imputation'
-tmpMod7 = base/'mod7-post-imputation'
-tmpMod8 = archive3_base/'mod8-release_annotation'
-tmpMod8_2 = archive3_base_2/'mod8-release_annotation'
+tmpMod5 = base/'mod5-harmonization'
+tmpMod6 = base/'mod6-phasing-and-imputation'
+tmpMod7 = base/'mod7-merging'
+tmpMod8 = archive3_base/'mod8-release-annotation'
+# tmpMod8_2 = archive3_base_2/'mod8-release_annotation'
 
-tmpMod6_phasing_test = Path("/mnt/archive3/phasing_test/phase_chr20_test")
+# tmpMod6_phasing_test = Path("/mnt/archive3/phasing_test/phase_chr20_test")
 
-imputation_report_previous = Path("/mnt/work/oystein/reports/2025.01.30/imputation_report")
+# imputation_report_previous = Path("/mnt/work/oystein/reports/2025.01.30/imputation_report")
 # tmpMod6_phase_merged = Path("/mnt/archive3/phasing_test/phase_merged")
 
 #tmpMergeTest = base/'merge_test'
@@ -63,7 +63,7 @@ imputation_report_previous = Path("/mnt/work/oystein/reports/2025.01.30/imputati
 # tmpMod72 = Path(config['output_base']) / '2024.09.23' / 'mod7-post-imputation'
 #tmpMod8 = Path(config['output_base']) / config['release2'] / 'mod8-release_annotation'
 release_folder = Path(config['release_base']) / config['release'] # Path(config['release_base']) / config['release']
-release_folder_2 = Path(config['release_base']) / config['release2'] # Path(config['release_base']) / config['release']
+# release_folder_2 = Path(config['release_base']) / config['release2'] # Path(config['release_base']) / config['release']
 release_base_name = "moba_genotypes_" + config['release2'] # "moba_genotypes_" + config['release']
 
 n_samples = config['n_samples']
@@ -82,9 +82,9 @@ resultPath = base/'results'
 # - Batch 19 needs to be checked for overlap with other batches before being added. Gutorm notes that it probably does not need to be included.
 # batches_debug = ['snp001', 'snp002', 'snp003', 'snp007', 'snp008', 'snp009', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp015b', 'snp016a', 'snp016b', 'snp017a', 'snp017b', 'snp017c', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018c', 'snp018de']
 batches =  config['batches']
-chrs_debug = ['12', '20','21']
-batches_debug = ['snp008', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp016a', 'snp016b', 'snp017b', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018de']
-batches_to_split = config['batches_to_split']
+# chrs_debug = ['12', '20','21']
+# batches_debug = ['snp008', 'snp010', 'snp011', 'snp012', 'snp014', 'snp015a', 'snp016a', 'snp016b', 'snp017b', 'snp017d', 'snp017e', 'snp017f', 'snp018a', 'snp018b', 'snp018de']
+# batches_to_split = config['batches_to_split']
 chrs = config['chrs']
 n_phasing_batches = config['n_phasing_batches']
 max_phasing_batches = max(n_phasing_batches.values())
