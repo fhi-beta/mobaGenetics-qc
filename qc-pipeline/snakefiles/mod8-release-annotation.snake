@@ -21,6 +21,7 @@ rule mod8_split_rare_common:
     params:
         release_maf_threshold = config['release_maf_thr'],
         mac_threshold = config['merged_set_best_snps_mac_thr']
+    threads: 32
     run:
         try:
 
@@ -39,6 +40,7 @@ rule mod8_split_rare_common:
                     "--out", outTrunk_common_snps,
                     "--make-pgen",
                     "--write-snplist",
+                    "--threads", str(threads)
                     "--freq"
                 ],
                 check=True
@@ -49,6 +51,7 @@ rule mod8_split_rare_common:
                     plink2local,
                     "--pfile", inTrunk,
                     "--exclude", output.common_snps_list,
+                    "--threads", str(threads),
                     "--out", outTrunk_rare_snps,
                     "--make-pgen"
                 ],
@@ -198,6 +201,7 @@ rule mod8_best_snps:
         info_threshold = config['merged_set_best_snps_info_thr'],
         batch_info_threshold = config['merged_set_best_snps_batch_info_thr'],
         prune_cmd = config["prune_cmd"]
+    threads: 32
     run:
         inTrunk = mqc.plinkBase(input.pgenset[0])
         outTrunk =  mqc.plinkBase(output.pgenset[0])
@@ -215,6 +219,7 @@ rule mod8_best_snps:
                 "--max-alleles", "2",
                 "--mac", str(params.mac_threshold),
                 "--geno", str(params.geno_threshold),
+                "--threads", str(threads),
                 "--out", temp1,
                 "--make-pgen"
             ],
@@ -227,6 +232,7 @@ rule mod8_best_snps:
             [
                 plink2local,
                 "--pfile", temp1,
+                "--threads", str(threads),
                 "--autosome",
                 "--exclude", "range", input.high_ld_regions_hg19
             ] + params.prune_cmd.split()   + [
@@ -239,6 +245,7 @@ rule mod8_best_snps:
             [
                 plink2local,
                 "--pfile", temp1,
+                "--threads", str(threads),
                 "--extract", output.best_pruned_list,
                 "--out", outTrunk,
                 "--make-pgen"
@@ -260,7 +267,7 @@ rule mod8_generate_best_snps_stats:
         afreq = tmpMod8/'mod8_best_snps.afreq',
         smiss = tmpMod8/'mod8_best_snps.smiss',
         vmiss = tmpMod8/'mod8_best_snps.vmiss',
-    threads: 1
+    threads: 32
     run:
         try:
             # Plink base paths
@@ -275,6 +282,7 @@ rule mod8_generate_best_snps_stats:
                 [
                     plink2local,
                     "--pfile", plink_input,
+                    "--threads", str(threads),
                     "--freq",
                     "--out", plink_freq_output
                 ],
@@ -286,6 +294,7 @@ rule mod8_generate_best_snps_stats:
                 [
                     plink2local,
                     "--pfile", plink_input,
+                    "--threads", str(threads),
                     "--read-freq", output.afreq,
                     "--het",
                     "--out", plink_het_output
@@ -298,6 +307,7 @@ rule mod8_generate_best_snps_stats:
                 [
                     plink2local,
                     "--pfile", plink_input,
+                    "--threads", str(threads),
                     "--hardy", "midp",
                     "--read-freq", output.afreq,
                     "--out", plink_hwe_output
@@ -310,6 +320,7 @@ rule mod8_generate_best_snps_stats:
                 [
                     plink2local,
                     "--pfile", plink_input,
+                    "--threads", str(threads),
                     "--read-freq", output.afreq,
                     "--missing",
                     "--out", plink_miss_output
@@ -362,7 +373,7 @@ rule mod8_pedigree_ibd_estimate:
         pgenset = rules.mod8_best_snps.output.pgenset,
     output:
         king_relatedness = tmpMod8/(rule_stem + ".kin0")
-    threads: 24
+    threads: 32
     run:
         try:
             plink_input = mqc.plinkBase(input.pgenset[0])
@@ -374,6 +385,7 @@ rule mod8_pedigree_ibd_estimate:
                 [
                     plink2local,
                     "--pfile", plink_input,
+                    "--threads", str(threads),
                     "--make-bed",
                     "--out", plink_input_1
                 ],
@@ -410,6 +422,7 @@ rule mod8_check_sex:
         pgenset = rules.mod8_split_rare_common.output.pgenset_common_snps
     output:
         sex_check = tmpMod8/(rule_stem + ".sexcheck")
+    threads: 32
     run:
         try:
             in_trunk = mqc.plinkBase(input.pgenset[0])
@@ -417,6 +430,7 @@ rule mod8_check_sex:
             subprocess.run(
                 [
                     "plink2",
+                    "--threads", str(threads),
                     "--pfile", in_trunk,
                     "--chr", "X",
                     "--check-sex", "max-female-xf=0.8", "min-male-xf=0.8",
@@ -488,6 +502,7 @@ rule mod8_exclude_conflictual_relationships:
         pgenset_common_snps =  multiext(str(tmpMod8/rule_stem), ".pgen", ".pvar", ".psam"),
         pgenset_rare_snps = multiext(str(tmpMod8/(rule_stem + "_rare")), ".pgen", ".pvar", ".psam"),
         pgenset_best_snps = multiext(str(tmpMod8/(rule_stem + "_best_snps")), ".pgen", ".pvar", ".psam")
+    threads: 32
     run:
         try:
             inTrunk_common_markers = mqc.plinkBase(input.pgenset_common_snps[0])
@@ -511,6 +526,7 @@ rule mod8_exclude_conflictual_relationships:
                 [
                     plink2local,
                     "--pfile", inTrunk_common_markers,
+                    "--threads", str(threads),
                     "--remove", input.pedigree_sample_exclusion,
                     "--out", outTrunk_common_markers,
                     "--make-pgen"
@@ -521,6 +537,7 @@ rule mod8_exclude_conflictual_relationships:
             subprocess.run(
                 [
                     plink2local,
+                    "--threads", str(threads),
                     "--pfile", inTrunk_rare_markers,
                     "--remove", input.pedigree_sample_exclusion,
                     "--out", outTrunk_rare_markers,
@@ -532,6 +549,7 @@ rule mod8_exclude_conflictual_relationships:
             subprocess.run(
                 [
                     plink2local,
+                    "--threads", str(threads),
                     "--pfile", inTrunk_best_markers,
                     "--remove", input.pedigree_sample_exclusion,
                     "--out", outTrunk_best_markers,
@@ -670,7 +688,7 @@ rule mod8_common_markers_moba_ref:
         marker_list = tmpMod8/(rule_stem + ".txt")
     benchmark:
         tmpMod8/(rule_stem + ".benchmark")
-
+    threads: 32
     run:
         inTrunk_ref =  mqc.plinkBase(input.bedset_ref[0])
         inTrunk_moba =  mqc.plinkBase(input.pgenset_moba[0])
@@ -686,6 +704,7 @@ rule mod8_common_markers_moba_ref:
         subprocess.run(
             [
                 plink2local,
+                "--threads", str(threads),
                 "--pfile", inTrunk_moba,
                 "--make-bed",
                 "--out", outTrunk_only_moba # inTrunk_moba_1
@@ -701,6 +720,7 @@ rule mod8_common_markers_moba_ref:
             [
                 plinklocal,
                 "--bfile", inTrunk_ref,
+                "--threads", str(threads),
                 "--extract", output.marker_list,
                 "--out", outTrunk_ref_temp,
                 "--allow-extra-chr",
@@ -712,6 +732,7 @@ rule mod8_common_markers_moba_ref:
         subprocess.run(
             [
                 plinklocal,
+                "--threads", str(threads),
                 "--bfile", outTrunk_only_moba,
                 "--extract", output.marker_list,
                 "--out", outTrunk_moba_temp,
@@ -726,6 +747,7 @@ rule mod8_common_markers_moba_ref:
         subprocess.run(
             [
                 plinklocal,
+                "--threads", str(threads),
                 "--bfile", outTrunk_ref_temp,
                 "--bmerge", outTrunk_moba_temp,
                 "--out", triallelesTrunk
@@ -737,6 +759,7 @@ rule mod8_common_markers_moba_ref:
         subprocess.run(
             [
                 plinklocal,
+                "--threads", str(threads),
                 "--bfile", outTrunk_ref_temp,
                 "--exclude", output.tri_alleles,
                 "--out", outTrunk_ref,
@@ -748,6 +771,7 @@ rule mod8_common_markers_moba_ref:
         subprocess.run(
             [
                 plinklocal,
+                "--threads", str(threads),
                 "--bfile", outTrunk_moba_temp,
                 "--exclude", output.tri_alleles,
                 "--out", outTrunk_moba,
@@ -774,6 +798,7 @@ rule mod8_pca_both:
         variance_explained = tmpMod8/(rule_stem + ".pve"),
     benchmark:
         tmpMod8/(rule_stem + ".benchmark")
+    threads: 32
     run:
         inTrunk_ref = mqc.plinkBase(input.bedset_ref[0])
         inTrunk_moba = mqc.plinkBase(input.bedset_moba[0])
@@ -782,6 +807,7 @@ rule mod8_pca_both:
         subprocess.run(
             [
                 plinklocal,
+                "--threads", str(threads),
                 "--bfile", inTrunk_ref,
                 "--bmerge", inTrunk_moba,
                 "--out", outTrunk,
@@ -955,7 +981,7 @@ rule release_additional_files:
         king_relatedness = rules.mod8_pedigree_ibd_estimate.output.king_relatedness,
         sex_check = rules.mod8_import_ycounts.output.sex_check,
         batch_table = rules.mod8_batch_table.output.batch_table,
-        duplicates_table = rules.mod8_make_duplicates_table.output.duplicates
+        confirmed_relationsips = rules.mod8_psam_reconstruction.output.all_samples_relationships
     params:
         version = config['release']
     output:
@@ -976,7 +1002,7 @@ rule release_additional_files:
         king_relatedness = release_folder/"kinship"/(release_base_name + ".kin0"),
         sex_check = release_folder/"sex_check"/(release_base_name + ".sexcheck"),
         batch_table = release_folder/"batch"/(release_base_name + "_batches"),
-        duplicates_table = release_folder/"batch"/(release_base_name + "_duplicates"),
+        confirmed_relationsips = release_folder/"batch"/(release_base_name + "_confirmed_relationships"),
         readme = release_folder/"readme.md"
     run:
         try:

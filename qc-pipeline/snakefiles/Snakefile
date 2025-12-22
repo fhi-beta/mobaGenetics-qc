@@ -107,7 +107,7 @@ rule all:
         king_relatedness = release_folder/"kinship"/(release_base_name + ".kin0"),
         sex_check = release_folder/"sex_check"/(release_base_name + ".sexcheck"),
         batch_table = release_folder/"batch"/(release_base_name + "_batches"),
-        duplicates_table = release_folder/"batch"/(release_base_name + "_duplicates"),
+        confirmed_relationships = release_folder/"batch"/(release_base_name + "_confirmed_relationships"),
         readme = release_folder/"readme.md"
 
 
