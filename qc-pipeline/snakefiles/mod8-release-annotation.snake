@@ -40,7 +40,7 @@ rule mod8_split_rare_common:
                     "--out", outTrunk_common_snps,
                     "--make-pgen",
                     "--write-snplist",
-                    "--threads", str(threads)
+                    "--threads", str(threads),
                     "--freq"
                 ],
                 check=True
