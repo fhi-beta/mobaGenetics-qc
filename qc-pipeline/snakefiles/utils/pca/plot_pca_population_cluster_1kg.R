@@ -819,7 +819,9 @@ plot_discrete <- function(column, plot_data, top_pc, file_suffix){
 
 }
 
+if(nrow(trios) > 0){
 plot_trios(trios_plot_data, "trios", 10)
+}
 
 
 
