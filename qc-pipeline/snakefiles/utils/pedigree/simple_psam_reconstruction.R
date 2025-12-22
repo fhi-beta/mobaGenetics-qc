@@ -10,17 +10,17 @@ set.seed(11111)
 
 # Command line arguments
 debug <- F
-debug_plink_version <- 2
-debug_batch <- "snp010"
+debug_plink_version <- 1
+debug_batch <- "snp002"
 if (debug) {
   if(debug_plink_version == 1){
     args <- c(
-    paste0("/mnt/work/qc_genotypes/pipeOut_dev/2025.01.30/mod2-genetic-relationship/",debug_batch,"/pedigree_ibd_estimate.kin0"), 
-    paste0("/mnt/work/qc_genotypes/pipeOut_dev/2025.01.30/mod2-genetic-relationship/", debug_batch, "/check_sex.sexcheck"),
+    paste0("/mnt/archive3/qc_genotypes/pipeOut_dev/2025.12.21/mod2-genetic-relationship/",debug_batch,"/pedigree_ibd_estimate.kin0"), 
+    paste0("/mnt/archive3/qc_genotypes/pipeOut_dev/2025.12.21/mod2-genetic-relationship/", debug_batch, "/check_sex.sexcheck"),
     "/mnt/archive2/moba_genotypes_resources/phenotypes/expected_relationship_24.04.12.gz",
     "/mnt/archive2/moba_genotypes_resources/phenotypes/birth_year_24.04.12.gz",
     "/mnt/archive2/moba_genotypes_resources/phenotypes/ids_24.08.07.gz",
-    paste0("/mnt/work/qc_genotypes/pipeOut_dev/2025.01.30/mod2-genetic-relationship/", debug_batch, "/callrate_permanent_removal.fam"),
+    paste0("/mnt/archive3/qc_genotypes/pipeOut_dev/2025.12.21/mod2-genetic-relationship/", debug_batch, "/callrate_permanent_removal.fam"),
     paste0("/mnt/work/oystein/tmp/fam_reconstruction/plink1/", debug_batch, "/fam_reconstruction.fam"),
     paste0("/mnt/work/oystein/tmp/fam_reconstruction/plink1/", debug_batch, "/exclusion"),
     paste0("/mnt/work/oystein/tmp/fam_reconstruction/plink1/", debug_batch, "/mismatch_information.gz"),
@@ -1017,7 +1017,12 @@ check_expected_relationships(expected_relationships_data_ind, parent_offspring_t
 check_expected_relationships(expected_relationships_data_samples, parent_offspring_table_samples, psam_data, sample_ids, "samples")
 
 if (plink_version== 1){
-  new_psam <- simplified_psam
+  new_psam <- simplified_psam %>% select(IID, PAT, MAT) %>% left_join(id_to_family_sex %>%
+           select(
+          FID = family,
+            IID = id,
+            SEX = sex
+           ), by = "IID") %>% select(FID, IID, PAT, MAT, SEX)
 } else {
 
 
@@ -1216,7 +1221,10 @@ mismatches_table <- unique(mismatches_table)
 #       )
 
 # restored_psam_data <- restored_psam_data[, c("FID", setdiff(names(restored_psam_data), "FID"))]
+if(plink_version == 2){
 colnames(new_psam)[colnames(new_psam) == "FID"] <- "#FID"
+}
+
 
 if (!identical(psam_data$IID, new_psam$IID)){
   stop("Restored psam IIDs do not match original")
