@@ -260,7 +260,7 @@ def get_chromosomes_in_batch(batch):
     return chromosomes
 
 
-def get_all_chromosome_files():
+def get_all_chromosome_files(wildcards):
     return [f"{tmpMod6str}/{batch}/chromosomes.txt" for batch in batches]
 
 rule mod6_find_par_phasing_batches:
