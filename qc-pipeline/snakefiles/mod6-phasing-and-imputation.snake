@@ -259,8 +259,13 @@ def get_chromosomes_in_batch(batch):
         chromosomes = [line.strip() for line in infile]
     return chromosomes
 
+
+def get_all_chromosome_files:
+    return [f"{tmpMod6str}/{batch}/chromosomes.txt" for batch in batches]
+
 rule mod6_find_par_phasing_batches:
     input:
+        chromosome_files = get_all_chromosome_files,
         batch_table = rules.mod6_batch_table.output.batch_table
     output:
         phasing_batch = str(tmpMod6/"chr{chr}_phasing_batch.batch0")
