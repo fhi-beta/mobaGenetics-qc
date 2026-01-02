@@ -295,20 +295,20 @@ rule mod6_find_phasing_batches:
 
 
 
-tmpMod6str = str(tmpMod6)
-def get_index_conform_files_to_merge(wildcards):
-    # batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
-    return [f"{tmpMod6str}/{batch}/mod6_conform.chr{wildcards.chr}.conformed.vcf.gz.tbi" for batch in batches]
+# tmpMod6str = str(tmpMod6)
+# def get_index_conform_files_to_merge(wildcards):
+#     # batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
+#     return [f"{tmpMod6str}/{batch}/mod6_conform.chr{wildcards.chr}.conformed.vcf.gz.tbi" for batch in batches]
 
 
-def get_conform_files_to_merge(wildcards):
-    # batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
-    return [f"{tmpMod6str}/{batch}/mod6_conform.chr{wildcards.chr}.conformed.vcf.gz" for batch in batches]
+# def get_conform_files_to_merge(wildcards):
+#     # batches_with_chromosome = get_batches_with_chromosome(wildcards.chr)
+#     return [f"{tmpMod6str}/{batch}/mod6_conform.chr{wildcards.chr}.conformed.vcf.gz" for batch in batches]
 
 rule mod6_merge_batches:
     input:
-        vcfs = get_conform_files_to_merge,
-        index = get_index_conform_files_to_merge
+        vcfs = expand(str(tmpMod6/"{batch}"/"mod6_conform.chr{chr}.conformed.vcf.gz"), batch = batches),
+        index = expand(str(tmpMod6/"{batch}"/"mod6_conform.chr{chr}.conformed.vcf.gz.tbi"), batch = batches)
     output:
         merged_bcf = str(tmpMod6/"mod6_merge_batches_chr{chr}.bcf")
     log:
