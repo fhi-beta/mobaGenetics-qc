@@ -154,16 +154,15 @@ rule mod7_merge_batches:
         for vcf in input.vcfs:
             if os.path.getsize(vcf) > 0:
                 non_empty_vcfs.append(vcf)
-                
+        non_empty_vcfs_str = " ".join(non_empty_vcfs)   
         shell(f"""
         echo "Output file: {output.merged_vcf}" > {log}
         echo "Merge started $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
-        bcftools merge {non_empty_vcfs} -o {output.merged_vcf} --write-index
+        bcftools merge {non_empty_vcfs_str} -o {output.merged_vcf} --write-index
         echo "Merge finished $(date '+%Y-%m-%d %H:%M:%S')" >> {log}
         echo "Merged files:" >> {log}
         for file in {non_empty_vcfs}; do echo "$file" >> {log}; done
         """)
-
 # rule mod7_index_merge:
 #     input:
 #         bcf = rules.mod7_merge_batches.output.merged_vcf
