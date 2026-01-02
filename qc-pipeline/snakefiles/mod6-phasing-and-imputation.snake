@@ -580,7 +580,7 @@ rule mod6_query:
         """
 
 def get_ref_vcf(wildcards):
-    if wildcards.chr == "!":
+    if wildcards.chr == "1":
         return str(hrc_vcf / "HRC.r1-1.EGA.GRCh37.chr1.haplotypes.noIBD.vcf.gz")
     elif wildcards.chr == "X":
         return str(hrc_vcf / "HRC.r1-1.EGA.GRCh37.chrX_nonPAR.haplotypes.vcf.gz")
