@@ -1,7 +1,7 @@
 ## MoBa Genotypes Releases
 
 ### Current release
-- [v. 2025.09.25](2025.09.25/readme.md): Second beta release. Improved the handling of SNPs with different frequencies between populations.
+- [v. 2025.09.25](2025.09.25/readme.md): Second public release. Improved the handling of SNPs with different frequencies between populations.
 
 ### Previous releases
 - [v. 2025.01.30](2025.01.30/readme.md): First public beta release.
