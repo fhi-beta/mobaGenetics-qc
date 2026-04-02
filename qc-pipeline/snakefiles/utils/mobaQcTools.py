@@ -1769,7 +1769,7 @@ def merge_pgensets(pgens, out_trunk, plink2local, threads, pgenlist_file = "pgen
     # Generate list of files to merge
     pgenset_dir=$(dirname "{out_trunk}")
     echo {pgens} | tr ' ' '\\n' | sed 's/\.pgen//' > $pgenset_dir/{pgenlist_file}.txt
-    {plink2local} --pmerge-list $pgenset_dir/{pgenlist_file}.txt --threads {threads} --out {out_trunk}
+    {plink2local} --pmerge-list $pgenset_dir/{pgenlist_file}.txt --threads {threads} --merge-info-mode erase --out {out_trunk}
     """
     subprocess.run(cmd, shell=True, check=True)
 

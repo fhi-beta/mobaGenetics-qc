@@ -259,6 +259,7 @@ rule mod7_update_sex_file:
     run:
         mqc.create_update_sex_file(input.fams, output.sex_file, threads)
 
+# update-sex and --set-hh-missing can and should be removed here, since they bias the sex check. As it stands, the sex_file is wrongly formatted anyway, so the effect is the same as removing these flags
 
 rule mod7_convert_chrs_to_pgen:
     input:
