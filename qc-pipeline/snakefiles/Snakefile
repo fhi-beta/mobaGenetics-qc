@@ -76,6 +76,7 @@ rule all:
         resultPath / "count_tables" / "mod5_samples",
         resultPath / "count_tables" / "mod5_variants",
         github_docs / "initial_samples_overview.md",
+        mod7_merge = tmpMod7 / "mod7_merge.pgen",
         mod8_best_markers_het = tmpMod8/'mod8_best_snps.het',
         mod8_best_markers_hardy = tmpMod8/'mod8_best_snps.hardy',
         mod8_best_markers_afreq = tmpMod8/'mod8_best_snps.afreq',
