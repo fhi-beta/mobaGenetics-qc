@@ -71,6 +71,7 @@ include: "mod8-release-annotation.snake"
 # rule all, lists the output of every module
 rule all:
     input:
+        r2_table = release_folder/"snp"/(release_base_name + "_snp_r2.gz")
         # expand(tmpMod4/ "{batch}" / "{number_of_samples}" / ("mod5_output.bed"), batch = batches_debug, number_of_samples = samples)
         # expand(tmpMod4point5/ "{batch}" / ("mod4point5_cull_samples.bed"), batch = batches_debug)
         #expand(tmpMod6/ "{batch}" / f"{n_samples}_samples" / ("mod6_conform.chr{chr}.conformed.vcf.gz"), batch = batches_debug, chr = chrs)
@@ -123,9 +124,9 @@ rule all:
         #expand(str(tmpMod6_phasing_test / "{batch}" / "mod6_split_merged_phased_no_filter.chr21.vcf"), batch = batches)
         # expand("/mnt/archive3/phasing_test/{batch}/mod6_impute.chr{chr}.imputed.vcf.gz", batch = batches, chr = ["20", "21"]),
         # expand(str(tmpMod6_phasing_test / "{quality}" /"{batch}" / "mod7_filter.chr{chr}.vcf.gz"), batch = batches, chr = ["21"], quality = ["dr2_08"]),
-        expand(str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info"), batch = batches, chr = chrs),
-        str(tmpMod6_phasing_test / "phase_report" / "mod7_phase_report.md"),
-        expand(str(tmpMod6_phasing_test / "{batch}" / "imputation_report.md"), batch = batches)
+        # expand(str(tmpMod6_phasing_test / "{batch}" / "mod6_impute.chr{chr}.imputed.vcf.gz.info"), batch = batches, chr = chrs),
+        # str(tmpMod6_phasing_test / "phase_report" / "mod7_phase_report.md"),
+        # expand(str(tmpMod6_phasing_test / "{batch}" / "imputation_report.md"), batch = batches)
         # expand("/mnt/archive2/moba_genotypes_resources/HRC/HRC_af_chr{chr}", chr = chrs)
         # expand(str(tmpMod6_phasing_test / "mod7_merge_batches.chr{chr}.bcf"), chr = ["PAR1", "PAR2"]),
         # str(tmpMod6_phasing_test / "mod7_phase_check.chr21")
