@@ -1573,7 +1573,8 @@ def summarize_dr2(base, dr2_df_file, batches, info_chrs, threads):
         df_batch = pd.concat(batch_dfs, ignore_index=True)
         if dr2_df is None:
             dr2_df = df_batch[["CHROM", "POS", "ID", "REF", "ALT"]]
-        dr2_df[batch] = df_batch["DR2"]
+        dr2_df[f"{batch}"] = df_batch["DR2"]
+        dr2_df[f"{batch}_IMP"] = df_batch["IMP"]
         vcf_file = rf'{base}/{batch}/mod6_impute.chr1.imputed.vcf.gz'
         sample_sizes.append(get_n_samples(vcf_file))
     sample_sizes = np.array(sample_sizes)
@@ -1597,6 +1598,7 @@ def best_snps_of_subset(dr2_file, out, snp_cutoff, pvar_file):
 def fetch_info_data(info_file):
     info_data = pd.read_csv(info_file, sep=r'\s+', names =["CHROM", "POS", "ID", "IMP", "REF", "ALT", "DR2", "AF"])
     info_data['ID'] = info_data.apply(lambda row: f"{row['CHROM']}_{row['POS']}_{row['REF']}:{row['ALT']}" if row['ID'] == '.' else row['ID'], axis=1)
+    info_data["IMP"] = info_data.apply(lambda row: "0" if row['IMP'] != "1" else "1", axis=1)
     return info_data
 
 def get_n_samples(vcf_file):

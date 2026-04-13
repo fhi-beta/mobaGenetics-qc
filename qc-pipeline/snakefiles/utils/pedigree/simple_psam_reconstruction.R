@@ -160,14 +160,14 @@ sex_check_data <- read.table(
   sex_check_data <- read.table(
   file = sex_check_file,
   header = F,
-  col.names = c("IID", "PEDSEX", "SNPSEX", "STATUS", "F", "YCOUNT"),
+  col.names = c("IID", "SNPSEX", "F", "YCOUNT"),
   stringsAsFactors = F
 )
 }
 
 
 sex_check_data$SNPSEX[is.na(sex_check_data$SNPSEX)] <- 0
-sex_check_data$PEDSEX[is.na(sex_check_data$PEDSEX)] <- 0
+# sex_check_data$PEDSEX[is.na(sex_check_data$PEDSEX)] <- 0
 
 print("Read relationship file")
 expected_relationships_data <- read.table(

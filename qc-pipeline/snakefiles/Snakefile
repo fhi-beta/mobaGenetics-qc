@@ -72,7 +72,7 @@ rule all:
     input:
         expand(github_docs / "{batch}" / "imputation_report.md", batch = batches),
         github_docs / "phasing_report_unfiltered" / "phasing_report_unfiltered.md",
-        github_docs / "phasing_report_best_snps" / "phasing_report_best_snps.md",
+        # github_docs / "phasing_report_best_snps" / "phasing_report_best_snps.md",
         resultPath / "count_tables" / "mod5_samples",
         resultPath / "count_tables" / "mod5_variants",
         github_docs / "initial_samples_overview.md",
