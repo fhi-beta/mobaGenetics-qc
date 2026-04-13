@@ -71,7 +71,7 @@ include: "mod8-release-annotation.snake"
 # rule all, lists the output of every module
 rule all:
     input:
-        r2_table = release_folder/"snp"/(release_base_name + "_snp_r2.gz")
+        str(tmpMod8 / "mod8_dr2.txt.gz")
         # expand(tmpMod4/ "{batch}" / "{number_of_samples}" / ("mod5_output.bed"), batch = batches_debug, number_of_samples = samples)
         # expand(tmpMod4point5/ "{batch}" / ("mod4point5_cull_samples.bed"), batch = batches_debug)
         #expand(tmpMod6/ "{batch}" / f"{n_samples}_samples" / ("mod6_conform.chr{chr}.conformed.vcf.gz"), batch = batches_debug, chr = chrs)
