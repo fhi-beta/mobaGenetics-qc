@@ -76,10 +76,10 @@ rule summarize_dr2:
         info = get_info_files
     output:
         dr2 = str(tmpMod8 / "mod8_dr2.txt.gz")
-    threads: 24
+    threads: 1
     run:
         input_base = str(tmpMod6)
-        mqc.summarize_dr2(input_base, output.dr2, batches, chrs_without_par, threads)
+        mqc.summarize_dr2(input_base, output.dr2, batches, chrs_without_par)
 
 # Rule deprecated 2025.09.25
 # rule_stem = 'mod8_common_snps_filter'

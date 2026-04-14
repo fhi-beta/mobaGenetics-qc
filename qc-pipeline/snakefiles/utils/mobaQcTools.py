@@ -1558,7 +1558,7 @@ def load_fam_file(fam_file):
     df = pd.read_csv(fam_file, delim_whitespace=True, header=None, names=['FID', 'IID', 'PID', 'MID', 'SEX', 'Phenotype'])
     return df
 
-def summarize_dr2(base, dr2_df_file, batches, info_chrs, threads):
+def summarize_dr2(base, dr2_df_file, batches, info_chrs):
     """
     A method for writing a file with the dr2 values after imputation
     """
@@ -1568,8 +1568,11 @@ def summarize_dr2(base, dr2_df_file, batches, info_chrs, threads):
         print(f"Reading data for batch {batch}...")
         info_files = [rf'{base}/{batch}/mod6_impute.chr{chr}.imputed.vcf.gz.info' for chr in info_chrs]
         batch_dfs = []
-        with mp.Pool(threads) as pool:
-            batch_dfs = pool.map(fetch_info_data, info_files)
+        for info_file in info_files:
+            print(f"Reading info file {info_file}...")
+            batch_dfs.append(fetch_info_data(info_file))
+        # with mp.Pool(threads) as pool:
+        #     batch_dfs = pool.map(fetch_info_data, info_files)
         df_batch = pd.concat(batch_dfs, ignore_index=True)
         if dr2_df is None:
             dr2_df = df_batch[["CHROM", "POS", "ID", "REF", "ALT"]]
@@ -1598,7 +1601,7 @@ def best_snps_of_subset(dr2_file, out, snp_cutoff, pvar_file):
 def fetch_info_data(info_file):
     info_data = pd.read_csv(info_file, sep=r'\s+', names =["CHROM", "POS", "ID", "IMP", "REF", "ALT", "DR2", "AF"])
     info_data['ID'] = info_data.apply(lambda row: f"{row['CHROM']}_{row['POS']}_{row['REF']}:{row['ALT']}" if row['ID'] == '.' else row['ID'], axis=1)
-    info_data["IMP"] = info_data.apply(lambda row: "0" if row['IMP'] != "1" else "1", axis=1)
+    info_data["IMP"] = info_data.apply(lambda row: "1" if row['IMP'] == "1" or row['IMP'] == 1 else "0", axis=1)
     return info_data
 
 def get_n_samples(vcf_file):
