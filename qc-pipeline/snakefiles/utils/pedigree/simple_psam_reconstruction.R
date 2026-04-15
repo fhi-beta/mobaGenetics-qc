@@ -224,7 +224,7 @@ batch_chip <- read.table(
 )
 smiss <- read.table(
   file = smiss_file,
-  header = F, col.names = c("FID", "IID", "MISSING_CT", "OBS_CT", "F_MISS"),
+  header = F, col.names = c("IID", "MISSING_CT", "OBS_CT", "F_MISS"),
   stringsAsFactors = F
 )
 }
