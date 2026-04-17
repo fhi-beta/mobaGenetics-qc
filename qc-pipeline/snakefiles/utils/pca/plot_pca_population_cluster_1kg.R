@@ -169,7 +169,7 @@ if (plink_version == 2){
 het <- read.table(
   het_file, 
   header = F, 
-  col.names = c("fid", "iid", "o_hom", "e_hom", "obs_ct", "f")
+  col.names = c("iid", "o_hom", "e_hom", "obs_ct", "f")
   )
 }
 
