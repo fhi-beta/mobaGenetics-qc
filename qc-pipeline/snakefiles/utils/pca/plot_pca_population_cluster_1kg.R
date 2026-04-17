@@ -133,6 +133,8 @@ core_threshold_p <- 0.9
 
 
 # Load data
+
+print("Reading 1000G file")
 thousand_genomes_populations <- read.table(
   file = thousand_genomes_populations_file,
   header = T,
@@ -145,6 +147,7 @@ thousand_genomes_populations <- read.table(
     iid = x_iid
   )
 
+print("Reading pcs file")
 pcs <- read.table(
   file = pcs_file,
   header = T,
@@ -161,6 +164,7 @@ pcs <- read.table(
 # ) %>% 
 #   clean_names()
 
+print("Reading het file" )
 if (plink_version == 2){
 het <- read.table(
   het_file, 
@@ -175,6 +179,7 @@ het <- read.table(
 #   col.names = c("iid", "o_hom", "e_hom", "obs_ct", "f")
 #   )
 
+print("Reading id file")
 id_data  <- read.table(
   file = id_file,
   header = T,
@@ -182,13 +187,14 @@ id_data  <- read.table(
   stringsAsFactors = F
 )
 
+print("Reading batches file")
 batches_data  <- read.table(
   file = batches_file,
   header = T,
   sep = "\t",
   stringsAsFactors = F
 )
-
+print("Reading psam file")
 if(plink_version == 2){
  psam_data  <- read.table(
   file = psam_file,
@@ -215,7 +221,7 @@ if(plink_version == 2){
 
 
 
-
+print("Done reading")
 psam_data <- psam_data %>% mutate(pat = as.character(pat),
          mat = as.character(mat))
 if (plink_version == 2){
