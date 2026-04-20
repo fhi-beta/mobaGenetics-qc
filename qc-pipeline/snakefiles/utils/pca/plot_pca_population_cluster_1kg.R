@@ -93,6 +93,10 @@ if (!dir.exists(plot_folder)) {
   
 }
 
+if (length(args) < 10) {
+  stop(sprintf("Expected at least 10 arguments, got %s", length(args)))
+}
+
 md_title <- args[4]
 
 cluster_file <- args[5]
@@ -105,12 +109,28 @@ batches_file <- args[8]
 
 psam_file <- args[9]
 
+if (!file.exists(psam_file)) {
+  stop(sprintf("PSAM/FAM file not found: %s", psam_file))
+}
+
 plink_version <- args[10]
 
 if (plink_version == 2){
 
+if (length(args) < 12) {
+  stop(sprintf("PLINK2 mode requires 12 arguments, got %s", length(args)))
+}
+
 northern_norwegians_file <- args[11]
 het_file <- args[12]
+
+if (!file.exists(northern_norwegians_file)) {
+  stop(sprintf("Northern Norwegians file not found: %s", northern_norwegians_file))
+}
+
+if (!file.exists(het_file)) {
+  stop(sprintf("HET file not found: %s", het_file))
+}
 
 }
 

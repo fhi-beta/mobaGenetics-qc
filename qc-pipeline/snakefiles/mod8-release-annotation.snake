@@ -887,8 +887,8 @@ rule mod8_plot_pca_both:
             {input.ids} \
             {input.batches} \
             {input.psam} \
-            2
-            {params.northern_norwegians}
+                2 \
+                {params.northern_norwegians} \
             {input.het} \
         """
         
