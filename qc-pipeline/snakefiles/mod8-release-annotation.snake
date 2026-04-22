@@ -1097,9 +1097,8 @@ rule release_additional_files:
             # Sex check files
             copyfile(input.sex_check, output.sex_check)
 
-            # Sex batch table
             copyfile(input.batch_table, output.batch_table)
-            copyfile(input.duplicates_table, output.duplicates_table)
+            copyfile(input.confirmed_relationships, output.confirmed_relationships)
 
 
         except Exception as e:
