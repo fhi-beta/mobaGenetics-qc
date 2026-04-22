@@ -981,7 +981,7 @@ rule release_additional_files:
         king_relatedness = rules.mod8_pedigree_ibd_estimate.output.king_relatedness,
         sex_check = rules.mod8_import_ycounts.output.sex_check,
         batch_table = rules.mod8_batch_table.output.batch_table,
-        confirmed_relationsips = rules.mod8_psam_reconstruction.output.all_samples_relationships
+        confirmed_relationships = rules.mod8_psam_reconstruction.output.all_samples_relationships
     params:
         version = config['release']
     output:
