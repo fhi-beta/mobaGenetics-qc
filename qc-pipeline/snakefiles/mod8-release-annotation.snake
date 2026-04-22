@@ -1067,10 +1067,10 @@ rule release_additional_files:
                 file.write(f"Made with love by the [Genetics and Bioinformatics department of the Norwegian Institute of Public Health](https://www.fhi.no/om/organisasjon/genetikk-og-bioinformatikk/).\n")
 
             # r2 table
-            with open(input.r2_table, 'rb') as f_in:
-                with gzip.open(output.r2_table, 'wb') as f_out:
-                    shutil.copyfileobj(f_in, f_out)
-
+            # with open(input.r2_table, 'rb') as f_in:
+            #     with gzip.open(output.r2_table, 'wb') as f_out:
+            #         shutil.copyfileobj(f_in, f_out)
+            copyfile(input.r2_table, output.r2_table)
             # List of top SNPs
             copyfile(input.best_snps, output.best_snps)
 
