@@ -914,6 +914,29 @@ rule release_md:
             "readme.md"
         """
 
+rule mod8_extract_Y_mito:
+    input:
+        bedset = rules.mod5_missingness_and_hwe.output.bedset,
+        exclude = rules.mod8_exclude_conflictual_relationships.output.pedigree_sample_exclusion
+    output:
+        bedset = multiext(str(tmpMod8 / "Y_and_mito_variants" / "{batch}" / "mod8_extract_Y_mito"), ".bed", ".bim", ".fam")
+    run:
+        inTrunk = mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
+        subprocess.run([plinklocal, "--bfile", inTrunk, "--remove", input.exclude, "--chr", "24", "26", "--make-bed", "--out", outTrunk])
+
+rule mod8_release_y_mito:
+    input:
+        bedset = rules.mod8_extract_Y_mito.output.bedset
+    output:
+        bedset = multiext(str(release_folder / "Y_and_mito_variants" / "{batch}" / "release_y_mito"), ".bed", ".bim", ".fam")
+    run:
+        inTrunk = mqc.plinkBase(input.bedset[0])
+        outTrunk = mqc.plinkBase(output.bedset[0])
+        for extension in ['.bed', '.bim', '.fam']:
+            print(f"Copying {inTrunk + extension} to {outTrunk + extension}")
+            copyfile(inTrunk + extension, outTrunk + extension)
+
 rule_stem = 'release_genotypes'
 rule release_genotypes:
     'Copies the genotype files to the release folder.'
