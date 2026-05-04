@@ -90,7 +90,7 @@ rule all:
         mod8_cluster_file = tmpMod8/"clusters",
         mod8_ceu_id_file = tmpMod8/"ceu_core_ids",
         mod8_release_md_file= github_docs / "readme.md",
-        y_and_mito = expand(str(release_folder / "Y_and_mito_variants" / "{batch}" / "release_y_mito.{ext}"), batch = batches, ext = [".bed", ".bim", ".fam"]),
+        y_and_mito = expand(str(release_folder / "Y_and_mito_variants" / "{batch}" / "release_y_mito{ext}"), batch = batches, ext = [".bed", ".bim", ".fam"]),
 
         r2_table = release_folder/"snp"/(release_base_name + "_snp_r2.gz"),
         best_snps = release_folder/"snp"/(release_base_name + "_reference_500k_snps"),
