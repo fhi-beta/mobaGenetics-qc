@@ -1,3 +1,4 @@
+# This module performs the harmonization of the batches to the HRC reference panel, and prepares the data for phasing and imputation.
 tmpMod4str = str(tmpMod4)
 def get_all_mod4_output_fam_files(wildcards):
     return [f"{tmpMod4str}/{batch}/m4_output_good_markers.fam" for batch in batches]

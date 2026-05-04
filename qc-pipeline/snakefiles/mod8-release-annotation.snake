@@ -81,109 +81,6 @@ rule summarize_dr2:
         input_base = str(tmpMod6)
         mqc.summarize_dr2(input_base, output.dr2, batches, chrs_without_par)
 
-# Rule deprecated 2025.09.25
-# rule_stem = 'mod8_common_snps_filter'
-# rule mod8_common_snps_filter:
-#     'Select common markers genotyped or with best imputation scores, filter by mac and geno rate'
-#     input:
-#         pgenset = rules.mod8_split_rare_common.output.pgenset_common_snps,
-#         afreq_common_snps = rules.mod8_split_rare_common.output.afreq_common_snps,
-#         r2_table = rules.summarize_dr2.output.dr2,
-#         high_ld_regions_hg19 = high_ld_regions_hg19
-#     output:
-#         pgenset_common_snps = multiext(str(tmpMod8 / rule_stem),".pgen",".pvar",".psam"),
-#     params:
-#         release_hw_threshold = config['release_hw_thr'],
-#         release_sd_het_threshold = config['release_sd_het_thr'],
-#         mac_threshold = config['merged_set_best_snps_mac_thr'],
-#     run:
-#         try:
-
-#             inTrunk =  mqc.plinkBase(input.pgenset[0])
-#             outTrunk_common =  mqc.plinkBase(output.pgenset_common_snps[0])
-
-#             subprocess.run(
-#                 [
-#                     plink2local,
-#                     "--pfile", inTrunk,
-#                     "--hardy", "midp",
-#                     "--read-freq", input.afreq_common_snps,
-#                     "--out", inTrunk
-#                 ],
-#                 check = True
-#             )
-
-#             mqc.extract_list(
-#                 inTrunk + ".hardy",
-#                 inTrunk + ".exclude",
-#                 threshold_doc_file = inTrunk + ".details",
-#                 sep = None,
-#                 colName = "^MIDP$",
-#                 condition = "<",
-#                 threshold = params.release_hw_threshold,
-#                 key_cols = [1],
-#                 doc_cols = [0, 1]
-#             )
-
-#             mqc.extract_list(
-#                 inTrunk + ".hardy.x",
-#                 inTrunk + "_x.exclude",
-#                 threshold_doc_file = inTrunk + ".details",
-#                 sep = None,
-#                 colName = "^MIDP$",
-#                 condition = "<",
-#                 threshold = params.release_hw_threshold,
-#                 key_cols = [1],
-#                 doc_cols = [0, 1]
-#             )
-
-
-#             print(f"het.")
-
-#             subprocess.run(
-#                 [
-#                     plink2local,
-#                     "--pfile", inTrunk,
-#                     "--read-freq", input.afreq_common_snps,
-#                     "--autosome",
-#                     "--maf", str(0.01),
-#                     "--het",
-#                     "--out",
-#                     inTrunk
-#                 ],
-#                 check = True
-#             )
-
-#             het_p_values = inTrunk + ".het"
-#             mqc.compute_excess_het(
-#                 het_p_values,
-#                 inTrunk + "_het.exclude",
-#                 params.release_sd_het_threshold,
-#                 plink1=False
-#             )
-
-#             with open(inTrunk + ".exclude", 'a') as exclude_file:
-#                 with open(inTrunk + "_x.exclude", 'r') as exclude_x_file:
-#                     exclude_file.write(exclude_x_file.read())
-#                 with open(inTrunk + "_het.exclude", 'r') as exclude_het_file:
-#                     exclude_file.write(exclude_het_file.read())
-
-#             subprocess.run(
-#                 [
-#                     plink2local,
-#                     "--pfile", inTrunk,
-#                     "--exclude", inTrunk + ".exclude",
-#                     "--out", outTrunk_common,
-#                     "--make-pgen"
-#                 ],
-#                 check = True
-#             )
-
-
-#         except Exception as e:
-#             print(f"An exception occurred in rule {rule}.")
-#             print(e)
-
 rule mod8_best_snps:
     input:
         pgenset = rules.mod8_split_rare_common.output.pgenset_common_snps,
@@ -599,80 +496,6 @@ rule mod8_make_duplicates_table:
         mqc.make_duplicates_table(psam_file, input.batches, input.ids, input.smiss, output.duplicates, output.trios, output.all_relations)
 
 
-# prepare files for phasing report
-
-# rule mod8_make_best_snp_bcf:
-#     input:
-#         pgenset = multiext("/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_exclude_conflictual_relationships_best_snps", ".pgen", ".pvar", ".psam") # hook into pipeline later
-#     output:
-#         bcf_files = expand(str(tmpMod8/"best.chr{chr}.bcf"), chr =[str(i) for i in range(1,23)])
-#     conda:
-#         "envs/plink2_tabix.yaml"
-#     threads: 24
-#     run:
-#         in_trunk = mqc.plinkBase(input.pgenset[0])
-#         for chr in range(1,23):
-#             bcf_trunk = str(tmpMod8 / "best.chr{chr}")
-#             cmd = f"plink2 --pfile {in_trunk} --chr {chr} --export bcf id-paste=iid vcf-dosage=HDS-force --threads {threads} --out {bcf_trunk}"
-#             shell(cmd)
-#             cmd = f'tabix {bcf_trunk}.bcf'
-#             shell(cmd)
-
-
-
-# rule mod8_make_bcf:
-#     input:
-#         pgenset = rules.mod8_exclude_conflictual_relationships.output.pgenset_best_snps
-#     output:
-#         bcf = str(tmpMod8 / "phase_check" / "mod8_make_bcf.best.chr{phasing_chr}.bcf")
-#     conda:
-#         "envs/plink2_tabix.yaml"
-#     run:
-#         in_trunk = mqc.plinkBase(input.pgenset[0])
-#         out_trunk = mqc.plinkBase(output.bcf)
-#         cmd = f"plink2 --pfile {in_trunk} --chr {wildcards.phasing_chr} --export bcf id-paste=iid vcf-dosage=HDS-force --out {out_trunk}"
-#         shell(cmd)
-#         cmd = f'tabix {out_trunk}.bcf'
-#         shell(cmd)
-
-# rule mod8_make_phasing_tables:
-#     input:
-#         bcf = rules.mod8_make_bcf.output.bcf,
-#         trios = rules.mod6_filter_relationships.output.filtered_trios
-#     output:
-#         phasing_table = str(tmpMod8 / "phase_check" / "mod8_make_phasing_tables.best.chr{phasing_chr}")
-#     params:
-#         phasing_script = "utils/phasing_check.py"
-#     conda:
-#         "envs/pysam.yaml"
-#     shell:
-#         """
-#         python {params.phasing_script} --bcf {input.bcf} --trios {input.trios} --output {output.phasing_table}
-#         """
-
-# def get_phasing_tables():
-#     return [str(tmpMod8 / "phase_check" / f"mod8_make_phasing_tables.best.chr{chr}") for chr in chrs]
-
-# rule mod8_phase_report:
-#     input:
-#         phase_check = get_phasing_tables(),
-#         all_relations = rules.mod6_filter_relationships.output.filtered_relationships
-#     output:
-#         phase_report = str(github_docs / "phasing_report_best_snps" / "phasing_report_best_snps.md")
-#     params:
-#         r_script = "utils/phasing_report.R",
-#         title ="\"Phasing report: all variants\"",
-#         rate = "phasing_hom",
-#         rate_desc = "\"Phasing error rates\""
-#     threads: 32
-#     conda:
-#         "envs/r_4.2.yaml"
-#     run:
-#         in_trunk = mqc.plinkBase(input.phase_check[0])
-#         shell("Rscript {params.r_script} {in_trunk} {input.all_relations} {output.phase_report} {params.title} {params.rate} {params.rate_desc}")
-
-
-
 
 # Reduce 1000 genome markers to the intersection with pruned markers
 rule_stem = 'mod8_common_markers_moba_ref'
@@ -695,7 +518,6 @@ rule mod8_common_markers_moba_ref:
         outTrunk_ref =  mqc.plinkBase(output.bedset_ref[0])
         outTrunk_moba =  mqc.plinkBase(output.bedset_moba[0])
         outTrunk_only_moba = mqc.plinkBase(output.bedset_only_moba[0])
-        #inTrunk_moba_1 = mqc.plinkBase(input.pgenset_moba[0]) + "_plink1"
         outTrunk_ref_temp = outTrunk_ref + "_temp"
         outTrunk_moba_temp = outTrunk_moba + "_temp"
         triallelesTrunk =  mqc.plinkBase(output.tri_alleles)
@@ -707,7 +529,7 @@ rule mod8_common_markers_moba_ref:
                 "--threads", str(threads),
                 "--pfile", inTrunk_moba,
                 "--make-bed",
-                "--out", outTrunk_only_moba # inTrunk_moba_1
+                "--out", outTrunk_only_moba
             ],
         )
 
@@ -1089,10 +911,7 @@ rule release_additional_files:
                 file.write(f"We hope that this release will be useful to you. All our wishes of success in your research.\n")
                 file.write(f"Made with love by the [Genetics and Bioinformatics department of the Norwegian Institute of Public Health](https://www.fhi.no/om/organisasjon/genetikk-og-bioinformatikk/).\n")
 
-            # r2 table
-            # with open(input.r2_table, 'rb') as f_in:
-            #     with gzip.open(output.r2_table, 'wb') as f_out:
-            #         shutil.copyfileobj(f_in, f_out)
+
             copyfile(input.r2_table, output.r2_table)
             # List of top SNPs
             copyfile(input.best_snps, output.best_snps)
