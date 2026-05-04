@@ -917,7 +917,7 @@ rule release_md:
 rule mod8_extract_Y_mito:
     input:
         bedset = rules.mod5_missingness_and_hwe.output.bedset,
-        exclude = rules.mod8_exclude_conflictual_relationships.output.pedigree_sample_exclusion
+        exclude = rules.mod8_psam_reconstruction.output.pedigree_sample_exclusion
     output:
         bedset = multiext(str(tmpMod8 / "Y_and_mito_variants" / "{batch}" / "mod8_extract_Y_mito"), ".bed", ".bim", ".fam")
     run:
