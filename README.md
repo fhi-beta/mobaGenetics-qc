@@ -64,7 +64,7 @@ The code, documentation, and associated release have been established by the [Ge
 
 The pipeline is built on work for the [MoBaGenetics v.1.0](https://github.com/folkehelseinstituttet/mobagen/wiki/MoBaGenetics1.0) release, led by Øyvind Helgeland, Julius Juodakis, Jonas Bacelis, and Ronny Myhre, supported by funding from European Research Council [AdG project SELECTionPREDISPOSED](https://cordis.europa.eu/project/id/293574).
 
-It was extended thanks to help from the [PsychGen team](https://www.fhi.no/en/me/the-psychgen-centre-for-genetic-epidemiology-and-mental-health), especially Elizabeth Claire Corfield, supported by funding from the South-Eastern Norway Regional Health Authority (#2021045; #2020022; #2022083; 2018058).
+It was extended thanks to help from the [PsychGen team](https://www.fhi.no/en/me/the-psychgen-centre-for-genetic-epidemiology-and-mental-health), especially Elizabeth Claire Corfield, supported by funding from the Research Council of Norway (#274611 to A. Havdahl and T. Reichborn-Kjennerud) and South-Eastern Norway Regional Health Authority (#2021045; #2020022; #2022083; 2018058 to A. Havdahl and L. Hannigan).
 
 The pre-phasing and imputation modules have been built following the implementation of the [NORMENT team](https://www.med.uio.no/norment/english/) and the [PsychGen team](https://www.fhi.no/en/me/the-psychgen-centre-for-genetic-epidemiology-and-mental-health), especially Oleksandr Frei and Tahir Tekin Filiz.
 
