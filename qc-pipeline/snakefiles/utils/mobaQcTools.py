@@ -1558,7 +1558,7 @@ def load_fam_file(fam_file):
     df = pd.read_csv(fam_file, delim_whitespace=True, header=None, names=['FID', 'IID', 'PID', 'MID', 'SEX', 'Phenotype'])
     return df
 
-def summarize_dr2(base, dr2_df_file, batches, info_chrs, threads):
+def summarize_dr2(base, dr2_df_file, batches, info_chrs):
     """
     A method for writing a file with the dr2 values after imputation
     """
@@ -1568,12 +1568,14 @@ def summarize_dr2(base, dr2_df_file, batches, info_chrs, threads):
         print(f"Reading data for batch {batch}...")
         info_files = [rf'{base}/{batch}/mod6_impute.chr{chr}.imputed.vcf.gz.info' for chr in info_chrs]
         batch_dfs = []
-        with mp.Pool(threads) as pool:
-            batch_dfs = pool.map(fetch_info_data, info_files)
+        for info_file in info_files:
+            print(f"Reading info file {info_file}...")
+            batch_dfs.append(fetch_info_data(info_file))
         df_batch = pd.concat(batch_dfs, ignore_index=True)
         if dr2_df is None:
             dr2_df = df_batch[["CHROM", "POS", "ID", "REF", "ALT"]]
-        dr2_df[batch] = df_batch["DR2"]
+        dr2_df[f"{batch}"] = df_batch["DR2"]
+        dr2_df[f"{batch}_IMP"] = df_batch["IMP"]
         vcf_file = rf'{base}/{batch}/mod6_impute.chr1.imputed.vcf.gz'
         sample_sizes.append(get_n_samples(vcf_file))
     sample_sizes = np.array(sample_sizes)
@@ -1581,9 +1583,6 @@ def summarize_dr2(base, dr2_df_file, batches, info_chrs, threads):
     dr2_df.fillna(0, inplace=True)
     dr2_df["COMBINED"] = ((((np.sqrt(dr2_df[[b for b in batches]])*sample_sizes).sum(axis=1))/N)**2).round(2)
     dr2_df.to_csv(dr2_df_file, sep="\t", index=False)
-    # dr2_df_remove_multiallelics = dr2_df.drop_duplicates(subset=['CHROM', 'POS'], keep=False)
-    # best_snp_df = dr2_df_remove_multiallelics.nlargest(snp_cutoff, "COMBINED")["ID"]
-    # best_snp_df.to_csv(top_snp_file, sep="\t", index=False, header=False)
     
 
 def best_snps_of_subset(dr2_file, out, snp_cutoff, pvar_file):
@@ -1597,6 +1596,7 @@ def best_snps_of_subset(dr2_file, out, snp_cutoff, pvar_file):
 def fetch_info_data(info_file):
     info_data = pd.read_csv(info_file, sep=r'\s+', names =["CHROM", "POS", "ID", "IMP", "REF", "ALT", "DR2", "AF"])
     info_data['ID'] = info_data.apply(lambda row: f"{row['CHROM']}_{row['POS']}_{row['REF']}:{row['ALT']}" if row['ID'] == '.' else row['ID'], axis=1)
+    info_data["IMP"] = info_data.apply(lambda row: "1" if row['IMP'] == "1" or row['IMP'] == 1 else "0", axis=1)
     return info_data
 
 def get_n_samples(vcf_file):
@@ -1610,13 +1610,8 @@ def get_n_samples(vcf_file):
 
 def find_high_dr2_variants(dr2_file, out, batch_threshold, combined_threshold):
     dr2_df = pd.read_csv(dr2_file, sep=r'\s+')
-    # counts_df = pd.read_csv(counts_file, sep=r'\s+')
-    # counts_cleaned = counts_df[~counts_df['ALT_CTS'].str.contains(',')]
-    # counts_cleaned['ALT_CTS'] = counts_cleaned['ALT_CTS'].astype(int)
-    # counts_filtered = counts_cleaned[counts_cleaned['ALT_CTS'] > counts_threshold]
     batch_cols = dr2_df.columns[dr2_df.columns.get_loc('ALT') + 1:-1]
-    dr2_df_high = dr2_df[(dr2_df[batch_cols] >= batch_threshold).all(axis=1) & (dr2_df['COMBINED'] >= combined_threshold)] #df[df["COMBINED"]>combined_threshold]["ID"]
-    # dr2_df_high = dr2_df_high[dr2_df_high["ID"].isin(counts_filtered["ID"])]
+    dr2_df_high = dr2_df[(dr2_df[batch_cols] >= batch_threshold).all(axis=1) & (dr2_df['COMBINED'] >= combined_threshold)]
     dr2_df_high["ID"].to_csv(out, index=False, header=False)
 
 def filter_fam_table_for_shapeit(input_file_path, output_file_path):
@@ -1628,6 +1623,8 @@ def filter_fam_table_for_shapeit(input_file_path, output_file_path):
     filtered_df = selected_columns_df[(selected_columns_df.iloc[:, 1] != "0") | (selected_columns_df.iloc[:, 2] != "0")]
     filtered_df.replace("0", 'NA', inplace=True)
     filtered_df.to_csv(output_file_path, header=False, sep="\t", index=False)
+
+
     
 def make_duplicates_table(psam_file, batches_file, ids_file, miss_file, output_duplicates, output_trios, output_all):
     """
@@ -1767,7 +1764,7 @@ def merge_pgensets(pgens, out_trunk, plink2local, threads, pgenlist_file = "pgen
     # Generate list of files to merge
     pgenset_dir=$(dirname "{out_trunk}")
     echo {pgens} | tr ' ' '\\n' | sed 's/\.pgen//' > $pgenset_dir/{pgenlist_file}.txt
-    {plink2local} --pmerge-list $pgenset_dir/{pgenlist_file}.txt --threads {threads} --out {out_trunk}
+    {plink2local} --pmerge-list $pgenset_dir/{pgenlist_file}.txt --threads {threads} --merge-info-mode erase --out {out_trunk}
     """
     subprocess.run(cmd, shell=True, check=True)
 

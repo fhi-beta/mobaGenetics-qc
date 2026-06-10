@@ -1,20 +1,32 @@
+library(dplyr)
 debug <- F
-
 if (debug){
     args <- c(
-        "/mnt/archive3/snpQc/pipeOut_dev/2025.09.25/mod8-release_annotation/mod8_make_phasing_tables.best", 
-        "/mnt/work/oystein/tmp/phasing_test/report.md",
-        "Phasing report debug")
+        "/mnt/archive3/phasing_test/phase_chr20_test/mod7_phase_check",
+        "/mnt/archive3/phasing_test/phase_chr20_test/filtered_relationships",
+        "/mnt/archive3/phasing_test/debug/phase_report/phase_report.md", 
+        "Phasing report, pre-phase related samples",
+        "phasing_hom",
+        "Phasing error rates")
 } else {
     args <- commandArgs(TRUE)
 }
 
+
+
+
 input_files <- sapply(1:22, function(i) paste0(args[1],".chr", i))
 
-md_file <- args[2]
-title <- args[3]
+
+
+relations_file <- args[2]
+md_file <- args[3]
+
+title <- args[4]
+rate <- c(args[5], args[6])
 docs_folder <- dirname(md_file)
 plots_folder <- paste0(docs_folder, "/phasing_plots/")
+
 
 
 if(!dir.exists(docs_folder)){
@@ -30,12 +42,6 @@ write(
   x = paste("#", title),
   file = md_file,
   append = F
-)
-
-
-rates <- list(
-  c("phasing_hom", "Phasing error rates"),
-  c("mendel", "Mendelian error rates")
 )
 
 plot_density <- function(numbers, title, xlab, absolute_filepath, relative_filepath) {
@@ -59,7 +65,26 @@ plot_density <- function(numbers, title, xlab, absolute_filepath, relative_filep
     )
 }
 
-chromosome_tables <- lapply(input_files, function(file) read.table(file, header = TRUE))
+# Only read tables for files that exist
+chromosome_tables <- lapply(input_files, function(file) {
+    if (file.exists(file)) {
+        read.table(file, header = TRUE)
+    } else {
+        warning(paste("File does not exist:", file))
+        NULL
+    }
+})
+
+rel <- read.table(relations_file, header = TRUE)
+chromosome_tables <- lapply(chromosome_tables, function(tab) {
+    if (is.null(tab)) {
+        return(NULL)
+    }
+    tab <- tab %>% left_join(rel %>% select(iid, shared_chips), by = "iid")
+    return(tab)
+})
+
+
 
 write_rates_table_row <- function(p, rates){
     rates <- na.omit(rates)
@@ -71,7 +96,6 @@ write_rates_table_row <- function(p, rates){
 }
 
 write_combined_rates_table_row <- function(p, trios, sites, errors){
-    rates <- na.omit(rates)
     write(
         x = paste("|", p,"|", trios, "|", sites, "|", errors, "|", signif(errors/sites, digits=2), "|"),
         file = md_file,
@@ -79,16 +103,15 @@ write_combined_rates_table_row <- function(p, trios, sites, errors){
     )
 }
 
-for (rate in rates){
 
+# write(
+#     x = paste0("## ", rate[2], " per chromosome and number of parents in same batch as child"),
+#     file = md_file,
+#     append = T
+# )
+
+write_chromosome_table <- function(tab, rate, chr){
     write(
-        x = paste0("## ", rate[2], " per chromosome and number of parents in same batch as child"),
-        file = md_file,
-        append = T
-    )
-    for (chr in 1:22) {
-        tab <- chromosome_tables[[chr]]
-        write(
             x = paste0("### ", rate[2], ", chromosome ", chr),
             file = md_file,
             append = T
@@ -100,17 +123,22 @@ for (rate in rates){
         )
         
         write(
-            x = "| Parents in batch | Trios | Sites | Errors | Error rate |\n|:----|:----|:----|:----|:----|",
+            x = "| Shared chips | Trios | Sites | Errors | Error rate |\n|:----|:----|:----|:----|:----|",
             file = md_file,
             append = T
         )
         for (p in 0:2){
-            tab_p <- subset(tab, parents_in_batch == p)
+            tab_p <- subset(tab, shared_chips == p)
             trios <- nrow(tab_p)
             sites <- sum(tab_p[[paste0("n_",rate[1])]])
             errors <- sum(tab_p[[paste0("e_",rate[1])]])
             write_combined_rates_table_row(p, trios, sites, errors)
         }
+        tab_p <- tab
+        trios <- nrow(tab_p)
+        sites <- sum(tab_p[[paste0("n_",rate[1])]])
+        errors <- sum(tab_p[[paste0("e_",rate[1])]])
+        write_combined_rates_table_row("Total", trios, sites, errors)
         write(
             x = "\n",
             file = md_file,
@@ -122,14 +150,15 @@ for (rate in rates){
             append = T
         )
         write(
-            x = "| Parents in batch | min | max | median | mean |\n|:----|:----|:----|:----|:----|",
+            x = "| Shared chips | min | max | median | mean |\n|:----|:----|:----|:----|:----|",
             file = md_file,
             append = T
         )
         for (p in 0:2){
-            tab_p <- subset(tab, parents_in_batch == p)
+            tab_p <- subset(tab, shared_chips == p)
             write_rates_table_row(p, tab_p[[paste0("r_",rate[1])]])
         }
+        write_rates_table_row("Total", tab[[paste0("r_",rate[1])]])
         write(
             x = "\n",
             file = md_file,
@@ -146,13 +175,29 @@ for (rate in rates){
             if (p==1){
                 plur <- ""
             }
-            tab_p <- subset(tab, parents_in_batch == p)
-            filename <- paste0(gsub(" ", "_", tolower(rate[2])),"_chr",chr,"_",p,"parents.png")
-            title <- paste0("Chromosome ", chr,", ",p, " parent", plur, " in batch")
+            tab_p <- subset(tab, shared_chips == p)
+            filename <- paste0(gsub(" ", "_", tolower(rate[2])),"_chr",chr,"_",p,"shared_chips.png")
+            title <- paste0("Chromosome ", chr,", ",p, " shared chip", plur)
             aboslute_path <- paste0(plots_folder, filename)
             relative_path <- paste0("phasing_plots/", filename)
             plot_density(tab_p[[paste0("r_",rate[1])]], title, rate[2], aboslute_path, relative_path)
 
         }
+        filename <- paste0(gsub(" ", "_", tolower(rate[2])),"_chr",chr,"_total.png")
+        title <- paste0("Chromosome ", chr,", all samples")
+        aboslute_path <- paste0(plots_folder, filename)
+        relative_path <- paste0("phasing_plots/", filename)
+        plot_density(tab[[paste0("r_",rate[1])]], title, rate[2], aboslute_path, relative_path)
     }
+
+
+for (chr in 1:22) {
+    tab <- chromosome_tables[[chr]]
+    if (!is.null(tab)) {
+        write_chromosome_table(tab, rate, chr)
+    }
+    
 }
+
+
+

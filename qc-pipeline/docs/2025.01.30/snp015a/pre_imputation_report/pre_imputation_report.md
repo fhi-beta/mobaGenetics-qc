@@ -1,4 +1,4 @@
-# Batch report for batch snp015a, module mod5-pre-phasing
+# Batch report for batch snp015a, module mod5-harmonization
 ## Samples overview
 13364 samples
 <br>8390 kinship clusters
