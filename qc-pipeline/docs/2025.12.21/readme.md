@@ -1,5 +1,6 @@
 ## Moba genotypes QC
 Documentation of the quality control of the genotypes from the [Norwegian Mother, Father and Child Cohort Study (MoBa)](https://www.fhi.no/en/studies/moba/), release 2025.12.21.
+- [Initial sample overview](initial_samples_overview.md): number of samples in the different batches and overall prior to QC.
 ### Post-imputation
 Quality control conducted post-imputation on the entire release
 - [Relatedness and sex assignment](mod8_psam_reconstruction.md): Summary statistics on inferred familial relationship and sex assignment. This was conducted using a set of approximately 500,000 high quality genotyped or imputed autosome markers pruned for LD.
