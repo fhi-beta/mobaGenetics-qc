@@ -1,9 +1,10 @@
 ## MoBa Genotypes Releases
 
 ### Current release
-- [v. 2025.09.25](2025.09.25/readme.md): Second public release. Improved the handling of SNPs with different frequencies between populations.
+- [v. 2025.12.21](2025.12.21/readme.md): Third public release. Improved the phasing across batches.
 
 ### Previous releases
+- [v. 2025.09.25](2025.09.25/readme.md): Second public release. Improved the handling of SNPs with different frequencies between populations.
 - [v. 2025.01.30](2025.01.30/readme.md): First public beta release.
 - [v. 2024.07.01](2024.07.01/readme.md): Preliminary alpha release for testing by expert users.
 - [MoBa PsychGen](github.com/psychgen/MoBaPsychGen-QC-pipeline): A quality-controlled set of genotypes created by the [PsychGen Centre for Genetic Epidemiology and Mental Health](https://www.fhi.no/en/me/the-psychgen-centre-for-genetic-epidemiology-and-mental-health).
